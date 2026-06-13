@@ -1,0 +1,892 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userPath() {
+      return /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
+    function userExists() {
+      return isSignedIn() && exists(userPath());
+    }
+
+    function userDoc() {
+      return get(userPath()).data;
+    }
+
+    function role() {
+      return isSignedIn() && ('role' in request.auth.token)
+        ? request.auth.token.role
+        : (userExists() ? userDoc().role : 'guest');
+    }
+
+    function isAdmin() {
+      return role() in ['admin', 'super_admin'];
+    }
+
+    function isSuperAdmin() {
+      return role() == 'super_admin';
+    }
+
+    function isSales() {
+      return role() in ['sales', 'sales_rep'];
+    }
+
+    function isAgent() {
+      return role() in ['agent', 'sales_agent'];
+    }
+
+    function isSalesOrAgent() {
+      return isSales() || isAgent();
+    }
+
+    function isPrinter() {
+      return role() in ['printer', 'printer_staff', 'printer_operator'];
+    }
+
+    function isQaInspector() {
+      return role() in ['qa_inspector', 'qa'];
+    }
+
+    function isShipping() {
+      return role() in ['shipping', 'courier'];
+    }
+
+    function isCustomer() {
+      return role() in ['customer', 'user', 'guest'];
+    }
+
+    function isOrderCreator() {
+      return isSalesOrAgent();
+    }
+
+    function sameCompany(data) {
+      return !('companyId' in data)
+        || !('companyId' in userDoc())
+        || data.companyId == ''
+        || userDoc().companyId == ''
+        || userDoc().companyId == data.companyId;
+    }
+
+    function sameBranch(data) {
+      return sameCompany(data) && (
+        !('branch' in data)
+        || !('branch' in userDoc())
+        || data.branch == ''
+        || userDoc().branch == data.branch
+      );
+    }
+
+    function scanTestOpsEnabled() {
+      return exists(/databases/$(database)/documents/app_config/ops)
+        && get(/databases/$(database)/documents/app_config/ops).data.scanTestEnabled == true;
+    }
+
+    function isScanTestWrite() {
+      return scanTestOpsEnabled()
+        && isPrinter()
+        && ('isScanTest' in request.resource.data)
+        && request.resource.data.isScanTest == 'printer_scan_test_v1';
+    }
+
+    function isScanTestDoc(data) {
+      return ('isScanTest' in data) && data.isScanTest == 'printer_scan_test_v1';
+    }
+
+    function onlyChanged(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
+    function isPrivilegedRoleValue(value) {
+      return value in ['admin', 'super_admin'];
+    }
+
+    function isStaffRoleValue(value) {
+      return value in [
+        'customer', 'sales', 'agent', 'printer', 'printer_operator',
+        'qa_inspector', 'shipping', 'admin', 'super_admin'
+      ];
+    }
+
+    function validSelfUserCreate(userId) {
+      return request.auth.uid == userId
+        && request.resource.data.keys().hasOnly([
+          'email', 'displayName', 'role', 'authType', 'authProvider',
+          'plan', 'trialStartedAt', 'trialEndsAt', 'language',
+          'phone', 'branch', 'territory', 'companyId', 'isActive', 'isGuest',
+          'createdBy', 'updatedBy', 'createdAt', 'updatedAt', 'lastLoginAt'
+        ])
+        && request.resource.data.role == 'customer'
+        && request.resource.data.isActive == true
+        && (!('createdBy' in request.resource.data) || request.resource.data.createdBy == userId)
+        && (!('updatedBy' in request.resource.data) || request.resource.data.updatedBy == userId)
+        && (!('authType' in request.resource.data)
+          || request.resource.data.authType in ['anonymous', 'email', 'google', 'apple', 'telegram'])
+        && (!('authProvider' in request.resource.data)
+          || request.resource.data.authProvider in ['anonymous', 'email', 'google', 'apple', 'telegram'])
+        && (!('plan' in request.resource.data)
+          || request.resource.data.plan in ['guest_trial', 'free']);
+    }
+
+    function validSelfProfileUpdate(userId) {
+      return request.auth.uid == userId
+        && onlyChanged([
+          'displayName', 'phone', 'language', 'expoPushToken',
+          'pushTokenUpdatedAt', 'updatedAt', 'updatedBy'
+        ])
+        && (!('updatedBy' in request.resource.data) || request.resource.data.updatedBy == userId);
+    }
+
+    function validGuestConversionUpdate(userId) {
+      return request.auth.uid == userId
+        && resource.data.role == 'customer'
+        && request.resource.data.role == 'customer'
+        && (
+          resource.data.authType == 'anonymous'
+          || resource.data.authProvider == 'anonymous'
+          || resource.data.plan == 'guest_trial'
+        )
+        && request.resource.data.authType in ['email', 'google', 'apple', 'telegram']
+        && request.resource.data.authProvider in ['email', 'google', 'apple', 'telegram']
+        && request.resource.data.plan == 'free'
+        && request.resource.data.isActive == true
+        && request.resource.data.isGuest == false
+        && request.resource.data.updatedBy == userId
+        && onlyChanged([
+          'email', 'displayName', 'role', 'authType', 'authProvider',
+          'plan', 'trialStartedAt', 'trialEndsAt', 'language', 'phone',
+          'companyId', 'branch', 'territory', 'isActive', 'isGuest',
+          'updatedAt', 'updatedBy'
+        ]);
+    }
+
+    function validAdminUserCreate() {
+      return isAdmin()
+        && isStaffRoleValue(request.resource.data.role)
+        && request.resource.data.keys().hasOnly([
+          'email', 'displayName', 'role', 'phone', 'branch', 'territory',
+          'companyId', 'language', 'isActive', 'createdBy', 'updatedBy',
+          'createdAt', 'updatedAt'
+        ])
+        && (isSuperAdmin() || !isPrivilegedRoleValue(request.resource.data.role));
+    }
+
+    function validAdminUserUpdate() {
+      return isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'email', 'displayName', 'role', 'phone', 'branch', 'territory',
+          'companyId', 'language', 'isActive', 'plan', 'updatedBy', 'updatedAt'
+        ])
+        && (
+          isSuperAdmin()
+          || (
+            !isPrivilegedRoleValue(resource.data.role)
+            && !isPrivilegedRoleValue(request.resource.data.role)
+          )
+        );
+    }
+
+    function isGuestDraftOwner(data) {
+      return isSignedIn() && (
+        data.sessionOwnerUid == request.auth.uid
+        || data.ownerId == request.auth.uid
+        || data.userId == request.auth.uid
+        || data.convertedToUserId == request.auth.uid
+      );
+    }
+
+    function guestAccessMatches(data) {
+      return isSignedIn()
+        && ('guestAccessKey' in data)
+        && ('guestAccessKey' in request.resource.data)
+        && data.guestAccessKey == request.resource.data.guestAccessKey;
+    }
+
+    function validGuestSessionAccessUpdate(data) {
+      return guestAccessMatches(data)
+        && request.resource.data.guestId == data.guestId
+        && request.resource.data.ownerId == data.ownerId
+        && request.resource.data.ownerType == data.ownerType
+        && request.resource.data.sessionOwnerUid == request.auth.uid
+        && request.resource.data.convertedToUserId == request.auth.uid
+        && request.resource.data.diff(data).affectedKeys().hasOnly([
+          'status', 'sessionOwnerUid', 'convertedToUserId', 'orderId',
+          'updatedAt'
+        ]);
+    }
+
+    function validGuestCardAccessMigration(data) {
+      return guestAccessMatches(data)
+        && data.ownerType == 'guest'
+        && request.resource.data.ownerType == 'customer'
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.guestId == data.guestId
+        && request.resource.data.guestAccessKey == data.guestAccessKey
+        && request.resource.data.diff(data).affectedKeys().hasOnly([
+          'ownerId', 'ownerType', 'userId', 'guestId', 'guestAccessKey',
+          'sessionOwnerUid', 'previousGuestId',
+          'status', 'profile', 'design', 'publicProfileUrl',
+          'designLocked', 'lockedPublicProfileUrl', 'printProfileUrl',
+          'updatedAt'
+        ]);
+    }
+
+    function isPublicGuestCard(data) {
+      return ('status' in data) && data.status in [
+        'preview_ready', 'ordered', 'locked', 'printed',
+        'encoded', 'verified', 'active', 'published'
+      ];
+    }
+
+    function isPublishedBioPage(data) {
+      return ('status' in data) && data.status in ['active', 'trial'];
+    }
+
+    function validNotificationCreate() {
+      return request.resource.data.keys().hasAll(['userId', 'title', 'message', 'isRead', 'createdAt'])
+        && request.resource.data.userId is string
+        && request.resource.data.title is string
+        && request.resource.data.message is string
+        && request.resource.data.isRead == false;
+    }
+
+    function isOpsStaff() {
+      return isAdmin()
+        || isSalesOrAgent()
+        || isPrinter()
+        || isQaInspector()
+        || isShipping();
+    }
+
+    function validOrderCardStatus() {
+      return !('cardStatus' in request.resource.data)
+        || request.resource.data.cardStatus in ['active', 'frozen', 'closed'];
+    }
+
+    function isAssignedSalesRep(salesId) {
+      return exists(/databases/$(database)/documents/users/$(salesId))
+        && get(/databases/$(database)/documents/users/$(salesId)).data.role
+          in ['sales', 'sales_rep', 'agent', 'sales_agent'];
+    }
+
+    function orderPath(orderId) {
+      return /databases/$(database)/documents/orders/$(orderId);
+    }
+
+    function orderData(orderId) {
+      return get(orderPath(orderId)).data;
+    }
+
+    function isPhysicalOrder(data) {
+      return data.fulfillment == 'physical'
+        || data.productType in ['physical_nfc', 'wood_card', 'metal_card', 'pvc_card'];
+    }
+
+    function isPaidOrder(data) {
+      return data.paymentStatus in ['paid', 'paid_verified', 'paid_qr', 'cash_received'];
+    }
+
+    function isProductionReadyOrder(data) {
+      return isPhysicalOrder(data)
+        && data.status in [
+          'ready_to_print', 'printing', 'nfc_writing', 'nfc_verification',
+          'qa_pending', 'ready_to_ship', 'qa_failed'
+        ];
+    }
+
+    function isApprovedProductionOrder(data) {
+      return isProductionReadyOrder(data)
+        && isPaidOrder(data)
+        && ('salesApprovedAt' in data)
+        && data.salesApprovedAt != null;
+    }
+
+    function isApprovedProductionJob(data) {
+      return ('orderId' in data)
+        && ('cardId' in data)
+        && exists(orderPath(data.orderId))
+        && exists(cardPath(data.cardId))
+        && orderData(data.orderId).cardId == data.cardId
+        && cardData(data.cardId).publicProfileUrl is string
+        && cardData(data.cardId).publicProfileUrl != ''
+        && (
+          cardData(data.cardId).designLocked == true
+          || cardData(data.cardId).status in ['locked', 'printed', 'encoded', 'verified', 'active', 'published']
+        )
+        && isApprovedProductionOrder(orderData(data.orderId));
+    }
+
+    function sameBranchProductionJob(data) {
+      return sameBranch(data)
+        && isApprovedProductionJob(data)
+        && sameBranch(orderData(data.orderId));
+    }
+
+    function validPrinterStage(stage) {
+      return stage in [
+        'received', 'printing', 'nfc_encoding', 'quality_check',
+        'ready_to_ship', 'completed', 'failed', 'reprint'
+      ];
+    }
+
+    function cardPath(cardId) {
+      return /databases/$(database)/documents/cards/$(cardId);
+    }
+
+    function cardData(cardId) {
+      return get(cardPath(cardId)).data;
+    }
+
+    function validGuestCardCreate(cardId) {
+      return request.resource.data.cardId == cardId
+        && request.resource.data.ownerType == 'guest'
+        && request.resource.data.ownerId == request.resource.data.guestId
+        && request.resource.data.sessionOwnerUid == request.auth.uid;
+    }
+
+    function validCustomerCardCreate(cardId) {
+      return request.resource.data.cardId == cardId
+        && request.resource.data.ownerType == 'customer'
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid;
+    }
+
+    function customerOwnsOrderCard(data) {
+      return !('cardId' in data)
+        || (
+          exists(cardPath(data.cardId))
+          && cardData(data.cardId).ownerId == request.auth.uid
+          && cardData(data.cardId).ownerType in ['customer', 'user']
+        );
+    }
+
+    function isCardDesignLocked(data) {
+      return data.designLocked == true
+        || data.status in ['locked', 'printed', 'encoded', 'verified', 'active', 'published'];
+    }
+
+    function validOwnedCardUpdate(data) {
+      return isGuestDraftOwner(data)
+        && (
+          !isCardDesignLocked(data)
+          || !('design' in request.resource.data)
+          || request.resource.data.design == data.design
+        );
+    }
+
+    function validProductionCardUpdate(data) {
+      return isOpsStaff()
+        && request.resource.data.cardId == data.cardId
+        && request.resource.data.publicSlug == data.publicSlug
+        && request.resource.data.ownerId == data.ownerId
+        && request.resource.data.diff(data).affectedKeys().hasOnly([
+          'status', 'designLocked', 'designLockedAt', 'designLockedBy',
+          'productionOrderId', 'productionJobId', 'lockedPublicProfileUrl',
+          'printProfileUrl', 'paymentVerifiedAt', 'encodedAt', 'verifiedAt',
+          'nfcUrl', 'updatedAt', 'updatedBy'
+        ]);
+    }
+
+    match /app_config/payment_secrets {
+      allow read, write: if false;
+    }
+
+    match /app_config/{docId} {
+      allow read: if isSignedIn() && docId != 'payment_secrets';
+      allow write: if isAdmin() && docId != 'payment_secrets';
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn() && (
+        request.auth.uid == userId
+        || isSuperAdmin()
+        || (isAdmin() && sameCompany(resource.data))
+      );
+      allow create: if isSignedIn() && (
+        validSelfUserCreate(userId)
+        || validAdminUserCreate()
+      );
+      allow update: if isSignedIn() && (
+        validSelfProfileUpdate(userId)
+        || validGuestConversionUpdate(userId)
+        || validAdminUserUpdate()
+      );
+      allow delete: if isSuperAdmin()
+        || (isAdmin() && !isPrivilegedRoleValue(resource.data.role));
+    }
+
+    match /guests/{guestId} {
+      allow create: if isSignedIn()
+        && request.resource.data.guestId == guestId
+        && request.resource.data.sessionOwnerUid == request.auth.uid;
+      allow read: if isAdmin() || isGuestDraftOwner(resource.data);
+      allow update: if isAdmin()
+        || isGuestDraftOwner(resource.data)
+        || validGuestSessionAccessUpdate(resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /guestSessions/{guestId} {
+      allow create: if isSignedIn()
+        && request.resource.data.guestId == guestId
+        && request.resource.data.sessionOwnerUid == request.auth.uid;
+      allow read: if isAdmin() || isGuestDraftOwner(resource.data);
+      allow update: if isAdmin()
+        || isGuestDraftOwner(resource.data)
+        || validGuestSessionAccessUpdate(resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /cards/{cardId} {
+      allow create: if isSignedIn() && (
+        isAdmin()
+        || validGuestCardCreate(cardId)
+        || validCustomerCardCreate(cardId)
+      );
+      allow read: if isAdmin()
+        || isPublicGuestCard(resource.data)
+        || isGuestDraftOwner(resource.data);
+      allow update: if isAdmin()
+        || validOwnedCardUpdate(resource.data)
+        || validProductionCardUpdate(resource.data)
+        || validGuestCardAccessMigration(resource.data);
+      allow delete: if isAdmin();
+    }
+
+    function paymentStatusUnchanged() {
+      return request.resource.data.paymentStatus == resource.data.paymentStatus;
+    }
+
+    function isManualPaymentProofUpdate() {
+      return isCustomer()
+        && resource.data.createdBy == request.auth.uid
+        && onlyChanged([
+          'paymentStatus', 'paymentProofUrl', 'paymentProofPath', 'paymentReference',
+          'manualVerificationStatus', 'updatedAt', 'updatedBy'
+        ])
+        && request.resource.data.paymentStatus == 'under_review'
+        && request.resource.data.manualVerificationStatus in [
+          'proof_submitted', 'reference_submitted'
+        ];
+    }
+
+    function isManualPaymentVerificationUpdate() {
+      return (
+          isAdmin()
+          || (isSalesOrAgent() && resource.data.assignedSalesman == request.auth.uid)
+        )
+        && onlyChanged([
+          'paymentStatus', 'manualVerificationStatus', 'paymentVerifiedBy',
+          'paymentVerifiedAt', 'paymentReviewNote', 'paidAt', 'updatedAt', 'updatedBy'
+        ])
+        && request.resource.data.paymentVerifiedBy == request.auth.uid
+        && (
+          (
+            request.resource.data.paymentStatus in ['paid_verified', 'paid']
+            && request.resource.data.manualVerificationStatus == 'verified'
+          )
+          || (
+            request.resource.data.paymentStatus == 'pending_payment'
+            && request.resource.data.manualVerificationStatus == 'rejected'
+          )
+        );
+    }
+
+    function validOrderData(data) {
+      return (!('quantity' in data) || (data.quantity is int && data.quantity >= 1 && data.quantity <= 5000))
+          && (!('amount' in data) || (data.amount is number && data.amount >= 0))
+          && (!('depositAmount' in data) || (data.depositAmount is number && data.depositAmount >= 0))
+          && (!('salesCommission' in data) || (data.salesCommission is number && data.salesCommission >= 0));
+    }
+
+    match /orders/{orderId} {
+      allow read: if isSignedIn() && (
+        isAdmin()
+        || (isSalesOrAgent() && resource.data.assignedSalesman == request.auth.uid)
+        || (isCustomer() && resource.data.createdBy == request.auth.uid)
+        || (isPrinter() && sameBranch(resource.data) && isProductionReadyOrder(resource.data))
+        || (isQaInspector() && sameBranch(resource.data))
+        || (isShipping() && sameBranch(resource.data))
+      );
+      allow create: if validOrderData(request.resource.data) && isSignedIn() && (
+        (isAdmin() && sameCompany(request.resource.data))
+        || (isPrinter() && isScanTestWrite() && sameCompany(request.resource.data))
+        || (isOrderCreator()
+          && sameCompany(request.resource.data)
+          && request.resource.data.createdBy == request.auth.uid
+          && request.resource.data.assignedSalesman == request.auth.uid)
+        || (isCustomer()
+          && sameCompany(request.resource.data)
+          && request.resource.data.createdBy == request.auth.uid
+          && customerOwnsOrderCard(request.resource.data)
+          && request.resource.data.assignedSalesman != request.auth.uid
+          && isAssignedSalesRep(request.resource.data.assignedSalesman)
+          && request.resource.data.status in ['new', 'design', 'ready']
+          && request.resource.data.paymentStatus in ['unpaid', 'pending_payment']
+          && request.resource.data.quantity is int
+          && request.resource.data.quantity >= 1
+          && request.resource.data.quantity <= 100)
+      );
+      allow update: if validOrderData(request.resource.data) && isSignedIn()
+        && (
+          paymentStatusUnchanged()
+          || isManualPaymentProofUpdate()
+          || isManualPaymentVerificationUpdate()
+        )
+        && (
+        isManualPaymentVerificationUpdate()
+        || isManualPaymentProofUpdate()
+        || isAdmin()
+        || (isSalesOrAgent()
+          && validOrderCardStatus()
+          && (
+            (resource.data.assignedSalesman == request.auth.uid
+              && onlyChanged([
+                'customerName', 'phone', 'telegram', 'whatsapp', 'email', 'company',
+                'jobTitle', 'deliveryAddress', 'productType', 'quantity', 'cardDesign',
+                'nfcEnabled', 'nfcTargetUrl', 'qrPrinted', 'notes',
+                'paymentMethod', 'depositAmount', 'dueDate', 'priority', 'cardStatus',
+                'amount', 'currency', 'salesCommission', 'salesCommissionCurrency',
+                'freezeReason', 'frozenAt', 'frozenBy', 'closedAt', 'closedBy',
+                'updatedAt', 'updatedBy'
+              ]))
+            || (
+              onlyChanged([
+                'status', 'salesApprovedAt', 'salesApprovedBy', 'orderNumber',
+                'productionPasscode', 'updatedAt', 'updatedBy'
+              ])
+              && request.resource.data.status == 'ready_to_print'
+              && resource.data.status in ['new', 'design']
+              && isPhysicalOrder(resource.data)
+              && isPaidOrder(resource.data)
+              && ('cardId' in resource.data)
+              && exists(cardPath(resource.data.cardId))
+              && cardData(resource.data.cardId).publicProfileUrl is string
+              && cardData(resource.data.cardId).publicProfileUrl != ''
+              && request.resource.data.salesApprovedBy == request.auth.uid
+            )
+          ))
+        || (isPrinter()
+          && sameBranch(resource.data)
+          && isApprovedProductionOrder(resource.data)
+          && (!('cardId' in resource.data) || request.resource.data.cardId == resource.data.cardId)
+          && request.resource.data.status in [
+            'ready_to_print', 'printing', 'nfc_writing', 'nfc_verification', 'qa_pending', 'qa_failed'
+          ]
+          && onlyChanged(['status', 'cardCode', 'profileUrl', 'batchId', 'branch', 'updatedAt', 'updatedBy']))
+        || (isPrinter()
+          && isScanTestDoc(resource.data)
+          && request.resource.data.status in ['ready_to_print', 'printing']
+          && onlyChanged(['status', 'updatedAt', 'updatedBy']))
+        || (isQaInspector()
+          && sameBranch(resource.data)
+          && onlyChanged(['status', 'updatedAt', 'updatedBy']))
+        || (isShipping()
+          && sameBranch(resource.data)
+          && onlyChanged([
+            'status', 'carrier', 'trackingNumber', 'trackingNote', 'shippedAt',
+            'commissionAccruedAt', 'updatedAt', 'updatedBy'
+          ]))
+        || (isCustomer()
+          && resource.data.createdBy == request.auth.uid
+          && onlyChanged(['cardStatus', 'freezeReason', 'frozenAt', 'frozenBy', 'updatedAt', 'updatedBy']))
+        || (isCustomer()
+          && guestAccessMatches(resource.data)
+          && request.resource.data.createdBy == request.auth.uid
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.ownerId == request.auth.uid
+          && onlyChanged(['ownerId', 'ownerType', 'userId', 'createdBy', 'updatedBy', 'guestAccessKey', 'updatedAt']))
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /production_batches/{batchId} {
+      allow read: if isSignedIn() && (isAdmin() || isSalesOrAgent() || isPrinter() || isQaInspector() || isShipping());
+      allow create: if isSignedIn() && (isAdmin() || isSalesOrAgent() || (isPrinter() && isScanTestWrite()));
+      allow update: if isSignedIn() && (
+        isAdmin()
+        || isSalesOrAgent()
+        || (isPrinter() && isScanTestDoc(resource.data) && onlyChanged(['orderIds', 'activeOperatorId', 'updatedAt', 'updatedBy']))
+        || (isPrinter()
+          && sameBranch(resource.data)
+          && resource.data.status == 'active'
+          && request.resource.data.status == resource.data.status
+          && onlyChanged(['orderIds', 'updatedAt', 'updatedBy']))
+      );
+      allow delete: if isAdmin();
+    }
+
+    function printerCanReadJob(data) {
+      return isPrinter()
+        && sameBranch(data)
+        && ('batchId' in data)
+        && data.batchId != ''
+        && (data.printerId == '' || data.printerId == request.auth.uid);
+    }
+
+    match /printer_jobs/{jobId} {
+      allow read: if isSignedIn() && (
+        isAdmin()
+        || isQaInspector()
+        || printerCanReadJob(resource.data)
+      );
+      allow create: if isSignedIn()
+        && isApprovedProductionJob(request.resource.data)
+        && validPrinterStage(request.resource.data.stage)
+        && (
+          isAdmin()
+          || isSalesOrAgent()
+          || isQaInspector()
+          || (isPrinter()
+            && sameBranchProductionJob(request.resource.data)
+            && request.resource.data.stage == 'received'
+            && request.resource.data.printerId == '')
+        );
+      allow update: if isSignedIn() && (
+        isAdmin()
+        || isQaInspector()
+        || (isPrinter()
+          && isScanTestDoc(resource.data)
+          && (!('cardId' in resource.data) || request.resource.data.cardId == resource.data.cardId)
+          && validPrinterStage(request.resource.data.stage)
+          && onlyChanged([
+            'stage', 'printerId', 'cardsPrinted', 'failedCards', 'reprintedCards',
+            'notes', 'qaVideoUrl', 'batchId', 'branch', 'updatedAt', 'updatedBy'
+          ]))
+        || (isPrinter()
+          && (resource.data.printerId == '' || resource.data.printerId == request.auth.uid)
+          && (request.resource.data.printerId == resource.data.printerId || request.resource.data.printerId == request.auth.uid)
+          && sameBranchProductionJob(resource.data)
+          && request.resource.data.cardId == resource.data.cardId
+          && validPrinterStage(request.resource.data.stage)
+          && onlyChanged([
+            'stage', 'printerId', 'cardsPrinted', 'failedCards', 'reprintedCards',
+            'notes', 'qaVideoUrl', 'batchId', 'branch', 'updatedAt', 'updatedBy'
+          ]))
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /productionLogs/{logId} {
+      allow read: if isSignedIn() && (isAdmin() || isSalesOrAgent() || isPrinter() || isQaInspector());
+      allow create: if isSignedIn()
+        && isOpsStaff()
+        && request.resource.data.cardId is string
+        && request.resource.data.orderId is string
+        && request.resource.data.jobId is string;
+      allow update, delete: if false;
+    }
+
+    match /reprint_records/{recordId} {
+      allow read: if isSignedIn() && (isAdmin() || isPrinter() || isQaInspector());
+      allow create: if isSignedIn() && (isAdmin() || isQaInspector() || isPrinter());
+      allow update, delete: if isAdmin();
+    }
+
+    match /audit_logs/{logId} {
+      allow read: if isSignedIn() && isAdmin();
+      allow write: if false;
+    }
+
+    match /printer_health/{healthId} {
+      allow read: if isSignedIn() && (isAdmin() || isPrinter());
+      allow create, update: if isAdmin() || isPrinter();
+      allow delete: if isAdmin();
+    }
+
+    match /nfc_cards/{cardCode} {
+      allow read: if isSignedIn() && (
+        isAdmin()
+        || isPrinter()
+        || isQaInspector()
+        || isShipping()
+        || resource.data.ownerUserId == request.auth.uid
+      );
+      allow create: if isSignedIn() && (
+        isAdmin()
+        || isPrinter()
+        || request.resource.data.writtenBy == request.auth.uid
+      );
+      allow update: if isSignedIn() && (
+        isAdmin()
+        || isPrinter()
+        || request.resource.data.writtenBy == request.auth.uid
+        || resource.data.writtenBy == request.auth.uid
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /salary_records/{recordId} {
+      allow read: if isSignedIn() && (resource.data.printerId == request.auth.uid || isAdmin());
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /payouts/{payoutId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAdmin() || isShipping();
+      allow update: if isAdmin()
+        || (isShipping()
+          && resource.data.status == 'pending'
+          && request.resource.data.status == 'pending');
+      allow delete: if isAdmin();
+    }
+
+    match /profiles/{profileId} {
+      allow read: if resource.data.isPublished == true
+        || (isSignedIn() && request.auth.uid == profileId)
+        || isAdmin();
+      allow create: if isSignedIn() && (request.auth.uid == profileId || isAdmin());
+      allow update: if isSignedIn() && (request.auth.uid == profileId || isAdmin());
+      allow delete: if isSignedIn() && (request.auth.uid == profileId || isAdmin());
+    }
+
+    match /tap_events/{eventId} {
+      allow read: if isSignedIn() && (
+        isAdmin()
+        || resource.data.profileId == request.auth.uid
+      );
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    match /bio_pages/{pageId} {
+      allow read: if isPublishedBioPage(resource.data)
+        || (isSignedIn() && request.auth.uid == pageId)
+        || isAdmin();
+      allow create: if isSignedIn() && (request.auth.uid == pageId || isAdmin());
+      allow update: if (isSignedIn() && (request.auth.uid == pageId || isAdmin()))
+        || (
+          onlyChanged(['views', 'taps', 'updatedAt'])
+          && request.resource.data.views is int
+          && request.resource.data.taps is int
+          && request.resource.data.views >= resource.data.views
+          && request.resource.data.taps >= resource.data.taps
+        );
+      allow delete: if isSignedIn() && (request.auth.uid == pageId || isAdmin());
+    }
+
+    match /payment_intents/{intentId} {
+      allow read: if isSignedIn() && (
+        isAdmin()
+        || resource.data.userId == request.auth.uid
+      );
+      allow write: if false;
+    }
+
+    match /payment_events/{eventId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /refunds/{refundId} {
+      allow read: if isSignedIn() && (
+        isAdmin()
+        || (isSalesOrAgent() && resource.data.assignedSalesman == request.auth.uid)
+        || resource.data.userId == request.auth.uid
+      );
+      allow write: if false;
+    }
+
+    match /invoices/{invoiceId} {
+      allow read: if isSignedIn() && (
+        isAdmin()
+        || resource.data.userId == request.auth.uid
+      );
+      allow write: if false;
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update, delete: if isSuperAdmin();
+    }
+
+    match /settings/{docId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if isSuperAdmin();
+    }
+
+    match /payments/{paymentId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn() && (isAdmin() || isSalesOrAgent())
+        && request.resource.data.orderId is string
+        && request.resource.data.amount is number
+        && request.resource.data.confirmedBy == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn() && (isAdmin() || isSalesOrAgent())
+        && request.resource.data.orderId is string
+        && request.resource.data.paymentId is string
+        && request.resource.data.amount is number
+        && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isAdmin()
+        && onlyChanged(['settledAt', 'settledBy']);
+      allow delete: if isAdmin();
+    }
+
+    match /company_wallets/{walletId} {
+      allow read: if isAdmin();
+      allow create, update: if isSignedIn() && (isAdmin() || isSalesOrAgent());
+      allow delete: if isAdmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && (
+        isAdmin()
+        || resource.data.userId == request.auth.uid
+        || resource.data.adminId == request.auth.uid
+      );
+      allow create: if isSignedIn() && validNotificationCreate() && isOpsStaff();
+      allow update, delete: if isSignedIn() && (
+        isAdmin()
+        || resource.data.userId == request.auth.uid
+        || resource.data.adminId == request.auth.uid
+      );
+    }
+
+    match /groups/{groupId} {
+      allow read: if isSignedIn();
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin() && resource.data.adminId == request.auth.uid;
+    }
+
+    match /group_memberships/{membershipId} {
+      allow read: if isSignedIn() && (
+        isAdmin()
+        || resource.data.userId == request.auth.uid
+        || resource.data.approvedBy == request.auth.uid
+      );
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /join_requests/{requestId} {
+      allow read: if isSignedIn() && (
+        isAdmin()
+        || resource.data.userId == request.auth.uid
+        || resource.data.adminId == request.auth.uid
+      );
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    match /qr_sessions/{sessionId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /attendance_records/{recordId} {
+      allow read: if isSignedIn() && (
+        isAdmin()
+        || resource.data.userId == request.auth.uid
+      );
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+  }
+}

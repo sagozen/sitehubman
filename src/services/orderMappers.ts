@@ -1,0 +1,92 @@
+import { Timestamp } from 'firebase/firestore';
+import type { Order } from '@/src/types/models';
+
+export function toIso(value: unknown): string {
+  if (value instanceof Timestamp) return value.toDate().toISOString();
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === 'string') return value;
+  return new Date().toISOString();
+}
+
+export function mapOrder(id: string, data: Record<string, unknown>): Order {
+  return {
+    id,
+    cardId: (data.cardId ?? data.cardCode) as string | undefined,
+    orderNumber: data.orderNumber as string | undefined,
+    orderSource: data.orderSource as Order['orderSource'],
+    ownerId: data.ownerId as string | undefined,
+    ownerType: data.ownerType as Order['ownerType'],
+    salesApprovedAt: data.salesApprovedAt ? toIso(data.salesApprovedAt) : undefined,
+    salesApprovedBy: data.salesApprovedBy as string | undefined,
+    onHold: data.onHold === true,
+    salesHoldAt: data.salesHoldAt ? toIso(data.salesHoldAt) : undefined,
+    salesHoldBy: data.salesHoldBy as string | undefined,
+    productionPasscode: data.productionPasscode as string | undefined,
+    customerName: String(data.customerName ?? ''),
+    phone: String(data.phone ?? ''),
+    telegram: data.telegram as string | undefined,
+    whatsapp: data.whatsapp as string | undefined,
+    email: data.email as string | undefined,
+    company: data.company as string | undefined,
+    companyId: data.companyId as string | undefined,
+    jobTitle: data.jobTitle as string | undefined,
+    deliveryAddress: data.deliveryAddress as string | undefined,
+    carrier: data.carrier as string | undefined,
+    trackingNumber: data.trackingNumber as string | undefined,
+    trackingNote: data.trackingNote as string | undefined,
+    shippedAt: data.shippedAt ? toIso(data.shippedAt) : undefined,
+    productType: String(data.productType ?? ''),
+    quantity: Number(data.quantity ?? 1),
+    cardDesign: (data.cardDesign as Order['cardDesign']) ?? 'classic_black',
+    designArtworkUrl: data.designArtworkUrl as string | undefined,
+    designArtworkPath: data.designArtworkPath as string | undefined,
+    designArtworkFileName: data.designArtworkFileName as string | undefined,
+    cardCode: String(data.cardCode ?? data.cardId ?? ''),
+    profileUrl: String(data.profileUrl ?? ''),
+    nfcEnabled: data.nfcEnabled as boolean | undefined,
+    nfcTargetUrl: data.nfcTargetUrl as string | undefined,
+    qrPrinted: data.qrPrinted as boolean | undefined,
+    paymentStatus: (data.paymentStatus as Order['paymentStatus']) ?? 'unpaid',
+    paymentIntentId: data.paymentIntentId as string | undefined,
+    paymentReference: data.paymentReference as string | undefined,
+    paymentProofUrl: data.paymentProofUrl as string | undefined,
+    paymentProofPath: data.paymentProofPath as string | undefined,
+    paymentVerifiedBy: data.paymentVerifiedBy as string | undefined,
+    paymentVerifiedAt: data.paymentVerifiedAt ? toIso(data.paymentVerifiedAt) : undefined,
+    paymentReviewNote: data.paymentReviewNote as string | undefined,
+    manualVerificationStatus: (data.manualVerificationStatus as Order['manualVerificationStatus']) ?? 'none',
+    paidAt: data.paidAt ? toIso(data.paidAt) : undefined,
+    invoiceId: data.invoiceId as string | undefined,
+    refundStatus: data.refundStatus as Order['refundStatus'],
+    refundedAmount: typeof data.refundedAmount === 'number' ? data.refundedAmount : undefined,
+    refundedAt: data.refundedAt ? toIso(data.refundedAt) : undefined,
+    paymentMethod: data.paymentMethod as string | undefined,
+    amount: typeof data.amount === 'number' ? data.amount : undefined,
+    currency: data.currency === 'USD' || data.currency === 'KHR' ? data.currency : undefined,
+    fulfillment: data.fulfillment === 'digital' || data.fulfillment === 'physical' ? data.fulfillment : undefined,
+    salesCommission: typeof data.salesCommission === 'number' ? data.salesCommission : undefined,
+    salesCommissionCurrency:
+      data.salesCommissionCurrency === 'USD' || data.salesCommissionCurrency === 'KHR'
+        ? data.salesCommissionCurrency
+        : undefined,
+    commissionAccruedAt: data.commissionAccruedAt ? toIso(data.commissionAccruedAt) : undefined,
+    depositAmount: typeof data.depositAmount === 'number' ? data.depositAmount : undefined,
+    dueDate: data.dueDate as string | undefined,
+    priority: data.priority as Order['priority'],
+    notes: data.notes as string | undefined,
+    cardStatus: (data.cardStatus as Order['cardStatus']) ?? 'active',
+    freezeReason: data.freezeReason as string | undefined,
+    frozenAt: data.frozenAt ? toIso(data.frozenAt) : undefined,
+    frozenBy: data.frozenBy as string | undefined,
+    closedAt: data.closedAt ? toIso(data.closedAt) : undefined,
+    closedBy: data.closedBy as string | undefined,
+    status: (data.status as Order['status']) ?? 'new',
+    batchId: data.batchId as string | undefined,
+    branch: data.branch as string | undefined,
+    assignedSalesman: String(data.assignedSalesman ?? ''),
+    createdBy: String(data.createdBy ?? ''),
+    updatedBy: data.updatedBy as string | undefined,
+    createdAt: toIso(data.createdAt),
+    updatedAt: toIso(data.updatedAt),
+  };
+}
