@@ -32,8 +32,8 @@ export function NfcGlobalCardFace({
   backgroundImageUri,
   style,
 }: NfcGlobalCardFaceProps) {
-  const displayName = fullName.trim() || 'John Doe';
-  const roleLine = [title.trim(), company.trim()].filter(Boolean).join(' / ') || 'Product Designer';
+  const displayName = fullName.trim() || 'Your Name';
+  const roleLine = [title.trim(), company.trim()].filter(Boolean).join(' / ') || 'Digital Profile';
   const phoneLine = phone.trim() || '+1 (555) 123-4567';
   const emailLine = email.trim() || 'hello@nfcglobal.com';
   const webLine = website.trim() || 'nfcglobal.com';

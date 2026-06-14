@@ -338,8 +338,7 @@ export function CustomerAccountScreen() {
                     realIcon={a.realIcon}
                     fallbackIcon={a.icon}
                     tint={a.color}
-                    size={46}
-                    glow
+                    size={62}
                   />
                   <View style={[s.actionArrow, { backgroundColor: `${a.color}18` }]}>
                     <AppIcon name="ChevronRight" size={14} color={a.color} />
@@ -444,7 +443,7 @@ const s = StyleSheet.create({
   avatarT: { fontSize: 17, fontWeight: '900', color: SURFACE, fontFamily: 'Inter_900Black' },
   pressed: { opacity: 0.75, transform: [{ scale: 0.97 }] },
 
-  cardWrap: { alignSelf: 'center', width: '86%', borderRadius: 20, overflow: 'hidden', shadowColor: BRAND, shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.22, shadowRadius: 24, elevation: 8 },
+  cardWrap: { alignSelf: 'center', width: '82%', borderRadius: 20, overflow: 'hidden', shadowColor: BRAND, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 22, elevation: 7 },
 
   shareLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingVertical: 2 },
   shareLineT: { fontSize: 13, fontWeight: '700', color: BRAND, fontFamily: 'Inter_700Bold' },
@@ -452,12 +451,12 @@ const s = StyleSheet.create({
   actionsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   actionCard: {
     width: '48.5%',
-    minHeight: 112,
+    minHeight: 116,
     borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: SURFACE,
-    padding: 14,
-    gap: 8,
+    padding: 13,
+    gap: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.08,

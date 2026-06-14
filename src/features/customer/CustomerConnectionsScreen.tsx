@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AppButton } from '@/src/components/AppButton';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
@@ -41,10 +42,14 @@ function HubTile({ action }: { action: HubAction }) {
       style={({ pressed }) => [styles.tile, pressed && styles.pressed]}
       accessibilityRole="button"
     >
+      <LinearGradient
+        colors={[`${action.color}18`, `${action.color}06`]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
       <View style={styles.tileTop}>
-        <View style={[styles.iconBubble, { backgroundColor: `${action.color}16` }]}>
-          <AppIcon name={action.icon} size={28} color={action.color} />
-        </View>
+        <AppIcon name={action.icon} size={38} color={action.color} />
         {action.value !== undefined ? (
           <View style={[styles.valuePill, { backgroundColor: `${action.color}14` }]}>
             <AppText style={[styles.valueText, { color: action.color }]}>{action.value}</AppText>
@@ -145,9 +150,7 @@ export function CustomerConnectionsScreen() {
             <AppText style={styles.title}>Connections</AppText>
             <AppText style={styles.subtitle}>Share, scan, and capture leads</AppText>
           </View>
-          <View style={styles.headerIcon}>
-            <AppIcon name="Users" size={30} color={BRAND} />
-          </View>
+          <AppIcon name="Users" size={42} color={BRAND} />
         </View>
 
         <View style={styles.statusBanner}>
@@ -196,14 +199,6 @@ const styles = StyleSheet.create({
   headerCopy: { flex: 1, gap: 3 },
   title: { fontSize: 28, fontWeight: '900', color: INK, letterSpacing: -0.6 },
   subtitle: { fontSize: 13, fontWeight: '500', color: MUTED },
-  headerIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#EBF7FC',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   statusBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -227,6 +222,7 @@ const styles = StyleSheet.create({
     backgroundColor: SURFACE,
     borderRadius: 20,
     padding: 16,
+    overflow: 'hidden',
     gap: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -239,13 +235,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-  },
-  iconBubble: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   valuePill: {
     minWidth: 30,
