@@ -11,6 +11,7 @@ export const appRoutes = {
   qrGenerator: '/qr-generator',
   guestAnalytics: '/guest-analytics',
   guestDesign: '/guest-design',
+  studio: '/studio',
   guestCardPreview: '/card-preview/[cardId]',
   /** @deprecated Deep links only — redirects to guestDesign */
   guestChooseCard: '/guest-choose-card',

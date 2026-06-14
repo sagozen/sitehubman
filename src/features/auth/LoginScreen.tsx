@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { AppIcon } from '@/src/components/AppIcon';
+import { AppText } from '@/src/components/AppText';
 import {
   AuthFooterLink,
   AuthIconTextField,
@@ -79,10 +80,14 @@ export function LoginScreen() {
 
         <SocialAuthSection disabled={busy} onSuccess={handleSocialSuccess} variant="login" />
 
+        <View style={styles.emailHead}>
+          <AppText style={styles.emailTitle}>Or use email</AppText>
+        </View>
+
         <View style={styles.fields}>
           <AuthIconTextField
             fieldIcon="email"
-            label="Email Address"
+            label="Email"
             value={email}
             onChangeText={setEmail}
             placeholder="name@example.com"
@@ -116,7 +121,7 @@ export function LoginScreen() {
         </View>
 
         <AuthPrimaryButton
-          label={isSubmitting ? 'Signing In...' : 'Sign In'}
+          label={isSubmitting ? 'Signing in...' : 'Sign in'}
           onPress={handleLogin}
           loading={isSubmitting}
           disabled={busy}
@@ -124,7 +129,7 @@ export function LoginScreen() {
         />
 
         <AuthTextButton
-          label={isGuestLoading ? 'Loading...' : 'Continue as Guest'}
+          label={isGuestLoading ? 'Loading...' : 'Preview as guest'}
           onPress={handleGuest}
           disabled={busy}
           loading={isGuestLoading}
@@ -146,9 +151,16 @@ export function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
+  emailHead: {
+    marginTop: -2,
+  },
+  emailTitle: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#111111',
+  },
   fields: {
     gap: 12,
-    marginTop: 4,
   },
   eyeBtn: {
     padding: 4,

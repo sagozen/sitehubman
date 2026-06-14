@@ -1,9 +1,8 @@
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AppAvatar } from '@/src/components/AppAvatar';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppearanceSegment } from '@/src/components/AppearanceSegment';
 import { AppSelect } from '@/src/components/AppSelect';
@@ -12,13 +11,7 @@ import { appRoutes } from '@/src/constants/navigation';
 import { theme } from '@/src/constants/theme';
 import { languageOptions, profileThemeOptions, typographyColorOptions } from '@/src/constants/options';
 import {
-  SettingsAccountCard,
-  SettingsCapabilityRow,
   SettingsMessageBanner,
-  SettingsSectionLabel,
-  SettingsSurfaceCard,
-  SettingsTile,
-  settingsChromeStyles,
   type SettingsThemeColors,
 } from '@/src/features/settings/components/SettingsChrome';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
@@ -26,7 +19,7 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { UiPreferences } from '@/src/types/models';
-import { getRoleCapabilities, getRoleLabel, getRoleScopeSummary } from '@/src/utils/roleCapabilities';
+import { getRoleLabel, getRoleScopeSummary } from '@/src/utils/roleCapabilities';
 
 // ─── tokens ──────────────────────────────────────────────────────────────────
 const BRAND = '#2596BE';
@@ -66,9 +59,7 @@ export function SettingsScreen() {
 
   const isBusy = savingKey !== null;
   const isSaving = (key: Exclude<SavingKey, null>) => savingKey === key;
-  const capabilities = getRoleCapabilities(user?.role);
   const roleLabel = getRoleLabel(user?.role);
-  const roleAccent = BRAND;
 
   const languageLabel = languageOptions.find((o) => o.value === preferences.language)?.label ?? 'English';
   const profileThemeLabel = profileThemeOptions.find((o) => o.value === preferences.profileTheme)?.label ?? 'Aqua';
@@ -135,23 +126,19 @@ export function SettingsScreen() {
     }
   }
 
-  const avatarRole =
-    user?.role === 'printer' || user?.role === 'printer_operator' ? 'printer' :
-    user?.role === 'sales' || user?.role === 'agent' ? 'sales' : 'default';
+  const initial = (user?.displayName?.trim() || 'S')[0].toUpperCase();
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <IosScrollView contentContainerStyle={settingsChromeStyles.scroll} showsVerticalScrollIndicator={false}>
+      <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
-        {/* ── PAGE HEADER ── */}
         <View style={styles.pageHeader}>
           <View style={styles.pageTitleWrap}>
             <AppText style={styles.pageTitle}>Settings</AppText>
             <AppText style={styles.pageSub}>
-              {isGuest ? 'Preview options · sign up to sync' : 'Account, appearance & preferences'}
+              {isGuest ? 'Preview your identity settings' : 'Your identity, preferences, and account'}
             </AppText>
           </View>
-          <AppIcon name="Settings" size={28} color={BRAND} />
         </View>
 
         {/* Messages */}
@@ -169,57 +156,33 @@ export function SettingsScreen() {
           </SettingsMessageBanner>
         ) : null}
 
-        {/* ── ACCOUNT CARD ── */}
-        <SettingsAccountCard
-          colors={ui}
-          displayName={user?.displayName ?? 'Guest User'}
-          email={user?.email ?? 'Not signed in'}
-          roleLabel={roleLabel}
-          roleAccent={roleAccent}
-          avatar={<AppAvatar name={user?.displayName ?? 'User'} role={avatarRole} size={52} />}
-        />
+        <View style={styles.accountCard}>
+          <View style={styles.avatar}>
+            <AppText style={styles.avatarText}>{initial}</AppText>
+          </View>
+          <View style={styles.accountCopy}>
+            <View style={styles.nameRow}>
+              <AppText style={styles.accountName} numberOfLines={1}>{user?.displayName ?? 'Guest User'}</AppText>
+              {!isGuest ? <AppIcon name="BadgeCheck" size={18} color={BRAND} /> : null}
+            </View>
+            <AppText style={styles.accountEmail} numberOfLines={1}>{user?.email ?? 'Not signed in'}</AppText>
+            <AppText style={styles.accountRole}>{roleLabel}</AppText>
+          </View>
+        </View>
 
-        {/* ── QUICK NAV TILES ── */}
-        <SettingsSectionLabel colors={ui}>Quick access</SettingsSectionLabel>
-        <SettingsSurfaceCard colors={ui}>
-          <SettingsTile
-            colors={ui}
-            icon="CreditCard"
-            title="My card"
-            description="Design or edit your NFC card"
-            accent={BRAND}
-            onPress={() => router.push(appRoutes.guestDesign)}
-          />
-          <SettingsTile
-            colors={ui}
-            icon="Package"
-            title="Track order"
-            description="Production and delivery status"
-            accent="#F59E0B"
-            onPress={() => router.push(appRoutes.guestTrackOrder)}
-          />
-          <SettingsTile
-            colors={ui}
-            icon="Nfc"
-            title="NFC demo"
-            description="Simulate a card tap"
-            accent="#7C3AED"
-            onPress={() => router.push(appRoutes.nfcDemo)}
-          />
-          <SettingsTile
-            colors={ui}
-            icon="TrendingUp"
-            title="Analytics"
-            description="Tap and order stats"
-            accent="#10B981"
-            onPress={() => router.push(appRoutes.guestAnalytics)}
-            last
-          />
-        </SettingsSurfaceCard>
+        <View style={styles.section}>
+          <AppText style={styles.sectionTitle}>Essentials</AppText>
+          <View style={styles.list}>
+            <SettingsRow icon="CreditCard" title="Card studio" value="Design" onPress={() => router.push(appRoutes.studio as any)} />
+            <SettingsRow icon="Users" title="Network" value="People" onPress={() => router.push(appRoutes.customerConnections)} />
+            <SettingsRow icon="BarChart" title="Analysis" value="Signals" onPress={() => router.push('/(tabs)/profile')} />
+            <SettingsRow icon="Package" title="Orders" value="Track" onPress={() => router.push(appRoutes.guestTrackOrder)} last />
+          </View>
+        </View>
 
-        {/* ── APPEARANCE ── */}
-        <SettingsSectionLabel colors={ui}>Appearance</SettingsSectionLabel>
-        <SettingsSurfaceCard colors={ui}>
+        <View style={styles.section}>
+          <AppText style={styles.sectionTitle}>Appearance</AppText>
+          <View style={styles.list}>
           <View style={styles.appearanceBlock}>
             <View style={styles.appearanceHead}>
               <AppIcon name="Eye" size={22} color={BRAND} />
@@ -234,28 +197,8 @@ export function SettingsScreen() {
               onChange={(value) => void savePreference('colorMode', { colorMode: value }, 'Appearance')}
             />
           </View>
-        </SettingsSurfaceCard>
-
-        {/* ── PERSONALISATION ── */}
-        <SettingsSectionLabel colors={ui}>Personalisation</SettingsSectionLabel>
-        <SettingsSurfaceCard colors={ui}>
-          <SettingsTile
-            colors={ui}
-            icon="Settings"
-            title="Language"
-            description="Display language"
-            value={languageLabel}
-            accent="#6366F1"
-            onPress={() => router.push('/language-picker')}
-          />
-          <SettingsTile
-            colors={ui}
-            icon="Sparkles"
-            title="Profile theme"
-            value={profileThemeLabel}
-            accent="#0EA5E9"
-            onPress={() => router.push('/theme-picker')}
-          />
+          <SettingsRow icon="Settings" title="Language" value={languageLabel} onPress={() => router.push('/language-picker')} />
+          <SettingsRow icon="Sparkles" title="Profile theme" value={profileThemeLabel} onPress={() => router.push('/theme-picker')} />
           <View style={styles.selectWrap}>
             <AppSelect
               label="Text color accent"
@@ -270,78 +213,20 @@ export function SettingsScreen() {
               onChange={(v) => void savePreference('typographyColor', { typographyColor: v }, 'Text color')}
             />
           </View>
-        </SettingsSurfaceCard>
+          </View>
+        </View>
 
-        {/* ── ACCESS SCOPE ── */}
-        <SettingsSectionLabel colors={ui}>Access scope</SettingsSectionLabel>
-        <SettingsSurfaceCard colors={ui}>
-          <SettingsTile
-            colors={ui}
-            icon="ShieldCheck"
-            title={roleLabel}
-            description={getRoleScopeSummary(user?.role)}
-            accent={roleAccent}
-            last={capabilities.length === 0}
-          />
-          {capabilities.map((cap, i) => (
-            <SettingsCapabilityRow
-              key={cap.title}
-              colors={ui}
-              title={cap.title}
-              description={cap.description}
-              accent={roleAccent}
-              last={i === capabilities.length - 1}
-            />
-          ))}
-        </SettingsSurfaceCard>
+        <View style={styles.section}>
+          <AppText style={styles.sectionTitle}>Account</AppText>
+          <View style={styles.list}>
+            <SettingsRow icon="ShieldCheck" title="Access" value={getRoleScopeSummary(user?.role)} />
+            <SettingsRow icon="FileText" title="Privacy policy" onPress={() => router.push('/privacy-policy')} />
+            <SettingsRow icon="FileText" title="Terms of service" onPress={() => router.push('/terms-of-service')} />
+            <SettingsRow icon="RefreshCw" title="Reset settings" value={isSaving('reset') ? '…' : undefined} onPress={handleReset} disabled={isBusy} />
+            <SettingsRow icon="LogOut" title="Sign out" value={isSaving('signOut') ? '…' : undefined} onPress={() => void performSignOut()} disabled={isBusy} destructive last />
+          </View>
+        </View>
 
-        {/* ── LEGAL ── */}
-        <SettingsSectionLabel colors={ui}>Legal</SettingsSectionLabel>
-        <SettingsSurfaceCard colors={ui}>
-          <SettingsTile
-            colors={ui}
-            icon="FileText"
-            title="Privacy policy"
-            accent={MUTED}
-            onPress={() => router.push('/privacy-policy')}
-          />
-          <SettingsTile
-            colors={ui}
-            icon="FileText"
-            title="Terms of service"
-            accent={MUTED}
-            onPress={() => router.push('/terms-of-service')}
-            last
-          />
-        </SettingsSurfaceCard>
-
-        {/* ── SESSION ── */}
-        <SettingsSectionLabel colors={ui}>Session</SettingsSectionLabel>
-        <SettingsSurfaceCard colors={ui}>
-          <SettingsTile
-            colors={ui}
-            icon="RefreshCw"
-            title="Reset settings"
-            description="Restore language, theme, and colors"
-            value={isSaving('reset') ? '…' : undefined}
-            accent="#F59E0B"
-            onPress={handleReset}
-            disabled={isBusy}
-          />
-          <SettingsTile
-            colors={ui}
-            icon="LogOut"
-            title="Sign out"
-            description="End this session on this device"
-            value={isSaving('signOut') ? '…' : undefined}
-            destructive
-            onPress={() => void performSignOut()}
-            disabled={isBusy}
-            last
-          />
-        </SettingsSurfaceCard>
-
-        {/* ── VERSION ── */}
         <View style={styles.versionWrap}>
           <AppText style={styles.versionText}>Snap Tap NFC · v1.0.0</AppText>
         </View>
@@ -351,13 +236,65 @@ export function SettingsScreen() {
   );
 }
 
+function SettingsRow({
+  icon,
+  title,
+  value,
+  onPress,
+  disabled,
+  destructive,
+  last,
+}: {
+  icon: React.ComponentProps<typeof AppIcon>['name'];
+  title: string;
+  value?: string;
+  onPress?: () => void;
+  disabled?: boolean;
+  destructive?: boolean;
+  last?: boolean;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled || !onPress}
+      style={({ pressed }) => [styles.row, !last && styles.rowBorder, pressed && onPress && styles.rowPressed, disabled && styles.rowDisabled]}
+    >
+      <AppIcon name={icon} size={22} color={destructive ? '#FF3B30' : title === 'Card studio' ? BRAND : INK} />
+      <AppText style={[styles.rowTitle, destructive && styles.rowTitleDanger]}>{title}</AppText>
+      {value ? <AppText style={styles.rowValue} numberOfLines={1}>{value}</AppText> : null}
+      {onPress ? <AppIcon name="ChevronRight" size={15} color={MUTED} /> : null}
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG },
+  scroll: { paddingHorizontal: 24, paddingTop: 14, paddingBottom: 120, gap: 24 },
 
   pageHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
   pageTitleWrap: { flex: 1, gap: 3 },
-  pageTitle: { fontSize: 28, fontWeight: '900', color: INK, letterSpacing: -0.8, fontFamily: 'Inter_900Black' },
-  pageSub: { fontSize: 13, fontWeight: '500', color: MUTED, fontFamily: 'Inter_500Medium' },
+  pageTitle: { fontSize: 42, lineHeight: 45, fontWeight: '900', color: INK, letterSpacing: 0, fontFamily: 'Inter_900Black' },
+  pageSub: { fontSize: 15, fontWeight: '700', color: MUTED, fontFamily: 'Inter_700Bold' },
+
+  accountCard: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: INK, borderRadius: 24, padding: 18 },
+  avatar: { width: 62, height: 62, borderRadius: 31, backgroundColor: BRAND, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 24, fontWeight: '900', color: '#FFFFFF' },
+  accountCopy: { flex: 1, minWidth: 0, gap: 4 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 0 },
+  accountName: { flexShrink: 1, fontSize: 22, fontWeight: '900', color: '#FFFFFF' },
+  accountEmail: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.58)' },
+  accountRole: { fontSize: 11, fontWeight: '900', color: BRAND },
+
+  section: { gap: 14 },
+  sectionTitle: { fontSize: 22, fontWeight: '900', color: INK },
+  list: { backgroundColor: '#FFFFFF', borderRadius: 24, overflow: 'hidden' },
+  row: { minHeight: 62, flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 18 },
+  rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(17,17,17,0.06)' },
+  rowPressed: { opacity: 0.72 },
+  rowDisabled: { opacity: 0.4 },
+  rowTitle: { flex: 1, fontSize: 16, fontWeight: '800', color: INK },
+  rowTitleDanger: { color: '#FF3B30' },
+  rowValue: { maxWidth: 132, fontSize: 12, fontWeight: '800', color: MUTED },
 
   appearanceBlock: { padding: 18, gap: 14 },
   appearanceHead: { flexDirection: 'row', alignItems: 'center', gap: 12 },

@@ -1,3 +1,8 @@
+/**
+ * CustomerAccountScreen — Card-first home.
+ * 70% of the screen above the fold is the NFC card.
+ * Actions are a compact icon row, not competing cards.
+ */
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -7,10 +12,10 @@ import {
   Share,
   StyleSheet,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { type Href, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import {
   collection,
   getDocs,
@@ -21,40 +26,29 @@ import {
 } from 'firebase/firestore';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { FlowIcon } from '@/src/components/FlowIcon';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
 import { appRoutes } from '@/src/constants/navigation';
 import { firebaseCollections } from '@/src/constants/collections';
 import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
-import type { FlowRealIconId } from '@/src/constants/flowRealIcons';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useBioPage } from '@/src/hooks/useBioPage';
 import { db } from '@/src/services/firebaseClient';
 import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
 import type { TapEvent } from '@/src/types/models';
 
-// ─── Tokens ──────────────────────────────────────────────────────────────────
 const BRAND = '#2596BE';
-const BRAND_DARK = '#1A7FAA';
 const INK = '#0A0A0F';
 const INK2 = '#1C1C1E';
 const MUTED = '#8E8E93';
 const SURFACE = '#FFFFFF';
 const BG = '#F5F5F7';
 
-// ─── Quick actions ────────────────────────────────────────────────────────────
-const ACTIONS: {
-  icon: AppIconName;
-  realIcon: FlowRealIconId;
-  label: string;
-  sub: string;
-  color: string;
-  route: Href;
-}[] = [
-  { icon: 'Share',    realIcon: 'share',       label: 'Share Card',   sub: 'QR profile link', color: BRAND,     route: appRoutes.qrGenerator as Href },
-  { icon: 'ScanLine', realIcon: 'nfc',         label: 'Scan NFC',     sub: 'Test a tap',      color: '#0284C7', route: appRoutes.scan as Href },
-  { icon: 'Users',    realIcon: 'connections', label: 'Leads',        sub: 'Viewers & taps',  color: '#7C3AED', route: appRoutes.customerConnections as Href },
-  { icon: 'PenLine',  realIcon: 'profile',     label: 'Edit Profile', sub: 'Bio page',        color: '#059669', route: '/edit-bio' as Href },
+// ─── Icon action strip ────────────────────────────────────────────────────────
+const ACTIONS: { icon: AppIconName; label: string; color: string; route: Href }[] = [
+  { icon: 'CreditCard', label: 'Card', color: INK, route: appRoutes.guestDesign as Href },
+  { icon: 'Users', label: 'Network', color: INK, route: appRoutes.customerConnections as Href },
+  { icon: 'BarChart', label: 'Insights', color: INK, route: appRoutes.guestAnalytics as Href },
+  { icon: 'Sparkles', label: 'Studio', color: BRAND, route: appRoutes.studio as Href },
 ];
 
 // ─── Greeting ─────────────────────────────────────────────────────────────────
@@ -76,159 +70,72 @@ function relativeTime(iso?: string | null): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-// ─── Source label + icon ──────────────────────────────────────────────────────
 function tapMeta(source?: string): { label: string; icon: AppIconName; color: string } {
-  if (source === 'nfc_card') return { label: 'NFC tap',    icon: 'Nfc',      color: BRAND };
-  if (source === 'slug')     return { label: 'QR / link',  icon: 'QrCode',   color: '#7C3AED' };
-  if (source === 'interaction') return { label: 'Link tap', icon: 'ExternalLink', color: '#059669' };
-  return                            { label: 'Profile view', icon: 'Eye',    color: '#0284C7' };
+  if (source === 'nfc_card') return { label: 'NFC tap',      icon: 'Nfc',          color: BRAND };
+  if (source === 'slug')     return { label: 'QR / link',    icon: 'QrCode',       color: '#7C3AED' };
+  if (source === 'interaction') return { label: 'Link tap',  icon: 'ExternalLink', color: '#059669' };
+  return                          { label: 'Profile view',   icon: 'Eye',          color: '#0284C7' };
 }
 
-// ─── Device label ─────────────────────────────────────────────────────────────
-function deviceLabel(d?: string): string {
-  if (!d) return 'Unknown';
+function deviceLabel(d?: string) {
   if (d === 'ios') return 'iPhone';
   if (d === 'android') return 'Android';
-  if (d === 'web') return 'Web browser';
-  return d;
-}
-
-type ActivityItem = {
-  id: string;
-  actor: string;
-  action: string;
-  detail: string;
-  time: string;
-  icon: AppIconName;
-  color: string;
-};
-
-function buildActivityItems(
-  events: (TapEvent & { id: string })[],
-  profileName: string,
-  bioViews?: number,
-  bioTaps?: number,
-): ActivityItem[] {
-  const realEvents = events.slice(0, 10).map((event) => {
-    const meta = tapMeta(event.source);
-    const device = deviceLabel(event.device);
-    const actor =
-      event.source === 'nfc_card'
-        ? 'NFC card tap'
-        : event.source === 'slug'
-          ? 'QR profile visitor'
-          : event.source === 'interaction'
-            ? 'Bio link visitor'
-            : 'Profile visitor';
-
-    return {
-      id: event.id,
-      actor,
-      action: `${meta.label} opened ${profileName || 'your bio'}`,
-      detail: `${device} viewed your public profile`,
-      time: relativeTime(event.createdAt) || 'Recently',
-      icon: meta.icon,
-      color: meta.color,
-    };
-  });
-
-  if (realEvents.length > 0) return realEvents;
-
-  const fallback: ActivityItem[] = [];
-  if ((bioViews ?? 0) > 0) {
-    fallback.push({
-      id: 'views-summary',
-      actor: 'Profile visitors',
-      action: `People viewed ${profileName || 'your bio'}`,
-      detail: `${bioViews} total bio views recorded`,
-      time: 'Recently',
-      icon: 'Eye',
-      color: '#0284C7',
-    });
-  }
-  if ((bioTaps ?? 0) > 0) {
-    fallback.push({
-      id: 'taps-summary',
-      actor: 'NFC activity',
-      action: 'Your NFC card sent people to your bio',
-      detail: `${bioTaps} total NFC or QR opens recorded`,
-      time: 'Recently',
-      icon: 'Nfc',
-      color: BRAND,
-    });
-  }
-  return fallback;
+  if (d === 'web') return 'Web';
+  return d || 'Unknown';
 }
 
 // ─── Activity row ─────────────────────────────────────────────────────────────
-function ActivityRow({ item, last }: { item: ActivityItem; last?: boolean }) {
-  const initial = item.actor.trim()[0]?.toUpperCase() ?? 'V';
+function ActivityRow({ event, last }: { event: TapEvent & { id: string }; last?: boolean }) {
+  const meta = tapMeta(event.source);
   return (
-    <View style={[ar.row, last && ar.rowLast]}>
-      <View style={[ar.avatar, { backgroundColor: `${item.color}18` }]}>
-        <AppText style={[ar.avatarT, { color: item.color }]}>{initial}</AppText>
-        <View style={[ar.badge, { backgroundColor: item.color }]}>
-          <AppIcon name={item.icon} size={10} color="#FFFFFF" />
-        </View>
+    <View style={[ar.row, last && ar.last]}>
+      <View style={[ar.icon, { backgroundColor: `${meta.color}16` }]}>
+        <AppIcon name={meta.icon} size={15} color={meta.color} />
       </View>
       <View style={ar.copy}>
-        <AppText style={ar.label}>
-          <AppText style={ar.actor}>{item.actor}</AppText>
-          {' '}
-          {item.action}
-        </AppText>
-        <AppText style={ar.sub}>{item.detail}</AppText>
+        <AppText style={ar.label}>{meta.label}</AppText>
+        <AppText style={ar.sub}>{deviceLabel(event.device)}</AppText>
       </View>
-      <AppText style={ar.time}>{item.time}</AppText>
+      <AppText style={ar.time}>{relativeTime(event.createdAt)}</AppText>
     </View>
   );
 }
-
 const ar = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.05)',
-  },
-  rowLast: { borderBottomWidth: 0 },
-  avatar: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
-  avatarT: { fontSize: 15, fontWeight: '900', fontFamily: 'Inter_900Black' },
-  badge: {
-    position: 'absolute',
-    right: -1,
-    bottom: -1,
-    width: 17,
-    height: 17,
-    borderRadius: 9,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: SURFACE,
-  },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(0,0,0,0.05)' },
+  last: { borderBottomWidth: 0 },
+  icon: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   copy: { flex: 1, gap: 2 },
-  label: { fontSize: 13, fontWeight: '500', color: INK2, lineHeight: 18 },
-  actor: { fontSize: 13, fontWeight: '800', color: INK, fontFamily: 'Inter_800ExtraBold' },
+  label: { fontSize: 13, fontWeight: '700', color: INK2 },
   sub: { fontSize: 11, fontWeight: '500', color: MUTED },
   time: { fontSize: 11, fontWeight: '600', color: MUTED },
 });
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export function CustomerAccountScreen() {
+  const { width: sw } = useWindowDimensions();
   const { user } = useAuth();
   const { bioPage } = useBioPage(user?.id ?? '');
   const [cloudCard, setCloudCard] = useState<Awaited<ReturnType<typeof loadCustomerCloudCard>>>(null);
   const [tapEvents, setTapEvents] = useState<(TapEvent & { id: string })[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Card data — bio first, then cloud card, then auth user
   const heroName  = bioPage?.displayName?.trim() || cloudCard?.profile.fullName?.trim() || user?.displayName?.trim() || '';
   const heroTitle = bioPage?.tagline?.trim()      || cloudCard?.profile.role?.trim()     || '';
   const heroPhone = bioPage?.whatsapp?.trim()     || cloudCard?.profile.phone?.trim()    || user?.phone?.trim() || '';
   const heroEmail = bioPage?.email?.trim()        || cloudCard?.profile.email?.trim()    || user?.email?.trim() || '';
-  const initial   = (user?.displayName?.trim() || 'U')[0].toUpperCase();
+  const profileUrl = bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : cloudCard?.publicProfileUrl || undefined;
+  const initial = (user?.displayName?.trim() || 'U')[0].toUpperCase();
+
+  // Card dimensions — full width, real aspect ratio (no compact)
+  const cardPad = 24;
+  const cardWidth = sw - cardPad * 2;
+  const cardHeight = cardWidth / 1.586;
+  const totalSignals = tapEvents.length;
+  const nfcSignals = tapEvents.filter((event) => event.source === 'nfc_card').length;
+  const profileSignals = tapEvents.filter((event) => event.source !== 'nfc_card').length;
+  const lastSignal = relativeTime(tapEvents[0]?.createdAt) || (profileUrl ? 'Ready now' : 'Publish profile');
+  const cardState = profileUrl ? 'Live' : 'Draft';
 
   const loadData = useCallback(async () => {
     if (!user?.id) return;
@@ -239,15 +146,13 @@ export function CustomerAccountScreen() {
           collection(db, firebaseCollections.tapEvents),
           where('profileId', '==', user.id),
           orderBy('createdAt', 'desc'),
-          limit(20),
+          limit(15),
         ),
       ).then((snap) => {
-        const events = snap.docs.map((d) => {
+        setTapEvents(snap.docs.map((d) => {
           const data = d.data();
-          const createdAt = data.createdAt?.toDate?.()?.toISOString?.() ?? data.createdAt ?? '';
-          return { id: d.id, ...data, createdAt } as TapEvent & { id: string };
-        });
-        setTapEvents(events);
+          return { id: d.id, ...data, createdAt: data.createdAt?.toDate?.()?.toISOString?.() ?? data.createdAt ?? '' } as TapEvent & { id: string };
+        }));
       }).catch(() => null),
     ]);
   }, [user?.id]);
@@ -261,12 +166,9 @@ export function CustomerAccountScreen() {
   }
 
   async function handleShare() {
-    const url = bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : cloudCard?.publicProfileUrl || '';
-    if (!url) { Alert.alert('No profile yet', 'Edit your bio and save a public slug first.'); return; }
-    await Share.share({ message: `My NFC profile: ${url}`, url });
+    if (!profileUrl) { Alert.alert('No profile yet', 'Edit your bio and save a public slug first.'); return; }
+    await Share.share({ message: `My NFC profile: ${profileUrl}`, url: profileUrl });
   }
-
-  const activityItems = buildActivityItems(tapEvents, heroName, bioPage?.views, bioPage?.taps);
 
   return (
     <View style={s.root}>
@@ -275,149 +177,156 @@ export function CustomerAccountScreen() {
           style={s.scroll}
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void handleRefresh()} tintColor={BRAND} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void handleRefresh()} tintColor="#FFFFFF" />}
         >
 
-          {/* ── HEADER ── */}
-          <View style={s.header}>
-            <View style={s.hLeft}>
+          {/* ── PROFILE HEADER ── */}
+          <View style={s.profileHeader}>
+            <Pressable onPress={() => router.push('/edit-bio')} style={({ pressed }) => [s.profileAvatar, pressed && s.pressed]}>
+              <AppText style={s.profileAvatarT}>{initial}</AppText>
+            </Pressable>
+            <View style={s.profileCopy}>
               <AppText style={s.greeting}>{greeting(user?.displayName)}</AppText>
-              <AppText style={s.greetSub}>Your card is working for you.</AppText>
+              <View style={s.profileNameRow}>
+                <AppText style={s.profileName} numberOfLines={1}>
+                  {heroName || user?.displayName || 'Your Name'}
+                </AppText>
+                <AppIcon name="BadgeCheck" size={18} color={BRAND} />
+              </View>
+              <AppText style={s.profileMeta} numberOfLines={1}>
+                {[heroTitle || 'Digital identity', cloudCard?.profile.company || 'NFC Global'].filter(Boolean).join(' / ')}
+              </AppText>
             </View>
-            <View style={s.hRight}>
-              <Pressable
-                onPress={() => router.push(appRoutes.customerConnections as Href)}
-                style={({ pressed }) => [s.iconBtn, pressed && s.pressed]}
-              >
-                <AppIcon name="Bell" size={20} color={INK2} />
-                {tapEvents.length > 0 ? <View style={s.notifDot} /> : null}
-              </Pressable>
-              <Pressable
-                onPress={() => router.push('/edit-bio')}
-                style={({ pressed }) => [s.avatar, pressed && s.pressed]}
-              >
-                <AppText style={s.avatarT}>{initial}</AppText>
-              </Pressable>
+            <Pressable onPress={() => router.push(appRoutes.studio as Href)} style={({ pressed }) => [s.headerIcon, pressed && s.pressed]}>
+              <AppIcon name="Sparkles" size={20} color={BRAND} />
+            </Pressable>
+          </View>
+
+          {/* ── CARD STACK ── */}
+          <View style={[s.cardStage, { width: cardWidth }]}>
+            <View style={s.cardShadowBack} />
+            <View style={[s.cardWrap, { width: cardWidth, height: cardHeight }]}>
+              <NfcGlobalCardFace
+                fullName={heroName  || undefined}
+                title={heroTitle    || undefined}
+                phone={heroPhone    || undefined}
+                email={heroEmail    || undefined}
+                profileUrl={profileUrl}
+                width={cardWidth}
+                height={cardHeight}
+              />
             </View>
           </View>
 
-          {/* ── NFC CARD ── */}
-          <View style={s.cardWrap}>
-            <NfcGlobalCardFace
-              compact
-              fullName={heroName  || undefined}
-              title={heroTitle    || undefined}
-              phone={heroPhone    || undefined}
-              email={heroEmail    || undefined}
-            />
-          </View>
-
-          {/* ── SHARE ── */}
-          <Pressable onPress={() => void handleShare()} style={({ pressed }) => [s.shareLine, pressed && s.pressed]}>
-            <AppIcon name="Share" size={15} color={BRAND} />
-            <AppText style={s.shareLineT}>Share card by QR or link</AppText>
+          {/* ── PRIMARY SHARE ── */}
+          <Pressable onPress={() => void handleShare()} style={({ pressed }) => [s.shareButton, pressed && s.pressed]}>
+            <AppIcon name="Share" size={19} color="#FFFFFF" />
+            <AppText style={s.shareButtonT}>Share card</AppText>
           </Pressable>
 
-          {/* ── QUICK ACTIONS ── */}
-          <View style={s.actionsGrid}>
-            {ACTIONS.map((a) => (
+          {/* ── HIHELLO / TAPLA ACTION ROW ── */}
+          <View style={s.utilityRow}>
+            {ACTIONS.map((a, i) => (
               <Pressable
                 key={a.label}
                 onPress={() => router.push(a.route)}
-                style={({ pressed }) => [s.actionCard, pressed && s.pressed]}
+                style={({ pressed }) => [s.utilityBtn, pressed && s.pressed]}
                 accessibilityRole="button"
               >
-                <LinearGradient
-                  colors={[`${a.color}20`, `${a.color}08`]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={StyleSheet.absoluteFill}
-                />
-                <View style={s.actionTop}>
-                  <FlowIcon
-                    realIcon={a.realIcon}
-                    fallbackIcon={a.icon}
-                    tint={a.color}
-                    size={62}
-                  />
-                  <View style={[s.actionArrow, { backgroundColor: `${a.color}18` }]}>
-                    <AppIcon name="ChevronRight" size={14} color={a.color} />
-                  </View>
-                </View>
-                <AppText style={s.actionLabel}>{a.label}</AppText>
-                <AppText style={s.actionSub}>{a.sub}</AppText>
+                <AppIcon name={a.icon} size={22} color={a.color} />
+                <AppText style={s.utilityLabel}>{a.label}</AppText>
               </Pressable>
             ))}
           </View>
 
-          {/* ── BIO LINK ACTIVITY ── */}
+          <Pressable
+            onPress={() => router.push('/(tabs)/profile')}
+            style={({ pressed }) => [s.snapshotPanel, pressed && s.pressed]}
+          >
+            <View style={s.snapshotTop}>
+              <View>
+                <AppText style={s.snapshotKicker}>Today</AppText>
+                <AppText style={s.snapshotTitle}>Identity snapshot</AppText>
+              </View>
+              <AppText style={s.snapshotLive}>{cardState}</AppText>
+            </View>
+            <View style={s.snapshotStats}>
+              <View>
+                <AppText style={s.snapshotNumber}>{totalSignals}</AppText>
+                <AppText style={s.snapshotLabel}>signals</AppText>
+              </View>
+              <View>
+                <AppText style={s.snapshotNumber}>{nfcSignals}</AppText>
+                <AppText style={s.snapshotLabel}>NFC</AppText>
+              </View>
+              <View>
+                <AppText style={s.snapshotNumber}>{profileSignals}</AppText>
+                <AppText style={s.snapshotLabel}>profile</AppText>
+              </View>
+            </View>
+            <AppText style={s.snapshotFoot}>Last signal · {lastSignal}</AppText>
+          </Pressable>
+
+          {/* ── ACTIVITY FEED ── */}
           <View style={s.section}>
             <View style={s.sectionHead}>
               <View>
-                <AppText style={s.sectionTitle}>Tap Activity</AppText>
-                <AppText style={s.sectionSub}>Card views, QR scans, and NFC taps</AppText>
+                <AppText style={s.sectionTitle}>Recent Activity</AppText>
+                <AppText style={s.sectionSub}>People viewing, saving, and tapping</AppText>
               </View>
               <Pressable onPress={() => router.push(appRoutes.customerConnections as Href)}>
-                <View style={s.viewAllRow}>
-                  <AppText style={s.viewAll}>View</AppText>
-                  <AppIcon name="ChevronRight" size={13} color={BRAND} />
-                </View>
+                <AppText style={s.viewAll}>All</AppText>
               </Pressable>
             </View>
 
             <View style={s.feedCard}>
-              {activityItems.length === 0 ? (
+              {tapEvents.length === 0 ? (
                 <View style={s.emptyFeed}>
-                  <AppIcon name="Nfc" size={36} color="#D1D5DB" />
+                  <AppIcon name="Nfc" size={32} color="#D1D5DB" />
                   <AppText style={s.emptyTitle}>No activity yet</AppText>
-                  <AppText style={s.emptySub}>
-                    When someone taps your NFC card or scans your QR code, it appears here.
-                  </AppText>
+                  <AppText style={s.emptySub}>Hand someone your card — taps appear here instantly.</AppText>
                 </View>
               ) : (
-                activityItems.map((item, i) => (
-                  <ActivityRow key={item.id} item={item} last={i === activityItems.length - 1} />
+                tapEvents.slice(0, 8).map((e, i) => (
+                  <ActivityRow key={e.id} event={e} last={i === Math.min(tapEvents.length, 8) - 1} />
                 ))
               )}
             </View>
           </View>
 
-          {/* ── HOW IT WORKS ── */}
-          <View style={s.howCard}>
-            <LinearGradient
-              colors={[BRAND_DARK, BRAND]}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFill}
-            />
-            <View style={s.howRow}>
-              <View style={s.howStep}>
-                <AppIcon name="CreditCard" size={22} color="#FFFFFF" />
-                <AppText style={s.howStepT}>Tap card</AppText>
-                <AppText style={s.howStepS}>NFC chip sends URL</AppText>
+          <View style={s.section}>
+            <View style={s.sectionHead}>
+              <View>
+                <AppText style={s.sectionTitle}>Your Products</AppText>
+                <AppText style={s.sectionSub}>Card, profile, and share identity</AppText>
               </View>
-              <AppIcon name="ChevronRight" size={16} color="rgba(255,255,255,0.5)" />
-              <View style={s.howStep}>
-                <AppIcon name="Eye" size={22} color="#FFFFFF" />
-                <AppText style={s.howStepT}>Bio opens</AppText>
-                <AppText style={s.howStepS}>Your public profile</AppText>
-              </View>
-              <AppIcon name="ChevronRight" size={16} color="rgba(255,255,255,0.5)" />
-              <View style={s.howStep}>
-                <AppIcon name="BarChart" size={22} color="#FFFFFF" />
-                <AppText style={s.howStepT}>You see it</AppText>
-                <AppText style={s.howStepS}>Live in activity</AppText>
-              </View>
+            </View>
+            <View style={s.productList}>
+              {[
+                ['Physical NFC card', cloudCard?.status === 'active' ? 'Active' : 'Design or order', appRoutes.guestDesign],
+                ['Digital profile', profileUrl ? 'Published' : 'Needs setup', '/edit-bio'],
+                ['QR identity', profileUrl ? 'Ready to share' : 'Publish first', appRoutes.qrGenerator],
+              ].map(([label, meta, route], index) => (
+                <Pressable
+                  key={label}
+                  onPress={() => router.push(route as Href)}
+                  style={({ pressed }) => [s.productRow, index === 2 && s.productRowLast, pressed && s.pressed]}
+                >
+                  <View>
+                    <AppText style={s.productTitle}>{label}</AppText>
+                    <AppText style={s.productMeta}>{meta}</AppText>
+                  </View>
+                  <AppIcon name="ChevronRight" size={16} color={MUTED} />
+                </Pressable>
+              ))}
             </View>
           </View>
 
-          {/* ── DEMO LINK ── */}
-          <Pressable
-            onPress={() => router.push(appRoutes.nfcDemo as Href)}
-            style={({ pressed }) => [s.demoLink, pressed && s.pressed]}
-          >
-            <AppIcon name="Nfc" size={16} color={MUTED} />
-            <AppText style={s.demoLinkT}>Try NFC demo on this device</AppText>
-            <AppIcon name="ChevronRight" size={14} color={MUTED} />
+          {/* ── NFC DEMO ── */}
+          <Pressable onPress={() => router.push(appRoutes.nfcDemo as Href)} style={({ pressed }) => [s.demoLink, pressed && s.pressed]}>
+            <AppIcon name="Nfc" size={15} color={MUTED} />
+            <AppText style={s.demoLinkT}>Try NFC demo</AppText>
+            <AppIcon name="ChevronRight" size={13} color={MUTED} />
           </Pressable>
 
         </IosScrollView>
@@ -430,64 +339,85 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
   safe: { flex: 1, backgroundColor: 'transparent' },
   scroll: { flex: 1 },
-  content: { paddingHorizontal: 18, paddingTop: 6, paddingBottom: 120, gap: 18 },
+  content: { paddingHorizontal: 24, paddingTop: 14, paddingBottom: 120, gap: 20 },
 
-  header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
-  hLeft: { flex: 1, gap: 2 },
-  greeting: { fontSize: 22, fontWeight: '800', color: INK, letterSpacing: -0.6, fontFamily: 'Inter_800ExtraBold' },
-  greetSub: { fontSize: 13, fontWeight: '500', color: MUTED },
-  hRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3 },
-  notifDot: { position: 'absolute', top: 7, right: 7, width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444', borderWidth: 1.5, borderColor: BG },
-  avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: INK, alignItems: 'center', justifyContent: 'center', shadowColor: INK, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 10, elevation: 6 },
-  avatarT: { fontSize: 17, fontWeight: '900', color: SURFACE, fontFamily: 'Inter_900Black' },
+  // Profile header
+  profileHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  profileAvatar: { width: 54, height: 54, borderRadius: 27, backgroundColor: INK, alignItems: 'center', justifyContent: 'center' },
+  profileAvatarT: { fontSize: 20, fontWeight: '900', color: '#FFFFFF' },
+  profileCopy: { flex: 1, minWidth: 0, gap: 2 },
+  greeting: { fontSize: 12, fontWeight: '800', color: MUTED },
+  profileNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 0 },
+  profileName: { flexShrink: 1, fontSize: 23, lineHeight: 27, fontWeight: '900', color: INK, letterSpacing: 0 },
+  profileMeta: { fontSize: 12, fontWeight: '700', color: MUTED },
+  headerIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center' },
   pressed: { opacity: 0.75, transform: [{ scale: 0.97 }] },
 
-  cardWrap: { alignSelf: 'center', width: '82%', borderRadius: 20, overflow: 'hidden', shadowColor: BRAND, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 22, elevation: 7 },
-
-  shareLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingVertical: 2 },
-  shareLineT: { fontSize: 13, fontWeight: '700', color: BRAND, fontFamily: 'Inter_700Bold' },
-
-  actionsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  actionCard: {
-    width: '48.5%',
-    minHeight: 116,
-    borderRadius: 20,
-    overflow: 'hidden',
-    backgroundColor: SURFACE,
-    padding: 13,
-    gap: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
+  // Card stack
+  cardStage: { alignSelf: 'center', paddingTop: 14, paddingBottom: 4 },
+  cardShadowBack: {
+    position: 'absolute',
+    left: 18,
+    right: 18,
+    top: 0,
+    height: 34,
+    borderRadius: 22,
+    backgroundColor: '#D8D8DD',
+    opacity: 0.7,
   },
-  actionTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  actionArrow: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  actionLabel: { fontSize: 14, fontWeight: '900', color: INK2, fontFamily: 'Inter_900Black' },
-  actionSub: { fontSize: 11, fontWeight: '600', color: MUTED },
+  cardWrap: {
+    borderRadius: 28,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.22,
+    shadowRadius: 34,
+    elevation: 10,
+  },
 
-  section: { gap: 12 },
+  // Share and utilities
+  shareButton: { height: 58, borderRadius: 29, backgroundColor: INK, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  shareButtonT: { fontSize: 17, fontWeight: '900', color: '#FFFFFF' },
+  utilityRow: { flexDirection: 'row', gap: 10 },
+  utilityBtn: { flex: 1, minHeight: 76, borderRadius: 24, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center', gap: 7 },
+  utilityLabel: { fontSize: 11, fontWeight: '900', color: INK2, textAlign: 'center' },
+
+  snapshotPanel: { borderRadius: 24, backgroundColor: SURFACE, padding: 22, gap: 18 },
+  snapshotTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
+  snapshotKicker: { fontSize: 12, fontWeight: '800', color: BRAND },
+  snapshotTitle: { fontSize: 20, fontWeight: '900', color: INK, marginTop: 2 },
+  snapshotLive: { fontSize: 12, fontWeight: '900', color: BRAND },
+  snapshotStats: { flexDirection: 'row', justifyContent: 'space-between' },
+  snapshotNumber: { fontSize: 34, lineHeight: 38, fontWeight: '900', color: INK },
+  snapshotLabel: { fontSize: 12, fontWeight: '800', color: MUTED },
+  snapshotFoot: { fontSize: 12, fontWeight: '800', color: MUTED },
+
+  // Below-the-fold content
+  section: { gap: 10 },
   sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sectionTitle: { fontSize: 18, fontWeight: '800', color: INK, letterSpacing: -0.4, fontFamily: 'Inter_800ExtraBold' },
-  sectionSub: { marginTop: 3, fontSize: 12, fontWeight: '500', color: MUTED },
-  viewAllRow: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  viewAll: { fontSize: 13, fontWeight: '600', color: BRAND },
+  sectionTitle: { fontSize: 17, fontWeight: '800', color: INK, letterSpacing: -0.3 },
+  sectionSub: { fontSize: 11, fontWeight: '500', color: MUTED, marginTop: 2 },
+  viewAll: { fontSize: 13, fontWeight: '700', color: BRAND },
 
-  feedCard: { backgroundColor: SURFACE, borderRadius: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.07, shadowRadius: 14, elevation: 4 },
-
+  feedCard: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden' },
   emptyFeed: { padding: 28, alignItems: 'center', gap: 10 },
-  emptyTitle: { fontSize: 16, fontWeight: '800', color: INK2, fontFamily: 'Inter_800ExtraBold' },
-  emptySub: { fontSize: 13, fontWeight: '500', color: MUTED, textAlign: 'center', lineHeight: 18 },
+  emptyTitle: { fontSize: 15, fontWeight: '800', color: INK2 },
+  emptySub: { fontSize: 12, fontWeight: '500', color: MUTED, textAlign: 'center', lineHeight: 18 },
 
-  // How it works
-  howCard: { borderRadius: 22, overflow: 'hidden', padding: 20, shadowColor: BRAND, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.22, shadowRadius: 20, elevation: 8 },
-  howRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  howStep: { flex: 1, alignItems: 'center', gap: 6 },
-  howStepT: { fontSize: 11, fontWeight: '800', color: '#FFFFFF', textAlign: 'center' },
-  howStepS: { fontSize: 9, fontWeight: '500', color: 'rgba(255,255,255,0.7)', textAlign: 'center' },
+  productList: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden' },
+  productRow: {
+    minHeight: 70,
+    paddingHorizontal: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(17,17,17,0.06)',
+  },
+  productRowLast: { borderBottomWidth: 0 },
+  productTitle: { fontSize: 16, fontWeight: '900', color: INK },
+  productMeta: { fontSize: 12, fontWeight: '700', color: MUTED, marginTop: 3 },
 
-  demoLink: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingVertical: 6 },
-  demoLinkT: { fontSize: 13, fontWeight: '500', color: MUTED },
+  demoLink: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 4 },
+  demoLinkT: { fontSize: 12, fontWeight: '500', color: MUTED },
 });

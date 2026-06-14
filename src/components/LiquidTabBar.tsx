@@ -24,7 +24,7 @@ type RouteItem = { type: 'route'; route: any };
 type NavItem = RouteItem;
 
 /** Guest + customer footer tabs — fixed order so Connections never drops off. */
-const CONSUMER_TAB_ORDER = ['index', 'connections', 'profile', 'settings'] as const;
+const CONSUMER_TAB_ORDER = ['index', 'connections', 'share', 'profile', 'settings'] as const;
 
 const DOCK_BLUR = glassTheme.blur.dock;
 const DOCK_HEIGHT = 72;
@@ -270,6 +270,19 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
 
   return (
     <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, theme.spacing.xs) }]}>
+      {showFloatingAction ? (
+        <View pointerEvents="none" style={styles.roleDockShapeWrap}>
+          <LiquidGlassChrome
+            isDark={isDark}
+            reduceTransparency={reduceTransparency}
+            borderRadius={999}
+            fallbackBackground={colors.surface}
+            style={styles.roleDockShape}
+          >
+            <View />
+          </LiquidGlassChrome>
+        </View>
+      ) : null}
       <View style={[styles.dockShadow, styles.dockShadowFlex]}>
         <LiquidGlassChrome
           isDark={isDark}
@@ -283,6 +296,7 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
             const isActive = activeRoute?.name === route.name;
             const label = routeLabel(route, descriptors);
             const showOrdersBadge = isSalesBar && route.name === 'orders' && activeOrdersCount > 0;
+            const isShareTab = isConsumerBar && route.name === 'share';
 
             return (
               <Pressable
@@ -291,12 +305,18 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
                   const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
                   if (!isActive && !event.defaultPrevented) navigation.navigate(route.name);
                 }}
-                style={({ pressed }) => [styles.tabItem, pressed && styles.tabItemPressed]}
+                style={({ pressed }) => [styles.tabItem, isShareTab && styles.shareTabItem, pressed && styles.tabItemPressed]}
                 accessibilityRole="button"
                 accessibilityLabel={label}
                 accessibilityState={{ selected: isActive }}
               >
-                <View style={styles.tabContent}>
+                <View style={[styles.tabContent, isShareTab && styles.shareTabContent]}>
+                  {isShareTab ? (
+                    <View style={[styles.shareCenterButton, isActive && styles.shareCenterButtonActive]}>
+                      <Ionicons name={getLiquidTabIcon(route.name, true)} size={25} color="#FFFFFF" />
+                    </View>
+                  ) : (
+                    <>
                   {isActive ? (
                     <View
                       style={[
@@ -324,6 +344,8 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
                     inactiveIconColor={inactiveIconColor}
                     badgeLabel={showOrdersBadge ? ordersBadgeLabel : undefined}
                   />
+                    </>
+                  )}
                   <AppText
                     numberOfLines={1}
                     adjustsFontSizeToFit
@@ -331,8 +353,9 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
                     style={[
                       styles.label,
                       isActive
-                        ? [styles.labelActive, { color: activeLabelColor }]
+                        ? [styles.labelActive, { color: isShareTab ? colors.textPrimary : activeLabelColor }]
                         : [styles.labelInactive, { color: colors.textMuted }],
+                      isShareTab && styles.shareLabel,
                     ]}
                   >
                     {label}
@@ -387,6 +410,16 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: 10,
     backgroundColor: 'transparent',
+  },
+  roleDockShapeWrap: {
+    position: 'absolute',
+    left: 10,
+    right: 10,
+    bottom: 0,
+    height: 88,
+  },
+  roleDockShape: {
+    flex: 1,
   },
   dockShadow: {
     shadowColor: '#000000',
@@ -448,6 +481,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 3,
     zIndex: 2,
+  },
+  shareTabItem: {
+    flex: 1.12,
+  },
+  shareTabContent: {
+    gap: 1,
+  },
+  shareCenterButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#111111',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#111111',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.24,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  shareCenterButtonActive: {
+    backgroundColor: SNAP_TAP_BRAND,
   },
   iconBadgeContainer: {
     position: 'relative',
@@ -529,6 +584,10 @@ const styles = StyleSheet.create({
   },
   labelInactive: {
     fontWeight: '500',
+  },
+  shareLabel: {
+    marginTop: 0,
+    fontWeight: '700',
   },
   actionButtonPressed: {
     opacity: 0.82,

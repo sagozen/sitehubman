@@ -10,9 +10,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { AppButton } from '@/src/components/AppButton';
-import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
+import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { appRoutes } from '@/src/constants/navigation';
 import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
@@ -26,44 +24,6 @@ const MUTED = '#8E8E93';
 const BG = '#F5F5F7';
 const SURFACE = '#FFFFFF';
 
-type HubAction = {
-  icon: AppIconName;
-  label: string;
-  sub: string;
-  color: string;
-  value?: string | number;
-  onPress: () => void;
-};
-
-function HubTile({ action }: { action: HubAction }) {
-  return (
-    <Pressable
-      onPress={action.onPress}
-      style={({ pressed }) => [styles.tile, pressed && styles.pressed]}
-      accessibilityRole="button"
-    >
-      <LinearGradient
-        colors={[`${action.color}18`, `${action.color}06`]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-      <View style={styles.tileTop}>
-        <AppIcon name={action.icon} size={38} color={action.color} />
-        {action.value !== undefined ? (
-          <View style={[styles.valuePill, { backgroundColor: `${action.color}14` }]}>
-            <AppText style={[styles.valueText, { color: action.color }]}>{action.value}</AppText>
-          </View>
-        ) : (
-          <AppIcon name="ChevronRight" size={16} color="#C4CFDE" />
-        )}
-      </View>
-      <AppText style={styles.tileTitle}>{action.label}</AppText>
-      <AppText style={styles.tileSub}>{action.sub}</AppText>
-    </Pressable>
-  );
-}
-
 export function CustomerConnectionsScreen() {
   const { user } = useAuth();
   const { data, loading, error, refreshing, refresh } = useCustomerConnections(user);
@@ -73,6 +33,9 @@ export function CustomerConnectionsScreen() {
   const profiles = data?.profiles ?? [];
   const publicUrl = profiles[0]?.slug ? buildSlugProfileUrl(profiles[0].slug!) : null;
   const lastActivity = analytics?.lastActivityAt ? formatRelative(analytics.lastActivityAt) : 'No activity yet';
+  const displayName = user?.displayName || profiles[0]?.title || 'Your Network';
+  const initial = (displayName.trim() || 'N')[0].toUpperCase();
+  const activeChannels = data?.socialChannels.filter((channel) => channel.enabled) ?? [];
 
   async function handleShare() {
     if (!publicUrl) {
@@ -81,56 +44,6 @@ export function CustomerConnectionsScreen() {
     }
     await Share.share({ message: `My NFC profile: ${publicUrl}`, url: publicUrl });
   }
-
-  const actions: HubAction[] = [
-    {
-      icon: 'Share',
-      label: 'Share Card',
-      sub: 'Send profile link or QR',
-      color: BRAND,
-      onPress: () => void handleShare(),
-    },
-    {
-      icon: 'Users',
-      label: 'Leads',
-      sub: 'People from taps and QR',
-      color: '#AF52DE',
-      value: analytics?.uniqueVisitors ?? 0,
-      onPress: () => router.push(appRoutes.guestAnalytics),
-    },
-    {
-      icon: 'Nfc',
-      label: 'Tap Activity',
-      sub: 'NFC card opens',
-      color: '#007AFF',
-      value: analytics?.totalNfcTaps ?? 0,
-      onPress: () => router.push(appRoutes.scan),
-    },
-    {
-      icon: 'Eye',
-      label: 'Card Views',
-      sub: 'Profile visits',
-      color: '#34C759',
-      value: analytics?.totalProfileViews ?? 0,
-      onPress: () => router.push(appRoutes.guestAnalytics),
-    },
-    {
-      icon: 'CreditCard',
-      label: 'Cards',
-      sub: cards.length > 0 ? 'Manage active cards' : 'Design your first card',
-      color: '#FF9500',
-      value: cards.length,
-      onPress: () => router.push(appRoutes.guestDesign),
-    },
-    {
-      icon: 'PenLine',
-      label: 'Profile',
-      sub: 'Edit bio and links',
-      color: '#FF3B30',
-      value: profiles.length,
-      onPress: () => router.push('/edit-bio'),
-    },
-  ];
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -145,23 +58,42 @@ export function CustomerConnectionsScreen() {
           />
         }
       >
-        <View style={styles.header}>
-          <View style={styles.headerCopy}>
-            <AppText style={styles.title}>Connections</AppText>
-            <AppText style={styles.subtitle}>Share, scan, and capture leads</AppText>
+        <View style={styles.pageHeader}>
+          <View style={styles.pageCopy}>
+            <AppText style={styles.pageTitle}>Network</AppText>
+            <AppText style={styles.pageSubtitle}>People, taps, and follow-ups.</AppText>
           </View>
-          <AppIcon name="Users" size={42} color={BRAND} />
+          <Pressable onPress={() => router.push(appRoutes.scan)} style={({ pressed }) => [styles.scanTop, pressed && styles.pressed]}>
+            <AppIcon name="ScanLine" size={22} color="#FFFFFF" />
+          </Pressable>
         </View>
 
-        <View style={styles.statusBanner}>
-          <AppIcon name="BadgeCheck" size={22} color={BRAND} />
-          <View style={styles.bannerCopy}>
-            <AppText style={styles.bannerTitle}>Your card is live</AppText>
-            <AppText style={styles.bannerSub}>
-              Last activity · {lastActivity}
-            </AppText>
+        <View style={styles.identityCard}>
+          <View style={styles.avatar}>
+            <AppText style={styles.avatarText}>{initial}</AppText>
+          </View>
+          <View style={styles.identityCopy}>
+            <View style={styles.nameRow}>
+              <AppText style={styles.name} numberOfLines={1}>{displayName}</AppText>
+              <AppIcon name="BadgeCheck" size={19} color={BRAND} />
+            </View>
+            <AppText style={styles.subtitle}>{publicUrl ? publicUrl.replace(/^https?:\/\//, '') : 'Publish your profile to start collecting people'}</AppText>
           </View>
         </View>
+
+        {!loading && !error ? (
+          <View style={styles.peopleHero}>
+            <View style={styles.peopleMetric}>
+              <AppText style={styles.peopleNumber}>{analytics?.uniqueVisitors ?? 0}</AppText>
+              <AppText style={styles.peopleLabel}>people reached</AppText>
+            </View>
+            <View style={styles.peopleDivider} />
+            <View style={styles.peopleMetric}>
+              <AppText style={styles.peopleNumber}>{(analytics?.totalNfcTaps ?? 0) + (analytics?.totalQrScans ?? 0)}</AppText>
+              <AppText style={styles.peopleLabel}>exchanges</AppText>
+            </View>
+          </View>
+        ) : null}
 
         {loading ? (
           <View style={styles.center}>
@@ -171,18 +103,88 @@ export function CustomerConnectionsScreen() {
         ) : error ? (
           <AppText style={styles.errorText}>{error}</AppText>
         ) : (
-          <View style={styles.grid}>
-            {actions.map((action) => (
-              <HubTile key={action.label} action={action} />
-            ))}
+          <View style={styles.section}>
+            <View style={styles.sectionHead}>
+              <AppText style={styles.sectionTitle}>People</AppText>
+              <AppText style={styles.sectionSub}>{lastActivity}</AppText>
+            </View>
+            <View style={styles.peopleList}>
+              {[
+                ['Profile viewers', `${analytics?.uniqueVisitors ?? 0} people opened your card`, 'View'],
+                ['NFC introductions', `${analytics?.totalNfcTaps ?? 0} in-person exchanges`, 'Tap'],
+                ['QR exchanges', `${analytics?.totalQrScans ?? 0} camera or screen scans`, 'QR'],
+                ['Card collection', cards.length > 0 ? `${cards.length} active card${cards.length === 1 ? '' : 's'}` : 'Create your first NFC card', 'Card'],
+              ].map(([title, detail, meta], index) => (
+                <Pressable
+                  key={title}
+                  onPress={() => index === 3 ? router.push(appRoutes.guestDesign) : router.push(appRoutes.guestAnalytics)}
+                  style={({ pressed }) => [styles.personRow, index === 3 && styles.personRowLast, pressed && styles.pressed]}
+                >
+                  <View style={styles.personAvatar}>
+                    <AppText style={styles.personInitial}>{title[0]}</AppText>
+                  </View>
+                  <View style={styles.personCopy}>
+                    <AppText style={styles.personName}>{title}</AppText>
+                    <AppText style={styles.personDetail}>{detail}</AppText>
+                  </View>
+                  <AppText style={styles.personMeta}>{meta}</AppText>
+                </Pressable>
+              ))}
+            </View>
           </View>
         )}
 
-        <AppButton
-          label="Share profile QR"
-          iconName="QrCode"
-          onPress={() => router.push(appRoutes.qrGenerator)}
-        />
+        {!loading && !error ? (
+          <View style={styles.section}>
+            <View style={styles.sectionHead}>
+              <AppText style={styles.sectionTitle}>Follow Up</AppText>
+              <AppText style={styles.sectionSub}>Quick next steps</AppText>
+            </View>
+            <View style={styles.followList}>
+              <Pressable onPress={() => router.push(appRoutes.scan)} style={({ pressed }) => [styles.followRow, pressed && styles.pressed]}>
+                <View style={styles.followIcon}>
+                  <AppIcon name="ScanLine" size={22} color="#FFFFFF" />
+                </View>
+                <View style={styles.followCopy}>
+                  <AppText style={styles.followTitle}>Scan a new contact</AppText>
+                  <AppText style={styles.followSub}>Add someone after a meeting</AppText>
+                </View>
+                <AppIcon name="ChevronRight" size={15} color={MUTED} />
+              </Pressable>
+              <Pressable onPress={() => void handleShare()} style={({ pressed }) => [styles.followRow, styles.personRowLast, pressed && styles.pressed]}>
+                <View style={[styles.followIcon, styles.followIconLight]}>
+                  <AppIcon name="Share" size={22} color={BRAND} />
+                </View>
+                <View style={styles.followCopy}>
+                  <AppText style={styles.followTitle}>Share your card</AppText>
+                  <AppText style={styles.followSub}>Send link or QR after the conversation</AppText>
+                </View>
+                <AppIcon name="ChevronRight" size={15} color={MUTED} />
+              </Pressable>
+            </View>
+          </View>
+        ) : null}
+
+        {!loading && !error ? (
+          <View style={styles.section}>
+            <AppText style={styles.sectionTitle}>Reach Channels</AppText>
+            <View style={styles.channelList}>
+              {(activeChannels.length > 0 ? activeChannels : data?.socialChannels ?? []).slice(0, 4).map((channel, index, arr) => (
+                <View key={channel.id} style={[styles.channelRow, index === arr.length - 1 && styles.personRowLast]}>
+                  <AppIcon name={channel.icon} size={20} color={channel.enabled ? INK : MUTED} />
+                  <View style={styles.channelCopy}>
+                    <AppText style={styles.channelLabel}>{channel.label}</AppText>
+                    <AppText style={styles.channelValue} numberOfLines={1}>{channel.value || 'Not connected'}</AppText>
+                  </View>
+                  <AppText style={[styles.channelState, !channel.enabled && styles.channelStateOff]}>
+                    {channel.enabled ? 'On' : 'Off'}
+                  </AppText>
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : null}
+
       </IosScrollView>
     </SafeAreaView>
   );
@@ -190,63 +192,76 @@ export function CustomerConnectionsScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG },
-  content: { padding: 20, gap: 20, paddingBottom: 120 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerCopy: { flex: 1, gap: 3 },
-  title: { fontSize: 28, fontWeight: '900', color: INK, letterSpacing: -0.6 },
-  subtitle: { fontSize: 13, fontWeight: '500', color: MUTED },
-  statusBanner: {
+  content: { paddingHorizontal: 24, paddingTop: 14, gap: 24, paddingBottom: 120 },
+  pageHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
+  pageCopy: { flex: 1, gap: 4 },
+  pageTitle: { fontSize: 42, lineHeight: 45, fontWeight: '900', color: INK, letterSpacing: 0 },
+  pageSubtitle: { fontSize: 16, fontWeight: '700', color: MUTED },
+  scanTop: { width: 48, height: 48, borderRadius: 24, backgroundColor: INK, alignItems: 'center', justifyContent: 'center' },
+  identityCard: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: SURFACE, borderRadius: 24, padding: 18 },
+  avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: BRAND, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 24, fontWeight: '900', color: '#FFFFFF' },
+  identityCopy: { flex: 1, gap: 4, minWidth: 0 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 0 },
+  name: { flexShrink: 1, fontSize: 22, lineHeight: 26, fontWeight: '900', color: INK, letterSpacing: 0 },
+  subtitle: { fontSize: 13, fontWeight: '700', color: MUTED },
+  peopleHero: { flexDirection: 'row', alignItems: 'center', backgroundColor: INK, borderRadius: 24, padding: 24 },
+  peopleMetric: { flex: 1, gap: 4 },
+  peopleNumber: { fontSize: 42, lineHeight: 46, fontWeight: '900', color: '#FFFFFF' },
+  peopleLabel: { fontSize: 13, fontWeight: '800', color: 'rgba(255,255,255,0.58)' },
+  peopleDivider: { width: StyleSheet.hairlineWidth, height: 54, backgroundColor: 'rgba(255,255,255,0.18)', marginHorizontal: 18 },
+  section: { gap: 14 },
+  sectionHead: { gap: 3 },
+  sectionTitle: { fontSize: 22, fontWeight: '900', color: INK, letterSpacing: 0 },
+  sectionSub: { fontSize: 13, fontWeight: '700', color: MUTED },
+  peopleList: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden' },
+  personRow: {
+    minHeight: 88,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    backgroundColor: SURFACE,
-    borderRadius: 18,
-    padding: 16,
-    shadowColor: BRAND,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 14,
-    elevation: 4,
+    paddingHorizontal: 18,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(17,17,17,0.06)',
   },
-  bannerCopy: { flex: 1, gap: 2 },
-  bannerTitle: { fontSize: 14, fontWeight: '800', color: INK },
-  bannerSub: { fontSize: 12, fontWeight: '500', color: MUTED },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  tile: {
-    width: '47%',
-    minHeight: 142,
-    backgroundColor: SURFACE,
-    borderRadius: 20,
-    padding: 16,
-    overflow: 'hidden',
-    gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.07,
-    shadowRadius: 16,
-    elevation: 4,
-  },
-  pressed: { opacity: 0.78, transform: [{ scale: 0.97 }] },
-  tileTop: {
+  personRowLast: { borderBottomWidth: 0 },
+  personAvatar: { width: 58, height: 58, borderRadius: 29, backgroundColor: INK, alignItems: 'center', justifyContent: 'center' },
+  personInitial: { fontSize: 21, fontWeight: '900', color: '#FFFFFF' },
+  personCopy: { flex: 1, gap: 4, minWidth: 0 },
+  personName: { fontSize: 18, fontWeight: '900', color: INK, letterSpacing: 0 },
+  personDetail: { fontSize: 13, fontWeight: '600', color: MUTED },
+  personMeta: { fontSize: 12, fontWeight: '800', color: MUTED },
+  followList: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden' },
+  followRow: {
+    minHeight: 76,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 14,
+    paddingHorizontal: 18,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(17,17,17,0.06)',
   },
-  valuePill: {
-    minWidth: 30,
-    height: 24,
-    borderRadius: 12,
+  followIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: INK, alignItems: 'center', justifyContent: 'center' },
+  followIconLight: { backgroundColor: '#EAF7FC' },
+  followCopy: { flex: 1, gap: 3, minWidth: 0 },
+  followTitle: { fontSize: 16, fontWeight: '900', color: INK },
+  followSub: { fontSize: 12, fontWeight: '700', color: MUTED },
+  channelList: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden' },
+  channelRow: {
+    minHeight: 68,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
+    gap: 14,
+    paddingHorizontal: 18,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(17,17,17,0.06)',
   },
-  valueText: { fontSize: 12, fontWeight: '900' },
-  tileTitle: { fontSize: 15, fontWeight: '900', color: INK, letterSpacing: -0.2 },
-  tileSub: { fontSize: 11, fontWeight: '500', color: MUTED, lineHeight: 15 },
+  channelCopy: { flex: 1, gap: 3, minWidth: 0 },
+  channelLabel: { fontSize: 16, fontWeight: '900', color: INK },
+  channelValue: { fontSize: 12, fontWeight: '700', color: MUTED },
+  channelState: { fontSize: 12, fontWeight: '900', color: BRAND },
+  channelStateOff: { color: MUTED },
+  pressed: { opacity: 0.78, transform: [{ scale: 0.97 }] },
   center: { alignItems: 'center', gap: 10, paddingVertical: 40 },
   muted: { fontSize: 13, fontWeight: '600', color: MUTED },
   errorText: {

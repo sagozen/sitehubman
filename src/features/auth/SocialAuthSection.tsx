@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, type ComponentType } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { BrandImage } from '@/src/components/BrandImage';
 import {
   Alert,
@@ -11,7 +12,6 @@ import {
 import type { AppleAuthenticationButtonProps } from 'expo-apple-authentication';
 import * as Crypto from 'expo-crypto';
 import { AppText } from '@/src/components/AppText';
-import { AppIcon } from '@/src/components/AppIcon';
 import { authBrandAssets, SOCIAL_ICON_SIZE } from '@/src/constants/brandAssets';
 import { AuthOrDivider } from '@/src/features/auth/components/authUi';
 import { authLoginTheme } from '@/src/features/auth/constants/authTheme';
@@ -34,8 +34,6 @@ interface SocialAuthSectionProps {
   onSuccess: (user: AppUser) => void;
   variant?: 'default' | 'login';
 }
-
-const SOCIAL_BTN_HEIGHT = iosDesign.controlHeight.primary;
 
 function SocialBrandIcon({ source, size = SOCIAL_ICON_SIZE }: { source: ImageSourcePropType; size?: number }) {
   return (
@@ -188,13 +186,9 @@ export function SocialAuthSection({
     }
   }
 
-  const showApple = Platform.OS === 'ios' && appleAvailable;
-
   return (
     <View style={styles.wrap}>
-      {showApple ? (
-        <AppleSignInButton onPress={handleApplePress} disabled={busy && !isAppleLoading} loading={isAppleLoading} />
-      ) : null}
+      <AppleSignInButton onPress={handleApplePress} disabled={busy && !isAppleLoading} loading={isAppleLoading} />
 
       {isTelegramLoginConfigured() ? (
         <Pressable
@@ -218,7 +212,6 @@ export function SocialAuthSection({
         </Pressable>
       ) : null}
 
-      {isConfigured ? (
       <Pressable
         accessibilityRole="button"
         onPress={handleGooglePress}
@@ -238,7 +231,6 @@ export function SocialAuthSection({
           {isGoogleLoading ? 'Connecting...' : 'Continue with Google'}
         </AppText>
       </Pressable>
-      ) : null}
 
       <AuthOrDivider />
     </View>
@@ -288,7 +280,7 @@ function AppleSignInButton({ onPress, disabled, loading }: AppleSignInButtonProp
       disabled={disabled}
       style={({ pressed }) => [styles.appleFallback, disabled && styles.disabled, pressed && !disabled && styles.pressed]}
     >
-      <AppIcon name="ShieldCheck" size={theme.iconSize.sm} color="#FFFFFF" />
+      <Ionicons name="logo-apple" size={22} color="#FFFFFF" />
       <AppText style={styles.appleFallbackText} weight="semibold">
         {loading ? 'Connecting...' : 'Continue with Apple'}
       </AppText>
@@ -298,52 +290,52 @@ function AppleSignInButton({ onPress, disabled, loading }: AppleSignInButtonProp
 
 const styles = StyleSheet.create({
   wrap: {
-    gap: iosDesign.spacing.sm,
+    gap: 10,
   },
   appleNative: {
     width: '100%',
-    height: SOCIAL_BTN_HEIGHT,
+    height: 54,
   },
   appleFallback: {
-    minHeight: SOCIAL_BTN_HEIGHT,
-    borderRadius: iosDesign.radius.lg,
+    minHeight: 54,
+    borderRadius: 27,
     backgroundColor: '#000000',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 10,
     paddingHorizontal: iosDesign.spacing.md,
   },
   appleFallbackText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontWeight: '800',
   },
   googleBtn: {
-    minHeight: SOCIAL_BTN_HEIGHT,
-    borderRadius: iosDesign.radius.lg,
+    minHeight: 54,
+    borderRadius: 27,
     backgroundColor: iosPalette.light.surface,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
     paddingHorizontal: iosDesign.spacing.md,
-    ...theme.shadows.control,
-    shadowOpacity: 0.04,
+    borderWidth: 1,
+    borderColor: 'rgba(17,17,17,0.08)',
   },
   googleBtnLogin: {
-    minHeight: SOCIAL_BTN_HEIGHT,
-    borderRadius: iosDesign.radius.lg,
+    minHeight: 54,
+    borderRadius: 27,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: authLoginTheme.googleBorder,
-    shadowOpacity: 0.03,
   },
   googleLabelLogin: {
     color: authLoginTheme.titleNavy,
   },
   telegramBtn: {
-    minHeight: SOCIAL_BTN_HEIGHT,
-    borderRadius: iosDesign.radius.lg,
+    minHeight: 54,
+    borderRadius: 27,
     backgroundColor: '#229ED9',
     flexDirection: 'row',
     alignItems: 'center',
@@ -354,8 +346,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
   },
   telegramBtnLogin: {
-    minHeight: SOCIAL_BTN_HEIGHT,
-    borderRadius: iosDesign.radius.lg,
+    minHeight: 54,
+    borderRadius: 27,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: authLoginTheme.googleBorder,
@@ -366,10 +358,12 @@ const styles = StyleSheet.create({
   },
   telegramLabel: {
     fontSize: 16,
+    fontWeight: '800',
     color: '#FFFFFF',
   },
   googleLabel: {
     fontSize: 16,
+    fontWeight: '800',
     color: iosPalette.light.textPrimary,
   },
   hint: {

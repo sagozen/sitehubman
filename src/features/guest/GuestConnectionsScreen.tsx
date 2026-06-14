@@ -4,30 +4,73 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { AppButton } from '@/src/components/AppButton';
-import { FlowIcon } from '@/src/components/FlowIcon';
-import type { FlowRealIconId } from '@/src/constants/flowRealIcons';
+import { appRoutes } from '@/src/constants/navigation';
 import { useGuestActionStats } from '@/src/hooks/useGuestActionStats';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 
 const BRAND = '#2596BE';
+const INK = '#1C1C1E';
+const MUTED = '#8E8E93';
+const BG = '#F5F5F7';
+const SURFACE = '#FFFFFF';
 
 const ACTIONS: {
   icon: AppIconName;
-  realIcon: FlowRealIconId;
   label: string;
+  driven: string;   // what this does for the user
   sub: string;
   color: string;
   route?: string;
   locked?: boolean;
 }[] = [
-  { icon: 'Eye', realIcon: 'preview', label: 'Preview profile', sub: 'Live public card', color: '#007AFF' },
-  { icon: 'CreditCard', realIcon: 'ecard', label: 'Order card', sub: 'NFC + QR backup', color: '#34C759', route: '/guest-design' },
-  { icon: 'Package', realIcon: 'track', label: 'Track order', sub: 'Print · encode · ship', color: '#FF9500', route: '/guest-track-order' },
-  { icon: 'Users', realIcon: 'connections', label: 'Lead capture', sub: 'Taps, QR, contacts', color: '#AF52DE', locked: true },
-  { icon: 'QrCode', realIcon: 'share', label: 'Share QR', sub: 'No app required', color: BRAND, route: '/nfc-demo' },
-  { icon: 'ScanLine', realIcon: 'nfc', label: 'Scan card', sub: 'Read NFC cards', color: '#FF3B30', route: '/scan' },
+  {
+    icon: 'Eye',
+    label: 'Preview Bio',
+    driven: 'See your live public profile',
+    sub: 'What people see when they tap',
+    color: '#007AFF',
+  },
+  {
+    icon: 'QrCode',
+    label: 'Share QR',
+    driven: 'Share your card instantly',
+    sub: 'Works without NFC',
+    color: BRAND,
+    route: appRoutes.qrGenerator,     // ← fixed: was '/nfc-demo'
+  },
+  {
+    icon: 'ScanLine',
+    label: 'Scan NFC',
+    driven: 'Read any NFC business card',
+    sub: 'Meet someone, see their profile',
+    color: '#0284C7',
+    route: appRoutes.scan,
+  },
+  {
+    icon: 'CreditCard',
+    label: 'Design Card',
+    driven: 'Create your NFC card',
+    sub: 'Virtual or physical',
+    color: '#34C759',
+    route: appRoutes.guestDesign,
+  },
+  {
+    icon: 'Package',
+    label: 'Track Order',
+    driven: 'Check production status',
+    sub: 'Print · encode · ship',
+    color: '#FF9500',
+    route: appRoutes.guestTrackOrder,
+  },
+  {
+    icon: 'Users',
+    label: 'Lead Capture',
+    driven: 'See who viewed your card',
+    sub: 'Taps, QR scans, contacts',
+    color: '#AF52DE',
+    locked: true,
+  },
 ];
 
 export function GuestConnectionsScreen() {
@@ -37,147 +80,135 @@ export function GuestConnectionsScreen() {
 
   function handleAction(action: (typeof ACTIONS)[0]) {
     if (action.locked) {
-      requireAccount(undefined, {
-        message: `Sign in to unlock ${action.label.toLowerCase()}.`,
-      });
+      requireAccount(undefined, { message: `Sign in to unlock ${action.label.toLowerCase()}.` });
       return;
     }
-    if (action.label === 'Preview profile') {
+    if (action.label === 'Preview Bio') {
       openPreview();
       return;
     }
-    if (action.route) {
-      router.push(action.route as any);
-    }
+    if (action.route) router.push(action.route as any);
   }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <IosScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
-        {/* Header */}
         <View style={styles.header}>
-          <View style={styles.headerCopy}>
+          <View>
             <AppText style={styles.title}>Connections</AppText>
-            <AppText style={styles.subtitle}>Share, scan, and capture leads</AppText>
+            <AppText style={styles.subtitle}>People around your card</AppText>
           </View>
-          <AppIcon name="Nfc" size={32} color={BRAND} />
+          <View style={styles.nfcBadge}>
+            <AppIcon name="Users" size={22} color={BRAND} />
+          </View>
         </View>
 
-        {/* Status banner */}
         {isGuest ? (
           <View style={styles.guestBanner}>
-            <AppIcon name="ShieldCheck" size={22} color={BRAND} />
-            <View style={styles.bannerCopy}>
-              <AppText style={styles.bannerTitle}>Guest mode active</AppText>
-              <AppText style={styles.bannerSub}>
-                Sign in to save leads, sync cards, and track every tap.
-              </AppText>
+            <View style={styles.bannerInner}>
+              <View style={styles.bannerCopy}>
+                <AppText style={styles.bannerTitle}>Your network starts when the card goes live.</AppText>
+                <AppText style={styles.bannerSub}>Sign in to keep every view, tap, and saved contact.</AppText>
+              </View>
+              <Pressable
+                onPress={() => requireAccount(undefined, { message: 'Sign in to unlock your full NFC hub.' })}
+                style={styles.bannerCta}
+              >
+                <AppText style={styles.bannerCtaT}>Sign in</AppText>
+              </Pressable>
             </View>
           </View>
         ) : null}
 
-        {/* Action grid */}
-        <View style={styles.grid}>
-          {ACTIONS.map((action) => (
+        <View style={styles.peopleList}>
+          {[
+            ['Maya Chen', 'Viewed your profile', '2m'],
+            ['Jordan Lee', 'Saved your card', 'Today'],
+            ['Alex Morgan', 'Scanned at an event', 'Fri'],
+          ].map(([name, detail, time], index) => (
+            <View key={name} style={[styles.personRow, index === 2 && styles.personRowLast]}>
+              <View style={styles.personAvatar}>
+                <AppText style={styles.personInitial}>{name[0]}</AppText>
+              </View>
+              <View style={styles.personCopy}>
+                <AppText style={styles.personName}>{name}</AppText>
+                <AppText style={styles.personDetail}>{detail}</AppText>
+              </View>
+              <AppText style={styles.personTime}>{time}</AppText>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.actionStrip}>
+          {ACTIONS.slice(0, 4).map((action) => (
             <Pressable
               key={action.label}
               onPress={() => handleAction(action)}
-              style={({ pressed }) => [styles.cell, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.actionBtn, pressed && styles.pressed]}
               accessibilityRole="button"
+              accessibilityLabel={action.label}
             >
-              {action.locked ? (
-                <View style={styles.lockBadge}>
-                  <AppIcon name="ShieldCheck" size={10} color="#FFFFFF" />
-                </View>
-              ) : null}
-              <FlowIcon
-                realIcon={action.realIcon}
-                fallbackIcon={action.icon}
-                tint={action.locked ? '#C7C7CC' : action.color}
-                size={52}
-                glow
+              <AppIcon
+                name={action.icon}
+                size={24}
+                color={action.locked ? '#C7C7CC' : INK}
               />
-              <AppText style={[styles.cellLabel, action.locked && styles.cellLabelLocked]}>
-                {action.label}
+              <AppText style={[styles.actionLabel, action.locked && styles.cellLabelLocked]}>
+                {action.label.replace('Preview Bio', 'Profile').replace('Share QR', 'QR').replace('Scan NFC', 'Scan').replace('Design Card', 'Card')}
               </AppText>
-              <AppText style={styles.cellSub}>{action.sub}</AppText>
             </Pressable>
           ))}
         </View>
 
-        {isGuest ? (
-          <AppButton
-            label="Sign in to unlock full hub"
-            iconName="UserPlus"
-            onPress={() =>
-              requireAccount(undefined, {
-                message: 'Create an account to save contacts and sync your connection history.',
-              })
-            }
-          />
-        ) : null}
       </IosScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F2F2F7' },
-  content: { padding: 20, gap: 20, paddingBottom: 120 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerCopy: { gap: 2 },
-  title: { fontSize: 26, fontWeight: '800', color: '#1C1C1E', letterSpacing: -0.5 },
-  subtitle: { fontSize: 13, fontWeight: '500', color: '#8E8E93' },
+  safe: { flex: 1, backgroundColor: BG },
+  content: { padding: 24, gap: 24, paddingBottom: 120 },
+
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  title: { fontSize: 36, fontWeight: '900', color: INK, letterSpacing: -0.4 },
+  subtitle: { fontSize: 15, fontWeight: '600', color: MUTED, marginTop: 4 },
+  nfcBadge: { width: 48, height: 48, borderRadius: 24, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center' },
+
   guestBanner: {
+    borderRadius: 24,
+    overflow: 'hidden',
+    backgroundColor: SURFACE,
+  },
+  bannerInner: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 18 },
+  bannerCopy: { flex: 1, gap: 2 },
+  bannerTitle: { fontSize: 16, fontWeight: '800', color: INK, letterSpacing: -0.2 },
+  bannerSub: { fontSize: 12, fontWeight: '600', color: MUTED, lineHeight: 17 },
+  bannerCta: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: INK },
+  bannerCtaT: { fontSize: 12, fontWeight: '800', color: '#FFFFFF' },
+
+  peopleList: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden' },
+  personRow: {
+    minHeight: 78,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#2596BE',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.10,
-    shadowRadius: 14,
-    elevation: 4,
+    paddingHorizontal: 18,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(17,17,17,0.06)',
   },
-  bannerCopy: { flex: 1, gap: 2 },
-  bannerTitle: { fontSize: 14, fontWeight: '700', color: '#1C1C1E' },
-  bannerSub: { fontSize: 12, fontWeight: '500', color: '#8E8E93' },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  cell: {
-    width: '47%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 16,
-    gap: 8,
-    alignItems: 'flex-start',
-    position: 'relative',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.07,
-    shadowRadius: 16,
-    elevation: 4,
-    minHeight: 142,
-  },
+  personRowLast: { borderBottomWidth: 0 },
+  personAvatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#111111', alignItems: 'center', justifyContent: 'center' },
+  personInitial: { fontSize: 18, fontWeight: '900', color: '#FFFFFF' },
+  personCopy: { flex: 1, gap: 3 },
+  personName: { fontSize: 17, fontWeight: '800', color: INK, letterSpacing: -0.2 },
+  personDetail: { fontSize: 13, fontWeight: '600', color: MUTED },
+  personTime: { fontSize: 12, fontWeight: '700', color: MUTED },
+
+  actionStrip: { flexDirection: 'row', backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden' },
+  actionBtn: { flex: 1, alignItems: 'center', gap: 7, paddingVertical: 16 },
+  actionLabel: { fontSize: 11, fontWeight: '800', color: INK, textAlign: 'center' },
+
   pressed: { opacity: 0.78, transform: [{ scale: 0.97 }] },
-  lockBadge: {
-    position: 'absolute',
-    top: 14,
-    right: 14,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#D1D5DB',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cellLabel: { fontSize: 15, fontWeight: '800', color: '#1C1C1E', letterSpacing: -0.2 },
   cellLabelLocked: { color: '#C7C7CC' },
-  cellSub: { fontSize: 11, fontWeight: '500', color: '#8E8E93' },
 });

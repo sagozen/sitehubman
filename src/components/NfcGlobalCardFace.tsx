@@ -1,9 +1,10 @@
 import { Image, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import QRCode from 'react-native-qrcode-svg';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 
-const CARD_GRADIENT = ['#187FC4', '#2596BE', '#55DDE0'] as const;
+const CARD_GRADIENT = ['#111111', '#202124', '#2596BE'] as const;
 
 type NfcGlobalCardFaceProps = {
   fullName?: string;
@@ -12,6 +13,8 @@ type NfcGlobalCardFaceProps = {
   phone?: string;
   email?: string;
   website?: string;
+  /** When provided, renders a real scannable QR code instead of the icon */
+  profileUrl?: string;
   width?: number;
   height?: number;
   compact?: boolean;
@@ -26,6 +29,7 @@ export function NfcGlobalCardFace({
   phone = '',
   email = '',
   website = '',
+  profileUrl = '',
   width,
   height,
   compact = false,
@@ -38,6 +42,7 @@ export function NfcGlobalCardFace({
   const emailLine = email.trim() || 'hello@nfcglobal.com';
   const webLine = website.trim() || 'nfcglobal.com';
   const cardSizeStyle = width ? { width, height: height ?? width / 1.586 } : undefined;
+  const qrSize = compact ? 26 : 36;
 
   return (
     <View style={[styles.card, compact && styles.cardCompact, cardSizeStyle, style]}>
@@ -53,8 +58,6 @@ export function NfcGlobalCardFace({
           />
         </>
       ) : null}
-      <View style={[styles.softCircle, compact && styles.softCircleCompact]} />
-
       <View style={styles.top}>
         <View style={styles.brand}>
           <View style={[styles.logo, compact && styles.logoCompact]}>
@@ -65,7 +68,7 @@ export function NfcGlobalCardFace({
               NFC GLOBAL
             </AppText>
             <AppText style={[styles.brandSub, compact && styles.brandSubCompact]} numberOfLines={1}>
-              Digital Business Card
+              Verified identity
             </AppText>
           </View>
         </View>
@@ -100,13 +103,23 @@ export function NfcGlobalCardFace({
           <ContactLine icon="Mail" text={emailLine} compact={compact} />
           <ContactLine icon="Link" text={webLine} compact={compact} />
         </View>
-        {/* QR tile — smaller, tight padding, icon fills the tile */}
+        {/* QR tile — real scannable QR when profileUrl is provided, icon fallback otherwise */}
         <View style={[styles.qr, compact && styles.qrCompact]}>
-          <AppIcon
-            name="QrCode"
-            size={compact ? 22 : 32}
-            color="#111111"
-          />
+          {profileUrl ? (
+            <QRCode
+              value={profileUrl}
+              size={qrSize}
+              color="#111111"
+              backgroundColor="#FFFFFF"
+              quietZone={2}
+            />
+          ) : (
+            <AppIcon
+              name="QrCode"
+              size={compact ? 22 : 32}
+              color="#111111"
+            />
+          )}
         </View>
       </View>
     </View>
@@ -136,12 +149,12 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     aspectRatio: 1.586,
-    borderRadius: 28,
-    padding: 20,
+    borderRadius: 24,
+    padding: 22,
     position: 'relative',
     overflow: 'hidden',
-    backgroundColor: '#2596BE',
-    shadowColor: '#2596BE',
+    backgroundColor: '#111111',
+    shadowColor: '#111111',
     shadowOffset: { width: 0, height: 24 },
     shadowOpacity: 0.28,
     shadowRadius: 55,
@@ -153,22 +166,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 14 },
     shadowRadius: 28,
     elevation: 6,
-  },
-  softCircle: {
-    position: 'absolute',
-    right: -60,
-    bottom: -70,
-    width: 190,
-    height: 190,
-    borderRadius: 95,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-  },
-  softCircleCompact: {
-    right: -38,
-    bottom: -44,
-    width: 120,
-    height: 120,
-    borderRadius: 60,
   },
   top: {
     flexDirection: 'row',
@@ -186,7 +183,7 @@ const styles = StyleSheet.create({
   logo: {
     width: 40,
     height: 40,
-    borderRadius: 14,
+    borderRadius: 12,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
@@ -197,7 +194,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   logoText: {
-    color: '#2596BE',
+    color: '#111111',
     fontWeight: '800',
     fontSize: 22,
     lineHeight: 26,
@@ -215,13 +212,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 17,
     fontWeight: '800',
+    letterSpacing: 0,
   },
   brandNameCompact: {
     fontSize: 9.5,
     lineHeight: 12,
   },
   brandSub: {
-    color: 'rgba(255,255,255,0.8)',
+    color: 'rgba(255,255,255,0.58)',
     fontSize: 10,
     lineHeight: 13,
     fontWeight: '600',
@@ -236,7 +234,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: 'rgba(255,255,255,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -246,7 +244,7 @@ const styles = StyleSheet.create({
     borderRadius: 11,
   },
   person: {
-    marginTop: 8,
+    marginTop: 12,
     zIndex: 2,
     paddingRight: 52,
     paddingBottom: 52, // reserve room for bottom info rows
@@ -258,18 +256,18 @@ const styles = StyleSheet.create({
   },
   personName: {
     color: '#FFFFFF',
-    fontSize: 25,
-    lineHeight: 28,
-    fontWeight: '800',
+    fontSize: 28,
+    lineHeight: 31,
+    fontWeight: '900',
   },
   personNameCompact: {
     fontSize: 16,
     lineHeight: 18,
   },
   personTitle: {
-    color: 'rgba(255,255,255,0.85)',
-    fontSize: 11,
-    lineHeight: 13,
+    color: 'rgba(255,255,255,0.68)',
+    fontSize: 12,
+    lineHeight: 15,
     fontWeight: '600',
     marginTop: 3,
   },
@@ -319,7 +317,7 @@ const styles = StyleSheet.create({
   contactText: {
     flex: 1,
     minWidth: 0,
-    color: 'rgba(255,255,255,0.92)',
+    color: 'rgba(255,255,255,0.76)',
     fontSize: 10.5,
     lineHeight: 13,
     fontWeight: '600',
@@ -331,7 +329,7 @@ const styles = StyleSheet.create({
   qr: {
     width: 44,
     height: 44,
-    borderRadius: 10,
+    borderRadius: 12,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',

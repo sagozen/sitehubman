@@ -1,10 +1,11 @@
 /**
- * Auth UI — clean Inter editorial style, no glass/blur, no SnapTapBackground.
- * Matches the home/settings design system.
+ * Auth UI — Premium NFC-branded shell.
+ * Hero shows animated NFC card. Form is clean white card below.
  */
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { PropsWithChildren, ReactNode } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -12,14 +13,12 @@ import {
   TextInput,
   TextInputProps,
   View,
-  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 
-// ─── Tokens ──────────────────────────────────────────────────────────────────
 const BRAND = '#2596BE';
 const BRAND_DARK = '#1A7FAA';
 const INK = '#0A0A0F';
@@ -27,21 +26,80 @@ const INK2 = '#1C1C1E';
 const MUTED = '#8E8E93';
 const BG = '#F5F5F7';
 const SURFACE = '#FFFFFF';
-const FIELD_BG = '#FFFFFF';
-const FIELD_BORDER = 'rgba(0,0,0,0.08)';
+const BORDER = 'rgba(0,0,0,0.07)';
 
-// ─── Shared shell ─────────────────────────────────────────────────────────────
+// ─── Card face preview (mini NFC card in hero) ────────────────────────────────
+function MiniCardHero() {
+  return (
+    <View style={hero.stage}>
+      <View style={hero.backCard} />
+      <View style={hero.card}>
+      <LinearGradient
+        colors={['#111111', '#202124', '#2596BE']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={hero.top}>
+        <View style={hero.logo}><AppText style={hero.logoT}>N</AppText></View>
+        <AppIcon name="Nfc" size={16} color="rgba(255,255,255,0.5)" />
+      </View>
+      <View style={hero.bottom}>
+        <AppText style={hero.name}>Your Name</AppText>
+        <AppText style={hero.sub}>Verified identity</AppText>
+        <View style={hero.nfcRow}>
+          <AppIcon name="Nfc" size={11} color="rgba(255,255,255,0.7)" />
+          <AppText style={hero.nfcT}>Tap to share</AppText>
+        </View>
+      </View>
+      </View>
+    </View>
+  );
+}
 
+const hero = StyleSheet.create({
+  stage: { paddingTop: 14, alignItems: 'center' },
+  backCard: {
+    position: 'absolute',
+    top: 0,
+    width: 184,
+    height: 42,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.38)',
+  },
+  card: {
+    width: 244,
+    height: 154,
+    borderRadius: 24,
+    overflow: 'hidden',
+    padding: 16,
+    justifyContent: 'space-between',
+    shadowColor: '#111111',
+    shadowOffset: { width: 0, height: 18 },
+    shadowOpacity: 0.28,
+    shadowRadius: 34,
+    elevation: 12,
+  },
+  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  logo: { width: 30, height: 30, borderRadius: 10, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
+  logoT: { fontSize: 16, fontWeight: '900', color: '#111111' },
+  bottom: { gap: 2 },
+  name: { fontSize: 18, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0 },
+  sub: { fontSize: 10, fontWeight: '700', color: 'rgba(255,255,255,0.66)' },
+  nfcRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
+  nfcT: { fontSize: 9, fontWeight: '700', color: 'rgba(255,255,255,0.85)' },
+});
+
+// ─── Shell ────────────────────────────────────────────────────────────────────
 export function AuthLoginShell({ children }: PropsWithChildren) {
   return (
     <View style={s.root}>
-      {/* Decorative gradient header band */}
       <LinearGradient
-        colors={[BRAND_DARK, BRAND, '#4DB8D8', '#F5F5F7']}
-        locations={[0, 0.4, 0.65, 1]}
+        colors={['#111111', '#2596BE', BG]}
+        locations={[0, 0.48, 1]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={s.heroBand}
+        style={s.heroBg}
         pointerEvents="none"
       />
       <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
@@ -56,6 +114,14 @@ export function AuthLoginShell({ children }: PropsWithChildren) {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
+            {/* Hero card */}
+            <View style={s.heroSection}>
+              <MiniCardHero />
+              <View style={s.heroBadge}>
+                <AppIcon name="Nfc" size={12} color={BRAND} />
+                <AppText style={s.heroBadgeT}>SNAP TAP NFC</AppText>
+              </View>
+            </View>
             {children}
           </IosScrollView>
         </KeyboardAvoidingView>
@@ -64,91 +130,55 @@ export function AuthLoginShell({ children }: PropsWithChildren) {
   );
 }
 
-/** Alias for register screen */
 export function AuthScreenShell({ children }: PropsWithChildren) {
   return <AuthLoginShell>{children}</AuthLoginShell>;
 }
 
-/** White card wrapper around login form fields */
 export function AuthLoginCard({ children }: PropsWithChildren) {
-  return (
-    <View style={s.card}>
-      {children}
-    </View>
-  );
+  return <View style={s.card}>{children}</View>;
 }
 
-// ─── Welcome header (login) ───────────────────────────────────────────────────
-
+// ─── Headers ──────────────────────────────────────────────────────────────────
 export function AuthWelcomeHeader({
-  title = 'Sign in to your account',
-  subtitle = 'Your NFC identity, one tap away.',
+  title = 'Your card is waiting.',
+  subtitle = 'Sign in to manage your NFC identity, share link, and network.',
 }: {
   title?: string;
   subtitle?: string;
 }) {
   return (
-    <View style={s.welcomeWrap}>
-      {/* Brand badge */}
-      <View style={s.brandBadge}>
-        <AppIcon name="Nfc" size={16} color={BRAND} />
-        <AppText style={s.brandBadgeT}>SNAP TAP NFC</AppText>
-      </View>
-      <AppText style={s.welcomeTitle}>{title}</AppText>
-      <AppText style={s.welcomeSub}>{subtitle}</AppText>
+    <View style={s.headerWrap}>
+      <AppText style={s.headerTitle}>{title}</AppText>
+      <AppText style={s.headerSub}>{subtitle}</AppText>
     </View>
   );
 }
 
-/** Register screen header */
-export function AuthHeader({
-  title,
-  subtitle,
-}: {
-  title: string;
-  subtitle?: string;
-}) {
+export function AuthHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
-    <View style={s.welcomeWrap}>
-      <View style={s.brandBadge}>
-        <AppIcon name="Nfc" size={16} color={BRAND} />
-        <AppText style={s.brandBadgeT}>SNAP TAP NFC</AppText>
-      </View>
-      <AppText style={s.welcomeTitle}>{title}</AppText>
-      {subtitle ? <AppText style={s.welcomeSub}>{subtitle}</AppText> : null}
+    <View style={s.headerWrap}>
+      <AppText style={s.headerTitle}>{title}</AppText>
+      {subtitle ? <AppText style={s.headerSub}>{subtitle}</AppText> : null}
     </View>
   );
 }
 
-// ─── Field with leading icon ──────────────────────────────────────────────────
-
-type AuthFieldIconType = 'email' | 'password' | 'name' | string;
-
-function fieldIcon(type: AuthFieldIconType) {
-  if (type === 'email') return 'Mail' as const;
-  if (type === 'password') return 'ShieldCheck' as const;
-  if (type === 'name') return 'User' as const;
-  return 'User' as const;
-}
-
+// ─── Fields ───────────────────────────────────────────────────────────────────
 export function AuthIconTextField({
   fieldIcon: iconType,
   label,
   trailing,
   ...rest
-}: TextInputProps & {
-  fieldIcon: AuthFieldIconType;
-  label?: string;
-  trailing?: ReactNode;
-}) {
+}: TextInputProps & { fieldIcon: string; label?: string; trailing?: ReactNode }) {
+  const icon = iconType === 'email' ? 'Mail' as const : iconType === 'password' ? 'Shield' as const : 'User' as const;
   return (
     <View style={s.field}>
       {label ? <AppText style={s.fieldLabel}>{label}</AppText> : null}
       <View style={s.fieldRow}>
-        <AppIcon name={fieldIcon(iconType)} size={18} color={MUTED} />
+        <AppIcon name={icon} size={17} color={MUTED} />
         <TextInput
           style={s.fieldInput}
-          placeholderTextColor={MUTED}
+          placeholderTextColor="#B8C0CC"
           {...rest}
         />
         {trailing ? <View style={s.fieldTrailing}>{trailing}</View> : null}
@@ -157,36 +187,25 @@ export function AuthIconTextField({
   );
 }
 
-/** Group of plain fields (register) */
 export function AuthFormGroup({ children }: PropsWithChildren) {
   return <View style={s.formGroup}>{children}</View>;
 }
 
-export function AuthTextField({
-  isLast,
-  trailing,
-  ...rest
-}: TextInputProps & { isLast?: boolean; trailing?: ReactNode }) {
+export function AuthTextField({ isLast, trailing, ...rest }: TextInputProps & { isLast?: boolean; trailing?: ReactNode }) {
   return (
     <View style={[s.groupField, !isLast && s.groupFieldBorder]}>
-      <TextInput
-        style={s.groupFieldInput}
-        placeholderTextColor={MUTED}
-        {...rest}
-      />
+      <TextInput style={s.groupFieldInput} placeholderTextColor="#B8C0CC" {...rest} />
       {trailing}
     </View>
   );
 }
 
 // ─── Buttons ──────────────────────────────────────────────────────────────────
-
 export function AuthPrimaryButton({
   label,
   onPress,
   loading,
   disabled,
-  variant: _variant,
 }: {
   label: string;
   onPress: () => void;
@@ -194,25 +213,18 @@ export function AuthPrimaryButton({
   disabled?: boolean;
   variant?: string;
 }) {
-  const isDisabled = disabled || loading;
+  const off = disabled || loading;
   return (
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      disabled={isDisabled}
-      style={({ pressed }) => [s.primaryBtn, isDisabled && s.btnDisabled, pressed && !isDisabled && s.btnPressed]}
+      disabled={off}
+      style={({ pressed }) => [s.primaryBtn, off && s.btnOff, pressed && !off && s.btnPressed]}
     >
-      <LinearGradient
-        colors={[BRAND_DARK, BRAND]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={StyleSheet.absoluteFill}
-      />
-      {loading ? (
-        <ActivityIndicator color="#FFFFFF" size="small" />
-      ) : (
-        <AppText style={s.primaryBtnT}>{label}</AppText>
-      )}
+      <LinearGradient colors={[BRAND_DARK, BRAND]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFill} />
+      {loading
+        ? <ActivityIndicator color="#FFFFFF" size="small" />
+        : <AppText style={s.primaryBtnT}>{label}</AppText>}
     </Pressable>
   );
 }
@@ -222,7 +234,6 @@ export function AuthTextButton({
   onPress,
   loading,
   disabled,
-  variant: _variant,
 }: {
   label: string;
   onPress: () => void;
@@ -230,31 +241,28 @@ export function AuthTextButton({
   disabled?: boolean;
   variant?: string;
 }) {
-  const isDisabled = disabled || loading;
+  const off = disabled || loading;
   return (
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      disabled={isDisabled}
-      style={({ pressed }) => [s.textBtn, pressed && !isDisabled && s.btnPressed]}
+      disabled={off}
+      style={({ pressed }) => [s.textBtn, pressed && !off && s.btnPressed]}
     >
-      {loading ? (
-        <ActivityIndicator color={BRAND} size="small" />
-      ) : (
-        <AppText style={[s.textBtnT, isDisabled && s.textBtnDisabled]}>{label}</AppText>
-      )}
+      {loading
+        ? <ActivityIndicator color={MUTED} size="small" />
+        : <AppText style={s.textBtnT}>{label}</AppText>}
     </Pressable>
   );
 }
 
-// ─── Divider, footer, trust strip ─────────────────────────────────────────────
-
+// ─── Misc ─────────────────────────────────────────────────────────────────────
 export function AuthOrDivider({ label = 'or' }: { label?: string }) {
   return (
     <View style={s.divider}>
-      <View style={s.dividerLine} />
-      <AppText style={s.dividerT}>{label}</AppText>
-      <View style={s.dividerLine} />
+      <View style={s.divLine} />
+      <AppText style={s.divT}>{label}</AppText>
+      <View style={s.divLine} />
     </View>
   );
 }
@@ -264,7 +272,6 @@ export function AuthFooterLink({
   action,
   onPress,
   disabled,
-  variant: _variant,
 }: {
   prompt: string;
   action: string;
@@ -285,8 +292,8 @@ export function AuthFooterLink({
 export function AuthTrustFooter() {
   return (
     <View style={s.trust}>
-      <AppIcon name="ShieldCheck" size={14} color={BRAND} />
-      <AppText style={s.trustT}>Secured by Firebase · NFC by Snap Tap</AppText>
+      <AppIcon name="ShieldCheck" size={13} color={BRAND} />
+      <AppText style={s.trustT}>Secured · NFC by Snap Tap</AppText>
     </View>
   );
 }
@@ -296,220 +303,52 @@ export function AuthSectionLabel({ children }: { children: string }) {
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
-  heroBand: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 280,
-  },
+  heroBg: { position: 'absolute', top: 0, left: 0, right: 0, height: 380 },
   safe: { flex: 1, backgroundColor: 'transparent' },
   kav: { flex: 1 },
   scroll: { flex: 1 },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 40,
-    gap: 16,
-  },
+  scrollContent: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 44, paddingBottom: 40, gap: 20 },
 
-  // Welcome header
-  welcomeWrap: { alignItems: 'center', gap: 8, marginBottom: 4 },
-  brandBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderWidth: 1,
-    borderColor: 'rgba(37,150,190,0.2)',
-    shadowColor: BRAND,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  brandBadgeT: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: BRAND,
-    letterSpacing: 0.8,
-    fontFamily: 'Inter_800ExtraBold',
-  },
-  welcomeTitle: {
-    fontSize: 26,
-    fontWeight: '900',
-    color: SURFACE,
-    letterSpacing: -0.7,
-    textAlign: 'center',
-    fontFamily: 'Inter_900Black',
-    textShadowColor: 'rgba(0,0,0,0.18)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-  welcomeSub: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.82)',
-    textAlign: 'center',
-    fontFamily: 'Inter_500Medium',
-  },
+  heroSection: { alignItems: 'center', gap: 18, paddingBottom: 2 },
+  heroBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(255,255,255,0.92)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5 },
+  heroBadgeT: { fontSize: 10, fontWeight: '800', color: BRAND, letterSpacing: 0.8 },
 
-  // Card
-  card: {
-    backgroundColor: SURFACE,
-    borderRadius: 24,
-    padding: 22,
-    gap: 14,
-    shadowColor: INK,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.14,
-    shadowRadius: 28,
-    elevation: 10,
-  },
+  card: { backgroundColor: SURFACE, borderRadius: 28, padding: 24, gap: 16, shadowColor: INK, shadowOffset: { width: 0, height: 14 }, shadowOpacity: 0.1, shadowRadius: 30, elevation: 10 },
 
-  // Icon field
+  headerWrap: { gap: 7 },
+  headerTitle: { fontSize: 32, lineHeight: 35, fontWeight: '900', color: INK, letterSpacing: 0 },
+  headerSub: { fontSize: 14, lineHeight: 20, fontWeight: '700', color: MUTED },
+
   field: { gap: 6 },
-  fieldLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: MUTED,
-    marginLeft: 2,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  fieldRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: FIELD_BG,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: FIELD_BORDER,
-    paddingHorizontal: 14,
-    minHeight: 52,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 1,
-  },
-  fieldInput: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '500',
-    color: INK2,
-    paddingVertical: Platform.OS === 'ios' ? 14 : 12,
-    fontFamily: 'Inter_500Medium',
-  },
+  fieldLabel: { fontSize: 11, fontWeight: '800', color: MUTED, letterSpacing: 0, marginLeft: 2 },
+  fieldRow: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: BG, borderRadius: 18, borderWidth: 1, borderColor: BORDER, paddingHorizontal: 15, minHeight: 56 },
+  fieldInput: { flex: 1, fontSize: 15, fontWeight: '700', color: INK2, paddingVertical: Platform.OS === 'ios' ? 15 : 11 },
   fieldTrailing: { alignItems: 'center', justifyContent: 'center', paddingLeft: 4 },
 
-  // FormGroup (register)
-  formGroup: {
-    backgroundColor: SURFACE,
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.07,
-    shadowRadius: 14,
-    elevation: 4,
-  },
-  groupField: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 18,
-    minHeight: 54,
-  },
-  groupFieldBorder: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.06)',
-  },
-  groupFieldInput: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '500',
-    color: INK2,
-    paddingVertical: Platform.OS === 'ios' ? 14 : 12,
-    fontFamily: 'Inter_500Medium',
-  },
+  formGroup: { backgroundColor: SURFACE, borderRadius: 18, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 3 },
+  groupField: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, minHeight: 52 },
+  groupFieldBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(0,0,0,0.07)' },
+  groupFieldInput: { flex: 1, fontSize: 15, fontWeight: '500', color: INK2, paddingVertical: Platform.OS === 'ios' ? 14 : 10 },
 
-  // Buttons
-  primaryBtn: {
-    height: 54,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    shadowColor: BRAND,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.28,
-    shadowRadius: 18,
-    elevation: 6,
-  },
-  primaryBtnT: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    fontFamily: 'Inter_800ExtraBold',
-  },
-  textBtn: {
-    height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.08)',
-    backgroundColor: SURFACE,
-  },
-  textBtnT: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: INK2,
-    fontFamily: 'Inter_700Bold',
-  },
-  textBtnDisabled: { opacity: 0.45 },
-  btnDisabled: { opacity: 0.5 },
+  primaryBtn: { height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', shadowColor: BRAND, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.22, shadowRadius: 18, elevation: 6 },
+  primaryBtnT: { fontSize: 16, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.2 },
+  textBtn: { height: 50, alignItems: 'center', justifyContent: 'center', borderRadius: 25, borderWidth: 1, borderColor: BORDER, backgroundColor: SURFACE },
+  textBtnT: { fontSize: 14, fontWeight: '800', color: INK2 },
+  btnOff: { opacity: 0.5 },
   btnPressed: { opacity: 0.82, transform: [{ scale: 0.98 }] },
 
-  // Divider
   divider: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  dividerLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(0,0,0,0.12)' },
-  dividerT: { fontSize: 12, fontWeight: '600', color: MUTED, fontFamily: 'Inter_600SemiBold' },
+  divLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(0,0,0,0.1)' },
+  divT: { fontSize: 12, fontWeight: '600', color: MUTED },
 
-  // Footer
-  footerRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 6,
-  },
-  footerPrompt: { fontSize: 14, fontWeight: '500', color: MUTED, fontFamily: 'Inter_500Medium' },
-  footerAction: { fontSize: 14, fontWeight: '700', color: BRAND, fontFamily: 'Inter_700Bold' },
+  footerRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 6 },
+  footerPrompt: { fontSize: 13, fontWeight: '500', color: MUTED },
+  footerAction: { fontSize: 13, fontWeight: '800', color: BRAND },
 
-  // Trust strip
-  trust: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingTop: 4,
-  },
-  trustT: { fontSize: 11, fontWeight: '500', color: MUTED, fontFamily: 'Inter_500Medium' },
+  trust: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  trustT: { fontSize: 11, fontWeight: '500', color: MUTED },
 
-  // Section label
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: MUTED,
-    letterSpacing: 0.3,
-    marginLeft: 2,
-    fontFamily: 'Inter_600SemiBold',
-  },
+  sectionLabel: { fontSize: 11, fontWeight: '700', color: MUTED, letterSpacing: 0.3, textTransform: 'uppercase', marginLeft: 2 },
 });

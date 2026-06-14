@@ -1,10 +1,25 @@
+/**
+ * PublicBioScreen — HiHello/Taplink-style public profile.
+ * Opened when someone taps an NFC card (/c/[cardId]) or scans a QR (/p/[slug]).
+ * Tracks every view and tap automatically.
+ */
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Linking, Pressable, Share, StyleSheet, View } from 'react-native';
+import {
+  Animated,
+  Easing,
+  Image,
+  Linking,
+  Pressable,
+  Share,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { GeneratedProfileIcon } from '@/src/components/GeneratedProfileIcon';
 import { buildCardProfileUrl, buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import {
   recordTapEvent,
@@ -12,66 +27,152 @@ import {
   resolvePublicProfileBySlug,
 } from '@/src/services/nfcProfileService';
 import { trackPublicBioTap, trackPublicBioView } from '@/src/services/firestoreService';
-import { BioPage } from '@/src/types/models';
-import { bioThemeOptions } from '@/src/constants/options';
-import { theme } from '@/src/constants/theme';
-import { useAppTheme } from '@/src/hooks/useAppTheme';
+import type { BioPage } from '@/src/types/models';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 
 interface Props {
-  /** /p/{slug} — profile hosted in Firebase */
   slug?: string;
-  /** /c/{cardId} — NFC chip stores only this URL */
   cardId?: string;
 }
 
-function getThemeStyle(t: BioPage['theme']) {
-  return bioThemeOptions.find((o) => o.value === t) ?? bioThemeOptions[0];
-}
+// ─── Social channel config ────────────────────────────────────────────────────
+type SocialConfig = {
+  key: string;
+  icon: React.ComponentProps<typeof AppIcon>['name'];
+  color: string;
+  label: (v: string) => string;
+  url: (v: string) => string;
+};
 
-function SocialButton({
+const SOCIALS: SocialConfig[] = [
+  {
+    key: 'whatsapp',
+    icon: 'Phone',
+    color: '#25D366',
+    label: (v) => v,
+    url: (v) => `https://wa.me/${v.replace(/\D/g, '')}`,
+  },
+  {
+    key: 'telegram',
+    icon: 'Send',
+    color: '#0088CC',
+    label: (v) => v,
+    url: (v) => `https://t.me/${v.replace('@', '')}`,
+  },
+  {
+    key: 'instagram',
+    icon: 'Camera',
+    color: '#E1306C',
+    label: (v) => v,
+    url: (v) => `https://instagram.com/${v.replace('@', '')}`,
+  },
+  {
+    key: 'email',
+    icon: 'Mail',
+    color: '#3B82F6',
+    label: (v) => v,
+    url: (v) => `mailto:${v}`,
+  },
+];
+
+// ─── Link button ──────────────────────────────────────────────────────────────
+function LinkButton({
   icon,
   label,
+  color,
   url,
-  bg,
   onTap,
 }: {
   icon: React.ComponentProps<typeof AppIcon>['name'];
   label: string;
+  color: string;
   url: string;
-  bg: string;
   onTap?: () => void;
 }) {
   return (
     <Pressable
-      style={[styles.socialBtn, { backgroundColor: bg }]}
-      onPress={() => {
-        onTap?.();
-        Linking.openURL(url).catch(() => undefined);
-      }}
+      style={({ pressed }) => [lb.btn, pressed && lb.pressed]}
+      onPress={() => { onTap?.(); Linking.openURL(url).catch(() => undefined); }}
+      accessibilityRole="link"
     >
-      <AppIcon name={icon} size={20} color="#fff" />
-      <AppText variant="body" style={styles.socialLabel}>{label}</AppText>
+      <View style={[lb.icon, { backgroundColor: color }]}>
+        <AppIcon name={icon} size={18} color="#FFFFFF" />
+      </View>
+      <AppText style={lb.label} numberOfLines={1}>{label}</AppText>
+      <AppIcon name="ChevronRight" size={16} color="#C4CFDE" />
     </Pressable>
   );
 }
 
+const lb = StyleSheet.create({
+  btn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  pressed: { opacity: 0.75, transform: [{ scale: 0.98 }] },
+  icon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  label: { flex: 1, fontSize: 15, fontWeight: '600', color: '#1C1C1E' },
+});
+
+// ─── Avatar ───────────────────────────────────────────────────────────────────
+function ProfileAvatar({
+  name,
+  photoUrl,
+  accent,
+  size = 96,
+}: {
+  name: string;
+  photoUrl?: string | null;
+  accent: string;
+  size?: number;
+}) {
+  const initial = (name.trim()[0] ?? '?').toUpperCase();
+  if (photoUrl) {
+    return (
+      <Image
+        source={{ uri: photoUrl }}
+        style={[pa.img, { width: size, height: size, borderRadius: size / 2, borderColor: accent }]}
+      />
+    );
+  }
+  return (
+    <View style={[pa.fallback, { width: size, height: size, borderRadius: size / 2, backgroundColor: accent }]}>
+      <AppText style={[pa.initial, { fontSize: size * 0.38 }]}>{initial}</AppText>
+    </View>
+  );
+}
+
+const pa = StyleSheet.create({
+  img: { borderWidth: 3 },
+  fallback: { alignItems: 'center', justifyContent: 'center' },
+  initial: { fontWeight: '900', color: '#FFFFFF' },
+});
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 export function PublicBioScreen({ slug, cardId }: Props) {
-  const { colors } = useAppTheme();
   const isGuest = useIsGuest();
   const { requireAccount } = useRequireAccount();
   const [bioPage, setBioPage] = useState<BioPage | null>(null);
   const [publicUrl, setPublicUrl] = useState('');
   const [resolvedCardId, setResolvedCardId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(true);
-  const [contactPreviewed, setContactPreviewed] = useState(false);
-  const heroFloat = useRef(new Animated.Value(0)).current;
-  const savePulse = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
+  // Load bio data
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    void (async () => {
       setIsLoading(true);
       try {
         const resolved = cardId
@@ -84,297 +185,273 @@ export function PublicBioScreen({ slug, cardId }: Props) {
           setBioPage(resolved.bioPage);
           setPublicUrl(resolved.publicUrl);
           setResolvedCardId(resolved.cardId);
-        } else {
-          setBioPage(null);
-          setPublicUrl('');
-          setResolvedCardId(undefined);
         }
       } finally {
         if (!cancelled) setIsLoading(false);
       }
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [slug, cardId]);
 
+  // Track view + tap event
   useEffect(() => {
     if (!bioPage?.id) return;
     void trackPublicBioView(bioPage.id, resolvedCardId).catch(() => undefined);
     if (resolvedCardId) {
-      void recordTapEvent({
-        profileId: bioPage.id,
-        cardId: resolvedCardId,
-        source: 'nfc_card',
-      }).catch(() => undefined);
+      void recordTapEvent({ profileId: bioPage.id, cardId: resolvedCardId, source: 'nfc_card' }).catch(() => undefined);
     } else if (slug) {
-      void recordTapEvent({
-        profileId: bioPage.id,
-        source: 'slug',
-      }).catch(() => undefined);
+      void recordTapEvent({ profileId: bioPage.id, source: 'slug' }).catch(() => undefined);
     }
   }, [bioPage?.id, resolvedCardId, slug]);
 
+  // CTA pulse animation
   useEffect(() => {
-    const heroLoop = Animated.loop(
+    const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(heroFloat, {
-          toValue: 1,
-          duration: 2400,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(heroFloat, {
-          toValue: 0,
-          duration: 2400,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
+        Animated.timing(pulseAnim, { toValue: 1.04, duration: 900, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 900, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
       ])
     );
-    const saveLoop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(savePulse, {
-          toValue: 1,
-          duration: 1300,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(savePulse, {
-          toValue: 0,
-          duration: 1300,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    heroLoop.start();
-    saveLoop.start();
-    return () => {
-      heroLoop.stop();
-      saveLoop.stop();
-    };
-  }, [heroFloat, savePulse]);
+    loop.start();
+    return () => loop.stop();
+  }, [pulseAnim]);
 
-  if (isLoading) {
-    return (
-      <SafeAreaView style={[styles.center, { backgroundColor: colors.background }]}>
-        <AppText variant="body" tone="muted">Loading…</AppText>
-      </SafeAreaView>
-    );
+  function trackTap() {
+    if (bioPage?.id) void trackPublicBioTap(bioPage.id, resolvedCardId).catch(() => undefined);
   }
-
-  if (!bioPage) {
-    return (
-      <SafeAreaView style={[styles.center, { backgroundColor: colors.background }]}>
-        <AppText variant="h2">Page not found</AppText>
-        <AppText variant="body" tone="muted">This bio page does not exist yet.</AppText>
-      </SafeAreaView>
-    );
-  }
-
-  const themeStyle = getThemeStyle(bioPage.theme);
-  const profileUrl = publicUrl || (resolvedCardId
-    ? buildCardProfileUrl(resolvedCardId)
-    : buildSlugProfileUrl(bioPage.publicSlug ?? bioPage.slug));
 
   async function handleShare() {
-    if (bioPage?.id) {
-      void trackPublicBioTap(bioPage.id, resolvedCardId).catch(() => undefined);
-    }
-    await Share.share({ message: `${bioPage!.displayName} — ${profileUrl}`, url: profileUrl });
-  }
-
-  function handleSaveContactPreview() {
-    if (bioPage?.id) {
-      void trackPublicBioTap(bioPage.id, resolvedCardId).catch(() => undefined);
-    }
-    setContactPreviewed(true);
+    trackTap();
+    const url = publicUrl || (resolvedCardId ? buildCardProfileUrl(resolvedCardId) : buildSlugProfileUrl(bioPage?.publicSlug ?? bioPage?.slug ?? ''));
+    await Share.share({ message: `${bioPage?.displayName ?? 'My profile'} — ${url}`, url });
   }
 
   async function handleSaveContact() {
     if (isGuest) {
-      requireAccount(undefined, {
-        message: 'Create an account to save contacts to your device and history.',
-      });
+      requireAccount(undefined, { message: 'Sign in to save contacts.' });
       return;
     }
-    if (bioPage?.id) {
-      void trackPublicBioTap(bioPage.id, resolvedCardId).catch(() => undefined);
-    }
-
-    // vCard format
+    trackTap();
+    const url = publicUrl || '';
     const vcard = [
-      'BEGIN:VCARD',
-      'VERSION:3.0',
+      'BEGIN:VCARD', 'VERSION:3.0',
       `FN:${bioPage!.displayName}`,
       bioPage!.tagline ? `TITLE:${bioPage!.tagline}` : '',
       bioPage!.whatsapp ? `TEL;TYPE=CELL:${bioPage!.whatsapp}` : '',
       bioPage!.email ? `EMAIL:${bioPage!.email}` : '',
-      `URL:${profileUrl}`,
+      url ? `URL:${url}` : '',
       'END:VCARD',
     ].filter(Boolean).join('\n');
-
     await Share.share({ message: vcard, title: `${bioPage!.displayName} Contact` });
   }
 
-  return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: themeStyle.bg }]}>
-      <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+  // ── Loading ────────────────────────────────────────────────────────────────
+  if (isLoading) {
+    return (
+      <View style={styles.loadingCenter}>
+        <AppIcon name="Nfc" size={40} color="#2596BE" />
+        <AppText style={styles.loadingText}>Loading profile…</AppText>
+      </View>
+    );
+  }
 
-        {/* Share button top right */}
+  // ── Not found ──────────────────────────────────────────────────────────────
+  if (!bioPage) {
+    return (
+      <SafeAreaView style={styles.notFoundSafe}>
+        <View style={styles.notFoundCenter}>
+          <AppIcon name="User" size={48} color="#D1D5DB" />
+          <AppText style={styles.notFoundTitle}>Profile not found</AppText>
+          <AppText style={styles.notFoundSub}>This card has not been set up yet.</AppText>
+          <Pressable onPress={() => router.back()} style={styles.backBtn}>
+            <AppText style={styles.backBtnT}>Go back</AppText>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ── Accent color from theme ────────────────────────────────────────────────
+  const accentMap: Record<string, string> = {
+    vibrant_pink: '#E91E8C',
+    ocean_blue: '#2596BE',
+    midnight: '#6366F1',
+    forest: '#059669',
+    sunset: '#F59E0B',
+    rose: '#F43F5E',
+    default: '#2596BE',
+  };
+  const accent = accentMap[bioPage.theme ?? 'default'] ?? '#2596BE';
+  // Collect social links
+  const socialLinks = SOCIALS.flatMap((s) => {
+    const val = (bioPage as unknown as Record<string, unknown>)[s.key] as string | undefined;
+    if (!val?.trim()) return [];
+    return [{ ...s, value: val.trim() }];
+  });
+  const customLinks = bioPage.customLinks ?? [];
+
+  return (
+    <View style={styles.root}>
+      {/* Full-bleed gradient background */}
+      <LinearGradient
+        colors={[`${accent}28`, `${accent}08`, '#F5F5F7']}
+        locations={[0, 0.35, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+
+      <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+        {/* ── Top bar ── */}
         <View style={styles.topBar}>
-          <View />
-          <Pressable onPress={handleShare} style={styles.shareBtn}>
-            <AppIcon name="Share" size={18} color={themeStyle.accent} />
+          <Pressable onPress={() => router.canGoBack() ? router.back() : undefined} style={styles.topBtn} hitSlop={10}>
+            <AppIcon name="ChevronLeft" size={22} color="#1C1C1E" />
+          </Pressable>
+          <Pressable onPress={() => void handleShare()} style={styles.topBtn} hitSlop={10}>
+            <AppIcon name="Share" size={20} color={accent} />
           </Pressable>
         </View>
 
-        {/* Avatar */}
-        <Animated.View
-          style={[
-            styles.avatarWrap,
-            {
-              transform: [
-                {
-                  translateY: heroFloat.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, -6],
-                  }),
-                },
-              ],
-            },
-          ]}
-        >
-          <View style={[styles.avatarGlow, { backgroundColor: `${themeStyle.accent}20` }]} />
-          <GeneratedProfileIcon
-            name={bioPage.displayName}
-            subtitle={bioPage.tagline}
-            seed={bioPage.publicSlug ?? bioPage.slug ?? bioPage.id}
-            photoUrl={bioPage.photoUrl}
-            size={116}
-            variant="circle"
-          />
-        </Animated.View>
+        <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
-        {/* Name + tagline */}
-        <AppText style={[styles.name, { color: themeStyle.text }]}>{bioPage.displayName}</AppText>
-        {bioPage.tagline ? (
-          <AppText style={[styles.tagline, { color: themeStyle.text + 'AA' }]}>{bioPage.tagline}</AppText>
-        ) : null}
+          {/* ── Hero ── */}
+          <View style={styles.hero}>
+            <View style={[styles.avatarRing, { borderColor: `${accent}40` }]}>
+              <ProfileAvatar name={bioPage.displayName} photoUrl={bioPage.photoUrl} accent={accent} size={96} />
+            </View>
+            <AppText style={styles.name}>{bioPage.displayName}</AppText>
+            {bioPage.tagline ? (
+              <AppText style={styles.tagline}>{bioPage.tagline}</AppText>
+            ) : null}
 
-        {/* Save to Contacts */}
-        <Animated.View
-          style={{
-            transform: [
-              {
-                scale: savePulse.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [1, 1.018],
-                }),
-              },
-            ],
-          }}
-        >
-          <Pressable
-            style={[styles.saveContactBtn, { backgroundColor: themeStyle.accent, shadowColor: themeStyle.accent }]}
-            onPress={isGuest ? handleSaveContactPreview : handleSaveContact}
-          >
-            <AppIcon name="User" size={18} color="#fff" />
-            <AppText style={styles.saveContactText}>
-              {isGuest ? 'Preview Add to Contact' : 'Save to Contacts'}
-            </AppText>
-          </Pressable>
-        </Animated.View>
-        {contactPreviewed && isGuest ? (
-          <View style={styles.previewBox}>
-            <AppText variant="caption" tone="muted" style={styles.previewNote}>
-              Preview: {bioPage.displayName}
-              {bioPage.whatsapp ? ` · ${bioPage.whatsapp}` : ''}
-              {bioPage.telegram ? ` · Telegram ${bioPage.telegram}` : ''}
-            </AppText>
-            <Pressable onPress={handleSaveContact}>
-              <AppText variant="caption" weight="bold" style={[styles.previewNote, { color: themeStyle.accent }]}>
-                Save for real →
+            {/* Stat pills */}
+            <View style={styles.statRow}>
+              <View style={styles.statPill}>
+                <AppIcon name="Eye" size={12} color={accent} />
+                <AppText style={[styles.statT, { color: accent }]}>{bioPage.views ?? 0} views</AppText>
+              </View>
+              <View style={styles.statPill}>
+                <AppIcon name="Nfc" size={12} color="#7C3AED" />
+                <AppText style={[styles.statT, { color: '#7C3AED' }]}>{bioPage.taps ?? 0} taps</AppText>
+              </View>
+            </View>
+          </View>
+
+          {/* ── Primary CTA ── */}
+          <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+            <Pressable
+              onPress={() => void handleSaveContact()}
+              style={[styles.ctaBtn, { backgroundColor: accent, shadowColor: accent }]}
+              accessibilityRole="button"
+            >
+              <AppIcon name="UserPlus" size={20} color="#FFFFFF" />
+              <AppText style={styles.ctaBtnT}>
+                {isGuest ? 'Add to Contacts' : 'Save Contact'}
               </AppText>
             </Pressable>
-          </View>
-        ) : null}
+          </Animated.View>
 
-        {/* Social links */}
-        <View style={styles.socials}>
-          {bioPage.whatsapp ? (
-            <SocialButton
-              icon="Phone"
-              label={`WhatsApp · ${bioPage.whatsapp}`}
-              url={`https://wa.me/${bioPage.whatsapp.replace(/\D/g, '')}`}
-              bg="#25D366"
-              onTap={() => bioPage?.id && void trackPublicBioTap(bioPage.id, resolvedCardId).catch(() => undefined)}
-            />
+          {/* ── Social links ── */}
+          {socialLinks.length > 0 ? (
+            <View style={styles.section}>
+              {socialLinks.map((s) => (
+                <LinkButton
+                  key={s.key}
+                  icon={s.icon}
+                  color={s.color}
+                  label={s.label(s.value)}
+                  url={s.url(s.value)}
+                  onTap={trackTap}
+                />
+              ))}
+            </View>
           ) : null}
-          {bioPage.instagram ? (
-            <SocialButton
-              icon="User"
-              label={`Instagram · ${bioPage.instagram}`}
-              url={`https://instagram.com/${bioPage.instagram.replace('@', '')}`}
-              bg="#E1306C"
-              onTap={() => bioPage?.id && void trackPublicBioTap(bioPage.id, resolvedCardId).catch(() => undefined)}
-            />
-          ) : null}
-          {bioPage.telegram ? (
-            <SocialButton
-              icon="Phone"
-              label={`Telegram · ${bioPage.telegram}`}
-              url={`https://t.me/${bioPage.telegram.replace('@', '')}`}
-              bg="#0088CC"
-              onTap={() => bioPage?.id && void trackPublicBioTap(bioPage.id, resolvedCardId).catch(() => undefined)}
-            />
-          ) : null}
-          {bioPage.email ? (
-            <SocialButton
-              icon="ChevronRight"
-              label={`Email · ${bioPage.email}`}
-              url={`mailto:${bioPage.email}`}
-              bg="#6E8A95"
-              onTap={() => bioPage?.id && void trackPublicBioTap(bioPage.id, resolvedCardId).catch(() => undefined)}
-            />
-          ) : null}
-          {bioPage.customLinks?.map((link) => (
-            <SocialButton
-              key={link.url}
-              icon="ChevronRight"
-              label={link.label}
-              url={link.url}
-              bg={themeStyle.accent}
-              onTap={() => bioPage?.id && void trackPublicBioTap(bioPage.id, resolvedCardId).catch(() => undefined)}
-            />
-          ))}
-        </View>
 
-        {/* Footer */}
-        <AppText style={styles.footer}>Powered by Snap Tap</AppText>
+          {/* ── Custom links ── */}
+          {customLinks.length > 0 ? (
+            <View style={styles.section}>
+              {customLinks.map((link) => (
+                <LinkButton
+                  key={link.url}
+                  icon="Link"
+                  color={accent}
+                  label={link.label}
+                  url={link.url}
+                  onTap={trackTap}
+                />
+              ))}
+            </View>
+          ) : null}
 
-      </IosScrollView>
-    </SafeAreaView>
+          {/* ── NFC how-it-works hint (only when opened from NFC card) ── */}
+          {resolvedCardId ? (
+            <View style={styles.nfcHint}>
+              <AppIcon name="Nfc" size={16} color={accent} />
+              <AppText style={[styles.nfcHintT, { color: accent }]}>
+                Opened via NFC card · tap saved automatically
+              </AppText>
+            </View>
+          ) : null}
+
+          {/* ── Footer ── */}
+          <AppText style={styles.footer}>Powered by SiteHub NFC</AppText>
+
+        </IosScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: '#F5F5F7' },
   safe: { flex: 1 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },
-  scroll: { padding: theme.spacing.lg, paddingBottom: 72, alignItems: 'center', gap: theme.spacing.lg },
-  topBar: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  shareBtn: { width: 42, height: 42, borderRadius: 21, backgroundColor: theme.colors.surfaceGlass, alignItems: 'center', justifyContent: 'center', ...theme.shadows.control },
-  avatarWrap: { marginTop: theme.spacing.md, alignItems: 'center', justifyContent: 'center' },
-  avatarGlow: { position: 'absolute', width: 148, height: 148, borderRadius: 74 },
-  name: { fontSize: 34, lineHeight: 40, fontWeight: '700', textAlign: 'center' },
-  tagline: { fontSize: 16, lineHeight: 22, textAlign: 'center', marginTop: -theme.spacing.sm },
-  saveContactBtn: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xs, paddingHorizontal: theme.spacing.xl, paddingVertical: theme.spacing.md, borderRadius: theme.radius.pill },
-  saveContactText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-  socials: { width: '100%', gap: theme.spacing.sm },
-  socialBtn: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md, padding: theme.spacing.md, borderRadius: theme.radius.lg, ...theme.shadows.control },
-  socialLabel: { color: '#fff', fontWeight: '600', flex: 1 },
-  footer: { fontSize: 11, color: 'rgba(0,0,0,0.3)', marginTop: theme.spacing.md },
-  previewBox: { gap: theme.spacing.xs, alignItems: 'center' },
-  previewNote: { textAlign: 'center' },
+  scroll: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 80, gap: 16, alignItems: 'stretch' },
+
+  // Loading
+  loadingCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, backgroundColor: '#F5F5F7' },
+  loadingText: { fontSize: 14, fontWeight: '600', color: '#8E8E93' },
+
+  // Not found
+  notFoundSafe: { flex: 1, backgroundColor: '#F5F5F7' },
+  notFoundCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 32 },
+  notFoundTitle: { fontSize: 20, fontWeight: '800', color: '#1C1C1E' },
+  notFoundSub: { fontSize: 14, fontWeight: '500', color: '#8E8E93', textAlign: 'center' },
+  backBtn: { marginTop: 8, paddingHorizontal: 20, paddingVertical: 10, backgroundColor: '#2596BE', borderRadius: 12 },
+  backBtnT: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
+
+  // Top bar
+  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10 },
+  topBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(255,255,255,0.85)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6, elevation: 3 },
+
+  // Hero
+  hero: { alignItems: 'center', gap: 8, paddingTop: 8 },
+  avatarRing: { borderWidth: 3, borderRadius: 54, padding: 3 },
+  name: { fontSize: 28, fontWeight: '900', color: '#0A0A0F', letterSpacing: -0.6, textAlign: 'center' },
+  tagline: { fontSize: 14, fontWeight: '500', color: '#8E8E93', textAlign: 'center', lineHeight: 20, maxWidth: 280 },
+  statRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
+  statPill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.9)', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 },
+  statT: { fontSize: 11, fontWeight: '700' },
+
+  // CTA
+  ctaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    height: 54,
+    borderRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  ctaBtnT: { fontSize: 16, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.2 },
+
+  // Sections
+  section: { gap: 10 },
+
+  // NFC hint
+  nfcHint: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 4 },
+  nfcHintT: { fontSize: 12, fontWeight: '600' },
+
+  // Footer
+  footer: { fontSize: 11, color: 'rgba(0,0,0,0.25)', textAlign: 'center', marginTop: 8 },
 });

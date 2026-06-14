@@ -5,6 +5,7 @@ import {
   AuthFooterLink,
   AuthFormGroup,
   AuthHeader,
+  AuthLoginCard,
   AuthPrimaryButton,
   AuthScreenShell,
   AuthTextField,
@@ -60,59 +61,61 @@ export function RegisterScreen() {
 
   return (
     <AuthScreenShell>
-      <AuthHeader
-        title="Create Account"
-        subtitle="Create a customer account to manage your card profile."
-      />
-
-      <SocialAuthSection disabled={busy} onSuccess={handleSocialSuccess} />
-
-      <AuthFormGroup>
-        <AuthTextField
-          value={displayName}
-          onChangeText={setDisplayName}
-          placeholder="Display name"
-          editable={!busy}
-          autoCapitalize="words"
-          textContentType="name"
-          autoComplete="name"
+      <AuthLoginCard>
+        <AuthHeader
+          title="Create your card identity."
+          subtitle="Start with Apple, Google, or email. Your NFC card stays synced."
         />
-        <AuthTextField
-          value={email}
-          onChangeText={setEmail}
-          placeholder="Email"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          editable={!busy}
-          textContentType="emailAddress"
-          autoComplete="email"
-        />
-        <AuthTextField
-          value={password}
-          onChangeText={setPassword}
-          placeholder="Password (6+ characters)"
-          secureTextEntry
-          editable={!busy}
-          isLast
-          textContentType="newPassword"
-          autoComplete="password-new"
-        />
-      </AuthFormGroup>
 
-      <AuthPrimaryButton
-        label={isSubmitting ? 'Creating...' : 'Create Account'}
-        onPress={handleRegister}
-        loading={isSubmitting}
-        disabled={busy}
-      />
+        <SocialAuthSection disabled={busy} onSuccess={handleSocialSuccess} />
 
-      <AuthFooterLink
-        prompt="Already have an account?"
-        action="Sign in"
-        onPress={() => router.replace('/auth/login')}
-        disabled={busy}
-      />
+        <AuthFormGroup>
+          <AuthTextField
+            value={displayName}
+            onChangeText={setDisplayName}
+            placeholder="Display name"
+            editable={!busy}
+            autoCapitalize="words"
+            textContentType="name"
+            autoComplete="name"
+          />
+          <AuthTextField
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Email"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable={!busy}
+            textContentType="emailAddress"
+            autoComplete="email"
+          />
+          <AuthTextField
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Password (6+ characters)"
+            secureTextEntry
+            editable={!busy}
+            isLast
+            textContentType="newPassword"
+            autoComplete="password-new"
+          />
+        </AuthFormGroup>
+
+        <AuthPrimaryButton
+          label={isSubmitting ? 'Creating...' : 'Create account'}
+          onPress={handleRegister}
+          loading={isSubmitting}
+          disabled={busy}
+        />
+
+        <AuthFooterLink
+          prompt="Already have an account?"
+          action="Sign in"
+          onPress={() => router.replace('/auth/login')}
+          disabled={busy}
+        />
+      </AuthLoginCard>
     </AuthScreenShell>
   );
 }

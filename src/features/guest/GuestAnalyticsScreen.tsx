@@ -18,17 +18,12 @@ const BRAND = '#2596BE';
 function StatTile({
   value,
   label,
-  icon,
-  color = BRAND,
 }: {
   value: string;
   label: string;
-  icon: any;
-  color?: string;
 }) {
   return (
     <View style={st.tile}>
-      <AppIcon name={icon} size={32} color={color} />
       <AppText style={st.tileVal}>{value}</AppText>
       <AppText style={st.tileLbl}>{label}</AppText>
     </View>
@@ -39,20 +34,12 @@ const st = StyleSheet.create({
   tile: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 18,
-    alignItems: 'center',
-    gap: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.07,
-    shadowRadius: 16,
-    elevation: 4,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(0,0,0,0.05)',
+    borderRadius: 24,
+    padding: 22,
+    gap: 8,
   },
-  tileVal: { fontSize: 28, fontWeight: '800', color: '#1C1C1E', letterSpacing: -1 },
-  tileLbl: { fontSize: 11, fontWeight: '600', color: '#8E8E93' },
+  tileVal: { fontSize: 42, fontWeight: '900', color: '#111111', letterSpacing: 0 },
+  tileLbl: { fontSize: 13, fontWeight: '700', color: '#8E8E93' },
 });
 
 export function GuestAnalyticsScreen() {
@@ -95,7 +82,7 @@ export function GuestAnalyticsScreen() {
             <AppText style={styles.title}>Analytics</AppText>
             <AppText style={styles.subtitle}>Your NFC card performance</AppText>
           </View>
-          <AppIcon name="TrendingUp" size={28} color={BRAND} />
+          <AppIcon name="BarChart" size={28} color={BRAND} />
         </View>
 
         {isGuest ? (
@@ -125,23 +112,21 @@ export function GuestAnalyticsScreen() {
           <>
             {/* Stats grid */}
             <View style={styles.statsGrid}>
-              <StatTile value={String(insights.totalOrders)} label="Total orders" icon="ClipboardList" />
-              <StatTile value={String(insights.activeOrders)} label="In progress" icon="Clock" color="#FF9500" />
+              <StatTile value={String(insights.totalOrders)} label="Orders" />
+              <StatTile value={String(insights.activeOrders)} label="In progress" />
             </View>
             <View style={styles.statsGrid}>
-              <StatTile value={String(insights.deliveredOrders)} label="Delivered" icon="CircleCheck" color="#34C759" />
+              <StatTile value={String(insights.deliveredOrders)} label="Delivered" />
               <StatTile
                 value={insights.bioSlug ? 'Live' : 'None'}
                 label="Profile"
-                icon="BadgeCheck"
-                color={insights.bioSlug ? '#34C759' : '#D1D5DB'}
               />
             </View>
 
             {/* Card preview */}
             {insights.bioSlug || insights.displayName ? (
               <View>
-                <AppText style={styles.sectionLabel}>Your NFC card</AppText>
+                <AppText style={styles.sectionLabel}>Card</AppText>
                 <View style={styles.cardWrap}>
                   <NfcGlobalCardFace
                     fullName={insights.displayName || user?.displayName || undefined}
@@ -153,8 +138,7 @@ export function GuestAnalyticsScreen() {
             {/* Profile card */}
             <View style={styles.card}>
               <View style={styles.cardRow}>
-                <AppIcon name="UserRound" size={28} color={BRAND} />
-                <View style={styles.cardCopy}>
+                  <View style={styles.cardCopy}>
                   <AppText style={styles.cardTitle}>
                     {insights.displayName ?? user?.displayName ?? 'Your profile'}
                   </AppText>
@@ -174,9 +158,7 @@ export function GuestAnalyticsScreen() {
               ) : null}
             </View>
 
-            <AppText style={styles.note}>
-              Detailed tap and view analytics appear here when NFC event tracking is active on your account.
-            </AppText>
+            <AppText style={styles.note}>Tap and view detail appears as people interact with your card.</AppText>
           </>
         )}
       </IosScrollView>
@@ -185,8 +167,8 @@ export function GuestAnalyticsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F2F2F7' },
-  content: { padding: 20, gap: 20, paddingBottom: 120 },
+  safe: { flex: 1, backgroundColor: '#F5F5F7' },
+  content: { padding: 24, gap: 24, paddingBottom: 120 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   backBtn: {
     width: 40,
@@ -195,15 +177,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
   },
   headerCopy: { flex: 1, gap: 2 },
-  title: { fontSize: 26, fontWeight: '800', color: '#1C1C1E', letterSpacing: -0.5 },
-  subtitle: { fontSize: 13, fontWeight: '500', color: '#8E8E93' },
+  title: { fontSize: 36, fontWeight: '900', color: '#111111', letterSpacing: 0 },
+  subtitle: { fontSize: 15, fontWeight: '600', color: '#8E8E93' },
   statsGrid: { flexDirection: 'row', gap: 12 },
   guestWall: {
     backgroundColor: '#FFFFFF',
@@ -211,11 +188,6 @@ const styles = StyleSheet.create({
     padding: 32,
     alignItems: 'center',
     gap: 14,
-    shadowColor: '#2596BE',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 6,
   },
   wallTitle: { fontSize: 22, fontWeight: '800', color: '#1C1C1E', letterSpacing: -0.4 },
   wallSub: { fontSize: 14, fontWeight: '500', color: '#8E8E93', textAlign: 'center', lineHeight: 20 },
@@ -227,11 +199,6 @@ const styles = StyleSheet.create({
     padding: 32,
     alignItems: 'center',
     gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 4,
   },
   emptyTitle: { fontSize: 20, fontWeight: '800', color: '#1C1C1E' },
   emptySub: { fontSize: 13, fontWeight: '500', color: '#8E8E93', textAlign: 'center', lineHeight: 18 },
@@ -239,29 +206,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: '#8E8E93',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0,
     marginBottom: 8,
   },
   cardWrap: {
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: 'hidden',
-    shadowColor: '#2596BE',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.22,
-    shadowRadius: 28,
-    elevation: 8,
+    shadowColor: '#111111',
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.2,
+    shadowRadius: 34,
+    elevation: 10,
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    borderRadius: 24,
     padding: 20,
     gap: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.07,
-    shadowRadius: 16,
-    elevation: 4,
   },
   cardRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   cardCopy: { flex: 1, gap: 3 },
