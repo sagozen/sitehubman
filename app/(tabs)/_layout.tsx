@@ -16,6 +16,7 @@ export default function TabsLayout() {
         <Tabs.Screen name="attendance" options={{ href: null }} />
         <Tabs.Screen name="profile" options={{ title: 'Analysis' }} />
         <Tabs.Screen name="settings" options={{ title: 'Settings' }} />
+        <Tabs.Screen name="notifications" options={{ href: null, tabBarStyle: { display: 'none' } }} />
       </Tabs>
     </AuthGate>
   );

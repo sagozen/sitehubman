@@ -1,12 +1,16 @@
 import { IosScrollView } from '@/src/components/IosScrollView';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
+import { FlippableNfcCard } from '@/src/components/FlippableNfcCard';
 import { appRoutes } from '@/src/constants/navigation';
 import { useAuth } from '@/src/hooks/useAuth';
+import { useBioPage } from '@/src/hooks/useBioPage';
+import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
+import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
+import { useEffect, useState } from 'react';
 
 const BRAND = '#2596BE';
 const INK = '#111111';
@@ -22,7 +26,27 @@ const STUDIO_ACTIONS: { icon: AppIconName; label: string; route: string }[] = [
 
 export function GuestStudioScreen() {
   const { user } = useAuth();
+  const { bioPage } = useBioPage(user?.id ?? '');
+  const [cloudCard, setCloudCard] = useState<Awaited<ReturnType<typeof loadCustomerCloudCard>>>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user?.id) {
+      loadCustomerCloudCard(user.id)
+        .then(setCloudCard)
+        .catch(() => null)
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
   const initial = (user?.displayName?.trim() || 'S')[0].toUpperCase();
+  const cardName = bioPage?.displayName?.trim() || cloudCard?.profile.fullName?.trim() || user?.displayName?.trim() || '';
+  const cardTitle = bioPage?.tagline?.trim() || cloudCard?.profile.role?.trim() || '';
+  const cardPhone = bioPage?.whatsapp?.trim() || cloudCard?.profile.phone?.trim() || user?.phone?.trim() || '';
+  const cardEmail = bioPage?.email?.trim() || cloudCard?.profile.email?.trim() || user?.email?.trim() || '';
+  const profileUrl = bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : cloudCard?.publicProfileUrl || undefined;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -43,8 +67,24 @@ export function GuestStudioScreen() {
         </View>
 
         <View style={styles.cardWrap}>
-          <NfcGlobalCardFace fullName={user?.displayName || undefined} />
+          {loading ? (
+            <View style={styles.loadingCard}>
+              <ActivityIndicator color={BRAND} size="large" />
+              <AppText style={styles.loadingText}>Loading your card...</AppText>
+            </View>
+          ) : (
+            <FlippableNfcCard
+              fullName={cardName || undefined}
+              title={cardTitle || undefined}
+              phone={cardPhone || undefined}
+              email={cardEmail || undefined}
+              profileUrl={profileUrl}
+              cardId={cloudCard?.cardId}
+            />
+          )}
         </View>
+
+        <AppText style={styles.flipHint}>💡 Tap card to flip</AppText>
 
         <View style={styles.actionList}>
           {STUDIO_ACTIONS.map((item, index) => (
@@ -83,7 +123,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.22,
     shadowRadius: 34,
     elevation: 10,
+    minHeight: 220,
   },
+  loadingCard: {
+    minHeight: 220,
+    backgroundColor: SURFACE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    borderRadius: 24,
+  },
+  loadingText: { fontSize: 13, fontWeight: '600', color: MUTED },
+  flipHint: { fontSize: 12, fontWeight: '600', color: MUTED, textAlign: 'center', marginTop: -12 },
   actionList: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden' },
   actionRow: {
     minHeight: 64,

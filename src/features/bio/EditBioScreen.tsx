@@ -150,6 +150,10 @@ export function EditBioScreen() {
   const [instagram, setInstagram] = useState('');
   const [telegram, setTelegram] = useState('');
   const [email, setEmail] = useState('');
+  const [website, setWebsite] = useState('');
+  const [linkedin, setLinkedin] = useState('');
+  const [twitter, setTwitter] = useState('');
+  const [facebook, setFacebook] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -163,6 +167,10 @@ export function EditBioScreen() {
     setInstagram(bioPage.instagram ?? '');
     setTelegram(bioPage.telegram ?? '');
     setEmail(bioPage.email ?? '');
+    setWebsite(bioPage.website ?? '');
+    setLinkedin(bioPage.linkedin ?? '');
+    setTwitter(bioPage.twitter ?? '');
+    setFacebook(bioPage.facebook ?? '');
     setPhotoUrl(bioPage.photoUrl);
   }, [bioPage]);
 
@@ -210,6 +218,10 @@ export function EditBioScreen() {
         instagram: instagram.trim() || undefined,
         telegram: telegram.trim() || undefined,
         email: email.trim() || undefined,
+        website: website.trim() || undefined,
+        linkedin: linkedin.trim() || undefined,
+        twitter: twitter.trim() || undefined,
+        facebook: facebook.trim() || undefined,
         customLinks: bioPage?.customLinks ?? [],
         theme: bioPage?.theme ?? 'vibrant_pink',
         photoUrl,
@@ -286,8 +298,17 @@ export function EditBioScreen() {
         <Group>
           <FieldRow icon="Mail" label="Email" value={email} onChangeText={setEmail} placeholder="you@email.com" keyboardType="email-address" autoCapitalize="none" />
           <FieldRow icon="Phone" label="WhatsApp" value={whatsapp} onChangeText={setWhatsapp} placeholder="+855 12 345 678" keyboardType="phone-pad" />
+          <FieldRow icon="Globe" label="Website" value={website} onChangeText={setWebsite} placeholder="yoursite.com" keyboardType="url" autoCapitalize="none" last />
+        </Group>
+
+        {/* ── Social Media ── */}
+        <SectionLabel text="Social Media" />
+        <Group>
           <FieldRow icon="Send" label="Telegram" value={telegram} onChangeText={setTelegram} placeholder="@yourhandle" autoCapitalize="none" />
-          <FieldRow icon="Instagram" label="Instagram" value={instagram} onChangeText={setInstagram} placeholder="@yourhandle" autoCapitalize="none" last />
+          <FieldRow icon="Instagram" label="Instagram" value={instagram} onChangeText={setInstagram} placeholder="@yourhandle" autoCapitalize="none" />
+          <FieldRow icon="Twitter" label="Twitter" value={twitter} onChangeText={setTwitter} placeholder="@yourhandle" autoCapitalize="none" />
+          <FieldRow icon="Facebook" label="Facebook" value={facebook} onChangeText={setFacebook} placeholder="yourprofile" autoCapitalize="none" />
+          <FieldRow icon="Linkedin" label="LinkedIn" value={linkedin} onChangeText={setLinkedin} placeholder="yourprofile" autoCapitalize="none" last />
         </Group>
 
         {isGuest ? (

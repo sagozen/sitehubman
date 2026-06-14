@@ -4,17 +4,21 @@
  * but with real data and no "locked" wall.
  */
 import { IosScrollView } from '@/src/components/IosScrollView';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View, Image } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { AppButton } from '@/src/components/AppButton';
-import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
+import { FlippableNfcCard } from '@/src/components/FlippableNfcCard';
 import { appRoutes } from '@/src/constants/navigation';
 import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useBioPage } from '@/src/hooks/useBioPage';
+import { uploadProfilePhoto } from '@/src/services/profilePhotoService';
+import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
+import { useState, useEffect } from 'react';
 
 const BRAND = '#2596BE';
 const INK = '#1C1C1E';
@@ -32,13 +36,71 @@ const ACTIONS: { icon: AppIconName; label: string; route: string }[] = [
 
 export function CustomerProfileScreen() {
   const { user, signOutUser } = useAuth();
-  const { bioPage } = useBioPage(user?.id ?? '');
+  const { bioPage, saveBioPage } = useBioPage(user?.id ?? '');
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [cloudCard, setCloudCard] = useState<Awaited<ReturnType<typeof loadCustomerCloudCard>>>(null);
+
+  useEffect(() => {
+    if (user?.id) {
+      loadCustomerCloudCard(user.id)
+        .then(setCloudCard)
+        .catch(() => null);
+    }
+  }, [user?.id]);
 
   const initial = (user?.displayName?.trim() || 'U')[0].toUpperCase();
   const cardName  = bioPage?.displayName?.trim() || user?.displayName?.trim() || '';
   const cardTitle = bioPage?.tagline?.trim() || '';
   const cardPhone = bioPage?.whatsapp?.trim() || user?.phone?.trim() || '';
   const cardEmail = bioPage?.email?.trim() || user?.email?.trim() || '';
+  const profileUrl = bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : undefined;
+  const photoUrl = bioPage?.photoUrl;
+
+  async function pickImage() {
+    if (!user?.id) return;
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert('Permission needed', 'Photo library access required.');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.85,
+      });
+      if (result.canceled || !result.assets[0]) return;
+      setIsUploadingPhoto(true);
+      try {
+        const res = await uploadProfilePhoto({
+          uri: result.assets[0].uri,
+          userId: user.id,
+          fileName: result.assets[0].fileName,
+          mimeType: result.assets[0].mimeType,
+        });
+        await saveBioPage({
+          slug: bioPage?.slug || user.id,
+          displayName: bioPage?.displayName || user.displayName || '',
+          tagline: bioPage?.tagline,
+          whatsapp: bioPage?.whatsapp,
+          instagram: bioPage?.instagram,
+          telegram: bioPage?.telegram,
+          email: bioPage?.email || user.email,
+          customLinks: bioPage?.customLinks ?? [],
+          theme: bioPage?.theme ?? 'vibrant_pink',
+          photoUrl: res.url,
+        });
+        Alert.alert('Success', 'Profile photo updated!');
+      } catch (err) {
+        Alert.alert('Upload failed', err instanceof Error ? err.message : 'Try again.');
+      } finally {
+        setIsUploadingPhoto(false);
+      }
+    } catch (err) {
+      Alert.alert('Error', err instanceof Error ? err.message : 'Could not open picker.');
+    }
+  }
 
   function handleSignOut() {
     Alert.alert('Sign out', 'Sign out of your account?', [
@@ -53,9 +115,18 @@ export function CustomerProfileScreen() {
 
         {/* ── Identity ── */}
         <View style={styles.identity}>
-          <View style={styles.avatarWrap}>
-            <AppText style={styles.avatarText}>{initial}</AppText>
-          </View>
+          <Pressable onPress={() => void pickImage()} style={styles.avatarWrap}>
+            {photoUrl ? (
+              <Image source={{ uri: photoUrl }} style={styles.avatarImage} />
+            ) : (
+              <View style={styles.avatarFallback}>
+                <AppText style={styles.avatarText}>{initial}</AppText>
+              </View>
+            )}
+            <View style={styles.avatarBadge}>
+              <AppIcon name={isUploadingPhoto ? 'Loader' : 'Camera'} size={14} color="#FFFFFF" />
+            </View>
+          </Pressable>
           <View style={styles.nameRow}>
             <AppText style={styles.name} numberOfLines={2} adjustsFontSizeToFit>{user?.displayName ?? 'My Account'}</AppText>
             <AppIcon name="BadgeCheck" size={24} color={BRAND} />
@@ -67,12 +138,13 @@ export function CustomerProfileScreen() {
 
         {/* ── NFC card — real bio data + real QR ── */}
         <View style={styles.cardWrap}>
-          <NfcGlobalCardFace
+          <FlippableNfcCard
             fullName={cardName  || undefined}
             title={cardTitle    || undefined}
             phone={cardPhone    || undefined}
             email={cardEmail    || undefined}
-            profileUrl={bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : undefined}
+            profileUrl={profileUrl}
+            cardId={cloudCard?.cardId}
           />
         </View>
 
@@ -135,9 +207,38 @@ const styles = StyleSheet.create({
   nameRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, maxWidth: '100%' },
   profileMeta: { fontSize: 15, fontWeight: '600', color: MUTED, textAlign: 'center' },
   avatarWrap: {
-    width: 104, height: 104, borderRadius: 52,
-    backgroundColor: BRAND, alignItems: 'center', justifyContent: 'center',
+    width: 104,
+    height: 104,
+    borderRadius: 52,
     marginBottom: 8,
+    position: 'relative',
+  },
+  avatarImage: {
+    width: 104,
+    height: 104,
+    borderRadius: 52,
+    backgroundColor: BRAND,
+  },
+  avatarFallback: {
+    width: 104,
+    height: 104,
+    borderRadius: 52,
+    backgroundColor: BRAND,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarBadge: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: INK,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: BG,
   },
   avatarText: { fontSize: 38, fontWeight: '900', color: '#FFFFFF' },
   name: { flexShrink: 1, fontSize: 38, lineHeight: 42, fontWeight: '900', color: INK, letterSpacing: 0, textAlign: 'center' },

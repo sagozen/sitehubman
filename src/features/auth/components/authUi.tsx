@@ -1,6 +1,5 @@
 /**
- * Auth UI — Premium NFC-branded shell.
- * Hero shows animated NFC card. Form is clean white card below.
+ * Auth UI — simple full-screen entry, closer to Facebook than a landing page.
  */
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { PropsWithChildren, ReactNode } from 'react';
@@ -14,94 +13,20 @@ import {
   TextInputProps,
   View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 
 const BRAND = '#2596BE';
-const BRAND_DARK = '#1A7FAA';
 const INK = '#0A0A0F';
 const INK2 = '#1C1C1E';
 const MUTED = '#8E8E93';
-const BG = '#F5F5F7';
 const SURFACE = '#FFFFFF';
 const BORDER = 'rgba(0,0,0,0.07)';
-
-// ─── Card face preview (mini NFC card in hero) ────────────────────────────────
-function MiniCardHero() {
-  return (
-    <View style={hero.stage}>
-      <View style={hero.backCard} />
-      <View style={hero.card}>
-      <LinearGradient
-        colors={['#111111', '#202124', '#2596BE']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-      <View style={hero.top}>
-        <View style={hero.logo}><AppText style={hero.logoT}>N</AppText></View>
-        <AppIcon name="Nfc" size={16} color="rgba(255,255,255,0.5)" />
-      </View>
-      <View style={hero.bottom}>
-        <AppText style={hero.name}>Your Name</AppText>
-        <AppText style={hero.sub}>Verified identity</AppText>
-        <View style={hero.nfcRow}>
-          <AppIcon name="Nfc" size={11} color="rgba(255,255,255,0.7)" />
-          <AppText style={hero.nfcT}>Tap to share</AppText>
-        </View>
-      </View>
-      </View>
-    </View>
-  );
-}
-
-const hero = StyleSheet.create({
-  stage: { paddingTop: 14, alignItems: 'center' },
-  backCard: {
-    position: 'absolute',
-    top: 0,
-    width: 184,
-    height: 42,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.38)',
-  },
-  card: {
-    width: 244,
-    height: 154,
-    borderRadius: 24,
-    overflow: 'hidden',
-    padding: 16,
-    justifyContent: 'space-between',
-    shadowColor: '#111111',
-    shadowOffset: { width: 0, height: 18 },
-    shadowOpacity: 0.28,
-    shadowRadius: 34,
-    elevation: 12,
-  },
-  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  logo: { width: 30, height: 30, borderRadius: 10, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
-  logoT: { fontSize: 16, fontWeight: '900', color: '#111111' },
-  bottom: { gap: 2 },
-  name: { fontSize: 18, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0 },
-  sub: { fontSize: 10, fontWeight: '700', color: 'rgba(255,255,255,0.66)' },
-  nfcRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
-  nfcT: { fontSize: 9, fontWeight: '700', color: 'rgba(255,255,255,0.85)' },
-});
 
 // ─── Shell ────────────────────────────────────────────────────────────────────
 export function AuthLoginShell({ children }: PropsWithChildren) {
   return (
     <View style={s.root}>
-      <LinearGradient
-        colors={['#111111', '#2596BE', BG]}
-        locations={[0, 0.48, 1]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={s.heroBg}
-        pointerEvents="none"
-      />
       <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
         <KeyboardAvoidingView
           style={s.kav}
@@ -114,14 +39,6 @@ export function AuthLoginShell({ children }: PropsWithChildren) {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {/* Hero card */}
-            <View style={s.heroSection}>
-              <MiniCardHero />
-              <View style={s.heroBadge}>
-                <AppIcon name="Nfc" size={12} color={BRAND} />
-                <AppText style={s.heroBadgeT}>SNAP TAP NFC</AppText>
-              </View>
-            </View>
             {children}
           </IosScrollView>
         </KeyboardAvoidingView>
@@ -140,8 +57,8 @@ export function AuthLoginCard({ children }: PropsWithChildren) {
 
 // ─── Headers ──────────────────────────────────────────────────────────────────
 export function AuthWelcomeHeader({
-  title = 'Your card is waiting.',
-  subtitle = 'Sign in to manage your NFC identity, share link, and network.',
+  title = 'Log in to NFC Global',
+  subtitle = 'Manage your card, profile, and network.',
 }: {
   title?: string;
   subtitle?: string;
@@ -165,17 +82,15 @@ export function AuthHeader({ title, subtitle }: { title: string; subtitle?: stri
 
 // ─── Fields ───────────────────────────────────────────────────────────────────
 export function AuthIconTextField({
-  fieldIcon: iconType,
+  fieldIcon: _fieldIcon,
   label,
   trailing,
   ...rest
 }: TextInputProps & { fieldIcon: string; label?: string; trailing?: ReactNode }) {
-  const icon = iconType === 'email' ? 'Mail' as const : iconType === 'password' ? 'Shield' as const : 'User' as const;
   return (
     <View style={s.field}>
       {label ? <AppText style={s.fieldLabel}>{label}</AppText> : null}
       <View style={s.fieldRow}>
-        <AppIcon name={icon} size={17} color={MUTED} />
         <TextInput
           style={s.fieldInput}
           placeholderTextColor="#B8C0CC"
@@ -221,7 +136,6 @@ export function AuthPrimaryButton({
       disabled={off}
       style={({ pressed }) => [s.primaryBtn, off && s.btnOff, pressed && !off && s.btnPressed]}
     >
-      <LinearGradient colors={[BRAND_DARK, BRAND]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFill} />
       {loading
         ? <ActivityIndicator color="#FFFFFF" size="small" />
         : <AppText style={s.primaryBtnT}>{label}</AppText>}
@@ -292,7 +206,6 @@ export function AuthFooterLink({
 export function AuthTrustFooter() {
   return (
     <View style={s.trust}>
-      <AppIcon name="ShieldCheck" size={13} color={BRAND} />
       <AppText style={s.trustT}>Secured · NFC by Snap Tap</AppText>
     </View>
   );
@@ -304,26 +217,21 @@ export function AuthSectionLabel({ children }: { children: string }) {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: BG },
-  heroBg: { position: 'absolute', top: 0, left: 0, right: 0, height: 380 },
-  safe: { flex: 1, backgroundColor: 'transparent' },
+  root: { flex: 1, backgroundColor: SURFACE },
+  safe: { flex: 1, backgroundColor: SURFACE },
   kav: { flex: 1 },
   scroll: { flex: 1 },
-  scrollContent: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 44, paddingBottom: 40, gap: 20 },
+  scrollContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingTop: 24, paddingBottom: 32, gap: 18 },
 
-  heroSection: { alignItems: 'center', gap: 18, paddingBottom: 2 },
-  heroBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(255,255,255,0.92)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5 },
-  heroBadgeT: { fontSize: 10, fontWeight: '800', color: BRAND, letterSpacing: 0.8 },
+  card: { width: '100%', gap: 16 },
 
-  card: { backgroundColor: SURFACE, borderRadius: 28, padding: 24, gap: 16, shadowColor: INK, shadowOffset: { width: 0, height: 14 }, shadowOpacity: 0.1, shadowRadius: 30, elevation: 10 },
-
-  headerWrap: { gap: 7 },
-  headerTitle: { fontSize: 32, lineHeight: 35, fontWeight: '900', color: INK, letterSpacing: 0 },
-  headerSub: { fontSize: 14, lineHeight: 20, fontWeight: '700', color: MUTED },
+  headerWrap: { gap: 8, marginBottom: 6 },
+  headerTitle: { fontSize: 34, lineHeight: 38, fontWeight: '900', color: INK, letterSpacing: 0 },
+  headerSub: { fontSize: 15, lineHeight: 21, fontWeight: '600', color: MUTED },
 
   field: { gap: 6 },
   fieldLabel: { fontSize: 11, fontWeight: '800', color: MUTED, letterSpacing: 0, marginLeft: 2 },
-  fieldRow: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: BG, borderRadius: 18, borderWidth: 1, borderColor: BORDER, paddingHorizontal: 15, minHeight: 56 },
+  fieldRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F5F7', borderRadius: 18, borderWidth: 1, borderColor: BORDER, paddingHorizontal: 15, minHeight: 56 },
   fieldInput: { flex: 1, fontSize: 15, fontWeight: '700', color: INK2, paddingVertical: Platform.OS === 'ios' ? 15 : 11 },
   fieldTrailing: { alignItems: 'center', justifyContent: 'center', paddingLeft: 4 },
 
@@ -332,7 +240,7 @@ const s = StyleSheet.create({
   groupFieldBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(0,0,0,0.07)' },
   groupFieldInput: { flex: 1, fontSize: 15, fontWeight: '500', color: INK2, paddingVertical: Platform.OS === 'ios' ? 14 : 10 },
 
-  primaryBtn: { height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', shadowColor: BRAND, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.22, shadowRadius: 18, elevation: 6 },
+  primaryBtn: { height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: BRAND },
   primaryBtnT: { fontSize: 16, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.2 },
   textBtn: { height: 50, alignItems: 'center', justifyContent: 'center', borderRadius: 25, borderWidth: 1, borderColor: BORDER, backgroundColor: SURFACE },
   textBtnT: { fontSize: 14, fontWeight: '800', color: INK2 },

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
+import { AppText } from '@/src/components/AppText';
 import {
   AuthFooterLink,
   AuthFormGroup,
@@ -63,9 +64,20 @@ export function RegisterScreen() {
     <AuthScreenShell>
       <AuthLoginCard>
         <AuthHeader
-          title="Create your card identity."
-          subtitle="Start with Apple, Google, or email. Your NFC card stays synced."
+          title="Create your NFC identity"
+          subtitle="A guided setup will help you build a card people can save in one tap."
         />
+
+        <View style={styles.guide}>
+          {['Create your profile', 'Choose your card style', 'Share by NFC or QR'].map((item, index) => (
+            <View key={item} style={styles.guideRow}>
+              <View style={styles.guideDot}>
+                <AppText style={styles.guideDotText}>{index + 1}</AppText>
+              </View>
+              <AppText style={styles.guideText}>{item}</AppText>
+            </View>
+          ))}
+        </View>
 
         <SocialAuthSection disabled={busy} onSuccess={handleSocialSuccess} />
 
@@ -119,3 +131,11 @@ export function RegisterScreen() {
     </AuthScreenShell>
   );
 }
+
+const styles = StyleSheet.create({
+  guide: { gap: 10, backgroundColor: '#F5F5F7', borderRadius: 22, padding: 16 },
+  guideRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  guideDot: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#111111', alignItems: 'center', justifyContent: 'center' },
+  guideDotText: { fontSize: 12, fontWeight: '900', color: '#FFFFFF' },
+  guideText: { fontSize: 14, fontWeight: '800', color: '#111111' },
+});

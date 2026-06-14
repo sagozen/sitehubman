@@ -26,12 +26,13 @@ import {
 } from 'firebase/firestore';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
+import { FlippableNfcCard } from '@/src/components/FlippableNfcCard';
 import { appRoutes } from '@/src/constants/navigation';
 import { firebaseCollections } from '@/src/constants/collections';
 import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useBioPage } from '@/src/hooks/useBioPage';
+import { useNotifications } from '@/src/hooks/useNotifications';
 import { db } from '@/src/services/firebaseClient';
 import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
 import type { TapEvent } from '@/src/types/models';
@@ -115,6 +116,7 @@ export function CustomerAccountScreen() {
   const { width: sw } = useWindowDimensions();
   const { user } = useAuth();
   const { bioPage } = useBioPage(user?.id ?? '');
+  const { unreadCount } = useNotifications();
   const [cloudCard, setCloudCard] = useState<Awaited<ReturnType<typeof loadCustomerCloudCard>>>(null);
   const [tapEvents, setTapEvents] = useState<(TapEvent & { id: string })[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -197,21 +199,28 @@ export function CustomerAccountScreen() {
                 {[heroTitle || 'Digital identity', cloudCard?.profile.company || 'NFC Global'].filter(Boolean).join(' / ')}
               </AppText>
             </View>
-            <Pressable onPress={() => router.push(appRoutes.studio as Href)} style={({ pressed }) => [s.headerIcon, pressed && s.pressed]}>
-              <AppIcon name="Sparkles" size={20} color={BRAND} />
-            </Pressable>
+            <View style={s.headerActions}>
+              <Pressable onPress={() => router.push('/(tabs)/notifications')} style={({ pressed }) => [s.headerIcon, pressed && s.pressed]}>
+                <AppIcon name="Bell" size={19} color={INK} />
+                {unreadCount > 0 ? <View style={s.unreadDot} /> : null}
+              </Pressable>
+              <Pressable onPress={() => router.push(appRoutes.studio as Href)} style={({ pressed }) => [s.headerIcon, pressed && s.pressed]}>
+                <AppIcon name="Sparkles" size={20} color={BRAND} />
+              </Pressable>
+            </View>
           </View>
 
           {/* ── CARD STACK ── */}
           <View style={[s.cardStage, { width: cardWidth }]}>
             <View style={s.cardShadowBack} />
             <View style={[s.cardWrap, { width: cardWidth, height: cardHeight }]}>
-              <NfcGlobalCardFace
+              <FlippableNfcCard
                 fullName={heroName  || undefined}
                 title={heroTitle    || undefined}
                 phone={heroPhone    || undefined}
                 email={heroEmail    || undefined}
                 profileUrl={profileUrl}
+                cardId={cloudCard?.cardId}
                 width={cardWidth}
                 height={cardHeight}
               />
@@ -350,7 +359,9 @@ const s = StyleSheet.create({
   profileNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 0 },
   profileName: { flexShrink: 1, fontSize: 23, lineHeight: 27, fontWeight: '900', color: INK, letterSpacing: 0 },
   profileMeta: { fontSize: 12, fontWeight: '700', color: MUTED },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   headerIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center' },
+  unreadDot: { position: 'absolute', top: 9, right: 9, width: 8, height: 8, borderRadius: 4, backgroundColor: '#FF3B30' },
   pressed: { opacity: 0.75, transform: [{ scale: 0.97 }] },
 
   // Card stack

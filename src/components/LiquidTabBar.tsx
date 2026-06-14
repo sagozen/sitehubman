@@ -383,7 +383,7 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
               style={styles.fabGlass}
             >
               <View style={styles.fabIcon}>
-                <Ionicons name="add" size={theme.iconSize.tab} color={colors.textPrimary} />
+                <Ionicons name="add" size={theme.iconSize.tab} color="#FFFFFF" />
               </View>
             </LiquidGlassChrome>
           </Pressable>
@@ -597,10 +597,20 @@ const styles = StyleSheet.create({
     height: FAB_SIZE,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.24)',
   },
   fabIcon: {
     zIndex: 2,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#111111',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#111111',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.24,
+    shadowRadius: 16,
+    elevation: 10,
   },
 });

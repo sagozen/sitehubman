@@ -400,6 +400,33 @@ export default function NfcProgrammingScreen() {
 
       <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
+        {/* Live Stats */}
+        <View style={styles.statsRow}>
+          <View style={styles.statPill}>
+            <AppIcon name="Clock" size={13} color={theme.status.info} />
+            <View>
+              <AppText style={styles.statValue}>
+                {currentStep === 2 && printing ? '⏱️' : currentStep === 3 && loading ? '⚡' : '✓'}
+              </AppText>
+              <AppText style={styles.statLabel}>Status</AppText>
+            </View>
+          </View>
+          <View style={styles.statPill}>
+            <AppIcon name="CircleCheck" size={13} color={theme.status.success} />
+            <View>
+              <AppText style={styles.statValue}>{verified ? '4/4' : written ? '3/4' : printed ? '2/4' : printStarted ? '1/4' : '0/4'}</AppText>
+              <AppText style={styles.statLabel}>Steps</AppText>
+            </View>
+          </View>
+          <View style={styles.statPill}>
+            <AppIcon name="Package" size={13} color={theme.colors.textMuted} />
+            <View>
+              <AppText style={styles.statValue}>{order?.quantity ?? 1}x</AppText>
+              <AppText style={styles.statLabel}>Qty</AppText>
+            </View>
+          </View>
+        </View>
+
         {/* Label preview */}
         {order && (
           <View style={styles.infoCard}>
@@ -641,13 +668,31 @@ export default function NfcProgrammingScreen() {
         ) : null}
 
         {verified && (
-          <Pressable
-            style={({ pressed }) => [styles.qaBtn, pressed && styles.qaBtnPressed]}
-            onPress={() => router.push({ pathname: '/printer/qa/[jobId]', params: { jobId: job!.id } })}
-          >
-            <AppIcon name="ShieldCheck" size={16} color={theme.statusText.success} />
-            <AppText style={styles.qaBtnText}>Continue to QA Video</AppText>
-          </Pressable>
+          <>
+            <Pressable
+              style={({ pressed }) => [styles.qaBtn, pressed && styles.qaBtnPressed]}
+              onPress={() => router.push({ pathname: '/printer/qa/[jobId]', params: { jobId: job!.id } })}
+            >
+              <AppIcon name="ShieldCheck" size={16} color={theme.statusText.success} />
+              <AppText style={styles.qaBtnText}>Continue to QA Video</AppText>
+            </Pressable>
+            
+            <Pressable
+              style={({ pressed }) => [styles.nextJobBtn, pressed && styles.actionBtnPressed]}
+              onPress={() => {
+                const nextJob = jobs.find(j => j.stage === 'received' && j.id !== jobId);
+                if (nextJob) {
+                  router.replace(`/printer/nfc/${nextJob.id}`);
+                } else {
+                  router.replace('/printer/queue');
+                }
+              }}
+            >
+              <AppText style={styles.nextJobBtnText}>
+                {jobs.find(j => j.stage === 'received' && j.id !== jobId) ? 'Next Job →' : '← Back to Queue'}
+              </AppText>
+            </Pressable>
+          </>
         )}
 
       </IosScrollView>
@@ -698,6 +743,35 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
     paddingBottom: 120,
     gap: theme.spacing.sm,
+  },
+
+  // Stats row
+  statsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  statPill: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.md,
+    padding: 11,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(60,60,67,0.06)',
+  },
+  statValue: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: theme.colors.textPrimary,
+    lineHeight: 18,
+  },
+  statLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: theme.colors.textMuted,
+    marginTop: 1,
   },
 
   // Info card
@@ -1012,6 +1086,20 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: theme.statusText.success,
+  },
+  nextJobBtn: {
+    height: 50,
+    borderRadius: theme.radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.surfaceSoft,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(60,60,67,0.10)',
+  },
+  nextJobBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: theme.colors.textPrimary,
   },
 
   // Empty state

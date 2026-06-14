@@ -15,6 +15,7 @@ import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useOrders } from '@/src/hooks/useOrders';
+import { useNotifications } from '@/src/hooks/useNotifications';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { getCustomerInsights, type CustomerInsights } from '@/src/services/customerInsightsService';
 import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
@@ -107,6 +108,7 @@ export function GuestHomeScreen() {
   const { user } = useAuth();
   const isGuest = useIsGuest();
   const { requireAccount } = useRequireAccount();
+  const { unreadCount } = useNotifications();
   const { orders } = useOrders(user?.role ?? 'guest', user?.id ?? '');
   const [insights, setInsights] = useState<CustomerInsights | null>(null);
   const [cloudCard, setCloudCard] = useState<Awaited<ReturnType<typeof loadCustomerCloudCard>>>(null);
@@ -164,9 +166,18 @@ export function GuestHomeScreen() {
                 {[heroTitle || 'Digital identity', cardProfile?.company || 'NFC Global'].filter(Boolean).join(' / ')}
               </AppText>
             </View>
-            <Pressable onPress={() => router.push(appRoutes.studio as Href)} style={({ pressed }) => [s.headerIcon, pressed && s.pressed]}>
-              <AppIcon name="Sparkles" size={20} color={BRAND} />
-            </Pressable>
+            <View style={s.headerActions}>
+              <Pressable
+                onPress={() => isGuest ? requireAccount(undefined, { message: 'Sign in to receive card and profile notifications.' }) : router.push('/(tabs)/notifications')}
+                style={({ pressed }) => [s.headerIcon, pressed && s.pressed]}
+              >
+                <AppIcon name="Bell" size={19} color={INK} />
+                {unreadCount > 0 ? <View style={s.unreadDot} /> : null}
+              </Pressable>
+              <Pressable onPress={() => router.push(appRoutes.studio as Href)} style={({ pressed }) => [s.headerIcon, pressed && s.pressed]}>
+                <AppIcon name="Sparkles" size={20} color={BRAND} />
+              </Pressable>
+            </View>
           </View>
 
           {/* ── NFC CARD — full width, card dominates ── */}
@@ -332,7 +343,9 @@ const s = StyleSheet.create({
     fontFamily: 'Inter_900Black',
   },
   identityMeta: { fontSize: 12, fontWeight: '700', color: MUTED, fontFamily: 'Inter_700Bold' },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   headerIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center' },
+  unreadDot: { position: 'absolute', top: 9, right: 9, width: 8, height: 8, borderRadius: 4, backgroundColor: '#FF3B30' },
 
   // Card — full width, real aspect ratio, dominant
   cardWrap: {

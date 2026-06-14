@@ -30,6 +30,7 @@ import { trackPublicBioTap, trackPublicBioView } from '@/src/services/firestoreS
 import type { BioPage } from '@/src/types/models';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
+import { getSocialAvatar, getInitialsAvatar } from '@/src/utils/socialMediaAvatars';
 
 interface Props {
   slug?: string;
@@ -39,6 +40,7 @@ interface Props {
 // ─── Social channel config ────────────────────────────────────────────────────
 type SocialConfig = {
   key: string;
+  platform: 'instagram' | 'twitter' | 'facebook' | 'linkedin' | 'telegram' | 'whatsapp' | 'email' | 'website';
   icon: React.ComponentProps<typeof AppIcon>['name'];
   color: string;
   label: (v: string) => string;
@@ -48,6 +50,7 @@ type SocialConfig = {
 const SOCIALS: SocialConfig[] = [
   {
     key: 'whatsapp',
+    platform: 'whatsapp',
     icon: 'Phone',
     color: '#25D366',
     label: (v) => v,
@@ -55,6 +58,7 @@ const SOCIALS: SocialConfig[] = [
   },
   {
     key: 'telegram',
+    platform: 'telegram',
     icon: 'Send',
     color: '#0088CC',
     label: (v) => v,
@@ -62,43 +66,90 @@ const SOCIALS: SocialConfig[] = [
   },
   {
     key: 'instagram',
+    platform: 'instagram',
     icon: 'Camera',
     color: '#E1306C',
     label: (v) => v,
     url: (v) => `https://instagram.com/${v.replace('@', '')}`,
   },
   {
+    key: 'twitter',
+    platform: 'twitter',
+    icon: 'Twitter',
+    color: '#1DA1F2',
+    label: (v) => v,
+    url: (v) => `https://twitter.com/${v.replace('@', '')}`,
+  },
+  {
+    key: 'facebook',
+    platform: 'facebook',
+    icon: 'Facebook',
+    color: '#1877F2',
+    label: (v) => v,
+    url: (v) => `https://facebook.com/${v}`,
+  },
+  {
+    key: 'linkedin',
+    platform: 'linkedin',
+    icon: 'Linkedin',
+    color: '#0A66C2',
+    label: (v) => v,
+    url: (v) => `https://linkedin.com/in/${v}`,
+  },
+  {
     key: 'email',
+    platform: 'email',
     icon: 'Mail',
     color: '#3B82F6',
     label: (v) => v,
     url: (v) => `mailto:${v}`,
   },
+  {
+    key: 'website',
+    platform: 'website',
+    icon: 'Globe',
+    color: '#8B5CF6',
+    label: (v) => v,
+    url: (v) => v.startsWith('http') ? v : `https://${v}`,
+  },
 ];
 
-// ─── Link button ──────────────────────────────────────────────────────────────
+// ─── Link button with real avatar ────────────────────────────────────────────
 function LinkButton({
   icon,
   label,
   color,
   url,
+  avatarUrl,
   onTap,
 }: {
   icon: React.ComponentProps<typeof AppIcon>['name'];
   label: string;
   color: string;
   url: string;
+  avatarUrl?: string | null;
   onTap?: () => void;
 }) {
+  const [imageError, setImageError] = useState(false);
+  const showAvatar = avatarUrl && !imageError;
+
   return (
     <Pressable
       style={({ pressed }) => [lb.btn, pressed && lb.pressed]}
       onPress={() => { onTap?.(); Linking.openURL(url).catch(() => undefined); }}
       accessibilityRole="link"
     >
-      <View style={[lb.icon, { backgroundColor: color }]}>
-        <AppIcon name={icon} size={18} color="#FFFFFF" />
-      </View>
+      {showAvatar ? (
+        <Image
+          source={{ uri: avatarUrl }}
+          style={lb.avatar}
+          onError={() => setImageError(true)}
+        />
+      ) : (
+        <View style={[lb.icon, { backgroundColor: color }]}>
+          <AppIcon name={icon} size={18} color="#FFFFFF" />
+        </View>
+      )}
       <AppText style={lb.label} numberOfLines={1}>{label}</AppText>
       <AppIcon name="ChevronRight" size={16} color="#C4CFDE" />
     </Pressable>
@@ -122,6 +173,7 @@ const lb = StyleSheet.create({
   },
   pressed: { opacity: 0.75, transform: [{ scale: 0.98 }] },
   icon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 36, height: 36, borderRadius: 10 },
   label: { flex: 1, fontSize: 15, fontWeight: '600', color: '#1C1C1E' },
 });
 
@@ -282,11 +334,12 @@ export function PublicBioScreen({ slug, cardId }: Props) {
     default: '#2596BE',
   };
   const accent = accentMap[bioPage.theme ?? 'default'] ?? '#2596BE';
-  // Collect social links
+  // Collect social links with real avatars
   const socialLinks = SOCIALS.flatMap((s) => {
     const val = (bioPage as unknown as Record<string, unknown>)[s.key] as string | undefined;
     if (!val?.trim()) return [];
-    return [{ ...s, value: val.trim() }];
+    const avatarUrl = getSocialAvatar(s.platform, val.trim());
+    return [{ ...s, value: val.trim(), avatarUrl }];
   });
   const customLinks = bioPage.customLinks ?? [];
 
@@ -359,6 +412,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
                   color={s.color}
                   label={s.label(s.value)}
                   url={s.url(s.value)}
+                  avatarUrl={s.avatarUrl}
                   onTap={trackTap}
                 />
               ))}
