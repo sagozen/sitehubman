@@ -8,6 +8,7 @@ export const appRoutes = {
   customerConnectionsLegacy: '/(tabs)/attendance',
   scan: '/scan',
   nfcDemo: '/nfc-demo',
+  qrGenerator: '/qr-generator',
   guestAnalytics: '/guest-analytics',
   guestDesign: '/guest-design',
   guestCardPreview: '/card-preview/[cardId]',

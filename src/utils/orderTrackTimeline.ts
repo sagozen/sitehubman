@@ -14,6 +14,7 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
   ready_to_ship: 'Ready to ship',
   shipped: 'Shipped',
   delivered: 'Delivered',
+  cancelled: 'Cancelled',
 };
 
 export type OrderTimelineItem = {

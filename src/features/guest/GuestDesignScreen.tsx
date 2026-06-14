@@ -15,12 +15,12 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { SquircleIconTile } from '@/src/components/SquircleIconTile';
 import { AppText } from '@/src/components/AppText';
+import { PhotoBanner } from '@/src/components/PhotoBanner';
 import {
   formatFooterDualPrice,
   getEcardPriceUsd,
@@ -65,7 +65,6 @@ import {
   type GuestCardChoice,
   type GuestCardDesignBackground,
 } from '@/src/services/guestDraftService';
-import { PhotoBanner } from '@/src/components/PhotoBanner';
 import { GuestDesignPreviewPanel } from '@/src/features/guest/components/GuestDesignPreviewPanel';
 import { syncGuestCardDraft } from '@/src/services/guestCardDraftService';
 
@@ -162,8 +161,6 @@ export function GuestDesignScreen() {
   const [cardDesign, setCardDesign] = useState<CardDesign>('classic_black');
   const [customImageUri, setCustomImageUri] = useState('');
   const [customImageUploading, setCustomImageUploading] = useState(false);
-  const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
-  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'offline'>('idle');
   const [loadingDraft, setLoadingDraft] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState<CambodiaPaymentMethodId | null>(null);
   const [previewExpanded, setPreviewExpanded] = useState(false);
@@ -221,8 +218,6 @@ export function GuestDesignScreen() {
       if (idx < CAROUSEL_CUSTOM_INDEX) {
         setCardDesign(guestCarouselIndexToDesign(idx));
       }
-      setDraftSavedAt(draft.savedAt);
-      setSaveState('saved');
       if (idx > 0) {
         requestAnimationFrame(() => {
           listRef.current?.scrollToIndex({ index: idx, animated: false });
@@ -276,19 +271,15 @@ export function GuestDesignScreen() {
 
   const persistDraft = useCallback(async () => {
     if (!hydrated.current) return;
-    setSaveState('saving');
     const savedAt = new Date().toISOString();
     const draft = currentDraft();
     await saveGuestCardDraft(draft);
-    const session = await syncGuestCardDraft({ ...draft, savedAt });
-    setDraftSavedAt(savedAt);
-    setSaveState(session.syncState === 'synced' ? 'saved' : 'offline');
+    await syncGuestCardDraft({ ...draft, savedAt });
   }, [currentDraft]);
 
   useEffect(() => {
     if (!hydrated.current || loadingDraft || !user) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    setSaveState('saving');
     saveTimer.current = setTimeout(() => {
       void persistDraft();
     }, AUTO_SAVE_MS);
@@ -381,7 +372,7 @@ export function GuestDesignScreen() {
     const draft = currentDraft();
     const savedAt = new Date().toISOString();
     await saveGuestCardDraft(draft);
-    const session = await syncGuestCardDraft({ ...draft, savedAt });
+    await syncGuestCardDraft({ ...draft, savedAt });
     await saveGuestCheckoutDraft({
       cardChoice: segmentToChoice(segment),
       product,
@@ -391,22 +382,9 @@ export function GuestDesignScreen() {
       currency: 'KHR',
       paymentMethod: paymentMethod ?? undefined,
     });
-    setDraftSavedAt(savedAt);
-    setSaveState(session.syncState === 'synced' ? 'saved' : 'offline');
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.back();
   }
-
-  const draftCaption =
-    !loadingDraft && saveState !== 'idle'
-      ? saveState === 'saving'
-        ? 'Saving draft...'
-        : `Draft saved on this device${
-            draftSavedAt && saveState === 'saved'
-              ? ` · ${new Date(draftSavedAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`
-              : ''
-          }`
-      : null;
 
   const finishLabel =
     guestCardFinishOptions.find((o) => o.value === cardDesign)?.label ?? 'Black';
@@ -437,7 +415,7 @@ export function GuestDesignScreen() {
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
         <Animated.View style={[StyleSheet.absoluteFill, { opacity: contentFade }]}>
           <LinearGradient
-            colors={activeGradient as string[]}
+            colors={activeGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={StyleSheet.absoluteFill}
@@ -488,6 +466,97 @@ export function GuestDesignScreen() {
                 </Pressable>
               );
             })}
+          </View>
+        </View>
+
+        <View style={styles.socialComposer}>
+          <View style={styles.socialCover}>
+            <LinearGradient
+              colors={activeGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
+            <View style={styles.socialCoverToolbar}>
+              <Pressable
+                onPress={() => void handlePickCustomImage(false)}
+                style={({ pressed }) => [styles.coverTool, pressed && styles.socialPromptPressed]}
+                accessibilityRole="button"
+              >
+                <AppIcon name="Camera" size={15} color="#FFFFFF" />
+                <AppText style={styles.coverToolText}>Cover</AppText>
+              </Pressable>
+            </View>
+          </View>
+          <View style={styles.socialComposerBody}>
+            <View style={styles.socialAvatar}>
+              <AppText style={styles.socialAvatarText}>
+                {(displayName.trim() || user?.displayName?.trim() || 'C')[0].toUpperCase()}
+              </AppText>
+              <Pressable
+                onPress={() => void handlePickCustomImage(false)}
+                style={({ pressed }) => [styles.avatarCamera, pressed && styles.socialPromptPressed]}
+                accessibilityRole="button"
+              >
+                <AppIcon name="Camera" size={13} color="#FFFFFF" />
+              </Pressable>
+            </View>
+            <View style={styles.socialComposerCopy}>
+              <AppText style={styles.socialName} numberOfLines={1}>
+                {displayName.trim() || user?.displayName?.trim() || 'Your card profile'}
+              </AppText>
+              <AppText style={styles.socialSub} numberOfLines={1}>
+                {[jobTitle, company].filter(Boolean).join(' · ') || 'Add a title and company'}
+              </AppText>
+              <Pressable
+                onPress={() => setFormTab('customer')}
+                style={({ pressed }) => [styles.socialPrompt, pressed && styles.socialPromptPressed]}
+                accessibilityRole="button"
+              >
+                <AppText style={styles.socialPromptText} numberOfLines={1}>
+                  What should people see when they tap your card?
+                </AppText>
+              </Pressable>
+            </View>
+          </View>
+          <View style={styles.socialActions}>
+            {[
+              { label: 'Photo', icon: 'Image' as const, onPress: () => void handlePickCustomImage(false) },
+              { label: 'Details', icon: 'User' as const, onPress: () => setFormTab('customer') },
+              { label: 'Style', icon: 'Sparkles' as const, onPress: () => setFormTab('product') },
+              { label: 'Checkout', icon: 'Wallet' as const, onPress: () => setFormTab('payment') },
+            ].map((item) => (
+              <Pressable
+                key={item.label}
+                onPress={item.onPress}
+                style={({ pressed }) => [styles.socialAction, pressed && styles.socialPromptPressed]}
+                accessibilityRole="button"
+              >
+                <AppIcon name={item.icon} size={16} color={guestUi.accent} />
+                <AppText style={styles.socialActionText}>{item.label}</AppText>
+              </Pressable>
+            ))}
+          </View>
+          <View style={styles.realShowcase}>
+            <PhotoBanner
+              marketingSceneId="design-card"
+              cacheKey="marketing-design-card-top"
+              variant="strip"
+              overlay="product"
+              style={styles.realProductBanner}
+            >
+              <View style={styles.realProductCopy}>
+                <AppText style={styles.realProductTitle}>Real card preview</AppText>
+                <AppText style={styles.realProductSub}>Material, finish, and payment all in one flow.</AppText>
+              </View>
+            </PhotoBanner>
+            <View style={styles.realPaymentStrip}>
+              <View style={styles.realPaymentHead}>
+                <AppText style={styles.realPaymentTitle}>Pay with</AppText>
+                <AppText style={styles.realPaymentSub}>Real logos</AppText>
+              </View>
+              <PaymentBrandStrip logoSize={30} gap={7} />
+            </View>
           </View>
         </View>
 
@@ -608,19 +677,7 @@ export function GuestDesignScreen() {
           <Animated.View style={{ opacity: contentFade }}>
           {formTab === 'customer' ? (
             <View style={styles.formPanel}>
-              <PhotoBanner
-                marketingSceneId="create-profile"
-                cacheKey="marketing-create-profile"
-                variant="strip"
-                overlay="product"
-              />
-              <View style={styles.formSectionHead}>
-                <SquircleIconTile name="User" sizeKey="sm" />
-                <View style={styles.formSectionCopy}>
-                  <AppText style={styles.formSectionTitle}>Your details</AppText>
-                  <AppText style={styles.formSectionSub}>Shown on your card face</AppText>
-                </View>
-              </View>
+              <AppText style={styles.formSectionLabel}>Your details</AppText>
               <GuestFormIconCard inset>
                 <GuestFormIconRow
                   inset
@@ -632,42 +689,43 @@ export function GuestDesignScreen() {
                 />
                 <GuestFormIconRow
                   inset
-                  icon="Phone"
-                  value={phone}
-                  onChangeText={setPhone}
-                  placeholder="+855 12 345 678"
-                  keyboardType="phone-pad"
+                  icon="Briefcase"
+                  value={jobTitle}
+                  onChangeText={setJobTitle}
+                  placeholder="Job title"
+                  autoCapitalize="words"
                 />
                 <GuestFormIconRow
                   inset
-                  icon="Share"
-                  value={telegram}
-                  onChangeText={setTelegram}
-                  placeholder="@telegram"
-                  autoCapitalize="none"
+                  icon="Building2"
+                  value={company}
+                  onChangeText={setCompany}
+                  placeholder="Company"
                 />
                 <GuestFormIconRow
                   inset
                   icon="Mail"
                   value={email}
                   onChangeText={setEmail}
-                  placeholder="you@company.com"
+                  placeholder="Email"
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
                 <GuestFormIconRow
                   inset
-                  icon="MapPin"
-                  value={company}
-                  onChangeText={setCompany}
-                  placeholder="Company name"
+                  icon="Phone"
+                  value={phone}
+                  onChangeText={setPhone}
+                  placeholder="Phone"
+                  keyboardType="phone-pad"
                 />
                 <GuestFormIconRow
                   inset
-                  icon="UserRound"
-                  value={jobTitle}
-                  onChangeText={setJobTitle}
-                  placeholder="Job title"
+                  icon="Send"
+                  value={telegram}
+                  onChangeText={setTelegram}
+                  placeholder="Telegram (optional)"
+                  autoCapitalize="none"
                   last
                 />
               </GuestFormIconCard>
@@ -681,7 +739,15 @@ export function GuestDesignScreen() {
                 cacheKey="marketing-design-card"
                 variant="strip"
                 overlay="product"
-              />
+              >
+                <View style={styles.productBannerCopy}>
+                  <AppText style={styles.productBannerTitle}>Choose the real card finish</AppText>
+                  <AppText style={styles.productBannerSub}>
+                    Preview color, material, and custom-photo card styles before checkout.
+                  </AppText>
+                </View>
+              </PhotoBanner>
+
               {segment === 'physical' ? (
                 <View style={styles.formSubsection}>
                   <AppText style={styles.formSubsectionTitle}>Material</AppText>
@@ -777,6 +843,21 @@ export function GuestDesignScreen() {
 
           {formTab === 'payment' ? (
             <View style={styles.formPanel}>
+              <View style={styles.paymentHero}>
+                <View style={styles.paymentHeroHead}>
+                  <View style={styles.paymentHeroIcon}>
+                    <AppIcon name="Wallet" size={20} color={guestUi.accent} />
+                  </View>
+                  <View style={styles.paymentHeroCopy}>
+                    <AppText style={styles.paymentHeroTitle}>Pay with real Cambodia methods</AppText>
+                    <AppText style={styles.paymentHeroSub}>
+                      ABA Pay, ACLEDA, Wing, Pi Pay, TrueMoney, and KHQR.
+                    </AppText>
+                  </View>
+                </View>
+                <PaymentBrandStrip logoSize={34} gap={8} />
+              </View>
+
               <GuestFormIconCard flat>
                 <GuestFormSummaryRow compact icon="CreditCard" label="Card" value={cardTypeLabel} />
                 {segment === 'physical' ? (
@@ -803,7 +884,6 @@ export function GuestDesignScreen() {
 
               <View style={styles.formSubsection}>
                 <AppText style={styles.formSubsectionTitle}>Payment</AppText>
-                <PaymentBrandStrip logoSize={26} />
                 <CambodiaPaymentSelector
                   value={paymentMethod}
                   onChange={(id) => {
@@ -905,6 +985,189 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     paddingBottom: 2,
   },
+  socialComposer: {
+    marginHorizontal: 14,
+    borderRadius: 20,
+    overflow: 'hidden',
+    backgroundColor: guestUi.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: guestUi.border,
+    ...guestUi.shadow,
+  },
+  socialCover: {
+    height: 116,
+    backgroundColor: guestUi.accent,
+  },
+  socialCoverToolbar: {
+    position: 'absolute',
+    right: 12,
+    bottom: 10,
+  },
+  coverTool: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minHeight: 32,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+  },
+  coverToolText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    fontFamily: 'Inter_800ExtraBold',
+  },
+  socialComposerBody: {
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingTop: 0,
+    paddingBottom: 14,
+    marginTop: -38,
+  },
+  socialAvatar: {
+    width: 86,
+    height: 86,
+    borderRadius: 43,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1C1C1E',
+    borderWidth: 4,
+    borderColor: guestUi.surface,
+  },
+  socialAvatarText: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    fontFamily: 'Inter_900Black',
+  },
+  avatarCamera: {
+    position: 'absolute',
+    right: 0,
+    bottom: 2,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: guestUi.accent,
+    borderWidth: 2,
+    borderColor: guestUi.surface,
+  },
+  socialComposerCopy: {
+    width: '100%',
+    gap: 7,
+    alignItems: 'center',
+  },
+  socialName: {
+    fontSize: 21,
+    fontWeight: '900',
+    color: guestUi.text,
+    fontFamily: 'Inter_900Black',
+    letterSpacing: -0.5,
+  },
+  socialSub: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: guestUi.muted,
+    fontFamily: 'Inter_700Bold',
+  },
+  socialPrompt: {
+    width: '100%',
+    minHeight: 42,
+    borderRadius: 21,
+    backgroundColor: guestUi.surfaceSoft,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: guestUi.border,
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+  },
+  socialPromptPressed: {
+    opacity: 0.75,
+    transform: [{ scale: 0.98 }],
+  },
+  socialPromptText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: guestUi.muted,
+    fontFamily: 'Inter_600SemiBold',
+    textAlign: 'center',
+  },
+  socialActions: {
+    flexDirection: 'row',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: guestUi.border,
+  },
+  socialAction: {
+    flex: 1,
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+  },
+  socialActionText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: guestUi.text,
+    fontFamily: 'Inter_800ExtraBold',
+  },
+  realShowcase: {
+    gap: 10,
+    padding: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: guestUi.border,
+    backgroundColor: guestUi.surfaceSoft,
+  },
+  realProductBanner: {
+    height: 92,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  realProductCopy: {
+    gap: 3,
+  },
+  realProductTitle: {
+    fontSize: 17,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    fontFamily: 'Inter_900Black',
+    letterSpacing: -0.4,
+  },
+  realProductSub: {
+    maxWidth: 250,
+    fontSize: 11,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.78)',
+    fontFamily: 'Inter_700Bold',
+  },
+  realPaymentStrip: {
+    gap: 8,
+    padding: 12,
+    borderRadius: 16,
+    backgroundColor: guestUi.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: guestUi.border,
+  },
+  realPaymentHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  realPaymentTitle: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: guestUi.text,
+    fontFamily: 'Inter_900Black',
+  },
+  realPaymentSub: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: guestUi.accent,
+    fontFamily: 'Inter_700Bold',
+  },
   formScroll: { flex: 1 },
   scroll: {
     paddingTop: 2,
@@ -919,6 +1182,15 @@ const styles = StyleSheet.create({
   formPanel: {
     marginHorizontal: 14,
     gap: 10,
+  },
+  formSectionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: guestUi.muted,
+    letterSpacing: 0.2,
+    textTransform: 'uppercase',
+    marginBottom: -2,
+    paddingHorizontal: 4,
   },
   formSectionHead: {
     flexDirection: 'row',
@@ -949,6 +1221,64 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: guestUi.text,
     letterSpacing: -0.1,
+  },
+  productBannerCopy: {
+    gap: 4,
+  },
+  productBannerTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    fontFamily: 'Inter_900Black',
+    letterSpacing: -0.4,
+  },
+  productBannerSub: {
+    maxWidth: 260,
+    fontSize: 12,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.78)',
+    lineHeight: 17,
+    fontFamily: 'Inter_700Bold',
+  },
+  paymentHero: {
+    gap: 14,
+    padding: 16,
+    borderRadius: 18,
+    backgroundColor: guestUi.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: guestUi.border,
+    ...guestUi.shadow,
+  },
+  paymentHeroHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  paymentHeroIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: guestUi.accentSoft,
+  },
+  paymentHeroCopy: {
+    flex: 1,
+    gap: 3,
+  },
+  paymentHeroTitle: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: guestUi.text,
+    fontFamily: 'Inter_900Black',
+    letterSpacing: -0.2,
+  },
+  paymentHeroSub: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: guestUi.muted,
+    lineHeight: 16,
+    fontFamily: 'Inter_600SemiBold',
   },
   trustList: {
     gap: 8,

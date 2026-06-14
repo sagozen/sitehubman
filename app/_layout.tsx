@@ -39,7 +39,6 @@ SplashScreen.preventAutoHideAsync();
 
 Sentry.init({
   dsn: 'https://placeholder@o0.ingest.sentry.io/0', // Replace with real DSN post-pilot
-  enableInExpoDevelopment: true,
   debug: false,
 });
 

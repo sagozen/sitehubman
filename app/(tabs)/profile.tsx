@@ -9,9 +9,9 @@ const GuestProfileScreen = lazy(() =>
   }))
 );
 
-const CustomerAccountScreen = lazy(() =>
-  import('@/src/features/customer/CustomerAccountScreen').then((m) => ({
-    default: m.CustomerAccountScreen,
+const CustomerProfileScreen = lazy(() =>
+  import('@/src/features/customer/CustomerProfileScreen').then((m) => ({
+    default: m.CustomerProfileScreen,
   }))
 );
 
@@ -35,7 +35,7 @@ export default function PayoutsProfileTabRoute() {
 
   const Screen = useMemo(() => {
     if (isGuest) return GuestProfileScreen;
-    if (user?.role === 'customer') return CustomerAccountScreen;
+    if (user?.role === 'customer') return CustomerProfileScreen;
     return PayoutsProfileScreen;
   }, [isGuest, user?.role]);
 

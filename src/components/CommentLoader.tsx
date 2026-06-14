@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, type ViewStyle } from 'react-native';
-import Svg, { Path, Circle, G } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import Animated, {
+  type SharedValue,
   useSharedValue,
   useAnimatedStyle,
   withRepeat,
@@ -50,14 +51,17 @@ export function CommentLoader({
   const scale2 = useSharedValue(0.4);
   const scale3 = useSharedValue(0.4);
 
-  const bounceTiming = {
-    up: withTiming(1, { duration: UP_DURATION, easing: Easing.out(Easing.back(1.8)) }),
-    hold: withTiming(1, { duration: HOLD_DURATION, easing: Easing.linear }),
-    down: withTiming(0.4, { duration: DOWN_DURATION, easing: Easing.in(Easing.cubic) }),
-    idle: withTiming(0.4, { duration: IDLE_DURATION, easing: Easing.linear }),
-  };
+  const bounceTiming = useMemo(
+    () => ({
+      up: withTiming(1, { duration: UP_DURATION, easing: Easing.out(Easing.back(1.8)) }),
+      hold: withTiming(1, { duration: HOLD_DURATION, easing: Easing.linear }),
+      down: withTiming(0.4, { duration: DOWN_DURATION, easing: Easing.in(Easing.cubic) }),
+      idle: withTiming(0.4, { duration: IDLE_DURATION, easing: Easing.linear }),
+    }),
+    []
+  );
 
-  function startBounce(sv: Animated.SharedValue<number>, delayMs: number) {
+  const startBounce = useCallback((sv: SharedValue<number>, delayMs: number) => {
     sv.value = withDelay(
       delayMs,
       withRepeat(
@@ -66,13 +70,13 @@ export function CommentLoader({
         false
       )
     );
-  }
+  }, [bounceTiming]);
 
   useEffect(() => {
     startBounce(scale1, 0);
     startBounce(scale2, STAGGER);
     startBounce(scale3, STAGGER * 2);
-  }, []);
+  }, [scale1, scale2, scale3, startBounce]);
 
   const dot1Style = useAnimatedStyle(() => ({ transform: [{ scale: scale1.value }] }));
   const dot2Style = useAnimatedStyle(() => ({ transform: [{ scale: scale2.value }] }));

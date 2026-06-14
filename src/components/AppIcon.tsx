@@ -14,17 +14,22 @@ import {
   Bolt,
   BoltCircle,
   Box,
+  Buildings2,
   Calendar,
   CalendarDate,
+  Camera,
   Card,
+  Case,
   CheckCircle,
   CheckRead,
+  Chart,
   ClipboardList,
   ClockCircle,
   CloseCircle,
   DangerCircle,
   DangerTriangle,
   Delivery,
+  Diskette,
   Dollar,
   DollarMinimalistic,
   Download,
@@ -52,6 +57,7 @@ import {
   Restart,
   Scanner,
   Settings,
+  SendSquare,
   Share,
   Shield,
   ShieldCheck,
@@ -59,6 +65,7 @@ import {
   Snowflake,
   SquareArrowRightUp,
   Stars,
+  Tag,
   Target,
   TrashBinTrash,
   Upload,
@@ -89,15 +96,38 @@ function PlusSimple({ size = DEFAULT_ICON_SIZE, color = 'currentColor' }: SolarI
   );
 }
 
+function InstagramSimple({ size = DEFAULT_ICON_SIZE, color = 'currentColor' }: SolarIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M7.5 3.75h9A3.75 3.75 0 0 1 20.25 7.5v9a3.75 3.75 0 0 1-3.75 3.75h-9A3.75 3.75 0 0 1 3.75 16.5v-9A3.75 3.75 0 0 1 7.5 3.75Z"
+        stroke={color}
+        strokeWidth={1.6}
+      />
+      <Path
+        d="M8.75 12a3.25 3.25 0 1 0 6.5 0 3.25 3.25 0 0 0-6.5 0Z"
+        stroke={color}
+        strokeWidth={1.6}
+      />
+      <Path d="M16.9 7.1h.01" stroke={color} strokeWidth={2.4} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 const icons = {
   Archive,
   ArchiveRestore: ArchiveUp,
   ArrowLeft,
   BadgeDollarSign: DollarMinimalistic,
   BadgeCheck: VerifiedCheck,
+  BarChart: Chart,
   Bell,
+  Briefcase: Case,
+  Building2: Buildings2,
   Calendar,
   CalendarDays: CalendarDate,
+  Camera,
+  Check: CheckCircle,
   CheckCheck: CheckRead,
   ChevronLeft: AltArrowLeft,
   ChevronRight: AltArrowRight,
@@ -120,8 +150,10 @@ const icons = {
   History,
   Image: Gallery,
   Info: InfoCircle,
+  Instagram: InstagramSimple,
   Link,
   LogOut: Logout,
+  Loader: Refresh,
   MapPin: MapPoint,
   Mail: Letter,
   MoreHorizontal: MenuDots,
@@ -139,12 +171,15 @@ const icons = {
   ScanLine: Scanner,
   Search: Magnifier,
   Settings,
+  Save: Diskette,
+  Send: SendSquare,
   Share,
   Share2: Share,
   Shield,
   ShieldCheck,
   Snowflake,
   Sparkles: Stars,
+  Tag,
   Target,
   Trash2: TrashBinTrash,
   TriangleAlert: DangerTriangle,

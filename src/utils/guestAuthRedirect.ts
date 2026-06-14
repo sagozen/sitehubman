@@ -1,7 +1,6 @@
 import type { Href } from 'expo-router';
 import { appRoutes } from '@/src/constants/navigation';
 import { getStoredGuestCardId } from '@/src/services/guestSessionService';
-import { shouldPromptGuestDraftContinuation } from '@/src/services/guestDraftService';
 import { AppUser } from '@/src/types/models';
 import { getDashboardRoute } from '@/src/utils/authFlow';
 

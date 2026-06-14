@@ -4,7 +4,6 @@ import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
-const BG = '#F5F5F7';
 const SURFACE = '#FFFFFF';
 const INK = '#0A0A0F';
 const INK2 = '#1C1C1E';

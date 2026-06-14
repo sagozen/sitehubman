@@ -27,6 +27,7 @@ export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   ready_to_ship: ['shipped'],
   shipped: ['delivered'],
   delivered: [],
+  cancelled: [],
 };
 
 export function canTransitionOrderStatus(current: OrderStatus, next: OrderStatus): boolean {

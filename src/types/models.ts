@@ -37,6 +37,18 @@ export interface AppUser {
   isGuest?: boolean;
 }
 
+export interface Lead {
+  id: string;
+  profileId: string;
+  ownerUserId: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+  note?: string;
+  capturedAt: string;
+}
+
 // Order
 
 export type OrderStatus =

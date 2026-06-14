@@ -1,19 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Image,
   Pressable,
   ScrollView,
   StyleSheet,
   View,
-  useWindowDimensions,
 } from 'react-native';
 import { type Href, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
+import { FlowIcon } from '@/src/components/FlowIcon';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
 import { appRoutes } from '@/src/constants/navigation';
+import type { FlowRealIconId } from '@/src/constants/flowRealIcons';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -23,7 +24,6 @@ import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { getCustomerInsights, type CustomerInsights } from '@/src/services/customerInsightsService';
 import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
 import { loadGuestCardDraft } from '@/src/services/guestDraftService';
-import { getStoredGuestCardId } from '@/src/services/guestSessionService';
 import type { Order } from '@/src/types/models';
 
 // ─── Brand ──────────────────────────────────────────────────────────────────
@@ -43,16 +43,17 @@ const HERO_IMG =
 // ─── Quick actions ───────────────────────────────────────────────────────────
 const ACTIONS: {
   icon: AppIconName;
+  realIcon: FlowRealIconId;
   label: string;
   sub: string;
   color: string;
   route?: Href;
   action?: 'share';
 }[] = [
-  { icon: 'CreditCard', label: 'Design', sub: 'Create card', color: BRAND, route: appRoutes.guestDesign as Href },
-  { icon: 'QrCode', label: 'QR Code', sub: 'Generate', color: '#7C3AED', route: appRoutes.nfcDemo as Href },
-  { icon: 'ScanLine', label: 'Scan', sub: 'Read NFC', color: '#0284C7', route: appRoutes.scan as Href },
-  { icon: 'Share', label: 'Share', sub: 'Your profile', color: '#059669', action: 'share' },
+  { icon: 'CreditCard', realIcon: 'ecard', label: 'Design Card', sub: 'Build profile', color: BRAND, route: appRoutes.guestDesign as Href },
+  { icon: 'QrCode', realIcon: 'preview', label: 'Preview QR', sub: 'No app needed', color: '#7C3AED', route: appRoutes.nfcDemo as Href },
+  { icon: 'ScanLine', realIcon: 'nfc', label: 'Test NFC', sub: 'Tap or scan', color: '#0284C7', route: appRoutes.scan as Href },
+  { icon: 'Share', realIcon: 'share', label: 'Share', sub: 'Profile link', color: '#059669', action: 'share' },
 ];
 
 // ─── Order status ────────────────────────────────────────────────────────────
@@ -192,8 +193,7 @@ const or = StyleSheet.create({
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 export function GuestHomeScreen() {
-  const { width: SW } = useWindowDimensions();
-  const { colors } = useAppTheme();
+  useAppTheme();
   const { user } = useAuth();
   const isGuest = useIsGuest();
   const { requireAccount } = useRequireAccount();
@@ -252,7 +252,7 @@ export function GuestHomeScreen() {
           <View style={s.header}>
             <View style={s.hLeft}>
               <AppText style={s.greeting}>{greeting(user?.displayName)}</AppText>
-              <AppText style={s.greetSub}>Manage your NFC identity</AppText>
+              <AppText style={s.greetSub}>Build a profile people can save in one tap.</AppText>
             </View>
             <View style={s.hRight}>
               <Pressable
@@ -271,7 +271,7 @@ export function GuestHomeScreen() {
             </View>
           </View>
 
-          {/* ── HERO BANNER (remote Unsplash image) ── */}
+          {/* ── HERO BANNER ── */}
           <Pressable
             onPress={() => router.push(appRoutes.guestDesign as Href)}
             style={({ pressed }) => [s.heroBanner, pressed && s.pressed]}
@@ -293,10 +293,10 @@ export function GuestHomeScreen() {
                 <AppIcon name="Nfc" size={13} color={BRAND} />
                 <AppText style={s.heroBadgeT}>SNAP TAP NFC</AppText>
               </View>
-              <AppText style={s.heroTitle}>Your identity.{'\n'}One tap away.</AppText>
-              <AppText style={s.heroSub}>Design · Order · Share</AppText>
+              <AppText style={s.heroTitle}>Meet. Tap.{'\n'}Capture the lead.</AppText>
+              <AppText style={s.heroSub}>Digital profile · NFC card · QR backup</AppText>
               <View style={s.heroCta}>
-                <AppText style={s.heroCtaT}>Design your card</AppText>
+                <AppText style={s.heroCtaT}>Start your digital card</AppText>
                 <AppIcon name="ChevronRight" size={14} color={SURFACE} />
               </View>
             </View>
@@ -318,19 +318,36 @@ export function GuestHomeScreen() {
             style={({ pressed }) => [s.shareLine, pressed && s.pressed]}
           >
             <AppIcon name="Share" size={15} color={BRAND} />
-            <AppText style={s.shareLineT}>Tap to Share</AppText>
+            <AppText style={s.shareLineT}>Share profile by QR or link</AppText>
           </Pressable>
 
           {/* ── QUICK ACTIONS ── */}
-          <View style={s.actionsRow}>
+          <View style={s.actionsGrid}>
             {ACTIONS.map((a) => (
               <Pressable
                 key={a.label}
                 onPress={() => handleAction(a)}
-                style={({ pressed }) => [s.actionCell, pressed && s.pressed]}
+                style={({ pressed }) => [s.actionCard, pressed && s.pressed]}
                 accessibilityRole="button"
               >
-                <AppIcon name={a.icon} size={30} color={a.color} />
+                <LinearGradient
+                  colors={[`${a.color}20`, `${a.color}08`]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={StyleSheet.absoluteFill}
+                />
+                <View style={s.actionTop}>
+                  <FlowIcon
+                    realIcon={a.realIcon}
+                    fallbackIcon={a.icon}
+                    tint={a.color}
+                    size={46}
+                    glow
+                  />
+                  <View style={[s.actionArrow, { backgroundColor: `${a.color}18` }]}>
+                    <AppIcon name="ChevronRight" size={14} color={a.color} />
+                  </View>
+                </View>
                 <AppText style={s.actionLabel}>{a.label}</AppText>
                 <AppText style={s.actionSub}>{a.sub}</AppText>
               </Pressable>
@@ -430,8 +447,8 @@ export function GuestHomeScreen() {
               <View style={s.guestCtaInner}>
                 <AppIcon name="CreditCard" size={26} color={SURFACE} />
                 <View style={s.guestCtaCopy}>
-                  <AppText style={s.guestCtaTitle}>Order your NFC card</AppText>
-                  <AppText style={s.guestCtaSub}>Sign up · design · tap to share</AppText>
+              <AppText style={s.guestCtaTitle}>Launch your NFC card</AppText>
+              <AppText style={s.guestCtaSub}>Create profile · order card · capture leads</AppText>
                 </View>
                 <AppIcon name="ChevronRight" size={18} color="rgba(255,255,255,0.7)" />
               </View>
@@ -509,10 +526,25 @@ const s = StyleSheet.create({
   shareLineT: { fontSize: 13, fontWeight: '700', color: BRAND, fontFamily: 'Inter_700Bold' },
 
   // Quick actions
-  actionsRow: { flexDirection: 'row', backgroundColor: SURFACE, borderRadius: 22, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.07, shadowRadius: 16, elevation: 4 },
-  actionCell: { flex: 1, alignItems: 'center', paddingVertical: 18, paddingHorizontal: 4, gap: 7, borderRightWidth: StyleSheet.hairlineWidth, borderRightColor: 'rgba(0,0,0,0.05)' },
-  actionLabel: { fontSize: 11, fontWeight: '800', color: INK2, fontFamily: 'Inter_800ExtraBold', textAlign: 'center' },
-  actionSub: { fontSize: 9, fontWeight: '500', color: MUTED, textAlign: 'center' },
+  actionsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  actionCard: {
+    width: '48.5%',
+    minHeight: 112,
+    borderRadius: 20,
+    overflow: 'hidden',
+    backgroundColor: SURFACE,
+    padding: 14,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  actionTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  actionArrow: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  actionLabel: { fontSize: 14, fontWeight: '900', color: INK2, fontFamily: 'Inter_900Black' },
+  actionSub: { fontSize: 11, fontWeight: '600', color: MUTED },
 
   // Section
   section: { gap: 12 },

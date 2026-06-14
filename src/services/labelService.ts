@@ -72,7 +72,7 @@ export async function buildBarcodeSvg(text: string): Promise<string> {
   if (!bwip) return fallbackBarcodeSvg(text);
 
   try {
-    return bwip.default.toSVG({
+    return bwip.toSVG({
       bcid: 'code128',
       text,
       scale: 2,
@@ -94,7 +94,7 @@ export async function buildQrSvg(text: string): Promise<string> {
   if (!bwip) return fallbackQrSvg(text);
 
   try {
-    return bwip.default.toSVG({
+    return bwip.toSVG({
       bcid: 'qrcode',
       text,
       scale: 3,

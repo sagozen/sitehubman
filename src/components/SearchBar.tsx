@@ -1,21 +1,23 @@
 import React from 'react';
-import { StyleSheet, TextInput, View, type TextInputProps, Platform } from 'react-native';
+import { StyleSheet, TextInput, View, type StyleProp, type TextInputProps, type ViewStyle, Platform } from 'react-native';
 import { AppIcon } from './AppIcon';
 import { theme } from '../constants/theme';
 import { usePreferences } from '../hooks/usePreferences';
 
-export interface SearchBarProps extends TextInputProps {
+export interface SearchBarProps extends Omit<TextInputProps, 'style'> {
   onClear?: () => void;
+  style?: StyleProp<ViewStyle>;
+  inputStyle?: TextInputProps['style'];
 }
 
-export function SearchBar({ style, value, onClear, ...rest }: SearchBarProps) {
+export function SearchBar({ style, inputStyle, value, onClear, ...rest }: SearchBarProps) {
   const { isDark } = usePreferences();
 
   return (
     <View style={[styles.container, { backgroundColor: isDark ? theme.colors.surfaceSoft : theme.colors.surfaceSoft }, style]}>
       <AppIcon name="Search" size={20} color={theme.colors.textMuted} />
       <TextInput
-        style={[styles.input, { color: theme.colors.textPrimary }]}
+        style={[styles.input, { color: theme.colors.textPrimary }, inputStyle]}
         placeholderTextColor={theme.colors.textMuted}
         value={value}
         {...rest}

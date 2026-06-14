@@ -1,32 +1,142 @@
 import { IosScrollView } from '@/src/components/IosScrollView';
-import { useEffect, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import {
+  Alert,
+  Image,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  View,
+  type TextInputProps,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import { AppButton } from '@/src/components/AppButton';
-import { AppCard } from '@/src/components/AppCard';
-import { AppIcon } from '@/src/components/AppIcon';
-import { AppInput } from '@/src/components/AppInput';
+import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { AppAvatar } from '@/src/components/AppAvatar';
-import { theme } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useBioPage } from '@/src/hooks/useBioPage';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { uploadProfilePhoto } from '@/src/services/profilePhotoService';
 
-function SectionHeader({ icon, title }: { icon: React.ComponentProps<typeof AppIcon>['name']; title: string }) {
+// ─── Tokens ──────────────────────────────────────────────────────────────────
+const BRAND = '#2596BE';
+const INK = '#0A0A0F';
+const INK2 = '#1C1C1E';
+const MUTED = '#8E8E93';
+const BG = '#F5F5F7';
+const SURFACE = '#FFFFFF';
+const BORDER = '#E9EDF3';
+
+// ─── Field row — iOS Settings style ──────────────────────────────────────────
+function FieldRow({
+  icon,
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  last,
+  ...inputProps
+}: {
+  icon: AppIconName;
+  label: string;
+  value: string;
+  onChangeText: (t: string) => void;
+  placeholder: string;
+  last?: boolean;
+} & Pick<TextInputProps, 'keyboardType' | 'autoCapitalize' | 'autoCorrect' | 'secureTextEntry'>) {
+  const inputRef = useRef<TextInput>(null);
   return (
-    <View style={styles.sectionHeader}>
-      <AppIcon name={icon} size={18} color={theme.colors.primary} />
-      <AppText variant="caption" tone="muted" style={styles.sectionLabel}>{title}</AppText>
-    </View>
+    <Pressable
+      onPress={() => inputRef.current?.focus()}
+      style={[fr.row, last && fr.rowLast]}
+    >
+      <View style={fr.iconBox}>
+        <AppIcon name={icon} size={16} color={BRAND} />
+      </View>
+      <View style={fr.labelCol}>
+        <AppText style={fr.label}>{label}</AppText>
+      </View>
+      <TextInput
+        ref={inputRef}
+        style={fr.input}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor="#C4CFDE"
+        {...inputProps}
+      />
+    </Pressable>
   );
 }
 
+const fr = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 52,
+    gap: 10,
+    paddingHorizontal: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: BORDER,
+  },
+  rowLast: { borderBottomWidth: 0 },
+  iconBox: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    backgroundColor: '#EBF7FC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  labelCol: { width: 86 },
+  label: { fontSize: 13, fontWeight: '600', color: INK2 },
+  input: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+    color: INK,
+    paddingVertical: 0,
+    textAlign: 'right',
+  },
+});
+
+// ─── Section group ────────────────────────────────────────────────────────────
+function Group({ children }: { children: React.ReactNode }) {
+  return <View style={grp.card}>{children}</View>;
+}
+const grp = StyleSheet.create({
+  card: {
+    backgroundColor: SURFACE,
+    borderRadius: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: BORDER,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+});
+
+// ─── Section label ────────────────────────────────────────────────────────────
+function SectionLabel({ text }: { text: string }) {
+  return <AppText style={sl.text}>{text}</AppText>;
+}
+const sl = StyleSheet.create({
+  text: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: MUTED,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    paddingHorizontal: 4,
+  },
+});
+
+// ─── Main screen ─────────────────────────────────────────────────────────────
 export function EditBioScreen() {
   const { user } = useAuth();
   const isGuest = useIsGuest();
@@ -46,8 +156,8 @@ export function EditBioScreen() {
 
   useEffect(() => {
     if (!bioPage) return;
-    setSlug(bioPage.slug);
-    setDisplayName(bioPage.displayName);
+    setSlug(bioPage.slug ?? '');
+    setDisplayName(bioPage.displayName ?? '');
     setTagline(bioPage.tagline ?? '');
     setWhatsapp(bioPage.whatsapp ?? '');
     setInstagram(bioPage.instagram ?? '');
@@ -57,80 +167,39 @@ export function EditBioScreen() {
   }, [bioPage]);
 
   async function pickImage(fromCamera: boolean) {
-    if (!requireAccount(undefined, { message: 'Create an account to upload a profile photo.' })) {
-      return;
-    }
+    if (!requireAccount(undefined, { message: 'Create an account to upload a profile photo.' })) return;
     if (!user?.id) return;
-
     try {
-      if (fromCamera) {
-        const permission = await ImagePicker.requestCameraPermissionsAsync();
-        if (!permission.granted) {
-          Alert.alert('Permission needed', 'Camera permission is required to take a profile photo.');
-          return;
-        }
-      } else {
-        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (!permission.granted) {
-          Alert.alert('Permission needed', 'Photo library access is required to choose a profile photo.');
-          return;
-        }
+      const perm = fromCamera
+        ? await ImagePicker.requestCameraPermissionsAsync()
+        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert('Permission needed', fromCamera ? 'Camera access required.' : 'Photo library access required.');
+        return;
       }
-
       const result = fromCamera
-        ? await ImagePicker.launchCameraAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 0.8,
-          })
-        : await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 0.8,
-          });
-
+        ? await ImagePicker.launchCameraAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.85 })
+        : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.85 });
       if (result.canceled || !result.assets[0]) return;
-
-      const asset = result.assets[0];
       setIsUploadingPhoto(true);
       try {
-        const response = await uploadProfilePhoto({
-          uri: asset.uri,
-          userId: user.id,
-          fileName: asset.fileName,
-          mimeType: asset.mimeType,
-        });
-        setPhotoUrl(response.url);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unable to upload profile photo.';
-        Alert.alert('Upload failed', message);
+        const res = await uploadProfilePhoto({ uri: result.assets[0].uri, userId: user.id, fileName: result.assets[0].fileName, mimeType: result.assets[0].mimeType });
+        setPhotoUrl(res.url);
+      } catch (err) {
+        Alert.alert('Upload failed', err instanceof Error ? err.message : 'Try again.');
       } finally {
         setIsUploadingPhoto(false);
       }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to open image picker.';
-      Alert.alert('Image error', message);
+    } catch (err) {
+      Alert.alert('Error', err instanceof Error ? err.message : 'Could not open picker.');
     }
   }
 
   async function handleSave() {
-    if (!requireAccount(undefined, { message: 'Create an account to save your bio profile.' })) {
-      return;
-    }
-    if (!displayName.trim()) {
-      Alert.alert('Required', 'Display name is required.');
-      return;
-    }
-    if (slug.trim() && !/^[a-z0-9-]{3,40}$/i.test(slug.trim())) {
-      Alert.alert('Invalid slug', 'Use 3-40 letters, numbers, or hyphens.');
-      return;
-    }
-    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      Alert.alert('Invalid email', 'Enter a valid email address.');
-      return;
-    }
+    if (!requireAccount(undefined, { message: 'Create an account to save your profile.' })) return;
+    if (!displayName.trim()) { Alert.alert('Required', 'Display name is required.'); return; }
+    if (slug.trim() && !/^[a-z0-9-]{3,40}$/i.test(slug.trim())) { Alert.alert('Invalid slug', 'Use 3–40 letters, numbers, or hyphens.'); return; }
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { Alert.alert('Invalid email', 'Enter a valid email.'); return; }
     setIsSaving(true);
     try {
       await saveBioPage({
@@ -143,9 +212,9 @@ export function EditBioScreen() {
         email: email.trim() || undefined,
         customLinks: bioPage?.customLinks ?? [],
         theme: bioPage?.theme ?? 'vibrant_pink',
-        photoUrl: photoUrl,
+        photoUrl,
       });
-      Alert.alert('Saved ✅', 'Your bio page has been updated.');
+      Alert.alert('Saved', 'Your profile has been updated.');
     } catch (err) {
       Alert.alert('Save failed', (err as Error).message);
     } finally {
@@ -153,79 +222,91 @@ export function EditBioScreen() {
     }
   }
 
+  const initial = (displayName || user?.displayName || '?')[0].toUpperCase();
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <LinearGradient colors={['#9DECF9', '#CBF7EC', '#FFF4D8']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+      {/* ── Header ── */}
+      <View style={styles.header}>
+        <Pressable onPress={() => router.back()} style={({ pressed }) => [styles.headerBtn, pressed && styles.pressed]} hitSlop={10}>
+          <AppIcon name="ChevronLeft" size={22} color={INK2} />
+        </Pressable>
+        <AppText style={styles.headerTitle}>Edit Profile</AppText>
+        <Pressable
+          onPress={bioPage?.slug ? () => router.push(`/public/${bioPage.slug}`) : undefined}
+          style={({ pressed }) => [styles.previewBtn, pressed && styles.pressed]}
+          hitSlop={10}
+        >
+          <AppText style={styles.previewBtnT}>Preview</AppText>
+        </Pressable>
+      </View>
+
       <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
-        {/* Top bar */}
-        <View style={styles.topBar}>
-          <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={12}>
-            <AppIcon name="ChevronLeft" size={22} color={theme.colors.textPrimary} />
+        {/* ── Avatar ── */}
+        <View style={styles.avatarSection}>
+          <Pressable onPress={() => void pickImage(false)} style={styles.avatarWrap}>
+            {photoUrl ? (
+              <Image source={{ uri: photoUrl }} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatar, styles.avatarFallback]}>
+                <AppText style={styles.avatarInitial}>{initial}</AppText>
+              </View>
+            )}
+            <View style={styles.avatarBadge}>
+              <AppIcon name={isUploadingPhoto ? 'Loader' : 'Camera'} size={14} color="#FFFFFF" />
+            </View>
           </Pressable>
-          <AppText variant="h2">Edit Bio</AppText>
-          <Pressable onPress={() => bioPage && router.push(`/public/${bioPage.slug}`)} style={styles.previewBtn}>
-            <AppText variant="caption" style={styles.previewText}>Preview</AppText>
-          </Pressable>
+          <View style={styles.avatarMeta}>
+            <AppText style={styles.avatarName}>{displayName || 'Your name'}</AppText>
+            <AppText style={styles.avatarSub}>{tagline || 'Add a tagline'}</AppText>
+          </View>
+          <View style={styles.photoRow}>
+            <Pressable onPress={() => void pickImage(false)} style={({ pressed }) => [styles.photoBtn, pressed && styles.pressed]} disabled={isUploadingPhoto}>
+              <AppIcon name="Image" size={14} color={BRAND} />
+              <AppText style={styles.photoBtnT}>Gallery</AppText>
+            </Pressable>
+            <Pressable onPress={() => void pickImage(true)} style={({ pressed }) => [styles.photoBtn, pressed && styles.pressed]} disabled={isUploadingPhoto}>
+              <AppIcon name="ScanLine" size={14} color={INK2} />
+              <AppText style={[styles.photoBtnT, { color: INK2 }]}>Camera</AppText>
+            </Pressable>
+          </View>
         </View>
 
-        {/* Profile */}
-        <AppCard>
-          <SectionHeader icon="User" title="PROFILE" />
-          <View style={styles.avatarRow}>
-            <AppAvatar
-              name={displayName || user?.displayName || 'User'}
-              role="sales"
-              size={72}
-              source={photoUrl ? { uri: photoUrl } : undefined}
-            />
-            <View style={styles.avatarActions}>
-              <Pressable
-                style={styles.avatarButton}
-                onPress={() => void pickImage(false)}
-                disabled={isUploadingPhoto}
-              >
-                <AppIcon name="Image" size={16} color={theme.colors.primary} />
-                <AppText variant="caption" weight="bold" style={styles.avatarButtonText}>
-                  {isUploadingPhoto ? 'Uploading…' : 'Choose photo'}
-                </AppText>
-              </Pressable>
-              <Pressable
-                style={styles.avatarButtonSecondary}
-                onPress={() => void pickImage(true)}
-                disabled={isUploadingPhoto}
-              >
-                <AppIcon name="ScanLine" size={16} color={theme.colors.textPrimary} />
-                <AppText variant="caption" weight="bold" style={styles.avatarSecondaryText}>
-                  Take photo
-                </AppText>
-              </Pressable>
-            </View>
-          </View>
-          <View style={styles.fields}>
-            <AppInput label="Display name *" value={displayName} onChangeText={setDisplayName} placeholder="Sok Dara" autoCapitalize="words" />
-            <AppInput label="Tagline" value={tagline} onChangeText={setTagline} placeholder="Coffee · Code · Khmer poetry" />
-            <AppInput label="URL slug" value={slug} onChangeText={setSlug} placeholder="sokdara" autoCapitalize="none" />
-          </View>
-        </AppCard>
+        {/* ── Identity ── */}
+        <SectionLabel text="Identity" />
+        <Group>
+          <FieldRow icon="User" label="Name" value={displayName} onChangeText={setDisplayName} placeholder="Sok Dara" autoCapitalize="words" />
+          <FieldRow icon="Tag" label="Tagline" value={tagline} onChangeText={setTagline} placeholder="Coffee · Code · Khmer" />
+          <FieldRow icon="Link" label="URL slug" value={slug} onChangeText={setSlug} placeholder="sokdara" autoCapitalize="none" last />
+        </Group>
 
-        {/* Social links */}
-        <AppCard>
-          <SectionHeader icon="Phone" title="SOCIAL LINKS" />
-          <View style={styles.fields}>
-            <AppInput label="WhatsApp" value={whatsapp} onChangeText={setWhatsapp} placeholder="+855 12 345 678" keyboardType="phone-pad" />
-            <AppInput label="Instagram" value={instagram} onChangeText={setInstagram} placeholder="@sokdara" autoCapitalize="none" />
-            <AppInput label="Telegram" value={telegram} onChangeText={setTelegram} placeholder="@sokdara_pp" autoCapitalize="none" />
-            <AppInput label="Email" value={email} onChangeText={setEmail} placeholder="sok@dara.bio" keyboardType="email-address" autoCapitalize="none" />
-          </View>
-        </AppCard>
+        {/* ── Contact ── */}
+        <SectionLabel text="Contact" />
+        <Group>
+          <FieldRow icon="Mail" label="Email" value={email} onChangeText={setEmail} placeholder="you@email.com" keyboardType="email-address" autoCapitalize="none" />
+          <FieldRow icon="Phone" label="WhatsApp" value={whatsapp} onChangeText={setWhatsapp} placeholder="+855 12 345 678" keyboardType="phone-pad" />
+          <FieldRow icon="Send" label="Telegram" value={telegram} onChangeText={setTelegram} placeholder="@yourhandle" autoCapitalize="none" />
+          <FieldRow icon="Instagram" label="Instagram" value={instagram} onChangeText={setInstagram} placeholder="@yourhandle" autoCapitalize="none" last />
+        </Group>
 
         {isGuest ? (
-          <AppText variant="caption" tone="muted" style={styles.guestHint}>
-            Guest preview — sign up to save changes.
-          </AppText>
+          <AppText style={styles.guestHint}>Guest preview — create an account to save changes.</AppText>
         ) : null}
-        <AppButton label="Save Bio Page" loading={isSaving} onPress={handleSave} />
+
+        {/* ── Save button ── */}
+        <Pressable
+          onPress={() => void handleSave()}
+          disabled={isSaving}
+          style={({ pressed }) => [styles.saveBtn, isSaving && styles.saveBtnBusy, pressed && styles.pressed]}
+        >
+          {isSaving ? (
+            <AppIcon name="Loader" size={18} color="#FFFFFF" />
+          ) : (
+            <AppIcon name="Check" size={18} color="#FFFFFF" />
+          )}
+          <AppText style={styles.saveBtnT}>{isSaving ? 'Saving…' : 'Save Profile'}</AppText>
+        </Pressable>
 
       </IosScrollView>
     </SafeAreaView>
@@ -233,50 +314,120 @@ export function EditBioScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  scroll: { padding: theme.spacing.lg, paddingBottom: 120, gap: theme.spacing.md },
-  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: theme.spacing.xs },
-  backBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.7)', alignItems: 'center', justifyContent: 'center' },
-  previewBtn: { paddingHorizontal: theme.spacing.sm, paddingVertical: 6, borderRadius: theme.radius.pill, backgroundColor: theme.colors.primary },
-  previewText: { color: '#fff', fontWeight: '700' },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xs, marginBottom: theme.spacing.sm },
-  sectionLabel: { textTransform: 'uppercase', letterSpacing: 0, fontSize: 10 },
-  fields: { gap: theme.spacing.sm },
-  avatarRow: {
+  safe: { flex: 1, backgroundColor: BG },
+
+  // Header
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.md,
-    marginBottom: theme.spacing.md,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: BG,
   },
-  avatarActions: {
-    flex: 1,
-    gap: theme.spacing.xs,
+  headerBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: SURFACE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  avatarButton: {
+  headerTitle: { fontSize: 17, fontWeight: '700', color: INK, letterSpacing: -0.2 },
+  previewBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 999,
+    backgroundColor: BRAND,
+  },
+  previewBtnT: { fontSize: 12, fontWeight: '700', color: '#FFFFFF' },
+  pressed: { opacity: 0.72 },
+
+  scroll: { paddingHorizontal: 18, paddingTop: 8, paddingBottom: 120, gap: 12 },
+
+  // Avatar section
+  avatarSection: {
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 10,
+  },
+  avatarWrap: { position: 'relative' },
+  avatar: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    borderWidth: 3,
+    borderColor: SURFACE,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  avatarFallback: {
+    backgroundColor: BRAND,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitial: { fontSize: 34, fontWeight: '900', color: '#FFFFFF' },
+  avatarBadge: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: INK2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: BG,
+  },
+  avatarMeta: { alignItems: 'center', gap: 3 },
+  avatarName: { fontSize: 18, fontWeight: '800', color: INK, letterSpacing: -0.3 },
+  avatarSub: { fontSize: 12, fontWeight: '500', color: MUTED },
+  photoRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
+  photoBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: 6,
-    borderRadius: theme.radius.pill,
-    backgroundColor: 'rgba(255,255,255,0.9)',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: SURFACE,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: BORDER,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  avatarButtonText: {
-    color: theme.colors.primary,
-  },
-  avatarButtonSecondary: {
+  photoBtnT: { fontSize: 13, fontWeight: '600', color: BRAND },
+
+  // Save button
+  saveBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: 6,
-    borderRadius: theme.radius.pill,
-    backgroundColor: 'rgba(0,0,0,0.06)',
+    justifyContent: 'center',
+    gap: 8,
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: BRAND,
+    shadowColor: BRAND,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.28,
+    shadowRadius: 14,
+    elevation: 6,
+    marginTop: 4,
   },
-  avatarSecondaryText: {
-    color: theme.colors.textPrimary,
-  },
-  guestHint: {
-    textAlign: 'center',
-  },
+  saveBtnBusy: { opacity: 0.7 },
+  saveBtnT: { fontSize: 15, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.2 },
+
+  guestHint: { fontSize: 12, fontWeight: '500', color: MUTED, textAlign: 'center' },
 });

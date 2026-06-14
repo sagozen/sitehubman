@@ -13,7 +13,6 @@ import {
   SNAP_TAP_BORDER,
   SNAP_TAP_BRAND,
   SNAP_TAP_CARD_BORDER,
-  SNAP_TAP_CARD_SURFACE,
   SNAP_TAP_GRAY,
   SNAP_TAP_TEXT,
 } from '@/src/constants/snapTapBrand';

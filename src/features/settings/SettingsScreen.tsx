@@ -1,7 +1,7 @@
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppAvatar } from '@/src/components/AppAvatar';
 import { AppIcon } from '@/src/components/AppIcon';

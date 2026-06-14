@@ -173,7 +173,7 @@ export default function GuestCheckoutRoute() {
       }
       
       router.replace(await getPostAuthDestination(convertedUser, { intent: 'checkout' }));
-    } catch (e) {
+    } catch {
       router.replace('/(tabs)/connections');
     }
   }

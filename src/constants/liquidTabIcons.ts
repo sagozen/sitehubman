@@ -21,8 +21,8 @@ const genBookTabIcons: Record<string, { active: IoniconName; inactive: IoniconNa
  */
 const sitehubTabIcons: Record<string, { active: IoniconName; inactive: IoniconName }> = {
   index: genBookTabIcons.Home,
-  connections: genBookTabIcons.Explore,
-  attendance: genBookTabIcons.Explore,
+  connections: { active: 'people-circle', inactive: 'people-circle-outline' },
+  attendance: { active: 'people-circle', inactive: 'people-circle-outline' },
   profile: genBookTabIcons.Profile,
   settings: { active: 'settings', inactive: 'settings-outline' },
   orders: genBookTabIcons.Library,

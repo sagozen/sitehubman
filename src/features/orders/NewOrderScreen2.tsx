@@ -1,6 +1,6 @@
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useState } from 'react';
-import { Alert, Image, Pressable, StyleSheet, TextInput, View, useWindowDimensions,  } from 'react-native';
+import { Alert, Pressable, StyleSheet, TextInput, View, useWindowDimensions,  } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, router } from 'expo-router';
@@ -425,7 +425,7 @@ export function NewOrderScreen() {
   const [deposit, setDeposit] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [website, setWebsite] = useState('');
+  const [website] = useState('');
   const [notes, setNotes] = useState('');
 
   const [saving, setSaving] = useState(false);

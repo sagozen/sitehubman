@@ -12,7 +12,6 @@ import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
 import { productTypeOptions } from '@/src/constants/options';
 import { appRoutes } from '@/src/constants/navigation';
 import { useAuth } from '@/src/hooks/useAuth';
-import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { auth } from '@/src/services/firebaseClient';
 import { getOrder } from '@/src/services/firestoreService';
 import { loadGuestLastOrderId } from '@/src/services/guestDraftService';
@@ -37,7 +36,6 @@ function statusInfo(status: string): { label: string; color: string; bg: string 
 
 export function GuestTrackOrderScreen() {
   const { user } = useAuth();
-  const { requireAccount } = useRequireAccount();
   const params = useLocalSearchParams<{ orderId?: string }>();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -108,7 +106,7 @@ export function GuestTrackOrderScreen() {
             <AppIcon name="Package" size={52} color={BRAND} />
             <AppText style={styles.wallTitle}>Sign in to track</AppText>
             <AppText style={styles.wallSub}>
-              Use "Continue as guest" at checkout so your order is saved. Then return here to follow
+              Use &quot;Continue as guest&quot; at checkout so your order is saved. Then return here to follow
               production and shipping.
             </AppText>
             <AppButton label="Sign in" onPress={() => router.push(appRoutes.login)} />

@@ -27,7 +27,6 @@ const INK2 = '#1C1C1E';
 const MUTED = '#8E8E93';
 const BG = '#F5F5F7';
 const SURFACE = '#FFFFFF';
-const DANGER = '#EF4444';
 const FIELD_BG = '#FFFFFF';
 const FIELD_BORDER = 'rgba(0,0,0,0.08)';
 

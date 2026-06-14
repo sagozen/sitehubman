@@ -25,7 +25,7 @@ export function ActionCard({ title, subtitle, icon, onPress, disabled, style, ..
         <View style={styles.textContainer}>
           <AppText variant="h2" style={styles.title}>{title}</AppText>
           {subtitle && (
-            <AppText variant="bodySmall" tone="muted" style={styles.subtitle}>
+            <AppText variant="caption" tone="muted" style={styles.subtitle}>
               {subtitle}
             </AppText>
           )}

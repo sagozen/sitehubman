@@ -70,7 +70,8 @@ export function GuestChooseCardPreview({
   const isPhysicalCard = resolvedType === 'physical';
   const name = (fullName.trim() || 'Your Name').toUpperCase();
   const subtitle = [title.trim(), company.trim()].filter(Boolean).join(' · ');
-  const contactLine = email.trim() || phone.trim();
+  const primaryContact = email.trim() || phone.trim() || 'your.link/card';
+  const secondaryContact = phone.trim() && email.trim() ? phone.trim() : resolvedType === 'physical' ? 'Physical NFC card' : 'Digital profile';
   const hasCustomImage = Boolean(customImageUri?.trim());
   const showPlaceholder = isCustomSlot && !hasCustomImage;
   const textAccent = hasCustomImage || showPlaceholder ? '#FFFFFF' : gradient.accent;
@@ -142,31 +143,45 @@ export function GuestChooseCardPreview({
       )}
 
       <View style={styles.cardContent}>
-        <View style={styles.mid}>
-          <View style={styles.labelRow}>
-            <AppText style={styles.networkLabel}>
-              {isPhysicalCard ? 'BIO CLOUD NATIVE' : 'DIGITAL NFC'}
-            </AppText>
-            {!isPhysicalCard ? (
-              <View style={styles.digitalBadge}>
-                <AppIcon name="Nfc" size={11} color="rgba(255,255,255,0.9)" />
-                <AppText style={styles.digitalBadgeText}>Tap</AppText>
-              </View>
-            ) : null}
+        <View style={styles.decorBand} pointerEvents="none" />
+        <View style={styles.topRow}>
+          <View style={styles.brandChip}>
+            <View style={styles.brandMark}>
+              <AppText style={[styles.brandMarkText, { color: textAccent }]}>N</AppText>
+            </View>
+            <View>
+              <AppText style={styles.brandName}>NFC GLOBAL</AppText>
+              <AppText style={styles.brandSub}>{isPhysicalCard ? 'Printed card' : 'Tap profile'}</AppText>
+            </View>
           </View>
-          <AppText style={[styles.name, { color: textAccent }]} numberOfLines={1}>
-            {name}
-          </AppText>
-          {subtitle ? (
+          <View style={styles.nfcChip}>
+            <AppIcon name="Nfc" size={11} color="rgba(255,255,255,0.92)" />
+            <AppText style={styles.nfcChipText}>{isPhysicalCard ? 'PRINT' : 'LIVE'}</AppText>
+          </View>
+        </View>
+
+        <View style={styles.bottomPanel}>
+          <View style={styles.identityBlock}>
+            <AppText style={[styles.name, { color: textAccent }]} numberOfLines={1} adjustsFontSizeToFit>
+              {name}
+            </AppText>
             <AppText style={styles.subtitle} numberOfLines={1}>
-              {subtitle}
+              {subtitle || 'Your digital business card'}
             </AppText>
-          ) : null}
-          {contactLine ? (
-            <AppText style={styles.contact} numberOfLines={1}>
-              {contactLine}
-            </AppText>
-          ) : null}
+            <View style={styles.contactStack}>
+              <View style={styles.contactPill}>
+                <AppIcon name="Mail" size={8} color="rgba(255,255,255,0.72)" />
+                <AppText style={styles.contact} numberOfLines={1}>{primaryContact}</AppText>
+              </View>
+              <View style={styles.contactPill}>
+                <AppIcon name="Phone" size={8} color="rgba(255,255,255,0.72)" />
+                <AppText style={styles.contact} numberOfLines={1}>{secondaryContact}</AppText>
+              </View>
+            </View>
+          </View>
+          <View style={styles.qrModule}>
+            <AppIcon name="QrCode" size={24} color="#111111" />
+          </View>
         </View>
       </View>
     </View>
@@ -192,6 +207,7 @@ const styles = StyleSheet.create({
   cardShell: {
     borderRadius: iosDesign.radius.lg,
     overflow: 'hidden',
+    backgroundColor: '#1C1C1E',
     ...iosDesign.shadows.card,
   },
   cardShellCustomEmpty: {
@@ -245,8 +261,8 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     flex: 1,
-    padding: iosDesign.spacing.sm + 2,
-    justifyContent: 'flex-end',
+    padding: 12,
+    justifyContent: 'space-between',
   },
   shinePrimary: {
     ...StyleSheet.absoluteFillObject,
@@ -256,52 +272,123 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     opacity: 0.7,
   },
-  mid: {
-    gap: 4,
+  decorBand: {
+    position: 'absolute',
+    top: 28,
+    right: -18,
+    width: '58%',
+    height: '44%',
+    transform: [{ rotate: '-18deg' }],
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.12)',
   },
-  labelRow: {
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
   },
-  networkLabel: {
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 1.1,
-    color: 'rgba(255,255,255,0.72)',
+  brandChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    minWidth: 0,
+    flex: 1,
   },
-  digitalBadge: {
+  brandMark: {
+    width: 28,
+    height: 28,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.94)',
+  },
+  brandMarkText: {
+    fontSize: 14,
+    fontWeight: '900',
+    fontFamily: 'Inter_900Black',
+  },
+  brandName: {
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1.1,
+    color: 'rgba(255,255,255,0.92)',
+    fontFamily: 'Inter_900Black',
+  },
+  brandSub: {
+    fontSize: 8,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.58)',
+    fontFamily: 'Inter_700Bold',
+  },
+  nfcChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingHorizontal: 7,
+    paddingVertical: 4,
     borderRadius: iosDesign.radius.pill,
-    backgroundColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: 'rgba(0,0,0,0.2)',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.28)',
+    borderColor: 'rgba(255,255,255,0.24)',
   },
-  digitalBadgeText: {
+  nfcChipText: {
     fontSize: 8,
-    fontWeight: '700',
+    fontWeight: '900',
     color: 'rgba(255,255,255,0.9)',
     letterSpacing: 0.4,
+    fontFamily: 'Inter_900Black',
+  },
+  bottomPanel: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 10,
+    padding: 10,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,0,0,0.24)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.18)',
+  },
+  identityBlock: {
+    flex: 1,
+    minWidth: 0,
+    gap: 3,
   },
   name: {
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: 17,
+    fontWeight: '900',
     letterSpacing: 0.4,
+    fontFamily: 'Inter_900Black',
   },
   subtitle: {
     fontSize: 11,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.78)',
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.74)',
+    fontFamily: 'Inter_700Bold',
+  },
+  contactStack: {
+    gap: 3,
+    marginTop: 3,
+  },
+  contactPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    minHeight: 15,
   },
   contact: {
-    fontSize: 10,
+    flex: 1,
+    fontSize: 9,
     fontWeight: '600',
     color: 'rgba(255,255,255,0.62)',
-    marginTop: 2,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  qrModule: {
+    width: 42,
+    height: 42,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.94)',
   },
 });

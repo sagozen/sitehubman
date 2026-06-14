@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, type ViewProps } from 'react-native';
+import { StyleSheet, type ViewProps } from 'react-native';
 import { theme } from '../constants/theme';
 import { GlassPressable } from './GlassPressable';
 

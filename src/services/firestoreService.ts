@@ -1,5 +1,4 @@
 import {
-  Timestamp,
   addDoc,
   collection,
   deleteField,
@@ -19,8 +18,6 @@ import { firebaseCollections } from '@/src/constants/collections';
 import { createStaffNotification } from '@/src/services/notificationService';
 import { uploadQaVideo } from '@/src/services/qaMediaService';
 import { mapOrder, toIso } from '@/src/services/orderMappers';
-
-export { mapOrder } from '@/src/services/orderMappers';
 import { resolveOrderBranch } from '@/src/utils/branch';
 import { buildOrderPricingFields } from '@/src/utils/orderPricing';
 import { buildProfileUrl } from '@/src/constants/publicProfile';
@@ -28,6 +25,7 @@ import {
   ensureNfcCardAssigned,
   lifecycleToVerification,
   recordTapEvent,
+  syncBioToCard,
   syncProfileFromBio,
   verificationToLifecycle,
 } from '@/src/services/nfcProfileService';
@@ -67,6 +65,8 @@ import {
   recordProductionLog,
   updateCardProductionStatus,
 } from '@/src/services/cardIdentityService';
+
+export { mapOrder } from '@/src/services/orderMappers';
 
 export { buildProfileUrl } from '@/src/constants/publicProfile';
 
@@ -1442,6 +1442,14 @@ export async function upsertBioPage(
   );
 
   await syncProfileFromBio(userId, { ...payload, slug: normalizedSlug }).catch(() => undefined);
+  await syncBioToCard(userId, {
+    displayName: payload.displayName,
+    whatsapp: payload.whatsapp,
+    email: payload.email,
+    telegram: payload.telegram,
+    tagline: payload.tagline,
+    photoUrl: payload.photoUrl,
+  }).catch(() => undefined);
 }
 
 export async function getBioPage(userId: string): Promise<BioPage | null> {

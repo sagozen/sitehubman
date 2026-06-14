@@ -5,6 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { AppButton } from '@/src/components/AppButton';
+import { FlowIcon } from '@/src/components/FlowIcon';
+import type { FlowRealIconId } from '@/src/constants/flowRealIcons';
 import { useGuestActionStats } from '@/src/hooks/useGuestActionStats';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
@@ -13,18 +15,19 @@ const BRAND = '#2596BE';
 
 const ACTIONS: {
   icon: AppIconName;
+  realIcon: FlowRealIconId;
   label: string;
   sub: string;
   color: string;
   route?: string;
   locked?: boolean;
 }[] = [
-  { icon: 'Eye', label: 'Preview profile', sub: 'See your live NFC page', color: '#007AFF' },
-  { icon: 'CreditCard', label: 'Order card', sub: 'Physical NFC + QR backup', color: '#34C759', route: '/guest-design' },
-  { icon: 'Package', label: 'Track order', sub: 'Print · encode · ship', color: '#FF9500', route: '/guest-track-order' },
-  { icon: 'Users', label: 'Connections', sub: 'Leads from taps & QR', color: '#AF52DE', locked: true },
-  { icon: 'QrCode', label: 'QR code', sub: 'Generate & share', color: BRAND, route: '/nfc-demo' },
-  { icon: 'ScanLine', label: 'Scan card', sub: 'Read any NFC card', color: '#FF3B30', route: '/scan' },
+  { icon: 'Eye', realIcon: 'preview', label: 'Preview profile', sub: 'Live public card', color: '#007AFF' },
+  { icon: 'CreditCard', realIcon: 'ecard', label: 'Order card', sub: 'NFC + QR backup', color: '#34C759', route: '/guest-design' },
+  { icon: 'Package', realIcon: 'track', label: 'Track order', sub: 'Print · encode · ship', color: '#FF9500', route: '/guest-track-order' },
+  { icon: 'Users', realIcon: 'connections', label: 'Lead capture', sub: 'Taps, QR, contacts', color: '#AF52DE', locked: true },
+  { icon: 'QrCode', realIcon: 'share', label: 'Share QR', sub: 'No app required', color: BRAND, route: '/nfc-demo' },
+  { icon: 'ScanLine', realIcon: 'nfc', label: 'Scan card', sub: 'Read NFC cards', color: '#FF3B30', route: '/scan' },
 ];
 
 export function GuestConnectionsScreen() {
@@ -56,7 +59,7 @@ export function GuestConnectionsScreen() {
         <View style={styles.header}>
           <View style={styles.headerCopy}>
             <AppText style={styles.title}>Connections</AppText>
-            <AppText style={styles.subtitle}>Your NFC identity hub</AppText>
+            <AppText style={styles.subtitle}>Share, scan, and capture leads</AppText>
           </View>
           <AppIcon name="Nfc" size={32} color={BRAND} />
         </View>
@@ -68,7 +71,7 @@ export function GuestConnectionsScreen() {
             <View style={styles.bannerCopy}>
               <AppText style={styles.bannerTitle}>Guest mode active</AppText>
               <AppText style={styles.bannerSub}>
-                Sign in to sync cards and connections across devices.
+                Sign in to save leads, sync cards, and track every tap.
               </AppText>
             </View>
           </View>
@@ -88,10 +91,12 @@ export function GuestConnectionsScreen() {
                   <AppIcon name="ShieldCheck" size={10} color="#FFFFFF" />
                 </View>
               ) : null}
-              <AppIcon
-                name={action.icon}
-                size={36}
-                color={action.locked ? '#D1D5DB' : action.color}
+              <FlowIcon
+                realIcon={action.realIcon}
+                fallbackIcon={action.icon}
+                tint={action.locked ? '#C7C7CC' : action.color}
+                size={52}
+                glow
               />
               <AppText style={[styles.cellLabel, action.locked && styles.cellLabelLocked]}>
                 {action.label}
@@ -149,7 +154,7 @@ const styles = StyleSheet.create({
     width: '47%',
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    padding: 20,
+    padding: 16,
     gap: 8,
     alignItems: 'flex-start',
     position: 'relative',
@@ -158,6 +163,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.07,
     shadowRadius: 16,
     elevation: 4,
+    minHeight: 142,
   },
   pressed: { opacity: 0.78, transform: [{ scale: 0.97 }] },
   lockBadge: {

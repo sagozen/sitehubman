@@ -261,7 +261,7 @@ export function GuestFormIconCard({
   style?: ViewStyle;
   /** No outer box — hairline rows only. */
   flat?: boolean;
-  /** Soft grouped fields — rounded pills, airy gaps. */
+  /** Soft grouped fields — iOS Settings-style unified card. */
   inset?: boolean;
 }) {
   const shellStyle = inset ? ui.formIconCardInset : flat ? ui.formIconCardFlat : ui.formIconCard;
@@ -293,20 +293,16 @@ export function GuestFormIconRow({
       : ui.formIconRow;
 
   return (
-    <View style={[rowStyle, last && (inset ? null : ui.formIconRowLast)]}>
-      {inset || compact ? (
-        <View style={ui.formIconGlyph}>
-          <AppIcon name={icon} size={inset ? 16 : 15} color={SNAP_TAP_BRAND} />
-        </View>
-      ) : (
-        <SquircleIconTile name={icon} sizeKey="sm" />
-      )}
+    <View style={[rowStyle, last && ui.formIconRowLast]}>
+      <View style={ui.formIconGlyph}>
+        <AppIcon name={icon} size={16} color={SNAP_TAP_BRAND} />
+      </View>
       <TextInput
-        style={[ui.formIconInput, inset && ui.formIconInputInset]}
+        style={ui.formIconInput}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={inset ? '#9CA3AF' : '#94A3B8'}
+        placeholderTextColor="#B0B8C1"
         {...inputProps}
       />
     </View>
@@ -599,9 +595,14 @@ const ui = StyleSheet.create({
   formIconCardFlat: {
     overflow: 'hidden',
   },
+  // Unified iOS-style grouped card — one surface, dividers between rows only
   formIconCardInset: {
-    gap: 8,
-    paddingVertical: 2,
+    borderRadius: guestUi.radiusLg,
+    backgroundColor: guestUi.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E6E9EF',
+    overflow: 'hidden',
+    ...guestUi.shadow,
   },
   formIconGlyph: {
     width: 28,
@@ -626,18 +627,16 @@ const ui = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#E8E8ED',
   },
+  // Inset row — sits inside the unified card, uses internal dividers only
   formIconRowInset: {
-    minHeight: 46,
+    minHeight: 52,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.82)',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(37,150,190,0.14)',
-    ...guestUi.shadow,
+    gap: 10,
+    paddingHorizontal: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#F1F5F9',
+    backgroundColor: 'transparent',
   },
   formIconRowLast: {
     borderBottomWidth: 0,
@@ -646,8 +645,8 @@ const ui = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     fontSize: 15,
-    fontWeight: '600',
-    color: '#334155',
+    fontWeight: '500',
+    color: '#1C1C1E',
     padding: 0,
   },
   formIconInputInset: {

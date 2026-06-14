@@ -2,7 +2,6 @@ import React from 'react';
 import { StyleSheet, View, type ViewProps } from 'react-native';
 import { AppText } from './AppText';
 import { theme } from '../constants/theme';
-import { usePreferences } from '../hooks/usePreferences';
 
 export type StatusType = 'success' | 'active' | 'warning' | 'error' | 'info' | 'pending' | 'neutral';
 

@@ -5,6 +5,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit,
   query,
   serverTimestamp,
   setDoc,
@@ -258,6 +259,41 @@ function mapProfileDoc(id: string, data: Record<string, unknown>): Profile {
     taps: typeof data.taps === 'number' ? data.taps : 0,
     updatedAt: toIso(data.updatedAt),
   };
+}
+
+/**
+ * When a user saves their bio page, also update the `profile` sub-object on
+ * their linked card document so the card face reflects the latest name/phone/email.
+ */
+export async function syncBioToCard(
+  userId: string,
+  bio: { displayName: string; whatsapp?: string; email?: string; telegram?: string; tagline?: string; photoUrl?: string },
+): Promise<void> {
+  if (!userId.trim()) return;
+  try {
+    // Find the user's card by userId or ownerId
+    const snap = await getDocs(
+      query(collection(db, firebaseCollections.cards), where('userId', '==', userId), limit(1))
+    );
+    const cardDoc = snap.docs[0];
+    if (!cardDoc) return;
+    await setDoc(
+      cardDoc.ref,
+      {
+        profile: {
+          fullName: bio.displayName.trim(),
+          phone: bio.whatsapp?.trim() ?? '',
+          email: bio.email?.trim() ?? '',
+          telegram: bio.telegram?.trim() ?? '',
+          role: bio.tagline?.trim() ?? '',
+        },
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+  } catch {
+    // Best-effort: don't break bio save if card sync fails
+  }
 }
 
 export async function syncProfileFromBio(userId: string, bio: Omit<BioPage, 'id' | 'userId' | 'updatedAt'> & { slug: string }): Promise<void> {

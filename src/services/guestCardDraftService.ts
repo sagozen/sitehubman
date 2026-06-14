@@ -660,7 +660,7 @@ export async function verifyCardMigration(cardId: string, customerId: string): P
     }
     
     return { migrated: false, status: 'validation_failed' };
-  } catch (error) {
+  } catch {
     return { migrated: false, status: 'error' };
   }
 }

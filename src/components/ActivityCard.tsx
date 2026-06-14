@@ -24,7 +24,7 @@ export function ActivityCard({ title, description, time, icon, isLast, style, ..
           {time && <AppText variant="caption" tone="muted">{time}</AppText>}
         </View>
         {description && (
-          <AppText variant="bodySmall" tone="muted" style={styles.description}>
+          <AppText variant="caption" tone="muted" style={styles.description}>
             {description}
           </AppText>
         )}
