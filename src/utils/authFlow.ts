@@ -10,11 +10,12 @@ export const AUTH_ROLES: UserRole[] = [
   'printer_operator',
   'qa_inspector',
   'shipping',
+  'finance',
   'admin',
   'super_admin',
 ];
 
-export const STAFF_ROLES: UserRole[] = ['sales', 'agent', 'printer', 'printer_operator', 'qa_inspector', 'shipping'];
+export const STAFF_ROLES: UserRole[] = ['sales', 'agent', 'printer', 'printer_operator', 'qa_inspector', 'shipping', 'finance'];
 
 export function normalizeRole(role: unknown): UserRole {
   if (role === 'super_admin') return 'super_admin';
@@ -25,6 +26,7 @@ export function normalizeRole(role: unknown): UserRole {
   if (role === 'shipping' || role === 'courier') return 'shipping';
   if (role === 'agent' || role === 'sales_agent') return 'agent';
   if (role === 'sales' || role === 'sales_rep') return 'sales';
+  if (role === 'finance') return 'finance';
   if (role === 'customer' || role === 'user') return 'customer';
   return 'guest';
 }
@@ -35,6 +37,7 @@ export function getDashboardRoute(user: AppUser | null): Href {
   if (isPrinterOperatorRole(user.role) || user.role === 'printer') return '/printer/batch-select';
   if (user.role === 'qa_inspector') return '/qa' as Href;
   if (user.role === 'shipping') return '/shipping' as Href;
+  if (user.role === 'finance') return '/finance' as Href;
   if (user.role === 'sales' || user.role === 'agent') return '/sales';
   return '/(tabs)';
 }

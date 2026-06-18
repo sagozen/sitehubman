@@ -71,7 +71,7 @@ export function GuestChooseCardPreview({
   const name = (fullName.trim() || 'Your Name').toUpperCase();
   const subtitle = [title.trim(), company.trim()].filter(Boolean).join(' · ');
   const primaryContact = email.trim() || phone.trim() || 'your.link/card';
-  const secondaryContact = phone.trim() && email.trim() ? phone.trim() : resolvedType === 'physical' ? 'Physical NFC card' : 'Digital profile';
+  const secondaryContact = phone.trim() && email.trim() ? phone.trim() : resolvedType === 'physical' ? 'Physical NFC card' : 'Tap profile';
   const hasCustomImage = Boolean(customImageUri?.trim());
   const showPlaceholder = isCustomSlot && !hasCustomImage;
   const textAccent = hasCustomImage || showPlaceholder ? '#FFFFFF' : gradient.accent;

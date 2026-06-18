@@ -17,6 +17,7 @@ import type {
   LedgerWallet,
   Order,
   OrderPaymentRecordStatus,
+  OrderStatus,
   SalesPaymentConfirmation,
   UserRole,
 } from '@/src/types/models';
@@ -189,7 +190,7 @@ export async function confirmSalesProductionApproval(
       onHold: true,
       salesHoldAt: new Date().toISOString(),
       salesHoldBy: userId,
-      status: 'design',
+      status: 'pending_payment' as OrderStatus,
       updatedBy: userId,
       updatedAt: serverTimestamp(),
     });

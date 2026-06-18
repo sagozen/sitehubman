@@ -1,16 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { AccessibilityInfo, Platform, Pressable, StyleSheet, View } from 'react-native';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
+import { AccessibilityInfo, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/src/components/AppText';
 import { getLiquidTabIcon, LIQUID_TAB_ICON_SIZE } from '@/src/constants/liquidTabIcons';
 import { appRoutes } from '@/src/constants/navigation';
-import { SNAP_TAP_BRAND } from '@/src/constants/snapTapBrand';
 import { theme } from '@/src/constants/theme';
-import { glassTheme } from '@/src/design-system/glass';
 import { useAuth } from '@/src/hooks/useAuth';
 import { usePreferences } from '@/src/hooks/usePreferences';
 
@@ -26,15 +22,8 @@ type NavItem = RouteItem;
 /** Guest + customer footer tabs — fixed order so Connections never drops off. */
 const CONSUMER_TAB_ORDER = ['index', 'connections', 'share', 'profile', 'settings'] as const;
 
-const DOCK_BLUR = glassTheme.blur.dock;
 const DOCK_HEIGHT = 72;
 const FAB_SIZE = theme.controlHeight.hero;
-
-type BlurTint = 'light' | 'dark' | 'default' | 'extraLight' | 'regular' | 'prominent';
-
-function dockBlurTint(isDark: boolean): BlurTint {
-  return isDark ? 'dark' : 'light';
-}
 
 function TabIcon({
   routeName,
@@ -59,9 +48,6 @@ function TabIcon({
         </View>
       ) : null}
       <View style={styles.iconShell}>
-        {active ? (
-          <View style={styles.glowCircle} />
-        ) : null}
         <Ionicons
           name={getLiquidTabIcon(routeName, active)}
           size={LIQUID_TAB_ICON_SIZE}
@@ -87,55 +73,20 @@ function LiquidGlassChrome({
   style?: object;
   fallbackBackground: string;
 }) {
-  const borderColor = isDark ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.55)';
-  const fill = isDark ? 'rgba(28,28,30,0.36)' : 'rgba(255,255,255,0.22)';
+  const borderColor = isDark ? 'rgba(84,84,88,0.65)' : 'rgba(60,60,67,0.18)';
+  const fill = isDark ? 'rgba(28,28,30,0.94)' : 'rgba(255,255,255,0.96)';
+  void reduceTransparency;
 
   return (
-    <BlurView
-      intensity={reduceTransparency ? 0 : DOCK_BLUR}
-      tint={dockBlurTint(isDark) as BlurTint}
+    <View
       style={[
         { borderRadius, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor },
-        { backgroundColor: reduceTransparency ? fallbackBackground : fill },
+        { backgroundColor: fallbackBackground || fill },
         style,
       ]}
     >
-      {!reduceTransparency ? (
-        <View pointerEvents="none" style={[styles.glassOverlay, { borderRadius }]}>
-          <LinearGradient
-            colors={
-              isDark
-                ? ['rgba(120,120,128,0.28)', 'rgba(44,44,46,0.10)', 'rgba(18,18,20,0.32)']
-                : ['rgba(255,255,255,0.62)', 'rgba(210,228,255,0.28)', 'rgba(255,255,255,0.38)']
-            }
-            locations={[0, 0.48, 1]}
-            style={StyleSheet.absoluteFill}
-          />
-          <LinearGradient
-            colors={
-              isDark
-                ? ['rgba(255,255,255,0.22)', 'rgba(255,255,255,0.04)', 'rgba(255,255,255,0)']
-                : ['rgba(255,255,255,0.92)', 'rgba(255,255,255,0.28)', 'rgba(255,255,255,0)']
-            }
-            locations={[0, 0.35, 1]}
-            style={[styles.glassSpecular, { borderTopLeftRadius: borderRadius, borderTopRightRadius: borderRadius }]}
-          />
-          <LinearGradient
-            colors={['rgba(0,0,0,0)', isDark ? 'rgba(0,0,0,0.18)' : 'rgba(0,0,0,0.06)']}
-            locations={[0.55, 1]}
-            style={styles.glassDepth}
-          />
-          <View style={[styles.glassInnerStroke, { borderRadius: borderRadius - 1, borderColor }]} />
-          <View
-            style={[
-              styles.glassTopShine,
-              { backgroundColor: isDark ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.95)' },
-            ]}
-          />
-        </View>
-      ) : null}
       {children}
-    </BlurView>
+    </View>
   );
 }
 
@@ -222,9 +173,9 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
     return tabRoutes.filter(isTabVisible);
   }, [descriptors, isConsumerBar, tabRoutes]);
   const showFloatingAction = isSalesBar || isPrinterBar;
-  const activeIconColor = isSalesBar ? colors.textPrimary : SNAP_TAP_BRAND;
+  const activeIconColor = colors.systemBlue;
   const inactiveIconColor = colors.textMuted;
-  const activeLabelColor = isSalesBar ? colors.textPrimary : SNAP_TAP_BRAND;
+  const activeLabelColor = colors.systemBlue;
 
   const isSalesUser = user?.role === 'sales';
   const [activeOrdersCount, setActiveOrdersCount] = useState(0);
@@ -312,7 +263,7 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
               >
                 <View style={[styles.tabContent, isShareTab && styles.shareTabContent]}>
                   {isShareTab ? (
-                    <View style={[styles.shareCenterButton, isActive && styles.shareCenterButtonActive]}>
+                    <View style={[styles.shareCenterButton, { backgroundColor: colors.systemBlue }, isActive && styles.shareCenterButtonActive]}>
                       <Ionicons name={getLiquidTabIcon(route.name, true)} size={25} color="#FFFFFF" />
                     </View>
                   ) : (
@@ -322,19 +273,11 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
                       style={[
                         styles.glassPill,
                         {
-                          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.10)' : 'rgba(255, 255, 255, 0.12)',
-                          borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.15)',
+                          backgroundColor: isDark ? 'rgba(10,132,255,0.16)' : 'rgba(0,122,255,0.10)',
+                          borderColor: 'transparent',
                         },
-                        Platform.select({
-                          web: {
-                            backdropFilter: 'blur(8px)',
-                            WebkitBackdropFilter: 'blur(8px)',
-                          } as any,
-                          default: {},
-                        }),
                       ]}
                     >
-                      <View style={styles.tinyHighlight} />
                     </View>
                   ) : null}
                   <TabIcon
@@ -423,10 +366,10 @@ const styles = StyleSheet.create({
   },
   dockShadow: {
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.18,
-    shadowRadius: 26,
-    elevation: 12,
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 8,
   },
   dockShadowFlex: {
     flex: 1,
@@ -437,32 +380,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 6,
     paddingVertical: 8,
-  },
-  glassOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    overflow: 'hidden',
-  },
-  glassSpecular: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '50%',
-  },
-  glassDepth: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  glassInnerStroke: {
-    ...StyleSheet.absoluteFillObject,
-    margin: 1.5,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  glassTopShine: {
-    position: 'absolute',
-    top: StyleSheet.hairlineWidth * 2,
-    left: 28,
-    right: 28,
-    height: StyleSheet.hairlineWidth,
   },
   tabItem: {
     flex: 1,
@@ -492,17 +409,16 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#111111',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#111111',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.24,
-    shadowRadius: 16,
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.22,
+    shadowRadius: 12,
     elevation: 10,
   },
   shareCenterButtonActive: {
-    backgroundColor: SNAP_TAP_BRAND,
+    transform: [{ scale: 1.02 }],
   },
   iconBadgeContainer: {
     position: 'relative',
@@ -520,17 +436,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  glowCircle: {
-    position: 'absolute',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(37, 150, 190, 0.15)', // soft blue glow matching SNAP_TAP_BRAND
-    shadowColor: '#2596BE',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 6,
-  },
   glassPill: {
     position: 'absolute',
     left: 4,
@@ -540,14 +445,6 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     overflow: 'hidden',
-  },
-  tinyHighlight: {
-    position: 'absolute',
-    top: 1,
-    left: '25%',
-    right: '25%',
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.35)',
   },
   badge: {
     position: 'absolute',
@@ -597,14 +494,14 @@ const styles = StyleSheet.create({
     height: FAB_SIZE,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.24)',
+    backgroundColor: '#FFFFFF',
   },
   fabIcon: {
     zIndex: 2,
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#111111',
+    backgroundColor: theme.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#111111',

@@ -64,5 +64,5 @@ export function needsSalesApproval(order: {
 }): boolean {
   if (!isPhysicalFulfillment(order)) return false;
   if (order.salesApprovedAt) return false;
-  return order.status === 'new' || order.status === 'design';
+  return order.status === 'payment_verified';
 }

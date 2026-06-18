@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { firebaseCollections } from '@/src/constants/collections';
@@ -10,11 +10,9 @@ let notificationsModule: ExpoNotificationsModule | null = null;
 
 async function loadModules() {
   if (Platform.OS === 'web') return { notifications: null, device: null };
+  if (!NativeModules.ExpoPushTokenManager) return { notifications: null, device: null };
   try {
-    const [notifications, device] = await Promise.all([
-      import('expo-notifications'),
-      import('expo-device'),
-    ]);
+    const notifications = await import('expo-notifications');
     notifications.setNotificationHandler({
       handleNotification: async () => ({
         shouldShowAlert: true,
@@ -24,7 +22,7 @@ async function loadModules() {
         shouldShowList: true,
       }),
     });
-    return { notifications, device };
+    return { notifications, device: null };
   } catch {
     return { notifications: null, device: null };
   }
@@ -33,42 +31,51 @@ async function loadModules() {
 export async function registerPushNotifications(userId: string): Promise<string | null> {
   if (!userId || userId === 'guest' || !auth.currentUser) return null;
 
-  const { notifications, device } = await loadModules();
-  if (!notifications || !device?.isDevice) return null;
+  try {
+    const { notifications } = await loadModules();
+    const isDevice = (Constants as unknown as { isDevice?: boolean }).isDevice;
+    if (!notifications || isDevice === false) return null;
 
-  notificationsModule = notifications;
+    notificationsModule = notifications;
 
-  const { status: existing } = await notifications.getPermissionsAsync();
-  let finalStatus = existing;
-  if (existing !== 'granted') {
-    const { status } = await notifications.requestPermissionsAsync();
-    finalStatus = status;
+    const { status: existing } = await notifications.getPermissionsAsync();
+    let finalStatus = existing;
+    if (existing !== 'granted') {
+      const { status } = await notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== 'granted') return null;
+
+    const projectId =
+      Constants.expoConfig?.extra?.eas?.projectId ??
+      Constants.easConfig?.projectId ??
+      Constants.expoConfig?.extra?.projectId;
+    if (!projectId) return null;
+
+    const token = (
+      await notifications.getExpoPushTokenAsync({
+        projectId: String(projectId),
+      })
+    ).data;
+
+    await setDoc(
+      doc(db, firebaseCollections.users, userId),
+      {
+        expoPushToken: token,
+        pushTokenUpdatedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    return token;
+  } catch (error) {
+    if (__DEV__) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn('[pushNotifications] skipped push token registration:', message);
+    }
+    return null;
   }
-  if (finalStatus !== 'granted') return null;
-
-  const projectId =
-    Constants.expoConfig?.extra?.eas?.projectId ??
-    Constants.easConfig?.projectId ??
-    Constants.expoConfig?.extra?.projectId;
-  if (!projectId) return null;
-
-  const token = (
-    await notifications.getExpoPushTokenAsync({
-      projectId: String(projectId),
-    })
-  ).data;
-
-  await setDoc(
-    doc(db, firebaseCollections.users, userId),
-    {
-      expoPushToken: token,
-      pushTokenUpdatedAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    },
-    { merge: true }
-  );
-
-  return token;
 }
 
 /** Local alert when the signed-in user receives an in-app notification. */

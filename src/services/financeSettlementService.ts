@@ -26,7 +26,7 @@ async function getActorRole(userId: string): Promise<UserRole | undefined> {
 }
 
 function canManageFinance(role: UserRole | undefined): boolean {
-  return role === 'admin' || role === 'super_admin';
+  return role === 'admin' || role === 'super_admin' || role === 'finance';
 }
 
 function toIso(value: unknown): string {

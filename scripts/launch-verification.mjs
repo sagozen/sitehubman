@@ -26,6 +26,7 @@ import {
   getDocs,
   query,
   where,
+  limit,
   serverTimestamp,
 } from 'firebase/firestore';
 import {
@@ -49,6 +50,7 @@ const ACCOUNTS = {
   qa: { email: demoCredentials.qaEmail, password: PASSWORD },
   shipping: { email: demoCredentials.shippingEmail, password: PASSWORD },
   customer: { email: demoCredentials.customerEmail, password: PASSWORD },
+  finance: { email: 'finance@demo.com', password: PASSWORD },
 };
 
 const app = initializeApp(firebaseConfig);
@@ -175,7 +177,7 @@ async function testGuestOrderPath() {
       cardDesign: 'classic_black',
       cardCode: code,
       profileUrl: `https://biocloud.app/c/${code}`,
-      status: 'new',
+      status: 'pending_payment',
       cardStatus: 'active',
       paymentStatus: 'unpaid',
       paymentMethod: 'later_manual',
@@ -229,7 +231,7 @@ async function testGuestPaymentFlows() {
     const isCod = method === 'cash_on_delivery';
     const paymentStatus = 'unpaid';
     const productType = isCod ? 'physical_nfc' : 'ecard';
-    const status = isCod ? 'new' : 'ready';
+    const status = 'pending_payment';
     const code = cardCode('PAY');
     try {
       const ref = await addDoc(collection(db, 'orders'), {
@@ -283,7 +285,7 @@ async function testGuestPaymentFlows() {
       cardDesign: 'classic_black',
       cardCode: handoffCode,
       profileUrl: `https://biocloud.app/c/${handoffCode}`,
-      status: 'new',
+      status: 'pending_payment',
       cardStatus: 'active',
       paymentStatus: 'pending_payment',
       paymentMethod: 'aba_pay',
@@ -356,7 +358,7 @@ async function testSalesFlows() {
       cardDesign: 'classic_black',
       cardCode: code,
       profileUrl: `https://biocloud.app/c/${code}`,
-      status: 'new',
+      status: 'pending_payment',
       cardStatus: 'active',
       paymentStatus: 'partial',
       paymentMethod: 'deposit',
@@ -472,6 +474,30 @@ async function testPrinterScanUidLink() {
 
   try {
     const adminUid = await signInAs('admin');
+    const scanCardId = cardCode('SCARD');
+    const cardRef = doc(db, 'cards', scanCardId);
+    await setDoc(cardRef, {
+      cardId: scanCardId,
+      ownerId: adminUid,
+      ownerType: 'customer',
+      userId: adminUid,
+      publicSlug: scanCardId,
+      publicProfileUrl: `https://biocloud.app/c/${scanCardId}`,
+      status: 'active',
+      designLocked: true,
+      profile: {
+        fullName: 'Launch Scan Test',
+        phone: '+855900111222',
+        email: `scan.${RUN_ID.toLowerCase()}@test.local`,
+      },
+      design: {
+        cardDesign: 'classic_black',
+      },
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    cleanup.push(cardRef);
+
     const batchRef = await addDoc(collection(db, 'production_batches'), {
       batchNumber: `SCAN-${RUN_ID}`,
       material: 'pvc',
@@ -492,9 +518,10 @@ async function testPrinterScanUidLink() {
       productType: 'metal_card',
       quantity: 1,
       cardDesign: 'classic_black',
-      cardCode: '',
-      profileUrl: '',
-      status: 'ready_to_print',
+      cardId: scanCardId,
+      cardCode: scanCardId,
+      profileUrl: `https://biocloud.app/c/${scanCardId}`,
+      status: 'printer_assigned',
       cardStatus: 'active',
       paymentStatus: 'paid',
       paymentMethod: 'online',
@@ -516,6 +543,7 @@ async function testPrinterScanUidLink() {
 
     const jobRef = await addDoc(collection(db, 'printer_jobs'), {
       orderId,
+      cardId: scanCardId,
       batchId: batchRef.id,
       printerId: '',
       queueNumber: Date.now(),
@@ -563,6 +591,30 @@ async function testProductionPipeline(adminUid) {
   // Admin seeds batch, order, and printer job (same shape as production assign)
   try {
     await signInAs('admin');
+    const pipeCardId = cardCode('PCARD');
+    const cardRef = doc(db, 'cards', pipeCardId);
+    await setDoc(cardRef, {
+      cardId: pipeCardId,
+      ownerId: adminUid,
+      ownerType: 'customer',
+      userId: adminUid,
+      publicSlug: pipeCardId,
+      publicProfileUrl: `https://biocloud.app/c/${pipeCardId}`,
+      status: 'active',
+      designLocked: true,
+      profile: {
+        fullName: 'Launch Pipeline Test',
+        phone: '+855900555666',
+        email: `pipe.${RUN_ID.toLowerCase()}@test.local`,
+      },
+      design: {
+        cardDesign: 'classic_black',
+      },
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    cleanup.push(cardRef);
+
     const batchRef = await addDoc(collection(db, 'production_batches'), {
       batchNumber: `PIPE-${RUN_ID}`,
       material: 'metal',
@@ -583,9 +635,10 @@ async function testProductionPipeline(adminUid) {
       productType: 'metal_card',
       quantity: 1,
       cardDesign: 'classic_black',
-      cardCode: code,
-      profileUrl: `https://biocloud.app/c/${code}`,
-      status: 'ready_to_print',
+      cardId: pipeCardId,
+      cardCode: pipeCardId,
+      profileUrl: `https://biocloud.app/c/${pipeCardId}`,
+      status: 'printer_assigned',
       cardStatus: 'active',
       paymentStatus: 'paid',
       paymentMethod: 'online',
@@ -606,6 +659,7 @@ async function testProductionPipeline(adminUid) {
 
     const jobRef = await addDoc(collection(db, 'printer_jobs'), {
       orderId,
+      cardId: pipeCardId,
       batchId: batchRef.id,
       printerId: '',
       queueNumber: Date.now(),
@@ -857,6 +911,74 @@ async function testBioPages() {
   }
 }
 
+async function testFinanceFlows() {
+  console.log('\n── Finance workspace and security boundary ──');
+  let financeUid;
+  try {
+    financeUid = await signInAs('finance');
+    pass('finance', 'Finance auth', financeUid.slice(0, 8));
+  } catch (e) {
+    fail('finance', 'Finance auth', e);
+    return;
+  }
+
+  // 1. Finance can read snapshot, wallets, payouts, and salary records
+  try {
+    const snap = await getDocs(query(collection(db, 'payouts'), limit(5)));
+    pass('finance', 'Finance read payouts', `${snap.size} items`);
+  } catch (e) {
+    fail('finance', 'Finance read payouts', e);
+  }
+
+  try {
+    const snap = await getDocs(query(collection(db, 'salary_records'), limit(5)));
+    pass('finance', 'Finance read salary records', `${snap.size} items`);
+  } catch (e) {
+    fail('finance', 'Finance read salary records', e);
+  }
+
+  try {
+    const snap = await getDocs(query(collection(db, 'company_wallets'), limit(5)));
+    pass('finance', 'Finance read wallets', `${snap.size} items`);
+  } catch (e) {
+    fail('finance', 'Finance read wallets', e);
+  }
+
+  // 2. Finance cannot update or program orders
+  try {
+    const orderSnap = await getDocs(query(collection(db, 'orders'), limit(1)));
+    if (!orderSnap.empty) {
+      const order = orderSnap.docs[0];
+      await updateDoc(doc(db, 'orders', order.id), {
+        status: 'printing',
+        updatedAt: serverTimestamp(),
+      });
+      fail('finance', 'Finance security (write orders - should block)', 'allowed');
+    } else {
+      pass('finance', 'Finance security (write orders)', 'no orders to test');
+    }
+  } catch (e) {
+    pass('finance', 'Finance security (write orders blocked)', e.message);
+  }
+
+  // 3. Customer/Sales role cannot read salary records or payouts
+  try {
+    await signInAs('customer');
+    await getDocs(query(collection(db, 'salary_records'), limit(5)));
+    fail('finance', 'Customer security (read salary_records - should block)', 'allowed');
+  } catch (e) {
+    pass('finance', 'Customer security (read salary_records blocked)', e.message);
+  }
+
+  try {
+    await signInAs('sales');
+    await getDocs(query(collection(db, 'payouts'), limit(5)));
+    fail('finance', 'Sales security (read payouts - should block)', 'allowed');
+  } catch (e) {
+    pass('finance', 'Sales security (read payouts blocked)', e.message);
+  }
+}
+
 // ─── Cleanup ─────────────────────────────────────────────────────────────────
 
 async function runCleanup() {
@@ -913,6 +1035,7 @@ async function main() {
   if (adminUid) await testProductionPipeline(adminUid);
   await testPrinterScanUidLink();
   await testBioPages();
+  await testFinanceFlows();
   await runCleanup();
 
   const launchFailed = printSummary();

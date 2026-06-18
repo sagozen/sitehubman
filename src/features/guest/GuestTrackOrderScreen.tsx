@@ -23,13 +23,13 @@ import { canTrackOwnOrders, isLocalOnlyGuest } from '@/src/utils/guestSession';
 const BRAND = '#2596BE';
 
 function statusInfo(status: string): { label: string; color: string; bg: string } {
-  if (['printing', 'nfc_writing', 'nfc_verification', 'qa_pending', 'ready_to_print'].includes(status))
+  if (['production_approved', 'printer_assigned', 'printing', 'nfc_writing', 'nfc_verification', 'qa_pending', 'qa_failed'].includes(status))
     return { label: 'In Production', color: '#FF9500', bg: '#FFF3E0' };
-  if (['shipped', 'ready_to_ship', 'ready'].includes(status))
+  if (['shipped', 'ready_to_ship'].includes(status))
     return { label: 'Shipped', color: '#34C759', bg: '#EAFAEF' };
   if (status === 'delivered')
     return { label: 'Delivered', color: '#007AFF', bg: '#EAF2FF' };
-  if (['new', 'design'].includes(status))
+  if (['draft', 'pending_payment', 'payment_submitted', 'payment_verified'].includes(status))
     return { label: 'Processing', color: BRAND, bg: '#E6F5FB' };
   return { label: 'Pending', color: '#8E8E93', bg: '#F2F2F7' };
 }

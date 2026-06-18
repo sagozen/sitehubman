@@ -71,7 +71,7 @@ export function getGravatarUrl(email: string): string {
  * Get social media avatar URL by platform
  */
 export function getSocialAvatar(
-  platform: 'instagram' | 'twitter' | 'facebook' | 'linkedin' | 'telegram' | 'whatsapp' | 'email',
+  platform: 'instagram' | 'twitter' | 'facebook' | 'linkedin' | 'telegram' | 'whatsapp' | 'email' | 'website',
   identifier: string
 ): string | null {
   switch (platform) {
@@ -89,6 +89,8 @@ export function getSocialAvatar(
       return getWhatsappAvatar(identifier);
     case 'email':
       return getGravatarUrl(identifier);
+    case 'website':
+      return `https://unavatar.io/${identifier.replace(/https?:\/\//, '').trim()}`;
     default:
       return null;
   }

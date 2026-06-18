@@ -20,12 +20,12 @@ import { uploadProfilePhoto } from '@/src/services/profilePhotoService';
 import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
 import { useState, useEffect } from 'react';
 
-const BRAND = '#2596BE';
-const INK = '#1C1C1E';
+const BRAND = '#007AFF';
+const INK = '#000000';
 const MUTED = '#8E8E93';
-const BG = '#F5F5F7';
+const BG = '#F2F2F7';
 const SURFACE = '#FFFFFF';
-const BORDER = 'rgba(0,0,0,0.05)';
+const BORDER = 'rgba(60,60,67,0.14)';
 
 const ACTIONS: { icon: AppIconName; label: string; route: string }[] = [
   { icon: 'CreditCard', label: 'Card', route: appRoutes.guestDesign },
@@ -113,7 +113,6 @@ export function CustomerProfileScreen() {
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <IosScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
-        {/* ── Identity ── */}
         <View style={styles.identity}>
           <Pressable onPress={() => void pickImage()} style={styles.avatarWrap}>
             {photoUrl ? (
@@ -132,11 +131,10 @@ export function CustomerProfileScreen() {
             <AppIcon name="BadgeCheck" size={24} color={BRAND} />
           </View>
           <AppText style={styles.profileMeta} numberOfLines={1}>
-            {[cardTitle || 'Digital identity', 'NFC Global'].filter(Boolean).join(' / ')}
+            {[cardTitle || 'Verified identity', 'NFC card active'].filter(Boolean).join(' / ')}
           </AppText>
         </View>
 
-        {/* ── NFC card — real bio data + real QR ── */}
         <View style={styles.cardWrap}>
           <FlippableNfcCard
             fullName={cardName  || undefined}
@@ -148,7 +146,6 @@ export function CustomerProfileScreen() {
           />
         </View>
 
-        {/* ── Actions ── */}
         <View style={styles.section}>
           <View style={styles.actionStrip}>
             {ACTIONS.map((a) => (
@@ -158,14 +155,15 @@ export function CustomerProfileScreen() {
                 style={({ pressed }) => [styles.actionBtn, pressed && styles.pressed]}
                 accessibilityRole="button"
               >
-                <AppIcon name={a.icon} size={24} color={a.label === 'Studio' ? BRAND : INK} />
+                <View style={[styles.actionIcon, a.label === 'Studio' && styles.actionIconBlue]}>
+                  <AppIcon name={a.icon} size={22} color={a.label === 'Studio' ? '#FFFFFF' : BRAND} />
+                </View>
                 <AppText style={styles.actionLabel}>{a.label}</AppText>
               </Pressable>
             ))}
           </View>
         </View>
 
-        {/* ── Account info ── */}
         <View style={styles.section}>
           <AppText style={styles.sectionLabel}>Account</AppText>
           <View style={styles.actionList}>
@@ -201,9 +199,19 @@ export function CustomerProfileScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG },
-  content: { padding: 24, gap: 24, paddingBottom: 120 },
+  content: { padding: 22, gap: 22, paddingBottom: 120 },
 
-  identity: { alignItems: 'center', gap: 8, paddingTop: 8 },
+  identity: {
+    alignItems: 'center',
+    gap: 8,
+    paddingTop: 18,
+    paddingBottom: 20,
+    paddingHorizontal: 18,
+    borderRadius: 28,
+    backgroundColor: SURFACE,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: BORDER,
+  },
   nameRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, maxWidth: '100%' },
   profileMeta: { fontSize: 15, fontWeight: '600', color: MUTED, textAlign: 'center' },
   avatarWrap: {
@@ -241,7 +249,7 @@ const styles = StyleSheet.create({
     borderColor: BG,
   },
   avatarText: { fontSize: 38, fontWeight: '900', color: '#FFFFFF' },
-  name: { flexShrink: 1, fontSize: 38, lineHeight: 42, fontWeight: '900', color: INK, letterSpacing: 0, textAlign: 'center' },
+  name: { flexShrink: 1, fontSize: 34, lineHeight: 39, fontWeight: '900', color: INK, letterSpacing: 0, textAlign: 'center' },
 
   cardWrap: {
     borderRadius: 24, overflow: 'hidden',
@@ -251,12 +259,25 @@ const styles = StyleSheet.create({
   section: { gap: 10 },
   sectionLabel: { fontSize: 12, fontWeight: '700', color: MUTED, textTransform: 'uppercase', letterSpacing: 0.5 },
 
-  actionStrip: { flexDirection: 'row', backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden' },
-  actionBtn: { flex: 1, alignItems: 'center', gap: 7, paddingVertical: 16 },
+  actionStrip: { flexDirection: 'row', backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: BORDER },
+  actionBtn: { flex: 1, alignItems: 'center', gap: 8, paddingVertical: 16 },
+  actionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F2F2F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionIconBlue: {
+    backgroundColor: BRAND,
+  },
   actionList: {
     backgroundColor: SURFACE,
     borderRadius: 24,
     overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: BORDER,
   },
   actionRow: {
     flexDirection: 'row',

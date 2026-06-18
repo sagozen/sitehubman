@@ -45,9 +45,9 @@ const ACTIONS: {
 
 // ─── Order status ────────────────────────────────────────────────────────────
 function orderStatus(s: string): { label: string; color: string } {
-  if (['printing', 'nfc_writing', 'nfc_verification', 'qa_pending', 'ready_to_print'].includes(s))
+  if (['production_approved', 'printer_assigned', 'printing', 'nfc_writing', 'nfc_verification', 'qa_pending', 'qa_failed'].includes(s))
     return { label: 'In Production', color: '#F59E0B' };
-  if (['shipped', 'ready_to_ship', 'ready'].includes(s))
+  if (['shipped', 'ready_to_ship'].includes(s))
     return { label: 'Shipped', color: '#10B981' };
   if (s === 'delivered') return { label: 'Delivered', color: '#3B82F6' };
   return { label: 'Processing', color: BRAND };

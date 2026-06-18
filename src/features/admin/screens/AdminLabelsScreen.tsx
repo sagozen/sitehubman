@@ -24,7 +24,7 @@ type PillTone = 'success' | 'warning' | 'danger' | 'neutral' | 'info';
 function statusTone(status: OrderStatus): PillTone {
   if (status === 'ready_to_ship') return 'success';
   if (status === 'qa_failed') return 'danger';
-  if (status === 'ready_to_print') return 'warning';
+  if (status === 'production_approved' || status === 'printer_assigned') return 'warning';
   return 'info';
 }
 

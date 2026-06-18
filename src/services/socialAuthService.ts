@@ -142,7 +142,14 @@ async function signInOrLinkWithCurrentGuest(credential: AuthCredential): Promise
 }
 
 export function isGoogleSignInConfigured(): boolean {
-  return Boolean(process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID?.trim());
+  return Boolean(
+    process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID?.trim()
+      || process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENTID?.trim()
+      || process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID?.trim()
+      || process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENTID?.trim()
+      || process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID?.trim()
+      || process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENTID?.trim()
+  );
 }
 
 export async function signInWithGoogleIdToken(idToken: string): Promise<AppUser> {

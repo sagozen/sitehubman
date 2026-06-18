@@ -21,14 +21,8 @@ import { isNfcAvailable, readNfcUid } from '@/src/services/nfcManagerService';
 import { receiveApprovedProductionJob } from '@/src/services/productionService';
 import { extractScanUid, formatScanMatchError, matchScanToPrinterJob } from '@/src/services/printerScanService';
 import {
-  createPrinterScanTestJob,
-  isPrinterScanTestEnabled,
   findPrinterScanTestByUid,
-  getPrinterScanTestJob,
   isPrinterScanTestCardCode,
-  PRINTER_SCAN_TEST_BATCH_NUMBER,
-  PRINTER_SCAN_TEST_CARD_CODE,
-  PRINTER_SCAN_TEST_CUSTOMER,
 } from '@/src/services/printerScanTestService';
 import { Order, PrinterJob } from '@/src/types/models';
 import { parseProductionScan } from '@/src/utils/orderProduction';
@@ -143,7 +137,7 @@ function MatchPreviewModal({
 
 export default function PrinterScanScreen() {
   const { user } = useAuth();
-  const { batchId, isLoading: batchLoading, refresh: refreshActiveBatch } = useActiveBatch();
+  const { batchId, isLoading: batchLoading } = useActiveBatch();
   const { jobs, error: jobsError } = usePrinterJobs();
   const camera = useCameraAccess();
 
@@ -157,16 +151,10 @@ export default function PrinterScanScreen() {
   const [nfcReading, setNfcReading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [nfcSupported, setNfcSupported] = useState<boolean | null>(null);
-  const [testBusy, setTestBusy] = useState(false);
-  const [testReady, setTestReady] = useState(false);
 
   useEffect(() => {
     void isNfcAvailable().then(setNfcSupported);
   }, []);
-
-  useEffect(() => {
-    void getPrinterScanTestJob().then((bundle) => setTestReady(Boolean(bundle)));
-  }, [batchId, jobs.length]);
 
   const flowStep = useMemo<FlowStep>(() => {
     if (!scannedUid) return 0;
@@ -287,29 +275,6 @@ export default function PrinterScanScreen() {
     router.push({ pathname: '/printer/nfc/[jobId]', params: { jobId: matchedJob.id } });
   }
 
-  async function handleCreateTestJob() {
-    if (!user?.id || testBusy) return;
-    setTestBusy(true);
-    try {
-      await createPrinterScanTestJob(user.id, user.branch);
-      await refreshActiveBatch();
-      setTestReady(true);
-      Alert.alert(
-        'Test job ready',
-        `Batch ${PRINTER_SCAN_TEST_BATCH_NUMBER} is active.\nUID ${PRINTER_SCAN_TEST_CARD_CODE} · ${PRINTER_SCAN_TEST_CUSTOMER}`
-      );
-      Alert.alert('Batch switched', 'Active batch set to BATCH-TEST001 for simulate scan.');
-    } catch (error) {
-      Alert.alert('Create failed', error instanceof Error ? error.message : 'Try again.');
-    } finally {
-      setTestBusy(false);
-    }
-  }
-
-  function handleSimulateScan() {
-    captureUid(PRINTER_SCAN_TEST_CARD_CODE);
-  }
-
   const readStatus = scannedUid ? 'Captured' : 'Waiting';
   const matchStatus = lookingUp
     ? 'Matching…'
@@ -342,70 +307,21 @@ export default function PrinterScanScreen() {
           </View>
         ) : null}
 
-        {isPrinterScanTestEnabled() ? (
-        <PrinterSurfaceCard style={styles.testModeCard}>
-          <View style={styles.testModeHeader}>
-            <AppIcon name="Info" size={16} color="#B45309" />
-            <AppText style={styles.testModeTitle}>Test Mode</AppText>
-          </View>
-          <AppText style={styles.testModeBody}>
-            No NFC, QR, or printer needed. Creates Firebase test data and runs the same scan → match →
-            detail flow.
-          </AppText>
-          <AppText style={styles.testModeMeta}>
-            UID {PRINTER_SCAN_TEST_CARD_CODE} · Batch {PRINTER_SCAN_TEST_BATCH_NUMBER} ·{' '}
-            {testReady ? 'Job ready' : 'No test job yet'}
-          </AppText>
-          <View style={styles.testModeActions}>
-            <Pressable
-              style={({ pressed }) => [styles.testBtn, pressed && !testBusy && { opacity: 0.88 }]}
-              onPress={() => void handleCreateTestJob()}
-              disabled={testBusy}
-            >
-              <AppText style={styles.testBtnText}>{testBusy ? 'Working…' : 'Create Test Job'}</AppText>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [
-                styles.testBtnPrimary,
-                pressed && !lookingUp && { opacity: 0.88 },
-                !testReady && { opacity: 0.45 },
-              ]}
-              onPress={handleSimulateScan}
-              disabled={lookingUp || !testReady}
-            >
-              <AppText style={styles.testBtnPrimaryText}>
-                {lookingUp ? 'Scanning…' : 'Simulate Scan'}
-              </AppText>
-            </Pressable>
-          </View>
-        </PrinterSurfaceCard>
-        ) : null}
-
         <FlowTrack step={flowStep} />
 
-        <View style={styles.phaseCard}>
-          <AppText style={styles.phaseStep}>
-            Step {flowStep + 1}: {FLOW_STEPS[flowStep].title}
-          </AppText>
-          {flowStep === 0 ? (
-            <AppText style={styles.phaseBody}>
-              Tap a blank NFC card or scan its barcode. The app captures the chip UID and checks the card is valid.
-            </AppText>
-          ) : null}
-          {flowStep === 1 ? (
-            <AppText style={styles.phaseBody}>
-              The system receives approved jobs by QR or links this UID to the next received job in your active batch.
-            </AppText>
-          ) : null}
-          {flowStep === 2 ? (
-            <AppText style={styles.phaseBody}>
-              Send layout to the thermal printer, encode secure NDEF data, then confirm visual QA before clearing the
-              queue item.
-            </AppText>
-          ) : null}
-        </View>
-
         <View style={styles.scanCard}>
+          <View style={styles.scanHeader}>
+            <AppText style={styles.phaseStep}>
+              Step {flowStep + 1}: {FLOW_STEPS[flowStep].title}
+            </AppText>
+            <AppText style={styles.phaseBody}>
+              {flowStep === 0
+                ? 'Tap an NFC card or scan the production QR.'
+                : flowStep === 1
+                  ? 'Matching this card to the active production queue.'
+                  : 'Job matched. Open verification to print and encode.'}
+            </AppText>
+          </View>
           {camera.isLoading ? (
             <AppText style={styles.scanSub}>Checking camera permission…</AppText>
           ) : !camera.isGranted ? (
@@ -575,8 +491,8 @@ export default function PrinterScanScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: printerUi.bg },
-  scroll: { paddingHorizontal: 18, paddingTop: 8, paddingBottom: 120 },
+  safe: { flex: 1, backgroundColor: '#F2F2F7' },
+  scroll: { paddingHorizontal: 18, paddingTop: 10, paddingBottom: 120 },
   errorBanner: {
     marginTop: 10,
     padding: 12,
@@ -586,32 +502,6 @@ const styles = StyleSheet.create({
     borderColor: '#FECACA',
   },
   errorBannerText: { fontSize: 12, fontWeight: '600', color: '#B91C1C', lineHeight: 17 },
-  testModeCard: { marginTop: 12, padding: 14, gap: 8, borderRadius: printerUi.radiusLg },
-  testModeHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  testModeTitle: { fontSize: 14, fontWeight: '900', color: '#B45309' },
-  testModeBody: { fontSize: 12, fontWeight: '600', color: printerUi.muted, lineHeight: 17 },
-  testModeMeta: { fontSize: 11, fontWeight: '700', color: '#64748B' },
-  testModeActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
-  testBtn: {
-    flex: 1,
-    height: 42,
-    borderRadius: printerUi.radiusSm,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#FDE68A',
-    backgroundColor: '#FFFBEB',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  testBtnText: { fontSize: 12, fontWeight: '800', color: '#B45309' },
-  testBtnPrimary: {
-    flex: 1,
-    height: 42,
-    borderRadius: printerUi.radiusSm,
-    backgroundColor: printerUi.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  testBtnPrimaryText: { fontSize: 12, fontWeight: '800', color: '#FFFFFF' },
   flowTrack: {
     marginTop: 16,
     flexDirection: 'row',
@@ -629,7 +519,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E2E8F0',
     zIndex: 0,
   },
-  flowConnectorDone: { backgroundColor: '#34C759' },
+  flowConnectorDone: { backgroundColor: '#007AFF' },
   flowCircle: {
     width: 34,
     height: 34,
@@ -638,40 +528,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 1,
   },
-  flowCircleDone: { backgroundColor: '#34C759' },
-  flowCircleActive: { backgroundColor: '#2563EB' },
-  flowCircleIdle: { backgroundColor: '#E2E8F0' },
+  flowCircleDone: { backgroundColor: '#007AFF' },
+  flowCircleActive: { backgroundColor: '#007AFF' },
+  flowCircleIdle: { backgroundColor: '#E5E5EA' },
   flowLabel: { marginTop: 6, fontSize: 10, fontWeight: '800', color: printerUi.muted, letterSpacing: 0.5 },
-  flowLabelActive: { color: '#2563EB' },
-  flowLabelDone: { color: '#16A34A' },
-  phaseCard: {
-    marginTop: 14,
-    borderRadius: printerUi.radiusMd,
-    backgroundColor: printerUi.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: printerUi.border,
-    padding: 14,
-    gap: 6,
-    ...printerUi.shadow,
-  },
+  flowLabelActive: { color: '#007AFF' },
+  flowLabelDone: { color: '#007AFF' },
   phaseStep: { fontSize: 11, fontWeight: '800', color: printerUi.muted, letterSpacing: 0.6 },
   phaseBody: { fontSize: 13, fontWeight: '600', color: '#64748B', lineHeight: 18 },
   scanCard: {
     marginTop: 14,
-    borderRadius: 34,
-    backgroundColor: printerUi.surface,
+    borderRadius: 28,
+    backgroundColor: '#FFFFFF',
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: printerUi.border,
     padding: 18,
     alignItems: 'center',
     gap: 10,
-    ...printerUi.shadow,
+  },
+  scanHeader: {
+    alignSelf: 'stretch',
+    gap: 4,
+    marginBottom: 4,
   },
   cameraIconWrap: {
     width: 112,
     height: 112,
     borderRadius: 36,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#EAF3FF',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -682,8 +566,8 @@ const styles = StyleSheet.create({
   enableBtn: {
     width: '100%',
     height: 48,
-    borderRadius: 20,
-    backgroundColor: printerUi.dark,
+    borderRadius: 16,
+    backgroundColor: '#007AFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -691,8 +575,8 @@ const styles = StyleSheet.create({
   nfcTapBtn: {
     width: '100%',
     height: 48,
-    borderRadius: 20,
-    backgroundColor: '#2563EB',
+    borderRadius: 16,
+    backgroundColor: '#007AFF',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -704,35 +588,34 @@ const styles = StyleSheet.create({
   manualInputWrap: {
     flex: 1,
     height: 44,
-    borderRadius: printerUi.radiusSm,
-    backgroundColor: printerUi.surface,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: printerUi.border,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     paddingHorizontal: 12,
-    ...printerUi.shadow,
   },
   manualInput: { flex: 1, fontSize: 13, fontWeight: '600', color: printerUi.text, padding: 0 },
   findBtn: {
     height: 44,
     paddingHorizontal: 18,
-    borderRadius: printerUi.radiusSm,
-    backgroundColor: printerUi.dark,
+    borderRadius: 16,
+    backgroundColor: '#007AFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   findBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
-  statusCard: { marginTop: 14, borderRadius: printerUi.radiusLg },
+  statusCard: { marginTop: 14, borderRadius: 22 },
   tapPreviewHint: {
     textAlign: 'center',
     fontSize: 11,
     fontWeight: '700',
-    color: printerUi.accent,
+    color: '#007AFF',
     paddingBottom: 10,
   },
-  matchCard: { borderRadius: printerUi.radiusLg },
+  matchCard: { borderRadius: 22 },
   matchTitle: {
     paddingHorizontal: 14,
     paddingTop: 12,
@@ -748,7 +631,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     height: 48,
     borderRadius: printerUi.radiusMd,
-    backgroundColor: printerUi.green,
+    backgroundColor: '#007AFF',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -759,22 +642,21 @@ const styles = StyleSheet.create({
   secondaryBtn: {
     flex: 1,
     height: 48,
-    borderRadius: printerUi.radiusMd,
-    backgroundColor: printerUi.surface,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: printerUi.border,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    ...printerUi.shadow,
   },
   secondaryBtnText: { fontSize: 14, fontWeight: '800', color: printerUi.text },
   primaryBtn: {
     flex: 2,
     height: 48,
-    borderRadius: printerUi.radiusMd,
-    backgroundColor: printerUi.accent,
+    borderRadius: 16,
+    backgroundColor: '#007AFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -785,7 +667,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalSheet: {
-    backgroundColor: printerUi.surface,
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     paddingHorizontal: 18,
@@ -830,7 +712,7 @@ const styles = StyleSheet.create({
     flex: 2,
     height: 48,
     borderRadius: printerUi.radiusMd,
-    backgroundColor: printerUi.accent,
+    backgroundColor: '#007AFF',
     alignItems: 'center',
     justifyContent: 'center',
   },

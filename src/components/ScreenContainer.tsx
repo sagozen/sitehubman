@@ -3,8 +3,7 @@ import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GlassScreenBackdrop } from '@/src/components/GlassScreenBackdrop';
 import { IosScrollView } from '@/src/components/IosScrollView';
-import { glassTheme } from '@/src/design-system/glass';
-import { RoleThemeKey } from '@/src/constants/theme';
+import { RoleThemeKey, theme } from '@/src/constants/theme';
 
 interface ScreenContainerProps {
   scroll?: boolean;
@@ -54,10 +53,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: glassTheme.spacing.screenX,
-    paddingTop: glassTheme.spacing.screenY,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.xxl,
   },
   content: {
-    gap: glassTheme.spacing.section,
+    gap: theme.spacing.xl,
   },
 });

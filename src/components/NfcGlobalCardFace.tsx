@@ -37,7 +37,7 @@ export function NfcGlobalCardFace({
   style,
 }: NfcGlobalCardFaceProps) {
   const displayName = fullName.trim() || 'Your Name';
-  const roleLine = [title.trim(), company.trim()].filter(Boolean).join(' / ') || 'Digital Profile';
+  const roleLine = [title.trim(), company.trim()].filter(Boolean).join(' / ');
   const phoneLine = phone.trim() || '+1 (555) 123-4567';
   const emailLine = email.trim() || 'hello@nfcglobal.com';
   const webLine = website.trim() || 'nfcglobal.com';
@@ -68,7 +68,7 @@ export function NfcGlobalCardFace({
               NFC GLOBAL
             </AppText>
             <AppText style={[styles.brandSub, compact && styles.brandSubCompact]} numberOfLines={1}>
-              Verified identity
+              {roleLine || 'Verified identity'}
             </AppText>
           </View>
         </View>
@@ -81,11 +81,6 @@ export function NfcGlobalCardFace({
         <AppText style={[styles.personName, compact && styles.personNameCompact]} numberOfLines={1} adjustsFontSizeToFit>
           {displayName}
         </AppText>
-        {roleLine ? (
-          <AppText style={[styles.personTitle, compact && styles.personTitleCompact]} numberOfLines={1}>
-            {roleLine}
-          </AppText>
-        ) : null}
       </View>
 
       {/* NFC wave icon — Solar icon, subtle opacity */}
@@ -252,7 +247,7 @@ const styles = StyleSheet.create({
   personCompact: {
     marginTop: 6,
     paddingRight: 34,
-    paddingBottom: 36,
+    paddingBottom: 28,
   },
   personName: {
     color: '#FFFFFF',
@@ -263,18 +258,6 @@ const styles = StyleSheet.create({
   personNameCompact: {
     fontSize: 16,
     lineHeight: 18,
-  },
-  personTitle: {
-    color: 'rgba(255,255,255,0.68)',
-    fontSize: 12,
-    lineHeight: 15,
-    fontWeight: '600',
-    marginTop: 3,
-  },
-  personTitleCompact: {
-    fontSize: 8,
-    lineHeight: 10,
-    marginTop: 4,
   },
   nfcMark: {
     position: 'absolute',

@@ -18,11 +18,12 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { useCustomerConnections } from '@/src/hooks/useCustomerConnections';
 import { formatRelative } from '@/src/services/customerConnectionsService';
 
-const BRAND = '#2596BE';
-const INK = '#0A0A0F';
+const BRAND = '#007AFF';
+const INK = '#000000';
 const MUTED = '#8E8E93';
-const BG = '#F5F5F7';
+const BG = '#F2F2F7';
 const SURFACE = '#FFFFFF';
+const BORDER = 'rgba(60,60,67,0.14)';
 
 export function CustomerConnectionsScreen() {
   const { user } = useAuth();
@@ -60,11 +61,11 @@ export function CustomerConnectionsScreen() {
       >
         <View style={styles.pageHeader}>
           <View style={styles.pageCopy}>
-            <AppText style={styles.pageTitle}>Network</AppText>
-            <AppText style={styles.pageSubtitle}>People, taps, and follow-ups.</AppText>
+            <AppText style={styles.pageTitle}>Connections</AppText>
+            <AppText style={styles.pageSubtitle}>People who found you through NFC, QR, and shared links.</AppText>
           </View>
           <Pressable onPress={() => router.push(appRoutes.scan)} style={({ pressed }) => [styles.scanTop, pressed && styles.pressed]}>
-            <AppIcon name="ScanLine" size={22} color="#FFFFFF" />
+            <AppIcon name="ScanLine" size={22} color={BRAND} />
           </Pressable>
         </View>
 
@@ -120,14 +121,16 @@ export function CustomerConnectionsScreen() {
                   onPress={() => index === 3 ? router.push(appRoutes.guestDesign) : router.push(appRoutes.guestAnalytics)}
                   style={({ pressed }) => [styles.personRow, index === 3 && styles.personRowLast, pressed && styles.pressed]}
                 >
-                  <View style={styles.personAvatar}>
+                <View style={[styles.personAvatar, index === 0 && styles.personAvatarBlue]}>
                     <AppText style={styles.personInitial}>{title[0]}</AppText>
                   </View>
                   <View style={styles.personCopy}>
                     <AppText style={styles.personName}>{title}</AppText>
                     <AppText style={styles.personDetail}>{detail}</AppText>
                   </View>
-                  <AppText style={styles.personMeta}>{meta}</AppText>
+                  <View style={styles.personPill}>
+                    <AppText style={styles.personMeta}>{meta}</AppText>
+                  </View>
                 </Pressable>
               ))}
             </View>
@@ -192,20 +195,20 @@ export function CustomerConnectionsScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG },
-  content: { paddingHorizontal: 24, paddingTop: 14, gap: 24, paddingBottom: 120 },
+  content: { paddingHorizontal: 22, paddingTop: 16, gap: 22, paddingBottom: 120 },
   pageHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
-  pageCopy: { flex: 1, gap: 4 },
-  pageTitle: { fontSize: 42, lineHeight: 45, fontWeight: '900', color: INK, letterSpacing: 0 },
-  pageSubtitle: { fontSize: 16, fontWeight: '700', color: MUTED },
-  scanTop: { width: 48, height: 48, borderRadius: 24, backgroundColor: INK, alignItems: 'center', justifyContent: 'center' },
-  identityCard: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: SURFACE, borderRadius: 24, padding: 18 },
+  pageCopy: { flex: 1, gap: 6 },
+  pageTitle: { fontSize: 42, lineHeight: 46, fontWeight: '900', color: INK, letterSpacing: 0 },
+  pageSubtitle: { fontSize: 16, lineHeight: 22, fontWeight: '600', color: MUTED },
+  scanTop: { width: 48, height: 48, borderRadius: 24, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: BORDER },
+  identityCard: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: SURFACE, borderRadius: 24, padding: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: BORDER },
   avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: BRAND, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: 24, fontWeight: '900', color: '#FFFFFF' },
   identityCopy: { flex: 1, gap: 4, minWidth: 0 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 0 },
   name: { flexShrink: 1, fontSize: 22, lineHeight: 26, fontWeight: '900', color: INK, letterSpacing: 0 },
   subtitle: { fontSize: 13, fontWeight: '700', color: MUTED },
-  peopleHero: { flexDirection: 'row', alignItems: 'center', backgroundColor: INK, borderRadius: 24, padding: 24 },
+  peopleHero: { flexDirection: 'row', alignItems: 'center', backgroundColor: INK, borderRadius: 26, padding: 24 },
   peopleMetric: { flex: 1, gap: 4 },
   peopleNumber: { fontSize: 42, lineHeight: 46, fontWeight: '900', color: '#FFFFFF' },
   peopleLabel: { fontSize: 13, fontWeight: '800', color: 'rgba(255,255,255,0.58)' },
@@ -214,7 +217,7 @@ const styles = StyleSheet.create({
   sectionHead: { gap: 3 },
   sectionTitle: { fontSize: 22, fontWeight: '900', color: INK, letterSpacing: 0 },
   sectionSub: { fontSize: 13, fontWeight: '700', color: MUTED },
-  peopleList: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden' },
+  peopleList: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: BORDER },
   personRow: {
     minHeight: 88,
     flexDirection: 'row',
@@ -225,13 +228,15 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(17,17,17,0.06)',
   },
   personRowLast: { borderBottomWidth: 0 },
-  personAvatar: { width: 58, height: 58, borderRadius: 29, backgroundColor: INK, alignItems: 'center', justifyContent: 'center' },
-  personInitial: { fontSize: 21, fontWeight: '900', color: '#FFFFFF' },
+  personAvatar: { width: 58, height: 58, borderRadius: 29, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
+  personAvatarBlue: { backgroundColor: '#EAF3FF' },
+  personInitial: { fontSize: 21, fontWeight: '900', color: BRAND },
   personCopy: { flex: 1, gap: 4, minWidth: 0 },
   personName: { fontSize: 18, fontWeight: '900', color: INK, letterSpacing: 0 },
   personDetail: { fontSize: 13, fontWeight: '600', color: MUTED },
+  personPill: { paddingHorizontal: 9, paddingVertical: 5, borderRadius: 999, backgroundColor: '#F2F2F7' },
   personMeta: { fontSize: 12, fontWeight: '800', color: MUTED },
-  followList: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden' },
+  followList: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: BORDER },
   followRow: {
     minHeight: 76,
     flexDirection: 'row',
@@ -242,11 +247,11 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(17,17,17,0.06)',
   },
   followIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: INK, alignItems: 'center', justifyContent: 'center' },
-  followIconLight: { backgroundColor: '#EAF7FC' },
+  followIconLight: { backgroundColor: '#EAF3FF' },
   followCopy: { flex: 1, gap: 3, minWidth: 0 },
   followTitle: { fontSize: 16, fontWeight: '900', color: INK },
   followSub: { fontSize: 12, fontWeight: '700', color: MUTED },
-  channelList: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden' },
+  channelList: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: BORDER },
   channelRow: {
     minHeight: 68,
     flexDirection: 'row',

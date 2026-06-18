@@ -2,16 +2,6 @@ import type { ColorSchemeName } from 'react-native';
 import type { ProfileTheme, TypographyColorKey, UiPreferences } from '@/src/types/models';
 import type { ThemeMode } from '@/src/constants/theme';
 import { iosPalette } from '@/src/design-system/ios';
-import {
-  SNAP_TAP_BORDER,
-  SNAP_TAP_BRAND,
-  SNAP_TAP_BRAND_PRESSED,
-  SNAP_TAP_BRAND_SOFT,
-  SNAP_TAP_GRAY,
-  SNAP_TAP_PAGE_BG,
-  SNAP_TAP_TEXT,
-  SNAP_TAP_WHITE,
-} from '@/src/constants/snapTapBrand';
 
 export type ColorModePreference = UiPreferences['colorMode'];
 export type ResolvedThemeMode = ThemeMode;
@@ -87,22 +77,22 @@ function modeTokens(mode: typeof iosPalette.light | typeof iosPalette.dark) {
 
 const profilePalettes: Record<ProfileTheme, ProfilePalette> = {
   aqua: {
-    primary: SNAP_TAP_BRAND,
-    primaryDark: SNAP_TAP_BRAND_PRESSED,
-    primarySoft: SNAP_TAP_BRAND_SOFT,
-    accent: SNAP_TAP_BRAND,
+    primary: iosPalette.light.systemBlue,
+    primaryDark: '#0051D5',
+    primarySoft: 'rgba(0,122,255,0.12)',
+    accent: iosPalette.light.systemBlue,
     light: {
-      background: SNAP_TAP_PAGE_BG,
-      surface: SNAP_TAP_WHITE,
-      surfaceElevated: '#F5F5F7',
-      surfaceSoft: '#F5F5F7',
-      textPrimary: SNAP_TAP_TEXT,
-      textMuted: SNAP_TAP_GRAY,
+      background: iosPalette.light.background,
+      surface: iosPalette.light.surface,
+      surfaceElevated: iosPalette.light.surfaceElevated,
+      surfaceSoft: iosPalette.light.surfaceSoft,
+      textPrimary: iosPalette.light.textPrimary,
+      textMuted: iosPalette.light.textSecondary,
       textTertiary: 'rgba(60,60,67,0.30)',
-      border: SNAP_TAP_BORDER,
-      separator: SNAP_TAP_BORDER,
+      border: iosPalette.light.border,
+      separator: iosPalette.light.separator,
       surfaceGlass: 'rgba(255,255,255,0.82)',
-      systemBlue: SNAP_TAP_BRAND,
+      systemBlue: iosPalette.light.systemBlue,
     },
     dark: modeTokens(iosPalette.dark),
   },

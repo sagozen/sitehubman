@@ -11,11 +11,12 @@ import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useBioPage } from '@/src/hooks/useBioPage';
 
-const BRAND = '#2596BE';
-const INK = '#111111';
+const BRAND = '#007AFF';
+const INK = '#000000';
 const MUTED = '#8E8E93';
-const BG = '#F5F5F7';
+const BG = '#F2F2F7';
 const SURFACE = '#FFFFFF';
+const BORDER = 'rgba(60,60,67,0.14)';
 
 export function CustomerShareScreen() {
   const { user } = useAuth();
@@ -37,8 +38,8 @@ export function CustomerShareScreen() {
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <IosScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <AppText style={styles.kicker}>Share</AppText>
-          <AppText style={styles.title}>Send your card in one tap.</AppText>
+          <AppText style={styles.title}>Share</AppText>
+          <AppText style={styles.subtitle}>Send your NFC card, QR code, or public profile link.</AppText>
         </View>
 
         <View style={styles.cardWrap}>
@@ -52,18 +53,23 @@ export function CustomerShareScreen() {
         </View>
 
         <View style={styles.qrPanel}>
+          <View style={styles.qrHeader}>
+            <View style={styles.qrIcon}>
+              <AppIcon name="QrCode" size={20} color={BRAND} />
+            </View>
+            <View style={styles.qrCopy}>
+              <AppText style={styles.qrTitle}>{profileUrl ? 'QR code ready' : 'Profile not published'}</AppText>
+              <AppText style={styles.qrSub} numberOfLines={2}>
+                {profileUrl || 'Open Studio to create your public identity link.'}
+              </AppText>
+            </View>
+          </View>
           <View style={styles.qrBox}>
             {profileUrl ? (
               <QRCode value={profileUrl} size={148} color={INK} backgroundColor={SURFACE} quietZone={4} />
             ) : (
               <AppIcon name="QrCode" size={96} color="#D1D5DB" />
             )}
-          </View>
-          <View style={styles.qrCopy}>
-            <AppText style={styles.qrTitle}>{profileUrl ? 'Public link ready' : 'Profile not published'}</AppText>
-            <AppText style={styles.qrSub} numberOfLines={2}>
-              {profileUrl || 'Open Studio to create your public identity link.'}
-            </AppText>
           </View>
         </View>
 
@@ -91,10 +97,10 @@ export function CustomerShareScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG },
-  content: { paddingHorizontal: 24, paddingTop: 14, paddingBottom: 120, gap: 24 },
-  header: { gap: 7 },
-  kicker: { fontSize: 13, fontWeight: '900', color: BRAND },
-  title: { fontSize: 40, lineHeight: 43, fontWeight: '900', color: INK, letterSpacing: 0 },
+  content: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 120, gap: 22 },
+  header: { gap: 6 },
+  title: { fontSize: 42, lineHeight: 46, fontWeight: '900', color: INK, letterSpacing: 0 },
+  subtitle: { fontSize: 16, lineHeight: 22, fontWeight: '600', color: MUTED, maxWidth: 330 },
   cardWrap: {
     borderRadius: 24,
     overflow: 'hidden',
@@ -104,14 +110,16 @@ const styles = StyleSheet.create({
     shadowRadius: 34,
     elevation: 10,
   },
-  qrPanel: { backgroundColor: SURFACE, borderRadius: 24, padding: 22, alignItems: 'center', gap: 18 },
-  qrBox: { width: 176, height: 176, borderRadius: 24, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center' },
-  qrCopy: { alignItems: 'center', gap: 5 },
-  qrTitle: { fontSize: 20, fontWeight: '900', color: INK },
-  qrSub: { fontSize: 13, fontWeight: '700', color: MUTED, textAlign: 'center', lineHeight: 18 },
-  shareButton: { height: 58, borderRadius: 29, backgroundColor: INK, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  qrPanel: { backgroundColor: SURFACE, borderRadius: 24, padding: 18, alignItems: 'center', gap: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: BORDER },
+  qrHeader: { alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', gap: 12 },
+  qrIcon: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#EAF3FF', alignItems: 'center', justifyContent: 'center' },
+  qrBox: { width: 178, height: 178, borderRadius: 24, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: BORDER },
+  qrCopy: { flex: 1, gap: 3, minWidth: 0 },
+  qrTitle: { fontSize: 18, fontWeight: '900', color: INK },
+  qrSub: { fontSize: 13, fontWeight: '600', color: MUTED, lineHeight: 18 },
+  shareButton: { height: 56, borderRadius: 16, backgroundColor: BRAND, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   shareButtonText: { fontSize: 17, fontWeight: '900', color: '#FFFFFF' },
-  actionList: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden' },
+  actionList: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: BORDER },
   row: {
     minHeight: 64,
     flexDirection: 'row',

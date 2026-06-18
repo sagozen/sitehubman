@@ -1,20 +1,11 @@
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useMemo, useState, useEffect, useCallback } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, TextInput, View, Modal } from 'react-native';
 import { Redirect, router } from 'expo-router';
-import { BrandImage } from '@/src/components/BrandImage';
-import { CloudinaryImage } from '@/src/components/CloudinaryImage';
-import { LinearGradient } from 'expo-linear-gradient';
-import {
-  getProductPhotoFallback,
-  getProductPhotoUrl,
-  productPhotoIds,
-} from '@/src/constants/productPhotoCatalog';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AppIcon } from '@/src/components/AppIcon';
+import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { AppEmptyState } from '@/src/components/AppState';
-import { SquircleIconTile } from '@/src/components/SquircleIconTile';
 import { appRoutes } from '@/src/constants/navigation';
 import { theme } from '@/src/constants/theme';
 import { useNotifications } from '@/src/hooks/useNotifications';
@@ -24,11 +15,17 @@ import { usePrinterJobs } from '@/src/hooks/usePrinterJobs';
 import { searchEmptyMessage, useSearchQuery } from '@/src/hooks/useSearchQuery';
 import { listApprovedPhysicalOrdersForPrinter } from '@/src/services/productionService';
 import { Order, PrinterJob } from '@/src/types/models';
+import { getPrinterIp, setPrinterIp, clearPrinterIp, printHtmlToIp } from '@/src/services/printService';
+import { findOrderForPrintLookup, getPrinterJobByOrderId } from '@/src/services/firestoreService';
+import {
+  buildProductionLabelData,
+  buildProductionLabelHtml,
+} from '@/src/services/labelService';
 
 const GREEN = '#34C759';
 const BLUE = '#007AFF';
 const SURFACE = '#FFFFFF';
-const SURFACE_BORDER = '#E2E8F0';
+const SURFACE_BORDER = 'rgba(60,60,67,0.14)';
 const SURFACE_RADIUS = 20;
 
 type TabFilter = 'all' | 'todo' | 'doing' | 'done';
@@ -85,9 +82,10 @@ function JobCard({ job }: { job: PrinterJob }) {
       style={({ pressed }) => [styles.jobCard, pressed && styles.jobCardPressed]}
       onPress={openJob}
     >
+      <View style={[styles.jobAccentRail, { backgroundColor: stage.color }]} />
       <View style={styles.compactCardRow}>
         <View style={styles.compactIconWrap}>
-          <AppIcon name="ClipboardList" size={18} color="#4B5563" />
+          <AppIcon name={stage.icon} size={18} color={stage.color} />
         </View>
         <View style={styles.compactMain}>
           <View style={styles.compactTop}>
@@ -124,6 +122,71 @@ export default function PrinterQueueScreen() {
   const { jobs, isLoading, error } = usePrinterJobs();
   const { unreadCount } = useNotifications();
   const [approvedOrders, setApprovedOrders] = useState<Order[]>([]);
+
+  const [printerIp, setPrinterIpState] = useState<string | null>(null);
+  const [ipModalVisible, setIpModalVisible] = useState(false);
+  const [ipInput, setIpInput] = useState('');
+  const [printLookupInput, setPrintLookupInput] = useState('');
+  const [testPrintBusy, setTestPrintBusy] = useState(false);
+
+  useEffect(() => {
+    async function loadPrinterIp() {
+      const ip = await getPrinterIp();
+      setPrinterIpState(ip);
+      setIpInput(ip || '');
+    }
+    void loadPrinterIp();
+  }, []);
+
+  const handleSaveIp = async () => {
+    const trimmed = ipInput.trim();
+    if (trimmed) {
+      await setPrinterIp(trimmed);
+      setPrinterIpState(trimmed);
+    } else {
+      await clearPrinterIp();
+      setPrinterIpState(null);
+    }
+    setIpModalVisible(false);
+  };
+
+  const handleTestPrint = async () => {
+    if (testPrintBusy) return;
+    const targetIp = (ipInput.trim() || printerIp || '').trim();
+    if (!targetIp) {
+      Alert.alert('Printer IP required', 'Add your print relay IP address before running a test print.');
+      return;
+    }
+    const lookup = printLookupInput.trim();
+    const sampleOrder = lookup ? await findOrderForPrintLookup(lookup) : approvedOrders[0];
+    if (!sampleOrder) {
+      Alert.alert(
+        'Card not found',
+        lookup
+          ? 'No printable order matched that customer, order, or card ID.'
+          : 'Enter a customer/order/card ID, or wait for a sales-approved order.'
+      );
+      return;
+    }
+
+    setTestPrintBusy(true);
+    try {
+      if (targetIp !== printerIp) {
+        await setPrinterIp(targetIp);
+        setPrinterIpState(targetIp);
+      }
+      const sampleJob =
+        jobs.find((job) => job.orderId === sampleOrder.id) ??
+        (await getPrinterJobByOrderId(sampleOrder.id).catch(() => null));
+      const label = await buildProductionLabelData(sampleOrder, sampleJob);
+      await printHtmlToIp(targetIp, buildProductionLabelHtml(label), label.orderCode);
+      Alert.alert('Test print sent', `${label.orderCode} for ${sampleOrder.customerName} was sent to ${targetIp}.`);
+    } catch (error) {
+      Alert.alert('Test print failed', error instanceof Error ? error.message : 'Unable to send test print.');
+    } finally {
+      setTestPrintBusy(false);
+    }
+  };
 
   const loadApproved = useCallback(async () => {
     try {
@@ -176,112 +239,120 @@ export default function PrinterQueueScreen() {
   const todayCount = jobs.length;
   const needVerificationCount = jobs.filter((job) => job.stage === 'quality_check').length;
   const quickPrintJob = jobs.find((job) => job.stage === 'received') ?? null;
+  const sampleOrder = approvedOrders[0] ?? null;
+  const printerActions: { label: string; icon: AppIconName; onPress: () => void; primary?: boolean }[] = [
+    {
+      label: quickPrintJob ? 'Start' : 'Scan',
+      icon: 'ScanLine',
+      onPress: () => {
+        if (quickPrintJob) {
+          router.push({ pathname: '/printer/nfc/[jobId]', params: { jobId: quickPrintJob.id } });
+          return;
+        }
+        router.push('/printer/scan');
+      },
+      primary: true,
+    },
+    { label: 'Print', icon: 'Printer', onPress: () => setIpModalVisible(true) },
+    { label: 'Batch', icon: 'Archive', onPress: () => router.push('/printer/batch-select') },
+    { label: 'Alerts', icon: 'Bell', onPress: () => router.push(appRoutes.printer.notifications) },
+  ];
 
   if (!batchLoading && !batchId) {
     return <Redirect href="/printer/batch-select" />;
   }
 
-  const workshopPhotoUrl = getProductPhotoUrl(productPhotoIds.printerWorkshop, 960);
-  const workshopFallback = getProductPhotoFallback(productPhotoIds.printerWorkshop);
-
   return (
     <View style={styles.safe}>
       <SafeAreaView edges={['top']} style={styles.heroSafe}>
         <View style={styles.hero}>
-          {workshopPhotoUrl ? (
-            <CloudinaryImage
-              uri={workshopPhotoUrl}
-              width={960}
-              crop="cover"
-              style={StyleSheet.absoluteFill}
-            />
-          ) : workshopFallback ? (
-            <BrandImage
-              source={workshopFallback}
-              style={StyleSheet.absoluteFill}
-              contentFit="cover"
-              recyclingKey="printer-workshop-hero"
-            />
-          ) : null}
-          <LinearGradient
-            colors={['rgba(16, 24, 39, 0.88)', 'rgba(26, 26, 46, 0.82)', 'rgba(14, 58, 70, 0.78)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
           <View style={styles.heroContent}>
-          <View style={styles.heroTop}>
-            <View style={styles.workshopLbl}>
-              <AppIcon name="Settings" size={13} color="rgba(255,255,255,0.45)" />
-              <AppText style={styles.workshopTxt}>Workshop</AppText>
-            </View>
-            <Pressable
-              style={styles.notifBtn}
-              onPress={() => router.push(appRoutes.printer.notifications)}
-              hitSlop={8}
-            >
-              <View>
-                <SquircleIconTile name="Bell" sizeKey="sm" iconColor={BLUE} />
-                {unreadCount > 0 ? <View style={styles.notifDot} /> : null}
+            <View style={styles.identity}>
+              <View style={styles.heroTop}>
+                <View style={styles.profileHead}>
+                  <View style={styles.profileAvatar}>
+                    <AppIcon name="Printer" size={24} color="#FFFFFF" />
+                  </View>
+                  <View style={styles.profileCopy}>
+                    <AppText style={styles.heroEyebrow}>{todayCount} jobs today</AppText>
+                    <AppText style={styles.pageTitle}>Printer</AppText>
+                    <AppText style={styles.heroSub} numberOfLines={2}>
+                      {printerIp ? `IP ${printerIp.replace(/^https?:\/\//, '')}` : 'Scan, print, and test by customer ID'}
+                    </AppText>
+                  </View>
+                </View>
+                <View style={styles.identityBadge}>
+                  <AppIcon name="BadgeCheck" size={22} color={BLUE} />
+                </View>
               </View>
-            </Pressable>
-          </View>
-
-          <AppText style={styles.pageTitle}>Job Queue</AppText>
-          <Pressable onPress={() => router.push('/printer/batch-select')} hitSlop={8}>
-            <AppText style={styles.batchLink}>
-              Batch: {batch?.batchNumber ?? '—'} · tap to change
-            </AppText>
-          </Pressable>
-          <View style={styles.heroStatsRow}>
-            <AppText style={styles.heroSub}>Print, encode, and verify cards</AppText>
-            <View style={styles.heroTodayWrap}>
-              <AppText style={styles.heroTodayNum}>{todayCount}</AppText>
-              <AppText style={styles.heroTodayLabel}>Today</AppText>
             </View>
-          </View>
 
-          <View style={styles.searchRow}>
-            <View style={styles.searchBox}>
-              <AppIcon name="Search" size={16} color="rgba(255,255,255,0.45)" />
-              <TextInput
-                value={searchInput}
-                onChangeText={setSearchInput}
-                onSubmitEditing={submitSearch}
-                placeholder="Search queue, job, order"
-                placeholderTextColor="rgba(255,255,255,0.35)"
-                returnKeyType="search"
-                style={styles.searchInput}
-              />
-              {searchInput.length > 0 ? (
-                <Pressable onPress={clearSearch} hitSlop={8}>
-                  <AppIcon name="X" size={14} color="rgba(255,255,255,0.45)" />
+            <View style={styles.actionStrip}>
+              {printerActions.map((action) => (
+                <Pressable
+                  key={action.label}
+                  onPress={action.onPress}
+                  style={({ pressed }) => [styles.actionBtn, pressed && styles.pressed]}
+                  accessibilityRole="button"
+                >
+                  <View style={[styles.actionIcon, action.primary && styles.actionIconPrimary]}>
+                    <AppIcon name={action.icon} size={22} color={action.primary ? '#FFFFFF' : BLUE} />
+                    {action.label === 'Alerts' && unreadCount > 0 ? <View style={styles.notifDot} /> : null}
+                  </View>
+                  <AppText style={styles.actionLabel}>{action.label}</AppText>
                 </Pressable>
-              ) : null}
+              ))}
             </View>
-            <Pressable
-              style={styles.searchBtn}
-              onPress={() => {
-                if (quickPrintJob) {
-                  router.push({
-                    pathname: '/printer/nfc/[jobId]',
-                    params: { jobId: quickPrintJob.id },
-                  });
-                  return;
-                }
-                router.push('/printer/scan');
-              }}
-            >
-              {isLoading ? (
-                <ActivityIndicator size="small" color="rgba(255,255,255,0.8)" />
-              ) : (
-                <>
-                  <AppIcon name="ScanLine" size={17} color="rgba(255,255,255,0.94)" />
-                  <AppText style={styles.searchBtnText}>{quickPrintJob ? 'Start' : 'Scan'}</AppText>
-                </>
-              )}
-            </Pressable>
-          </View>
+
+            <View style={styles.infoList}>
+              <Pressable style={styles.infoRow} onPress={() => router.push('/printer/batch-select')}>
+                <AppIcon name="Archive" size={18} color="#8E8E93" />
+                <AppText style={styles.infoText} numberOfLines={1}>
+                  Batch {batch?.batchNumber ?? 'not selected'}
+                </AppText>
+                <AppIcon name="ChevronRight" size={16} color="#C7C7CC" />
+              </Pressable>
+              <Pressable style={[styles.infoRow, styles.infoRowLast]} onPress={() => setIpModalVisible(true)}>
+                <AppIcon name="Printer" size={18} color="#8E8E93" />
+                <AppText style={styles.infoText} numberOfLines={1}>
+                  {printerIp ? `Print relay ${printerIp.replace(/^https?:\/\//, '')}` : 'No print relay'}
+                </AppText>
+                <AppIcon name="ChevronRight" size={16} color="#C7C7CC" />
+              </Pressable>
+            </View>
+
+            <View style={styles.searchRow}>
+              <View style={styles.searchBox}>
+                <AppIcon name="Search" size={16} color="#8E8E93" />
+                <TextInput
+                  value={searchInput}
+                  onChangeText={setSearchInput}
+                  onSubmitEditing={submitSearch}
+                  placeholder="Search queue, job, order"
+                  placeholderTextColor="#8E8E93"
+                  returnKeyType="search"
+                  style={styles.searchInput}
+                />
+                {searchInput.length > 0 ? (
+                  <Pressable onPress={clearSearch} hitSlop={8}>
+                    <AppIcon name="X" size={14} color="#8E8E93" />
+                  </Pressable>
+                ) : null}
+              </View>
+              <Pressable
+                style={styles.searchBtn}
+                onPress={() => router.push('/printer/scan')}
+              >
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <AppIcon name="ScanLine" size={17} color="#FFFFFF" />
+                    <AppText style={styles.searchBtnText}>Scan</AppText>
+                  </>
+                )}
+              </Pressable>
+            </View>
           </View>
         </View>
       </SafeAreaView>
@@ -391,6 +462,101 @@ export default function PrinterQueueScreen() {
           </>
         )}
       </IosScrollView>
+
+      <Modal
+        visible={ipModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIpModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <View style={styles.modalIconBg}>
+                <AppIcon name="Printer" size={20} color={BLUE} />
+              </View>
+              <View style={styles.modalHeaderTitleWrap}>
+                <AppText style={styles.modalTitle}>Print Test</AppText>
+                <AppText style={styles.modalSubtitle}>Connect IP printer and print by ID</AppText>
+              </View>
+            </View>
+
+            <View style={styles.modalBody}>
+              <AppText style={styles.inputLabel}>PRINTER IP / ENDPOINT</AppText>
+              <View style={styles.modalInputWrap}>
+                <AppIcon name="Link" size={16} color="#94A3B8" />
+                <TextInput
+                  value={ipInput}
+                  onChangeText={setIpInput}
+                  placeholder="e.g. 192.168.1.100 or 192.168.1.100:3000"
+                  placeholderTextColor="#94A3B8"
+                  style={styles.modalInput}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </View>
+              <AppText style={styles.modalInfoText}>
+                Sends the production label to your relay at /print.
+              </AppText>
+
+              <View style={styles.testPrintCard}>
+                <AppText style={styles.inputLabel}>CUSTOMER / ORDER / CARD ID</AppText>
+                <View style={styles.modalInputWrap}>
+                  <AppIcon name="CreditCard" size={16} color="#8E8E93" />
+                  <TextInput
+                    value={printLookupInput}
+                    onChangeText={setPrintLookupInput}
+                    placeholder="Paste customer id, order id, ORD-1001, or card code"
+                    placeholderTextColor="#8E8E93"
+                    style={styles.modalInput}
+                    autoCapitalize="characters"
+                    autoCorrect={false}
+                  />
+                </View>
+                <AppText style={styles.testPrintSub} numberOfLines={2}>
+                  Empty uses next approved order{sampleOrder ? `: ${sampleOrder.customerName}` : '.'}
+                </AppText>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.testPrintBtn,
+                    pressed && !testPrintBusy && styles.modalPressed,
+                    testPrintBusy && styles.modalDisabled,
+                  ]}
+                  onPress={() => void handleTestPrint()}
+                  disabled={testPrintBusy}
+                >
+                  {testPrintBusy ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <AppIcon name="Printer" size={16} color="#FFFFFF" />
+                  )}
+                  <AppText style={styles.testPrintBtnText}>
+                    {testPrintBusy ? 'Sending...' : 'Test Print'}
+                  </AppText>
+                </Pressable>
+              </View>
+            </View>
+
+            <View style={styles.modalActions}>
+              <Pressable
+                style={[styles.modalBtn, styles.modalBtnCancel]}
+                onPress={() => {
+                  setIpInput(printerIp || '');
+                  setIpModalVisible(false);
+                }}
+              >
+                <AppText style={styles.modalBtnCancelText}>Cancel</AppText>
+              </Pressable>
+              <Pressable
+                style={[styles.modalBtn, styles.modalBtnSave]}
+                onPress={handleSaveIp}
+              >
+                <AppText style={styles.modalBtnSaveText}>Save Connection</AppText>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -398,22 +564,28 @@ export default function PrinterQueueScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: '#F2F2F7',
   },
   heroSafe: {
-    backgroundColor: theme.colors.background,
+    backgroundColor: '#F2F2F7',
   },
   hero: {
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    overflow: 'hidden',
+    backgroundColor: '#F2F2F7',
   },
   heroContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 24,
-    gap: 10,
+    paddingHorizontal: 22,
+    paddingTop: 12,
+    paddingBottom: 16,
+    gap: 12,
     position: 'relative',
     zIndex: 1,
+  },
+  identity: {
+    padding: 18,
+    borderRadius: 28,
+    backgroundColor: SURFACE,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: SURFACE_BORDER,
   },
   heroTop: {
     flexDirection: 'row',
@@ -421,25 +593,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 2,
   },
-  workshopLbl: {
+  profileHead: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    alignSelf: 'flex-start',
-    borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.10)',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.14)',
-    paddingHorizontal: 9,
-    paddingVertical: 5,
+    flex: 1,
+    gap: 12,
+    minWidth: 0,
   },
-  workshopTxt: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.68)',
+  profileAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: BLUE,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  notifBtn: {
-    borderRadius: 16,
+  profileCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  identityBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#EAF3FF',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -455,43 +632,93 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF',
   },
   pageTitle: {
-    fontSize: 30,
-    fontWeight: '800',
-    color: '#fff',
+    fontSize: 34,
+    fontWeight: '900',
+    color: '#000000',
     letterSpacing: 0,
-    lineHeight: 34,
+    lineHeight: 38,
     marginBottom: 0,
+  },
+  heroEyebrow: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: BLUE,
+    letterSpacing: 0,
+    marginBottom: -2,
   },
   batchLink: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.64)',
-    marginTop: -4,
-    marginBottom: 0,
+    fontSize: 14,
+    lineHeight: 17,
+    fontWeight: '800',
+    color: '#1D1D1F',
   },
-  heroStatsRow: {
+  actionStrip: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    marginBottom: 14,
+    backgroundColor: SURFACE,
+    borderRadius: 24,
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: SURFACE_BORDER,
+  },
+  actionBtn: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 16,
+  },
+  pressed: {
+    opacity: 0.72,
+  },
+  actionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F2F2F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  actionIconPrimary: {
+    backgroundColor: BLUE,
+  },
+  actionLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#000000',
+    textAlign: 'center',
+  },
+  infoList: {
+    backgroundColor: SURFACE,
+    borderRadius: 22,
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: SURFACE_BORDER,
+  },
+  infoRow: {
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 14,
+    backgroundColor: SURFACE,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: SURFACE_BORDER,
+  },
+  infoRowLast: {
+    borderBottomWidth: 0,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6E6E73',
   },
   heroSub: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.58)',
-  },
-  heroTodayWrap: {
-    alignItems: 'flex-end',
-    gap: 1,
-  },
-  heroTodayNum: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 14,
     lineHeight: 20,
-  },
-  heroTodayLabel: {
-    color: 'rgba(255,255,255,0.45)',
-    fontSize: 11,
+    fontWeight: '600',
+    color: '#6E6E73',
+    maxWidth: 260,
   },
   searchRow: {
     flexDirection: 'row',
@@ -503,44 +730,44 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.13)',
-    borderRadius: 18,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 11,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.20)',
+    borderColor: SURFACE_BORDER,
   },
   searchInput: {
     flex: 1,
     fontSize: 14,
-    color: '#fff',
+    color: '#000000',
     padding: 0,
   },
   searchBtn: {
     width: 76,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 16,
+    backgroundColor: BLUE,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 5,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.28)',
+    borderColor: BLUE,
   },
   searchBtnText: {
-    color: 'rgba(255,255,255,0.94)',
+    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '800',
   },
   tabsWrap: {
-    backgroundColor: '#F4F6FA',
+    backgroundColor: '#F2F2F7',
     paddingHorizontal: 14,
-    paddingTop: 6,
+    paddingTop: 12,
   },
   tabs: {
     width: '100%',
-    backgroundColor: '#EEF2F6',
+    backgroundColor: '#E9E9EF',
     borderRadius: 15,
     padding: 3,
     borderWidth: StyleSheet.hairlineWidth,
@@ -562,12 +789,12 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   tabItemActive: {
-    backgroundColor: '#001035',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.65)',
-    shadowColor: '#001035',
+    borderColor: 'rgba(60,60,67,0.08)',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 1,
   },
@@ -577,30 +804,41 @@ const styles = StyleSheet.create({
   tabItemText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#8EA0B8',
+    color: '#6E6E73',
   },
   tabItemTextOn: {
-    color: '#fff',
+    color: '#000000',
   },
   body: { flex: 1 },
   bodyContent: {
-    paddingHorizontal: 12,
-    paddingTop: 10,
+    paddingHorizontal: 18,
+    paddingTop: 16,
     paddingBottom: 120,
-    gap: 8,
+    gap: 10,
   },
   jobCard: {
     backgroundColor: SURFACE,
-    borderRadius: SURFACE_RADIUS,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: SURFACE_BORDER,
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.05,
-    shadowRadius: 20,
-    elevation: 2,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.04,
+    shadowRadius: 18,
+    elevation: 1,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  jobAccentRail: {
+    position: 'absolute',
+    left: 0,
+    top: 14,
+    bottom: 14,
+    width: 4,
+    borderTopRightRadius: 4,
+    borderBottomRightRadius: 4,
   },
   jobCardPressed: {
     opacity: 0.82,
@@ -611,12 +849,12 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   compactIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    backgroundColor: '#F5F7FB',
+    width: 46,
+    height: 46,
+    borderRadius: 16,
+    backgroundColor: '#F2F2F7',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E4EAF3',
+    borderColor: SURFACE_BORDER,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -636,15 +874,15 @@ const styles = StyleSheet.create({
   },
   compactOverline: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#94A3B8',
+    fontWeight: '800',
+    color: '#8E8E93',
   },
   compactTitle: {
-    marginTop: 1,
-    fontSize: 16,
-    lineHeight: 18,
-    fontWeight: '800',
-    color: '#0F172A',
+    marginTop: 2,
+    fontSize: 18,
+    lineHeight: 21,
+    fontWeight: '900',
+    color: '#000000',
     letterSpacing: 0,
   },
   compactStagePill: {
@@ -660,26 +898,26 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   compactBottom: {
-    marginTop: 7,
+    marginTop: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   compactMeta: {
-    fontSize: 11,
-    color: '#94A3B8',
+    fontSize: 12,
+    color: '#8E8E93',
     fontWeight: '600',
   },
   // Orange $ — warm, familiar money color (like Venmo, PayPal, etc.)
   compactAmount: {
-    fontSize: 13,
+    fontSize: 15,
     color: '#1D1D1F',
-    fontWeight: '800',
+    fontWeight: '900',
   },
   compactAmountCurrency: {
-    fontSize: 13,
+    fontSize: 15,
     color: '#FF9500',
-    fontWeight: '800',
+    fontWeight: '900',
   },
   listHeader: {
     flexDirection: 'row',
@@ -780,5 +1018,154 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     fontSize: 14,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.32)',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    padding: 12,
+  },
+  modalContainer: {
+    width: '100%',
+    maxWidth: 420,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 30,
+    padding: 18,
+    paddingBottom: 22,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 18 },
+    shadowOpacity: 0.18,
+    shadowRadius: 34,
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  modalIconBg: {
+    width: 46,
+    height: 46,
+    borderRadius: 16,
+    backgroundColor: '#EAF3FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalHeaderTitleWrap: {
+    flex: 1,
+  },
+  modalTitle: {
+    fontSize: 22,
+    lineHeight: 26,
+    fontWeight: '900',
+    color: '#000000',
+    letterSpacing: 0,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '600',
+    color: '#8E8E93',
+    marginTop: 2,
+  },
+  modalBody: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#8E8E93',
+    letterSpacing: 0,
+    marginBottom: 8,
+  },
+  modalInputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#F2F2F7',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: SURFACE_BORDER,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 12,
+  },
+  modalInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#000000',
+    fontWeight: '600',
+    padding: 0,
+  },
+  modalInfoText: {
+    fontSize: 12,
+    color: '#8E8E93',
+    fontWeight: '600',
+    lineHeight: 17,
+  },
+  testPrintCard: {
+    marginTop: 14,
+    borderRadius: 22,
+    backgroundColor: '#F2F2F7',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: SURFACE_BORDER,
+    padding: 14,
+    gap: 12,
+  },
+  testPrintSub: {
+    marginTop: 2,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: '600',
+    color: '#6E6E73',
+  },
+  testPrintBtn: {
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: BLUE,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  testPrintBtnText: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#FFFFFF',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  modalBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalBtnCancel: {
+    backgroundColor: '#F2F2F7',
+  },
+  modalBtnCancelText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#1D1D1F',
+  },
+  modalBtnSave: {
+    backgroundColor: BLUE,
+  },
+  modalBtnSaveText: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#FFFFFF',
+  },
+  modalPressed: {
+    opacity: 0.86,
+  },
+  modalDisabled: {
+    opacity: 0.5,
   },
 });

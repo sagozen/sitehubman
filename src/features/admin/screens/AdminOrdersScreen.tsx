@@ -93,7 +93,25 @@ export default function AdminOrdersScreen() {
     return matchSearch && matchStatus;
   });
 
-  const statusTabs = ['all', 'new', 'ready_to_print', 'printing', 'qa_pending', 'qa_failed', 'ready_to_ship', 'ready', 'shipped', 'frozen', 'closed', 'delivered'];
+  const statusTabs = [
+    'all',
+    'draft',
+    'pending_payment',
+    'payment_submitted',
+    'payment_verified',
+    'production_approved',
+    'printer_assigned',
+    'printing',
+    'nfc_writing',
+    'nfc_verification',
+    'qa_pending',
+    'qa_failed',
+    'ready_to_ship',
+    'shipped',
+    'delivered',
+    'payment_rejected',
+    'cancelled',
+  ];
 
   return (
     <AdminScreenShell

@@ -48,7 +48,7 @@ type NfcBadgeKind = 'pending' | 'verified' | 'failed' | 'none';
 
 function nfcBadgeKind(order: Order): NfcBadgeKind {
   if (order.nfcEnabled === false) return 'none';
-  if (order.status === 'delivered' || order.status === 'ready') return 'verified';
+  if (order.status === 'delivered' || order.status === 'ready_to_ship') return 'verified';
   if (order.status === 'nfc_verification') return 'verified';
   if ((order.cardStatus ?? 'active') === 'closed') return 'failed';
   return 'pending';
@@ -186,19 +186,19 @@ export default function SalesDashboardScreen() {
     [orders]
   );
   const guestRequests = useMemo(
-    () => orders.filter((order) => order.orderSource === 'guest' && ['new', 'design'].includes(order.status)),
+    () => orders.filter((order) => order.orderSource === 'guest' && ['draft', 'pending_payment', 'payment_submitted'].includes(order.status)),
     [orders]
   );
   const customerRequests = useMemo(
-    () => orders.filter((order) => order.orderSource === 'customer' && ['new', 'design'].includes(order.status)),
+    () => orders.filter((order) => order.orderSource === 'customer' && ['draft', 'pending_payment', 'payment_submitted'].includes(order.status)),
     [orders]
   );
   const manualRequests = useMemo(
-    () => orders.filter((order) => order.orderSource === 'manual' && ['new', 'design'].includes(order.status)),
+    () => orders.filter((order) => order.orderSource === 'manual' && ['draft', 'pending_payment', 'payment_submitted'].includes(order.status)),
     [orders]
   );
   const bulkRequests = useMemo(
-    () => orders.filter((order) => order.orderSource === 'bulk' && ['new', 'design'].includes(order.status)),
+    () => orders.filter((order) => order.orderSource === 'bulk' && ['draft', 'pending_payment', 'payment_submitted'].includes(order.status)),
     [orders]
   );
 

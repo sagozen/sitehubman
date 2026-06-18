@@ -129,7 +129,7 @@ async function getApprovedPhysicalOrderByOrderNumber(orderNumber: string): Promi
       collection(db, firebaseCollections.orders),
       where('orderNumber', '==', orderNumber.trim().toUpperCase()),
       where('fulfillment', '==', 'physical'),
-      where('status', 'in', ['ready_to_print', 'qa_failed'])
+      where('status', 'in', ['printer_assigned', 'printing', 'qa_failed'])
     )
   );
   const order = snap.docs
@@ -410,7 +410,7 @@ export async function cancelProductionBatch(
     (order): order is Order =>
       order !== null &&
       order.batchId === batchId &&
-      order.status !== 'ready_to_print' &&
+      order.status !== 'printer_assigned' &&
       order.status !== 'qa_failed'
   );
   if (lockedOrders.length > 0) {
@@ -464,7 +464,7 @@ export async function approveOrderForProduction(orderId: string, salesUserId?: s
   if (!order.cardId?.trim()) {
     throw new Error('Order is missing cardId. Create or attach the card before approval.');
   }
-  if (!['new', 'design'].includes(order.status)) {
+  if (order.status !== 'payment_verified') {
     throw new Error(`Cannot approve from status "${order.status}".`);
   }
 
@@ -472,7 +472,7 @@ export async function approveOrderForProduction(orderId: string, salesUserId?: s
 
   const now = new Date().toISOString();
   const payload = withoutUndefined({
-    status: 'ready_to_print' as OrderStatus,
+    status: 'production_approved' as OrderStatus,
     salesApprovedAt: now,
     salesApprovedBy: userId,
     orderNumber: order.orderNumber ?? generateOrderNumber(),
@@ -543,7 +543,7 @@ export async function assignOrderToBatch(
   if (!order.salesApprovedAt) {
     throw new Error('Sales must approve this order before production.');
   }
-  if (order.status !== 'ready_to_print' && order.status !== 'qa_failed') {
+  if (order.status !== 'production_approved' && order.status !== 'qa_failed') {
     throw new Error('Order must be approved and ready for production.');
   }
   if (order.branch && batch.branch && order.branch !== batch.branch) {
@@ -563,8 +563,8 @@ export async function assignOrderToBatch(
 
   const userId = actorId(updatedBy);
   const statusUpdate: Partial<{ status: OrderStatus }> = {};
-  if (canTransitionOrderStatus(order.status, 'ready_to_print')) {
-    statusUpdate.status = 'ready_to_print';
+  if (canTransitionOrderStatus(order.status, 'printer_assigned')) {
+    statusUpdate.status = 'printer_assigned';
   } else if (order.status === 'qa_failed' && canTransitionOrderStatus('qa_failed', 'printing')) {
     statusUpdate.status = 'printing';
   }
@@ -684,7 +684,7 @@ export async function receiveApprovedProductionJob(
   if (order.productionPasscode && order.productionPasscode !== passcode) {
     throw new Error('Production passcode does not match this order.');
   }
-  if (order.status !== 'ready_to_print' && order.status !== 'qa_failed') {
+  if (order.status !== 'production_approved' && order.status !== 'qa_failed') {
     throw new Error('Order is not approved for printer receive.');
   }
   if (input.branch?.trim() && order.branch && order.branch !== input.branch.trim()) {
@@ -912,11 +912,11 @@ export async function markOrderShipped(
 ): Promise<void> {
   const order = await getOrder(orderId);
   if (!order) throw new Error('Order not found.');
-  if (order.status !== 'ready_to_ship' && order.status !== 'ready') {
+  if (order.status !== 'ready_to_ship') {
     throw new Error('Order must be ready to ship.');
   }
   const userId = actorId(updatedBy);
-  const next: OrderStatus = order.status === 'ready' ? 'delivered' : 'shipped';
+  const next: OrderStatus = 'shipped';
   const carrier = input?.carrier?.trim();
   const trackingNumber = input?.trackingNumber?.trim();
   const trackingNote = input?.trackingNote?.trim();
@@ -963,7 +963,7 @@ export async function markOrderShipped(
 export async function markOrderDelivered(orderId: string, updatedBy?: string): Promise<void> {
   const order = await getOrder(orderId);
   if (!order) throw new Error('Order not found.');
-  if (order.status !== 'shipped' && order.status !== 'ready') {
+  if (order.status !== 'shipped') {
     throw new Error('Order must be shipped first.');
   }
   const userId = actorId(updatedBy);
@@ -989,14 +989,14 @@ export async function listOrdersReadyToShip(branch?: string): Promise<Order[]> {
   const snap = await getDocs(
     query(
       collection(db, firebaseCollections.orders),
-      where('status', 'in', ['ready_to_ship', 'ready']),
+      where('status', '==', 'ready_to_ship'),
       firestoreLimit(200)
     )
   );
   return snap.docs
     .map((d) => mapOrder(d.id, d.data() as Record<string, unknown>))
     .filter((o) => {
-      const ready = o.status === 'ready_to_ship' || o.status === 'ready';
+      const ready = o.status === 'ready_to_ship';
       if (!ready) return false;
       if (branch?.trim() && o.branch && o.branch !== branch) return false;
       return true;
@@ -1006,7 +1006,8 @@ export async function listOrdersReadyToShip(branch?: string): Promise<Order[]> {
 
 export async function listProductionLabelOrders(branch?: string): Promise<Order[]> {
   const labelStatuses = new Set<OrderStatus>([
-    'ready_to_print',
+    'production_approved',
+    'printer_assigned',
     'printing',
     'nfc_writing',
     'nfc_verification',
@@ -1110,7 +1111,7 @@ export async function getProductionStats(): Promise<ProductionStatsSnapshot> {
     jobsInQueue: jobs.filter((j) => j.stage === 'received' || j.stage === 'reprint').length,
     qaPending: orders.filter((o) => o.status === 'qa_pending').length,
     qaPassRate: qaDecisionsToday > 0 ? Math.round((qaPassedToday / qaDecisionsToday) * 100) : 100,
-    readyToShip: orders.filter((o) => o.status === 'ready_to_ship' || o.status === 'ready').length,
+    readyToShip: orders.filter((o) => o.status === 'ready_to_ship').length,
     shippedToday: orders.filter((o) => o.status === 'shipped' && o.updatedAt.startsWith(today)).length,
     reprintsToday,
     capturedAt: new Date().toISOString(),
@@ -1270,7 +1271,7 @@ export async function listApprovedPhysicalOrdersForPrinter(branch?: string): Pro
       query(
         collection(db, firebaseCollections.orders),
         where('fulfillment', '==', 'physical'),
-        where('status', 'in', ['ready_to_print', 'qa_failed'])
+        where('status', 'in', ['production_approved', 'qa_failed'])
       )
     );
   } catch (error) {
@@ -1286,7 +1287,7 @@ export async function listApprovedPhysicalOrdersForPrinter(branch?: string): Pro
       if (!isPaymentVerified(o)) return false;
       if (!o.salesApprovedAt) return false;
       if (o.batchId) return false;
-      if (o.status !== 'ready_to_print' && o.status !== 'qa_failed') return false;
+      if (o.status !== 'production_approved' && o.status !== 'qa_failed') return false;
       if (o.cardStatus === 'closed') return false;
       if (branch?.trim() && o.branch && o.branch !== branch) return false;
       return true;

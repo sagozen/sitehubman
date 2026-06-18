@@ -96,6 +96,27 @@ async function main() {
   let orderId;
   const code = cardCode();
   try {
+    await setDoc(doc(db, 'cards', code), {
+      cardId: code,
+      ownerId: adminUid,
+      ownerType: 'customer',
+      userId: adminUid,
+      publicSlug: code,
+      publicProfileUrl: `https://biocloud.app/c/${code}`,
+      status: 'active',
+      designLocked: true,
+      profile: {
+        fullName: `CRUD Test ${RUN_ID}`,
+        phone: `+855900${RUN_ID.slice(-6)}`,
+        email: `crud.${RUN_ID.toLowerCase()}@test.local`,
+      },
+      design: {
+        cardDesign: 'classic_black',
+      },
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
     const ref = await addDoc(collection(db, 'orders'), {
       customerName: `CRUD Test ${RUN_ID}`,
       phone: `+855900${RUN_ID.slice(-6)}`,
@@ -103,9 +124,10 @@ async function main() {
       productType: 'pvc_card',
       quantity: 1,
       cardDesign: 'classic_black',
+      cardId: code,
       cardCode: code,
       profileUrl: `https://biocloud.app/c/${code}`,
-      status: 'new',
+      status: 'pending_payment',
       cardStatus: 'active',
       paymentStatus: 'paid',
       paymentMethod: 'online',
@@ -136,15 +158,15 @@ async function main() {
 
     try {
       await updateDoc(doc(db, 'orders', orderId), {
-        status: 'ready_to_print',
+        status: 'production_approved',
         salesApprovedAt: serverTimestamp(),
         salesApprovedBy: adminUid,
         updatedBy: adminUid,
         updatedAt: serverTimestamp(),
       });
       const snap = await getDoc(doc(db, 'orders', orderId));
-      if (snap.data().status !== 'ready_to_print') throw new Error('status not updated');
-      pass('Orders — UPDATE status', 'ready_to_print');
+      if (snap.data().status !== 'production_approved') throw new Error('status not updated');
+      pass('Orders — UPDATE status', 'production_approved');
     } catch (e) {
       fail('Orders — UPDATE status', e);
     }
@@ -205,6 +227,7 @@ async function main() {
       });
       const jobRef = await addDoc(collection(db, 'printer_jobs'), {
         orderId,
+        cardId: code,
         batchId,
         printerId: '',
         queueNumber: Date.now(),
@@ -295,6 +318,7 @@ async function main() {
   if (orderId) cleaned.push(await tryDelete(doc(db, 'orders', orderId)));
   if (batchId) cleaned.push(await tryDelete(doc(db, 'production_batches', batchId)));
   cleaned.push(await tryDelete(doc(db, 'bio_pages', bioUserId)));
+  cleaned.push(await tryDelete(doc(db, 'cards', code)));
 
   if (cleaned.every(Boolean)) {
     pass('Cleanup — DELETE test docs', 'all removed');

@@ -52,7 +52,7 @@ export function FlippableNfcCard(props: FlippableNfcCardProps) {
   });
 
   return (
-    <Pressable onPress={handleFlip} style={[styles.container, props.style]} activeOpacity={0.95}>
+    <Pressable onPress={handleFlip} style={[styles.container, props.style]}>
       {/* Front */}
       <Animated.View
         style={[

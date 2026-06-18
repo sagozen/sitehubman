@@ -19,6 +19,7 @@ const CLAIM_ROLES = new Set([
   'printer_operator',
   'qa_inspector',
   'shipping',
+  'finance',
   'admin',
   'super_admin',
 ]);
@@ -310,8 +311,8 @@ exports.orderNotificationsMock = onDocumentUpdated(
       });
     }
 
-    // 3. Order Ready to Print
-    if (before.status !== 'ready_to_print' && after.status === 'ready_to_print') {
+    // 3. Order Approved
+    if (before.status !== 'production_approved' && after.status === 'production_approved') {
       logs.push({
         orderId,
         type: 'order_approved',

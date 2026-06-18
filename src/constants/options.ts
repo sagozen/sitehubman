@@ -18,6 +18,7 @@ export const roleOptions: { label: string; value: UserRole }[] = [
   { label: 'Printer', value: 'printer' },
   { label: 'QA Inspector', value: 'qa_inspector' },
   { label: 'Shipping', value: 'shipping' },
+  { label: 'Finance', value: 'finance' },
   { label: 'Customer', value: 'customer' },
 ];
 
@@ -88,18 +89,22 @@ export const orderCardStatusOptions: { label: string; value: OrderCardStatus; co
 ];
 
 export const orderStatusOptions: { label: string; value: OrderStatus; color: string }[] = [
-  { label: 'New', value: 'new', color: theme.status.pending },
-  { label: 'Design', value: 'design', color: theme.status.warning },
-  { label: 'Ready to Print', value: 'ready_to_print', color: theme.status.warning },
-  { label: 'Printing', value: 'printing', color: theme.roles.printer.primary },
-  { label: 'NFC Writing', value: 'nfc_writing', color: theme.roles.printer.primaryDark },
+  { label: 'Draft', value: 'draft', color: theme.colors.secondary },
+  { label: 'Pending Payment', value: 'pending_payment', color: theme.status.warning },
+  { label: 'Payment Submitted', value: 'payment_submitted', color: theme.status.pending },
+  { label: 'Payment Verified', value: 'payment_verified', color: theme.status.info },
+  { label: 'Production Approved', value: 'production_approved', color: theme.status.info },
+  { label: 'Printer Assigned', value: 'printer_assigned', color: theme.roles.printer.primary },
+  { label: 'Printing', value: 'printing', color: theme.roles.printer.primaryDark },
+  { label: 'NFC Writing', value: 'nfc_writing', color: theme.status.info },
   { label: 'NFC Verification', value: 'nfc_verification', color: theme.status.info },
-  { label: 'QA Pending', value: 'qa_pending', color: theme.status.info },
-  { label: 'QA Failed', value: 'qa_failed', color: theme.status.error },
-  { label: 'Ready', value: 'ready', color: theme.status.success },
+  { label: 'QA Pending', value: 'qa_pending', color: theme.status.warning },
   { label: 'Ready to Ship', value: 'ready_to_ship', color: theme.status.success },
   { label: 'Shipped', value: 'shipped', color: theme.status.active },
   { label: 'Delivered', value: 'delivered', color: theme.colors.textPrimary },
+  { label: 'Payment Rejected', value: 'payment_rejected', color: theme.status.error },
+  { label: 'QA Failed', value: 'qa_failed', color: theme.status.error },
+  { label: 'Cancelled', value: 'cancelled', color: theme.status.error },
 ];
 
 export const batchMaterialOptions = [

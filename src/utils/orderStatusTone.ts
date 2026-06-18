@@ -3,13 +3,24 @@ import type { Order, OrderStatus, PaymentStatus, PrinterJob } from '@/src/types/
 export type StatusBadgeTone = 'success' | 'active' | 'warning' | 'error' | 'neutral' | 'pending';
 
 export function orderStatusBadgeTone(status: OrderStatus): StatusBadgeTone {
-  if (status === 'ready' || status === 'ready_to_ship' || status === 'delivered' || status === 'shipped') {
+  if (status === 'delivered' || status === 'ready_to_ship' || status === 'shipped') {
     return 'success';
   }
-  if (status === 'qa_failed') return 'error';
+  if (status === 'qa_failed' || status === 'payment_rejected' || status === 'cancelled') {
+    return 'error';
+  }
   if (status === 'qa_pending') return 'pending';
   if (status === 'printing' || status === 'nfc_writing' || status === 'nfc_verification') return 'active';
-  if (status === 'new' || status === 'design' || status === 'ready_to_print') return 'warning';
+  if (
+    status === 'draft' ||
+    status === 'pending_payment' ||
+    status === 'payment_submitted' ||
+    status === 'payment_verified' ||
+    status === 'production_approved' ||
+    status === 'printer_assigned'
+  ) {
+    return 'warning';
+  }
   return 'neutral';
 }
 

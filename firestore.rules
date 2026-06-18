@@ -55,6 +55,10 @@ service cloud.firestore {
       return role() in ['shipping', 'courier'];
     }
 
+    function isFinance() {
+      return role() == 'finance';
+    }
+
     function isCustomer() {
       return role() in ['customer', 'user', 'guest'];
     }
@@ -105,10 +109,7 @@ service cloud.firestore {
     }
 
     function isStaffRoleValue(value) {
-      return value in [
-        'customer', 'sales', 'agent', 'printer', 'printer_operator',
-        'qa_inspector', 'shipping', 'admin', 'super_admin'
-      ];
+      return value in ['customer', 'sales', 'agent', 'printer', 'printer_operator', 'qa_inspector', 'shipping', 'finance', 'admin', 'super_admin'];
     }
 
     function validSelfUserCreate(userId) {
@@ -292,10 +293,7 @@ service cloud.firestore {
 
     function isProductionReadyOrder(data) {
       return isPhysicalOrder(data)
-        && data.status in [
-          'ready_to_print', 'printing', 'nfc_writing', 'nfc_verification',
-          'qa_pending', 'ready_to_ship', 'qa_failed'
-        ];
+        && data.status in ['printer_assigned', 'printing', 'nfc_writing', 'nfc_verification', 'qa_pending', 'ready_to_ship', 'qa_failed'];
     }
 
     function isApprovedProductionOrder(data) {
@@ -327,10 +325,7 @@ service cloud.firestore {
     }
 
     function validPrinterStage(stage) {
-      return stage in [
-        'received', 'printing', 'nfc_encoding', 'quality_check',
-        'ready_to_ship', 'completed', 'failed', 'reprint'
-      ];
+      return stage in ['received', 'printing', 'nfc_encoding', 'quality_check', 'ready_to_ship', 'completed', 'failed', 'reprint'];
     }
 
     function cardPath(cardId) {
@@ -469,9 +464,7 @@ service cloud.firestore {
           'manualVerificationStatus', 'updatedAt', 'updatedBy'
         ])
         && request.resource.data.paymentStatus == 'under_review'
-        && request.resource.data.manualVerificationStatus in [
-          'proof_submitted', 'reference_submitted'
-        ];
+        && request.resource.data.manualVerificationStatus in ['proof_submitted', 'reference_submitted'];
     }
 
     function isManualPaymentVerificationUpdate() {
@@ -506,6 +499,7 @@ service cloud.firestore {
     match /orders/{orderId} {
       allow read: if isSignedIn() && (
         isAdmin()
+        || isFinance()
         || (isSalesOrAgent() && resource.data.assignedSalesman == request.auth.uid)
         || (isCustomer() && resource.data.createdBy == request.auth.uid)
         || (isPrinter() && sameBranch(resource.data) && isProductionReadyOrder(resource.data))
@@ -525,7 +519,7 @@ service cloud.firestore {
           && customerOwnsOrderCard(request.resource.data)
           && request.resource.data.assignedSalesman != request.auth.uid
           && isAssignedSalesRep(request.resource.data.assignedSalesman)
-          && request.resource.data.status in ['new', 'design', 'ready']
+          && request.resource.data.status in ['draft', 'pending_payment', 'payment_submitted']
           && request.resource.data.paymentStatus in ['unpaid', 'pending_payment']
           && request.resource.data.quantity is int
           && request.resource.data.quantity >= 1
@@ -559,8 +553,8 @@ service cloud.firestore {
                 'status', 'salesApprovedAt', 'salesApprovedBy', 'orderNumber',
                 'productionPasscode', 'updatedAt', 'updatedBy'
               ])
-              && request.resource.data.status == 'ready_to_print'
-              && resource.data.status in ['new', 'design']
+              && request.resource.data.status == 'production_approved'
+              && resource.data.status in ['payment_verified']
               && isPhysicalOrder(resource.data)
               && isPaidOrder(resource.data)
               && ('cardId' in resource.data)
@@ -569,18 +563,30 @@ service cloud.firestore {
               && cardData(resource.data.cardId).publicProfileUrl != ''
               && request.resource.data.salesApprovedBy == request.auth.uid
             )
+            || (
+              onlyChanged([
+                'status', 'paymentStatus', 'manualVerificationStatus', 'paymentVerifiedBy', 'paymentVerifiedAt', 'paidAt', 'updatedAt', 'updatedBy'
+              ])
+              && request.resource.data.status in ['payment_verified', 'payment_rejected']
+              && resource.data.status in ['payment_submitted']
+            )
+            || (
+              onlyChanged([
+                'status', 'batchId', 'updatedAt', 'updatedBy'
+              ])
+              && request.resource.data.status == 'printer_assigned'
+              && resource.data.status in ['production_approved']
+            )
           ))
         || (isPrinter()
           && sameBranch(resource.data)
           && isApprovedProductionOrder(resource.data)
           && (!('cardId' in resource.data) || request.resource.data.cardId == resource.data.cardId)
-          && request.resource.data.status in [
-            'ready_to_print', 'printing', 'nfc_writing', 'nfc_verification', 'qa_pending', 'qa_failed'
-          ]
+          && request.resource.data.status in ['printer_assigned', 'printing', 'nfc_writing', 'nfc_verification', 'qa_pending', 'qa_failed']
           && onlyChanged(['status', 'cardCode', 'profileUrl', 'batchId', 'branch', 'updatedAt', 'updatedBy']))
         || (isPrinter()
           && isScanTestDoc(resource.data)
-          && request.resource.data.status in ['ready_to_print', 'printing']
+          && request.resource.data.status in ['printer_assigned', 'printing']
           && onlyChanged(['status', 'updatedAt', 'updatedBy']))
         || (isQaInspector()
           && sameBranch(resource.data)
@@ -634,18 +640,21 @@ service cloud.firestore {
         || isQaInspector()
         || printerCanReadJob(resource.data)
       );
-      allow create: if isSignedIn()
-        && isApprovedProductionJob(request.resource.data)
-        && validPrinterStage(request.resource.data.stage)
-        && (
-          isAdmin()
-          || isSalesOrAgent()
-          || isQaInspector()
-          || (isPrinter()
-            && sameBranchProductionJob(request.resource.data)
-            && request.resource.data.stage == 'received'
-            && request.resource.data.printerId == '')
-        );
+      allow create: if isSignedIn() && (
+        isAdmin()
+        || (
+          isApprovedProductionJob(request.resource.data)
+          && validPrinterStage(request.resource.data.stage)
+          && (
+            isSalesOrAgent()
+            || isQaInspector()
+            || (isPrinter()
+              && sameBranchProductionJob(request.resource.data)
+              && request.resource.data.stage == 'received'
+              && request.resource.data.printerId == '')
+          )
+        )
+      );
       allow update: if isSignedIn() && (
         isAdmin()
         || isQaInspector()
@@ -721,18 +730,18 @@ service cloud.firestore {
     }
 
     match /salary_records/{recordId} {
-      allow read: if isSignedIn() && (resource.data.printerId == request.auth.uid || isAdmin());
-      allow create, update, delete: if isAdmin();
+      allow read: if isSignedIn() && (resource.data.printerId == request.auth.uid || isAdmin() || isFinance());
+      allow create, update, delete: if isAdmin() || isFinance();
     }
 
     match /payouts/{payoutId} {
-      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if isAdmin() || isShipping();
-      allow update: if isAdmin()
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin() || isFinance());
+      allow create: if isAdmin() || isShipping() || isFinance();
+      allow update: if isAdmin() || isFinance()
         || (isShipping()
           && resource.data.status == 'pending'
           && request.resource.data.status == 'pending');
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() || isFinance();
     }
 
     match /profiles/{profileId} {
@@ -772,19 +781,21 @@ service cloud.firestore {
     match /payment_intents/{intentId} {
       allow read: if isSignedIn() && (
         isAdmin()
+        || isFinance()
         || resource.data.userId == request.auth.uid
       );
       allow write: if false;
     }
 
     match /payment_events/{eventId} {
-      allow read: if isAdmin();
+      allow read: if isAdmin() || isFinance();
       allow write: if false;
     }
 
     match /refunds/{refundId} {
       allow read: if isSignedIn() && (
         isAdmin()
+        || isFinance()
         || (isSalesOrAgent() && resource.data.assignedSalesman == request.auth.uid)
         || resource.data.userId == request.auth.uid
       );
@@ -794,6 +805,7 @@ service cloud.firestore {
     match /invoices/{invoiceId} {
       allow read: if isSignedIn() && (
         isAdmin()
+        || isFinance()
         || resource.data.userId == request.auth.uid
       );
       allow write: if false;
@@ -810,29 +822,29 @@ service cloud.firestore {
     }
 
     match /payments/{paymentId} {
-      allow read: if isAdmin();
-      allow create: if isSignedIn() && (isAdmin() || isSalesOrAgent())
+      allow read: if isAdmin() || isFinance();
+      allow create: if isSignedIn() && (isAdmin() || isSalesOrAgent() || isFinance())
         && request.resource.data.orderId is string
         && request.resource.data.amount is number
         && request.resource.data.confirmedBy == request.auth.uid;
-      allow update, delete: if isAdmin();
+      allow update, delete: if isAdmin() || isFinance();
     }
 
     match /transactions/{transactionId} {
-      allow read: if isAdmin();
-      allow create: if isSignedIn() && (isAdmin() || isSalesOrAgent())
+      allow read: if isAdmin() || isFinance();
+      allow create: if isSignedIn() && (isAdmin() || isSalesOrAgent() || isFinance())
         && request.resource.data.orderId is string
         && request.resource.data.paymentId is string
         && request.resource.data.amount is number
         && request.resource.data.createdBy == request.auth.uid;
-      allow update: if isAdmin()
+      allow update: if (isAdmin() || isFinance())
         && onlyChanged(['settledAt', 'settledBy']);
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() || isFinance();
     }
 
     match /company_wallets/{walletId} {
-      allow read: if isAdmin();
-      allow create, update: if isSignedIn() && (isAdmin() || isSalesOrAgent());
+      allow read: if isAdmin() || isFinance();
+      allow create, update: if isSignedIn() && (isAdmin() || isSalesOrAgent() || isFinance());
       allow delete: if isAdmin();
     }
 

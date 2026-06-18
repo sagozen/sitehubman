@@ -6,15 +6,15 @@ export function isExpoGo(): boolean {
 }
 
 export function getGoogleWebClientId(): string {
-  return process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID?.trim() ?? '';
+  return (process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENTID)?.trim() ?? '';
 }
 
 export function getGoogleIosClientId(): string {
-  return process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID?.trim() ?? '';
+  return (process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENTID)?.trim() ?? '';
 }
 
 export function getGoogleAndroidClientId(): string {
-  return process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID?.trim() ?? '';
+  return (process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENTID)?.trim() ?? '';
 }
 
 function getWebRedirectUri(): string {

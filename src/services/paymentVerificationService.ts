@@ -3,7 +3,7 @@ import { firebaseCollections } from '@/src/constants/collections';
 import { theme } from '@/src/constants/theme';
 import { uploadImageToCloudinary } from '@/src/services/cloudinaryService';
 import { auth, db } from '@/src/services/firebaseClient';
-import type { AppUser, Order, PaymentStatus, UserRole } from '@/src/types/models';
+import type { AppUser, Order, OrderStatus, PaymentStatus, UserRole } from '@/src/types/models';
 import { normalizeRole } from '@/src/utils/authFlow';
 
 type UploadPaymentProofInput = {
@@ -102,6 +102,7 @@ export async function uploadPaymentProof(input: UploadPaymentProofInput): Promis
   await updateDoc(doc(db, firebaseCollections.orders, orderId), {
     paymentProofUrl: uploaded.url,
     paymentProofPath: uploaded.publicId,
+    status: 'payment_submitted' as OrderStatus,
     paymentStatus: 'under_review' satisfies PaymentStatus,
     manualVerificationStatus: 'proof_submitted',
     updatedAt: serverTimestamp(),
@@ -120,6 +121,7 @@ export async function submitPaymentReference(orderId: string, reference: string)
 
   await updateDoc(doc(db, firebaseCollections.orders, trimmedOrderId), {
     paymentReference: trimmedReference,
+    status: 'payment_submitted' as OrderStatus,
     paymentStatus: 'under_review' satisfies PaymentStatus,
     manualVerificationStatus: 'reference_submitted',
     updatedAt: serverTimestamp(),
@@ -146,6 +148,7 @@ export async function verifyPayment(orderId: string, note?: string): Promise<voi
     }
 
     transaction.update(orderRef, {
+      status: 'payment_verified' as OrderStatus,
       paymentStatus: 'paid_verified' satisfies PaymentStatus,
       manualVerificationStatus: 'verified',
       paymentVerifiedBy: userId,
@@ -167,6 +170,7 @@ export async function rejectPayment(orderId: string, reason: string): Promise<vo
   if (!trimmedReason) throw new Error('Rejection reason is required.');
 
   await updateDoc(doc(db, firebaseCollections.orders, trimmedOrderId), {
+    status: 'payment_rejected' as OrderStatus,
     paymentStatus: 'pending_payment' satisfies PaymentStatus,
     manualVerificationStatus: 'rejected',
     paymentVerifiedBy: userId,

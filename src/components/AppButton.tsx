@@ -42,7 +42,6 @@ export function AppButton({
       backgroundColor: colors.primary,
       borderWidth: 0,
       borderColor: 'transparent',
-      ...theme.shadows.control,
     },
     secondary: {
       backgroundColor: colors.surfaceSoft,
@@ -106,7 +105,7 @@ export function AppButton({
 const styles = StyleSheet.create({
   button: {
     minHeight: theme.controlHeight.primary,
-    borderRadius: theme.radius.lg,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: theme.spacing.comfort,
@@ -124,8 +123,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   pressed: {
-    opacity: 0.88,
-    transform: [{ scale: iosDesign.animation.softPressScale }],
+    opacity: 0.72,
+    transform: [{ scale: iosDesign.animation.pressScale }],
   },
   disabled: {
     opacity: 0.5,

@@ -1,10 +1,13 @@
 import { OrderStatus } from '@/src/types/models';
 
-/** Primary linear progression; legacy `ready` uses ORDER_STATUS_TRANSITIONS. */
+/** Primary linear progression. */
 export const ORDER_STATUS_FLOW: OrderStatus[] = [
-  'new',
-  'design',
-  'ready_to_print',
+  'draft',
+  'pending_payment',
+  'payment_submitted',
+  'payment_verified',
+  'production_approved',
+  'printer_assigned',
   'printing',
   'nfc_writing',
   'nfc_verification',
@@ -15,18 +18,21 @@ export const ORDER_STATUS_FLOW: OrderStatus[] = [
 ];
 
 export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  new: ['design'],
-  design: ['ready_to_print', 'printing'],
-  ready_to_print: ['printing'],
-  printing: ['nfc_writing'],
-  nfc_writing: ['nfc_verification', 'qa_pending'],
-  nfc_verification: ['qa_pending'],
-  qa_pending: ['ready_to_ship', 'qa_failed'],
-  qa_failed: ['ready_to_print', 'printing'],
-  ready: ['ready_to_ship', 'delivered'],
-  ready_to_ship: ['shipped'],
-  shipped: ['delivered'],
+  draft: ['pending_payment', 'cancelled'],
+  pending_payment: ['payment_submitted', 'cancelled'],
+  payment_submitted: ['payment_verified', 'payment_rejected', 'cancelled'],
+  payment_verified: ['production_approved', 'cancelled'],
+  production_approved: ['printer_assigned', 'cancelled'],
+  printer_assigned: ['printing', 'cancelled'],
+  printing: ['nfc_writing', 'cancelled'],
+  nfc_writing: ['nfc_verification', 'cancelled'],
+  nfc_verification: ['qa_pending', 'cancelled'],
+  qa_pending: ['ready_to_ship', 'qa_failed', 'cancelled'],
+  ready_to_ship: ['shipped', 'cancelled'],
+  shipped: ['delivered', 'cancelled'],
   delivered: [],
+  payment_rejected: ['payment_submitted', 'cancelled'],
+  qa_failed: ['printing', 'cancelled'],
   cancelled: [],
 };
 
@@ -41,8 +47,8 @@ export function getNextOrderStatus(status: OrderStatus): OrderStatus | null {
   if (index >= 0 && index < ORDER_STATUS_FLOW.length - 1) {
     return ORDER_STATUS_FLOW[index + 1];
   }
-  if (status === 'ready') return 'ready_to_ship';
   if (status === 'qa_failed') return 'printing';
+  if (status === 'payment_rejected') return 'payment_submitted';
   return null;
 }
 

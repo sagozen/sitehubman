@@ -191,7 +191,7 @@ function assertValidJobTransition(current: PrinterJobStage, next: PrinterJobStag
 function orderStatusForStage(stage: PrinterJobStage): OrderStatus | null {
   if (stage === 'printing') return 'printing';
   if (stage === 'nfc_encoding') return 'nfc_writing';
-  if (stage === 'quality_check') return 'qa_pending';
+  if (stage === 'quality_check') return 'nfc_verification';
   if (stage === 'ready_to_ship' || stage === 'completed') return 'ready_to_ship';
   return null;
 }
@@ -377,7 +377,7 @@ export async function createOrder(input: CreateOrderInput): Promise<string> {
     profileUrl,
     companyId: staffCompanyId || undefined,
     branch: resolveOrderBranch(staffBranch),
-    status: (physical ? 'new' : 'ready') as OrderStatus,
+    status: (physical ? 'pending_payment' : 'delivered') as OrderStatus,
     cardStatus: 'active' as OrderCardStatus,
     updatedBy: staffId,
     createdAt: serverTimestamp(),
@@ -481,7 +481,7 @@ export async function createCustomerOrder(input: CreateCustomerOrderInput): Prom
   const cardId = generateCardCode();
   const cardCode = cardId;
   const profileUrl = buildProfileUrl(cardId);
-  const status: OrderStatus = input.fulfillment === 'digital' ? 'ready' : 'new';
+  const status: OrderStatus = input.fulfillment === 'digital' ? 'delivered' : 'pending_payment';
 
   const fulfillment = input.fulfillment;
   const salesUid = await getDefaultSalesUid();
@@ -684,6 +684,41 @@ export async function getOrderByCardCode(cardCode: string): Promise<Order | null
     if (isFirestorePermissionDenied(error)) return null;
     throw error;
   }
+}
+
+export async function findOrderForPrintLookup(input: string): Promise<Order | null> {
+  const raw = input.trim();
+  if (!raw) return null;
+  const normalized = raw.toUpperCase();
+
+  const direct = await getOrder(raw).catch((error) => {
+    if (isFirestorePermissionDenied(error)) return null;
+    throw error;
+  });
+  if (direct) return direct;
+
+  const byOrderNumber = await getOrderByOrderNumber(normalized);
+  if (byOrderNumber) return byOrderNumber;
+
+  const byCardCode = await getOrderByCardCode(normalized);
+  if (byCardCode) return byCardCode;
+
+  const fields: (keyof Pick<Order, 'ownerId' | 'createdBy' | 'cardId'>)[] = ['ownerId', 'createdBy', 'cardId'];
+  for (const field of fields) {
+    try {
+      const snapshot = await getDocs(
+        query(collection(db, firebaseCollections.orders), where(field, '==', raw))
+      );
+      const orders = snapshot.docs.map((d) => mapOrder(d.id, d.data()));
+      const firstPrintable = sortNewestFirst(orders).find((order) => (order.cardStatus ?? 'active') !== 'closed');
+      if (firstPrintable) return firstPrintable;
+    } catch (error) {
+      if (isFirestorePermissionDenied(error)) continue;
+      throw error;
+    }
+  }
+
+  return null;
 }
 
 export async function assignCardCodeToOrder(
@@ -1201,11 +1236,19 @@ export async function saveQaVideo(jobId: string, videoUri: string, updatedBy?: s
   assertNonEmpty(jobId, 'Printer job ID is required.');
   assertNonEmpty(videoUri, 'QA video is required.');
   const remoteUrl = videoUri.startsWith('http') ? videoUri : await uploadQaVideo(jobId, videoUri);
-  await updateDoc(doc(db, firebaseCollections.printerJobs, jobId), {
+  const ref = doc(db, firebaseCollections.printerJobs, jobId);
+  await updateDoc(ref, {
     qaVideoUrl: remoteUrl,
     updatedBy: actorId(updatedBy),
     updatedAt: serverTimestamp(),
   });
+  const jobSnap = await getDoc(ref);
+  if (jobSnap.exists()) {
+    const job = jobSnap.data();
+    if (job.orderId) {
+      await updateOrderStatus(job.orderId, 'qa_pending', updatedBy);
+    }
+  }
 }
 
 export async function saveNfcWrite(payload: {
@@ -1472,6 +1515,10 @@ export async function getBioPage(userId: string): Promise<BioPage | null> {
     instagram: data.instagram,
     telegram: data.telegram,
     email: data.email,
+    website: data.website,
+    linkedin: data.linkedin,
+    twitter: data.twitter,
+    facebook: data.facebook,
     customLinks: data.customLinks ?? [],
     hiddenChannels: Array.isArray(data.hiddenChannels) ? data.hiddenChannels : undefined,
     theme: data.theme ?? 'vibrant_pink',
@@ -1512,6 +1559,10 @@ export async function getPublicBioPageBySlug(slug: string): Promise<BioPage | nu
     instagram: data.instagram,
     telegram: data.telegram,
     email: data.email,
+    website: data.website,
+    linkedin: data.linkedin,
+    twitter: data.twitter,
+    facebook: data.facebook,
     customLinks: data.customLinks ?? [],
     hiddenChannels: Array.isArray(data.hiddenChannels) ? data.hiddenChannels : undefined,
     theme: data.theme ?? 'vibrant_pink',

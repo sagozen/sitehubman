@@ -108,6 +108,20 @@ const capabilities: Record<UserRole, RoleCapability[]> = {
       description: 'Sees ready-to-ship orders for your branch.',
     },
   ],
+  finance: [
+    {
+      title: 'Ledger & Wallets',
+      description: 'Manage revenue, cash on hand, bank balances, and clear sales cash collections.',
+    },
+    {
+      title: 'Invoices & Refunds',
+      description: 'Review payment intents, issue PDF invoices, and trigger customer refunds.',
+    },
+    {
+      title: 'Payroll & Payouts',
+      description: 'Approve salesman commission payouts and printer wages.',
+    },
+  ],
   admin: [
     {
       title: 'Global operations',
@@ -145,6 +159,7 @@ export function getRoleLabel(role: RoleLike) {
   if (role === 'printer') return 'Printer';
   if (role === 'qa_inspector') return 'QA Inspector';
   if (role === 'shipping') return 'Shipping';
+  if (role === 'finance') return 'Finance';
   if (role === 'agent') return 'Sales Agent';
   if (role === 'sales') return 'Sales Rep';
   if (role === 'customer') return 'Customer';
@@ -161,6 +176,7 @@ export function getRoleScopeSummary(role: RoleLike) {
   if (role === 'printer' || role === 'printer_operator') return 'Active batch only — print, NFC encode, no customer edits.';
   if (role === 'qa_inspector') return 'QA pass/fail and reprint requests only.';
   if (role === 'shipping') return 'Ready-to-ship orders and delivery marking.';
+  if (role === 'finance') return 'Manage ledger, wallets, settlements, refunds, invoices, and payouts.';
   if (role === 'agent') return 'Territory-scoped customers, orders, and payouts.';
   if (role === 'sales') return 'Own assigned customers, orders, payouts, and CSV imports.';
   if (role === 'customer') return 'Own profile and customer-facing records.';

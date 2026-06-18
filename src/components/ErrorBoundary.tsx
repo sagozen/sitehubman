@@ -1,6 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { AppText } from '@/src/components/AppText';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { theme } from '@/src/constants/theme';
 
 type Props = {
@@ -35,10 +34,10 @@ export class ErrorBoundary extends Component<Props, State> {
         : 'The app hit a temporary problem. Retry or sign in again if this keeps happening.';
       return (
         <View style={styles.container}>
-          <AppText style={styles.title}>Something went wrong</AppText>
-          <AppText style={styles.message}>{message}</AppText>
+          <Text style={styles.title}>Something went wrong</Text>
+          <Text style={styles.message}>{message}</Text>
           <Pressable style={styles.button} onPress={this.handleRetry}>
-            <AppText style={styles.buttonText}>Try again</AppText>
+            <Text style={styles.buttonText}>Try again</Text>
           </Pressable>
         </View>
       );

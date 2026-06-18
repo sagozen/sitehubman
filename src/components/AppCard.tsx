@@ -1,8 +1,7 @@
 import { PropsWithChildren } from 'react';
 import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
 import { GlassSurface } from '@/src/components/GlassSurface';
-import { glassTheme } from '@/src/design-system/glass';
-import { RoleThemeKey } from '@/src/constants/theme';
+import { RoleThemeKey, theme } from '@/src/constants/theme';
 
 interface AppCardProps {
   role?: RoleThemeKey;
@@ -24,7 +23,7 @@ export function AppCard({
     <GlassSurface
       elevated={elevated}
       intensity={elevated ? 'strong' : 'medium'}
-      borderRadius={glassTheme.radius.card}
+      borderRadius={theme.radius.xl}
       style={style}
       contentStyle={[styles.pad, contentStyle]}
     >
@@ -35,6 +34,6 @@ export function AppCard({
 
 const styles = StyleSheet.create({
   pad: {
-    padding: glassTheme.spacing.cardPad,
+    padding: theme.spacing.comfort,
   },
 });

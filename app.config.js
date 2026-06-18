@@ -41,9 +41,32 @@ for (const key of Object.keys({ ...process.env, ...localEnv })) {
   if (value) expoPublicExtra[key] = value;
 }
 
+const googleIosClientId = readEnv('EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID') || readEnv('EXPO_PUBLIC_GOOGLE_IOS_CLIENTID');
+let reversedIosClientId = '';
+if (googleIosClientId && googleIosClientId.includes('.apps.googleusercontent.com')) {
+  reversedIosClientId = googleIosClientId.split('.').reverse().join('.');
+} else if (googleIosClientId) {
+  reversedIosClientId = googleIosClientId;
+}
+
+const iosConfig = { ...appJson.expo.ios };
+if (reversedIosClientId) {
+  if (!iosConfig.infoPlist) iosConfig.infoPlist = {};
+  if (!iosConfig.infoPlist.CFBundleURLTypes) iosConfig.infoPlist.CFBundleURLTypes = [];
+  const hasScheme = iosConfig.infoPlist.CFBundleURLTypes.some(
+    (type) => type.CFBundleURLSchemes && type.CFBundleURLSchemes.includes(reversedIosClientId)
+  );
+  if (!hasScheme) {
+    iosConfig.infoPlist.CFBundleURLTypes.push({
+      CFBundleURLSchemes: [reversedIosClientId],
+    });
+  }
+}
+
 module.exports = {
   expo: {
     ...appJson.expo,
+    ios: iosConfig,
     extra: {
       ...appJson.expo.extra,
       ...expoPublicExtra,

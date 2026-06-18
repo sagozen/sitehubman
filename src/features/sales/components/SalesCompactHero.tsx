@@ -1,11 +1,7 @@
 import type { ReactNode } from 'react';
 import { ImageSourcePropType, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BrandImage } from '@/src/components/BrandImage';
-import { CloudinaryImage } from '@/src/components/CloudinaryImage';
 import { AppText } from '@/src/components/AppText';
 import type { ProductPhotoId } from '@/src/constants/productPhotoCatalog';
-import { getProductPhotoUrl } from '@/src/constants/productPhotoCatalog';
 import { SquircleIconTile } from '@/src/components/SquircleIconTile';
 
 type HeroActionProps = {
@@ -51,7 +47,7 @@ type SalesCompactHeroProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-/** Payout-style dark summary card — search & bell sit in the top-right. */
+/** Payout-style iOS summary card — search & bell sit in the top-right. */
 export function SalesCompactHero({
   statusLabel = 'Sales Rep · Active',
   headline,
@@ -71,36 +67,16 @@ export function SalesCompactHero({
   style,
 }: SalesCompactHeroProps) {
   const showActions = Boolean(onSearch || onNotifications);
-  const showPhoto = Boolean(photoSource || photoUrl || productPhotoId);
-  const resolvedPhotoUrl = photoUrl?.trim() || (productPhotoId ? getProductPhotoUrl(productPhotoId, 960) : null);
+
+  // Photo props are still accepted for older call sites, but this compact hero
+  // intentionally stays close to Apple Wallet/Settings surfaces.
+  void photoSource;
+  void photoUrl;
+  void productPhotoId;
+  void photoCacheKey;
 
   const body = (
     <View style={styles.cardFill}>
-      {resolvedPhotoUrl ? (
-        <CloudinaryImage
-          uri={resolvedPhotoUrl}
-          width={960}
-          crop="cover"
-          style={StyleSheet.absoluteFill}
-        />
-      ) : photoSource ? (
-        <BrandImage
-          source={photoSource}
-          style={StyleSheet.absoluteFill}
-          contentFit="cover"
-          recyclingKey={photoCacheKey}
-        />
-      ) : null}
-      <LinearGradient
-        colors={
-          showPhoto
-            ? ['rgba(16, 24, 39, 0.9)', 'rgba(26, 26, 46, 0.82)', 'rgba(15, 52, 64, 0.75)']
-            : ['#101827', '#1A1A2E', '#0F3440']
-        }
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
       <View pointerEvents="none" style={styles.topHighlight} />
       <View style={styles.cardContent}>
       <View style={styles.topRow}>
@@ -210,23 +186,18 @@ export function SalesHeroEarningsRow({
 
 export const salesCompactHeroStyles = StyleSheet.create({
   card: {
-    borderRadius: 30,
-    backgroundColor: '#101827',
+    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.18)',
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.2,
-    shadowRadius: 24,
-    elevation: 4,
+    borderColor: 'rgba(60,60,67,0.14)',
   },
   cardFill: {
     overflow: 'hidden',
     position: 'relative',
   },
   cardContent: {
-    padding: 18,
+    padding: 16,
     position: 'relative',
     zIndex: 1,
   },
@@ -239,7 +210,7 @@ export const salesCompactHeroStyles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.42)',
+    backgroundColor: 'rgba(60,60,67,0.10)',
   },
   topRow: {
     flexDirection: 'row',
@@ -255,9 +226,9 @@ export const salesCompactHeroStyles = StyleSheet.create({
     gap: 6,
     alignSelf: 'flex-start',
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.10)',
+    backgroundColor: '#EAF3FF',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.14)',
+    borderColor: 'rgba(0,122,255,0.14)',
     paddingHorizontal: 9,
     paddingVertical: 5,
   },
@@ -270,7 +241,7 @@ export const salesCompactHeroStyles = StyleSheet.create({
   statusText: {
     fontSize: 12,
     fontWeight: '700',
-    color: 'rgba(255,255,255,0.68)',
+    color: '#007AFF',
   },
   actions: {
     flexDirection: 'row',
@@ -303,7 +274,7 @@ export const salesCompactHeroStyles = StyleSheet.create({
     fontSize: 25,
     lineHeight: 29,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: '#000000',
     letterSpacing: 0,
   },
   amount: {
@@ -311,7 +282,7 @@ export const salesCompactHeroStyles = StyleSheet.create({
     fontSize: 42,
     lineHeight: 44,
     fontWeight: '900',
-    color: '#FFFFFF',
+    color: '#000000',
     letterSpacing: 0,
   },
   amountStandalone: {
@@ -321,16 +292,16 @@ export const salesCompactHeroStyles = StyleSheet.create({
     marginTop: 2,
     fontSize: 12,
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.56)',
+    color: '#8E8E93',
   },
   earningsRow: {
     marginTop: 14,
     flexDirection: 'row',
     alignItems: 'stretch',
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.13)',
+    backgroundColor: '#F2F2F7',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.22)',
+    borderColor: 'rgba(60,60,67,0.14)',
     padding: 14,
   },
   earningsCol: {
@@ -346,32 +317,32 @@ export const salesCompactHeroStyles = StyleSheet.create({
   earningsLabel: {
     fontSize: 11,
     fontWeight: '800',
-    color: 'rgba(255,255,255,0.74)',
+    color: '#6E6E73',
   },
   countPill: {
     minWidth: 18,
     height: 18,
     borderRadius: 9,
     paddingHorizontal: 5,
-    backgroundColor: 'rgba(255,255,255,0.24)',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   countPillText: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: '#007AFF',
   },
   earningsAmount: {
     fontSize: 26,
     lineHeight: 28,
     fontWeight: '900',
-    color: '#FFFFFF',
+    color: '#000000',
     letterSpacing: 0,
   },
   earningsDivider: {
     width: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: 'rgba(60,60,67,0.16)',
     marginHorizontal: 12,
     marginVertical: 2,
   },
@@ -386,38 +357,38 @@ export const salesCompactHeroStyles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     fontWeight: '700',
-    color: '#6EE7B7',
+    color: '#007AFF',
   },
   footerPill: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: '#EAF3FF',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.18)',
+    borderColor: 'rgba(0,122,255,0.14)',
   },
   footerPillText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: '#007AFF',
   },
   searchWrap: {
     marginTop: 14,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: '#F2F2F7',
     borderRadius: 14,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(60,60,67,0.14)',
   },
   searchInput: {
     flex: 1,
     fontSize: 14,
     fontWeight: '500',
-    color: '#FFFFFF',
+    color: '#000000',
     padding: 0,
   },
 });

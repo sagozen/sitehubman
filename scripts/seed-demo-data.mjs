@@ -17,7 +17,7 @@ import {
 import {
   getFirestore,
   doc, setDoc, addDoc, collection,
-  getDocs, deleteDoc, Timestamp,
+  getDocs, deleteDoc, Timestamp, getDoc,
 } from 'firebase/firestore';
 import {
   assertFirebaseScriptConfig,
@@ -47,7 +47,22 @@ function cardCode() {
 }
 
 function orderStatusToJobStage(s) {
-  return { new:'queued', design:'queued', printing:'printing', nfc_writing:'nfc_writing', nfc_verification:'nfc_verification', ready:'done', delivered:'done' }[s] ?? 'queued';
+  return {
+    draft: 'received',
+    pending_payment: 'received',
+    payment_submitted: 'received',
+    payment_verified: 'received',
+    production_approved: 'received',
+    printer_assigned: 'received',
+    printing: 'printing',
+    nfc_writing: 'nfc_encoding',
+    nfc_verification: 'quality_check',
+    qa_pending: 'quality_check',
+    qa_failed: 'received',
+    ready_to_ship: 'completed',
+    shipped: 'completed',
+    delivered: 'completed',
+  }[s] ?? 'received';
 }
 
 // ─── Staff ────────────────────────────────────────────────────────────────────
@@ -59,6 +74,7 @@ const STAFF = [
   { email: 'printer2@demo.com', password: DEMO_PASSWORD, displayName: 'Workshop Sothea', role: 'printer', branch: 'Workshop B',    phone: '+855 99 876 543' },
   { email: 'qa@demo.com',       password: DEMO_PASSWORD, displayName: 'Demo QA',         role: 'qa_inspector', branch: 'Workshop A', phone: '+855 22 222 222' },
   { email: 'shipping@demo.com', password: DEMO_PASSWORD, displayName: 'Demo Shipping',   role: 'shipping', branch: 'Workshop A',    phone: '+855 33 333 333' },
+  { email: 'finance@demo.com',  password: DEMO_PASSWORD, displayName: 'Demo Finance',    role: 'finance',  branch: 'Head Office',   phone: '+855 23 888 888' },
   { email: 'customer@demo.com', password: DEMO_PASSWORD, displayName: 'Demo Customer',   role: 'customer', branch: '',              phone: '+855 44 444 444' },
   { email: ADMIN_EMAIL,         password: DEMO_PASSWORD, displayName: 'Manager Demo',    role: 'admin',   branch: 'Head Office',   phone: '+855 23 456 789' },
   { email: 'super@demo.com',    password: DEMO_PASSWORD, displayName: 'Super Admin',     role: 'super_admin', branch: 'Head Office', phone: '+855 23 000 001' },
@@ -70,39 +86,69 @@ const STAFF = [
 const ORDERS = [
   { customerName:'Sok Dara',     phone:'+855 12 111 222', telegram:'@sokdara',    productType:'metal_card', quantity:2, paymentStatus:'paid',    paymentMethod:'online',       status:'delivered',        cardStatus:'closed', priority:'standard', notes:'Gold engraving',          daysAgo:14 },
   { customerName:'Chan Ratha',   phone:'+855 17 333 444', telegram:'@chanratha',  productType:'metal_card', quantity:1, paymentStatus:'partial',  paymentMethod:'deposit',      status:'printing',         cardStatus:'active', priority:'standard', notes:'',                        daysAgo:5  },
-  { customerName:'Lin Veasna',   phone:'+855 11 555 666', telegram:'@linveasna',  productType:'wood_card',  quantity:3, paymentStatus:'unpaid',   paymentMethod:'later_manual', status:'new',              cardStatus:'active', priority:'standard', notes:'Bamboo finish',           daysAgo:1  },
-  { customerName:'Phnom Sokha',  phone:'+855 99 777 888', telegram:'@phnomsokhaa',productType:'wood_card',  quantity:1, paymentStatus:'paid',    paymentMethod:'online',       status:'ready',            priority:'urgent',   notes:'Rush — event Friday',     daysAgo:3  },
+  { customerName:'Lin Veasna',   phone:'+855 11 555 666', telegram:'@linveasna',  productType:'wood_card',  quantity:3, paymentStatus:'unpaid',   paymentMethod:'later_manual', status:'pending_payment',  cardStatus:'active', priority:'standard', notes:'Bamboo finish',           daysAgo:1  },
+  { customerName:'Phnom Sokha',  phone:'+855 99 777 888', telegram:'@phnomsokhaa',productType:'wood_card',  quantity:1, paymentStatus:'paid',    paymentMethod:'online',       status:'ready_to_ship',    priority:'urgent',   notes:'Rush — event Friday',     daysAgo:3  },
   { customerName:'Keo Bopha',    phone:'+855 12 999 000', telegram:'@keobopha',   productType:'pvc_card',   quantity:5, paymentStatus:'paid',    paymentMethod:'paid',         status:'nfc_verification', cardStatus:'active', priority:'standard', notes:'Corporate bulk',          daysAgo:4  },
   { customerName:'Meas Chanthy', phone:'+855 17 123 456', telegram:'@measc',      productType:'metal_card', quantity:1, paymentStatus:'paid',    paymentMethod:'online',       status:'nfc_writing',      cardStatus:'active', priority:'urgent',   notes:'',                        daysAgo:2  },
-  { customerName:'Heng Piseth',  phone:'+855 11 234 567', telegram:'@hengp',      productType:'wood_card',  quantity:2, paymentStatus:'partial',  paymentMethod:'deposit',      status:'design',           cardStatus:'frozen', freezeReason:'Waiting for customer logo approval', priority:'standard', notes:'Custom logo on front',    daysAgo:6  },
+  { customerName:'Heng Piseth',  phone:'+855 11 234 567', telegram:'@hengp',      productType:'wood_card',  quantity:2, paymentStatus:'partial',  paymentMethod:'deposit',      status:'draft',            cardStatus:'frozen', freezeReason:'Waiting for customer logo approval', priority:'standard', notes:'Custom logo on front',    daysAgo:6  },
   { customerName:'Noun Sreymom', phone:'+855 99 345 678', telegram:'@sreymom',    productType:'pvc_card',   quantity:10,paymentStatus:'paid',    paymentMethod:'paid',         status:'delivered',        cardStatus:'closed', priority:'standard', notes:'School event cards',      daysAgo:20 },
-  { customerName:'Tep Kosal',    phone:'+855 12 456 789', telegram:'@tepkosal',   productType:'metal_card', quantity:1, paymentStatus:'unpaid',   paymentMethod:'later_manual', status:'new',              cardStatus:'active', priority:'standard', notes:'',                        daysAgo:0  },
+  { customerName:'Tep Kosal',    phone:'+855 12 456 789', telegram:'@tepkosal',   productType:'metal_card', quantity:1, paymentStatus:'unpaid',   paymentMethod:'later_manual', status:'pending_payment',  cardStatus:'active', priority:'standard', notes:'',                        daysAgo:0  },
   { customerName:'Ros Sreynich', phone:'+855 17 567 890', telegram:'@rossrey',    productType:'wood_card',  quantity:1, paymentStatus:'paid',    paymentMethod:'online',       status:'printing',         priority:'urgent',   notes:'Urgent — wedding gift',   daysAgo:1  },
-  { customerName:'Chhun Dara',   phone:'+855 11 678 901', telegram:'@chhundara',  productType:'pvc_card',   quantity:3, paymentStatus:'paid',    paymentMethod:'paid',         status:'ready',            cardStatus:'active', priority:'standard', notes:'',                        daysAgo:7  },
+  { customerName:'Chhun Dara',   phone:'+855 11 678 901', telegram:'@chhundara',  productType:'pvc_card',   quantity:3, paymentStatus:'paid',    paymentMethod:'paid',         status:'ready_to_ship',    cardStatus:'active', priority:'standard', notes:'',                        daysAgo:7  },
   { customerName:'Sar Kimheng',  phone:'+855 99 789 012', telegram:'@sarkimheng', productType:'metal_card', quantity:2, paymentStatus:'partial',  paymentMethod:'deposit',      status:'nfc_writing',      cardStatus:'active', priority:'standard', notes:'Mirror finish',           daysAgo:3  },
 ];
 
 // ─── Ensure user ──────────────────────────────────────────────────────────────
 
-async function ensureUser(staff) {
+async function ensureUserAuth(staff) {
   let uid;
   try {
     const cred = await createUserWithEmailAndPassword(auth, staff.email, staff.password);
     uid = cred.user.uid;
-    console.log(`  ✅ Created: ${staff.email}`);
+    console.log(`  ✅ Created auth: ${staff.email}`);
   } catch (err) {
     if (err.code === 'auth/email-already-in-use') {
       const cred = await signInWithEmailAndPassword(auth, staff.email, staff.password);
       uid = cred.user.uid;
-      console.log(`  ♻️  Exists:  ${staff.email} (uid: ${uid.slice(0,8)}…)`);
+      console.log(`  ♻️  Exists auth:  ${staff.email} (uid: ${uid.slice(0,8)}…)`);
     } else throw err;
   }
-  await setDoc(doc(db, 'users', uid), {
-    email: staff.email, displayName: staff.displayName, role: staff.role,
-    branch: staff.branch, phone: staff.phone, language: 'en', isActive: true,
-    createdAt: daysAgo(30), updatedAt: daysAgo(0),
-  }, { merge: true });
   return uid;
+}
+
+async function writeUserProfile(staff, uid) {
+  const userRef = doc(db, 'users', uid);
+  const userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) {
+    await setDoc(userRef, {
+      email: staff.email,
+      displayName: staff.displayName,
+      role: staff.role,
+      branch: staff.branch,
+      phone: staff.phone,
+      language: 'en',
+      isActive: true,
+      createdAt: daysAgo(30),
+      updatedAt: daysAgo(0),
+      createdBy: uid,
+      updatedBy: uid,
+    });
+    console.log(`  📝 Created profile: ${staff.email}`);
+  } else {
+    await setDoc(userRef, {
+      email: staff.email,
+      displayName: staff.displayName,
+      role: staff.role,
+      branch: staff.branch,
+      phone: staff.phone,
+      language: 'en',
+      isActive: true,
+      updatedAt: daysAgo(0),
+      updatedBy: uid,
+    }, { merge: true });
+    console.log(`  📝 Updated profile: ${staff.email}`);
+  }
 }
 
 // ─── Seed ─────────────────────────────────────────────────────────────────────
@@ -111,9 +157,49 @@ async function seedDemoData() {
   console.log('\n🌱 Seeding SITEHUB demo data…\n');
 
   // 1. Create/get all staff UIDs
-  console.log('👥 Staff accounts…');
+  console.log('👥 Staff accounts Auth…');
   const uids = {};
-  for (const s of STAFF) uids[s.email] = await ensureUser(s);
+  for (const s of STAFF) {
+    uids[s.email] = await ensureUserAuth(s);
+  }
+
+  // 2. Sign in as Super Admin to write all Firestore user profiles
+  console.log('\n🔑 Signing in as super admin to write Firestore profiles…');
+  let signedIn = false;
+
+  try {
+    await signInWithEmailAndPassword(auth, 'super@demo.com', DEMO_PASSWORD);
+    signedIn = true;
+    console.log('  ✅ Signed in as super@demo.com');
+  } catch (err) {
+    console.warn(`  ⚠️ Warning: Could not sign in as super@demo.com (${err.message})`);
+  }
+
+  if (!signedIn) {
+    try {
+      const superEmail = demoCredentials.superAdminEmail;
+      const superPassword = demoCredentials.superAdminPassword || DEMO_PASSWORD;
+      await signInWithEmailAndPassword(auth, superEmail, superPassword);
+      signedIn = true;
+      console.log(`  ✅ Signed in as ${superEmail}`);
+    } catch (err) {
+      console.warn(`  ⚠️ Warning: Could not sign in as ${demoCredentials.superAdminEmail} (${err.message})`);
+    }
+  }
+
+  if (!signedIn) {
+    try {
+      await signInWithEmailAndPassword(auth, ADMIN_EMAIL, DEMO_PASSWORD);
+      signedIn = true;
+      console.log(`  ✅ Signed in as admin@demo.com`);
+    } catch (adminErr) {
+      console.warn(`  ⚠️ Warning: Could not sign in as admin@demo.com (${adminErr.message}). Attempting profile writes anyway.`);
+    }
+  }
+
+  for (const s of STAFF) {
+    await writeUserProfile(s, uids[s.email]);
+  }
 
   const salesmanId  = uids['sales@demo.com'];
   const salesman2Id = uids['sales2@demo.com'];
@@ -139,8 +225,14 @@ async function seedDemoData() {
     console.log('   Generate or rotate it from Admin Settings, or set PAYMENT_SANDBOX_SECRET in .env for smoke tests.');
   }
 
-  // 2. Sign in as admin to write orders/jobs (bypasses rules)
-  await signInWithEmailAndPassword(auth, ADMIN_EMAIL, DEMO_PASSWORD);
+  // 3. Sign in as super admin to write orders/jobs (bypasses rules)
+  try {
+    await signInWithEmailAndPassword(auth, 'super@demo.com', DEMO_PASSWORD);
+    console.log('\n🔑 Signed in as super@demo.com for orders/jobs creation…');
+  } catch (err) {
+    console.warn(`⚠️ Warning: Could not sign in as super@demo.com (${err.message}). Falling back to regular admin.`);
+    await signInWithEmailAndPassword(auth, ADMIN_EMAIL, DEMO_PASSWORD);
+  }
   console.log('\n📦 Creating orders + printer jobs…');
 
   for (let i = 0; i < ORDERS.length; i++) {
@@ -191,7 +283,7 @@ async function seedDemoData() {
       createdAt: daysAgo(t.daysAgo), updatedAt: daysAgo(Math.max(0, t.daysAgo - 1)),
     });
 
-    if (['nfc_writing','nfc_verification','ready','delivered'].includes(t.status)) {
+    if (['nfc_writing','nfc_verification','qa_pending','ready_to_ship','shipped','delivered'].includes(t.status)) {
       await setDoc(doc(db, 'nfc_cards', code), {
         chipUID: `UID-${code}-${Math.random().toString(36).slice(2,8).toUpperCase()}`,
         profileUrl, orderId: orderRef.id, cardCode: code,

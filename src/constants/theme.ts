@@ -46,7 +46,7 @@ export const theme = {
     charcoal: iosPalette.light.charcoal,
     warning: '#FF9500',
     danger: '#FF3B30',
-    success: premiumPalette.accent,
+    success: premiumPalette.systemGreen,
     info: premiumPalette.systemBlue,
     pending: iosPalette.light.iconInactive,
   },
@@ -61,7 +61,7 @@ export const theme = {
     control: iosDesign.shadows.control satisfies ViewStyle,
   },
   status: {
-    success: premiumPalette.accent,
+    success: premiumPalette.systemGreen,
     active: premiumPalette.systemBlue,
     warning: '#FF9500',
     error: '#FF3B30',

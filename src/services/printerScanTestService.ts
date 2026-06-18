@@ -35,7 +35,7 @@ export function isPrinterScanTestCardCode(code: string) {
 }
 
 export function displayTestOrderStatus(status: OrderStatus): string {
-  if (status === 'ready_to_print') return 'Pending';
+  if (status === 'printer_assigned') return 'Pending';
   if (status === 'printing') return 'Printed';
   return status.replace(/_/g, ' ');
 }
@@ -117,7 +117,7 @@ export async function createPrinterScanTestJob(
       fulfillment: 'physical',
       paymentStatus: 'paid',
       paymentMethod: 'test',
-      status: 'ready_to_print' satisfies OrderStatus,
+      status: 'printer_assigned' satisfies OrderStatus,
       batchId: TEST_BATCH_DOC_ID,
       branch: workshopBranch,
       salesApprovedAt: new Date().toISOString(),
@@ -224,7 +224,7 @@ export async function resetPrinterScanTestJob(jobId: string, operatorId?: string
 
   if (job.orderId) {
     await updateDoc(doc(db, firebaseCollections.orders, job.orderId), {
-      status: 'ready_to_print',
+      status: 'printer_assigned',
       updatedBy: userId,
       updatedAt: serverTimestamp(),
     });

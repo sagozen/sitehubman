@@ -7,6 +7,7 @@ export type UserRole =
   | 'printer_operator'
   | 'qa_inspector'
   | 'shipping'
+  | 'finance'
   | 'admin'
   | 'super_admin';
 
@@ -52,18 +53,21 @@ export interface Lead {
 // Order
 
 export type OrderStatus =
-  | 'new'
-  | 'design'
-  | 'ready_to_print'
+  | 'draft'
+  | 'pending_payment'
+  | 'payment_submitted'
+  | 'payment_verified'
+  | 'production_approved'
+  | 'printer_assigned'
   | 'printing'
   | 'nfc_writing'
   | 'nfc_verification'
   | 'qa_pending'
-  | 'qa_failed'
-  | 'ready'
   | 'ready_to_ship'
   | 'shipped'
   | 'delivered'
+  | 'payment_rejected'
+  | 'qa_failed'
   | 'cancelled';
 
 export type PaymentStatus =
@@ -533,6 +537,10 @@ export interface BioPage {
   instagram?: string;
   telegram?: string;
   email?: string;
+  website?: string;
+  linkedin?: string;
+  twitter?: string;
+  facebook?: string;
   customLinks: { label: string; url: string }[];
   /** Channel ids hidden on the public profile (stored on bio_pages - no separate collection). */
   hiddenChannels?: string[];

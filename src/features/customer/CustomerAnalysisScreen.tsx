@@ -11,11 +11,12 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { useCustomerConnections } from '@/src/hooks/useCustomerConnections';
 import { formatRelative } from '@/src/services/customerConnectionsService';
 
-const BRAND = '#2596BE';
-const INK = '#111111';
+const BRAND = '#007AFF';
+const INK = '#000000';
 const MUTED = '#8E8E93';
-const BG = '#F5F5F7';
+const BG = '#F2F2F7';
 const SURFACE = '#FFFFFF';
+const BORDER = 'rgba(60,60,67,0.14)';
 
 export function CustomerAnalysisScreen() {
   const { user } = useAuth();
@@ -42,8 +43,8 @@ export function CustomerAnalysisScreen() {
       >
         <View style={styles.header}>
           <View style={styles.headerCopy}>
-            <AppText style={styles.kicker}>Analysis</AppText>
-            <AppText style={styles.title}>Your identity performance.</AppText>
+            <AppText style={styles.title}>Activity</AppText>
+            <AppText style={styles.subtitle}>Profile views, NFC taps, and QR scans across your card network.</AppText>
           </View>
           <Pressable onPress={() => router.push(appRoutes.studio as any)} style={({ pressed }) => [styles.studioBtn, pressed && styles.pressed]}>
             <AppIcon name="Sparkles" size={20} color={BRAND} />
@@ -68,8 +69,11 @@ export function CustomerAnalysisScreen() {
         ) : (
           <>
             <View style={styles.heroMetric}>
+              <View style={styles.heroIcon}>
+                <AppIcon name="TrendingUp" size={22} color={BRAND} />
+              </View>
               <AppText style={styles.heroNumber}>{totalSignals}</AppText>
-              <AppText style={styles.heroLabel}>identity signals</AppText>
+              <AppText style={styles.heroLabel}>Total interactions</AppText>
               <AppText style={styles.heroSub}>{lastActivity}</AppText>
             </View>
 
@@ -140,12 +144,12 @@ function AssetRow({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG },
-  content: { paddingHorizontal: 24, paddingTop: 14, paddingBottom: 120, gap: 24 },
+  content: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 120, gap: 22 },
   header: { flexDirection: 'row', alignItems: 'flex-start', gap: 18 },
-  headerCopy: { flex: 1, gap: 8 },
-  kicker: { fontSize: 13, fontWeight: '800', color: BRAND },
-  title: { fontSize: 40, lineHeight: 43, fontWeight: '900', color: INK, letterSpacing: 0 },
-  studioBtn: { width: 46, height: 46, borderRadius: 23, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center' },
+  headerCopy: { flex: 1, gap: 6 },
+  title: { fontSize: 42, lineHeight: 46, fontWeight: '900', color: INK, letterSpacing: 0 },
+  subtitle: { fontSize: 16, lineHeight: 22, fontWeight: '600', color: MUTED },
+  studioBtn: { width: 46, height: 46, borderRadius: 23, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: BORDER },
   cardWrap: {
     borderRadius: 24,
     overflow: 'hidden',
@@ -158,24 +162,25 @@ const styles = StyleSheet.create({
   center: { alignItems: 'center', gap: 10, paddingVertical: 40 },
   muted: { fontSize: 13, fontWeight: '700', color: MUTED },
   errorText: { color: '#FF3B30', fontWeight: '800', textAlign: 'center' },
-  heroMetric: { backgroundColor: SURFACE, borderRadius: 24, padding: 24, gap: 4 },
-  heroNumber: { fontSize: 64, lineHeight: 68, fontWeight: '900', color: INK, letterSpacing: 0 },
+  heroMetric: { backgroundColor: SURFACE, borderRadius: 26, padding: 24, gap: 5, borderWidth: StyleSheet.hairlineWidth, borderColor: BORDER },
+  heroIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#EAF3FF', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  heroNumber: { fontSize: 68, lineHeight: 72, fontWeight: '900', color: INK, letterSpacing: 0 },
   heroLabel: { fontSize: 18, fontWeight: '900', color: INK },
   heroSub: { fontSize: 13, fontWeight: '700', color: MUTED },
   metricGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  metric: { width: '48%', backgroundColor: SURFACE, borderRadius: 24, padding: 20, gap: 6 },
+  metric: { width: '48%', backgroundColor: SURFACE, borderRadius: 22, padding: 20, gap: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: BORDER },
   metricValue: { fontSize: 34, fontWeight: '900', color: INK },
   metricLabel: { fontSize: 13, fontWeight: '700', color: MUTED },
   section: { gap: 14 },
   sectionTitle: { fontSize: 22, fontWeight: '900', color: INK },
-  funnel: { backgroundColor: SURFACE, borderRadius: 24, padding: 20, gap: 18 },
+  funnel: { backgroundColor: SURFACE, borderRadius: 24, padding: 20, gap: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: BORDER },
   funnelRow: { gap: 8 },
   funnelHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   funnelLabel: { fontSize: 15, fontWeight: '800', color: INK },
   funnelValue: { fontSize: 13, fontWeight: '800', color: MUTED },
   track: { height: 8, borderRadius: 4, backgroundColor: '#ECECEF', overflow: 'hidden' },
   fill: { height: 8, borderRadius: 4, backgroundColor: BRAND },
-  assetList: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden' },
+  assetList: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: BORDER },
   assetRow: {
     minHeight: 58,
     paddingHorizontal: 18,

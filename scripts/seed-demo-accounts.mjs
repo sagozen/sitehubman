@@ -20,6 +20,7 @@ const demoAccounts = [
   { email: 'sales@demo.com',    password: DEMO_PASSWORD, displayName: 'Demo Sales',    role: 'sales' },
   { email: 'printer@demo.com',  password: DEMO_PASSWORD, displayName: 'Demo Printer',  role: 'printer' },
   { email: 'customer@demo.com', password: DEMO_PASSWORD, displayName: 'Demo Customer', role: 'customer' },
+  { email: 'finance@demo.com',   password: DEMO_PASSWORD, displayName: 'Demo Finance',  role: 'finance' },
   { email: ADMIN_EMAIL,         password: DEMO_PASSWORD, displayName: 'Demo Admin',    role: 'admin' },
   { email: 'super@demo.com',    password: DEMO_PASSWORD, displayName: 'Super Admin',   role: 'super_admin' },
 ];

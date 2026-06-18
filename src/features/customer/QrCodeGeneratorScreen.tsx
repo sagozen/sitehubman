@@ -2,7 +2,6 @@ import { IosScrollView } from '@/src/components/IosScrollView';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View , Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
@@ -11,13 +10,13 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { getBioPage } from '@/src/services/firestoreService';
 import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 
-const BRAND = '#2596BE';
-const BRAND_DARK = '#1A7FAA';
-const INK = '#0A0A0F';
+const BRAND = '#007AFF';
+const INK = '#000000';
 const INK2 = '#1C1C1E';
 const MUTED = '#8E8E93';
-const BG = '#F5F5F7';
+const BG = '#F2F2F7';
 const SURFACE = '#FFFFFF';
+const BORDER = 'rgba(60,60,67,0.14)';
 
 export function QrCodeGeneratorScreen() {
   const { user } = useAuth();
@@ -53,7 +52,7 @@ export function QrCodeGeneratorScreen() {
         {/* Header */}
         <View style={s.header}>
           <AppText style={s.title}>QR Code</AppText>
-          <AppText style={s.subtitle}>Share your digital card</AppText>
+          <AppText style={s.subtitle}>A scannable backup for every NFC card.</AppText>
         </View>
 
         {loading ? (
@@ -63,16 +62,11 @@ export function QrCodeGeneratorScreen() {
           </View>
         ) : profileUrl ? (
           <>
-            {/* QR card */}
             <View style={s.qrCard}>
-              {/* Top brand band */}
-              <LinearGradient
-                colors={[BRAND_DARK, BRAND, '#4DB8D8']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={s.qrBand}
-              />
               <View style={s.qrInner}>
+                <View style={s.qrTopIcon}>
+                  <AppIcon name="QrCode" size={22} color={BRAND} />
+                </View>
                 <View style={s.qrWrap}>
                   <QRCode
                     value={profileUrl}
@@ -89,25 +83,17 @@ export function QrCodeGeneratorScreen() {
               </View>
             </View>
 
-            {/* Actions */}
             <View style={s.actions}>
               <Pressable
                 onPress={() => void handleShare()}
                 style={({ pressed }) => [s.shareBtn, pressed && s.pressed]}
                 accessibilityRole="button"
               >
-                <LinearGradient
-                  colors={[BRAND_DARK, BRAND]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={StyleSheet.absoluteFill}
-                />
                 <AppIcon name="Share" size={20} color="#FFFFFF" />
                 <AppText style={s.shareBtnT}>Share Link</AppText>
               </Pressable>
             </View>
 
-            {/* Info */}
             <View style={s.infoCard}>
               {[
                 { icon: 'Nfc' as const, title: 'NFC + QR on every card', sub: 'QR works everywhere NFC is unavailable' },
@@ -138,69 +124,55 @@ export function QrCodeGeneratorScreen() {
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG },
-  content: { padding: 20, gap: 20, paddingBottom: 100 },
-  header: { gap: 3 },
-  title: { fontSize: 28, fontWeight: '900', color: INK, letterSpacing: -0.8, fontFamily: 'Inter_900Black' },
-  subtitle: { fontSize: 13, fontWeight: '500', color: MUTED, fontFamily: 'Inter_500Medium' },
+  content: { padding: 22, gap: 22, paddingBottom: 100 },
+  header: { gap: 6 },
+  title: { fontSize: 42, lineHeight: 46, fontWeight: '900', color: INK, letterSpacing: 0 },
+  subtitle: { fontSize: 16, lineHeight: 22, fontWeight: '600', color: MUTED },
   center: { alignItems: 'center', gap: 12, paddingVertical: 40 },
   loadingT: { fontSize: 13, fontWeight: '500', color: MUTED },
   qrCard: {
     backgroundColor: SURFACE,
-    borderRadius: 24,
+    borderRadius: 28,
     overflow: 'hidden',
-    shadowColor: INK,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: BORDER,
   },
-  qrBand: { height: 6 },
-  qrInner: { padding: 28, alignItems: 'center', gap: 14 },
+  qrInner: { padding: 28, alignItems: 'center', gap: 16 },
+  qrTopIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#EAF3FF', alignItems: 'center', justifyContent: 'center' },
   qrWrap: {
     padding: 16,
     backgroundColor: SURFACE,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    borderRadius: 22,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: BORDER,
   },
-  qrLabel: { fontSize: 16, fontWeight: '800', color: INK2, letterSpacing: -0.3, fontFamily: 'Inter_800ExtraBold' },
-  qrUrl: { fontSize: 11, fontWeight: '500', color: MUTED, textAlign: 'center', maxWidth: 260, fontFamily: 'Inter_500Medium' },
+  qrLabel: { fontSize: 18, fontWeight: '900', color: INK2, letterSpacing: 0 },
+  qrUrl: { fontSize: 12, fontWeight: '600', color: MUTED, textAlign: 'center', maxWidth: 280, lineHeight: 17 },
   actions: { gap: 10 },
   shareBtn: {
     height: 54,
     borderRadius: 16,
+    backgroundColor: BRAND,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    overflow: 'hidden',
-    shadowColor: BRAND,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.28,
-    shadowRadius: 18,
-    elevation: 6,
   },
-  shareBtnT: { fontSize: 17, fontWeight: '800', color: '#FFFFFF', fontFamily: 'Inter_800ExtraBold' },
+  shareBtnT: { fontSize: 17, fontWeight: '800', color: '#FFFFFF' },
   pressed: { opacity: 0.82, transform: [{ scale: 0.98 }] },
   infoCard: {
     backgroundColor: SURFACE,
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.07,
-    shadowRadius: 14,
-    elevation: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: BORDER,
   },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16 },
-  infoRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(0,0,0,0.05)' },
+  infoRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: BORDER },
   infoCopy: { flex: 1, gap: 2 },
-  infoTitle: { fontSize: 14, fontWeight: '700', color: INK2, fontFamily: 'Inter_700Bold' },
+  infoTitle: { fontSize: 15, fontWeight: '800', color: INK2 },
   infoSub: { fontSize: 12, fontWeight: '500', color: MUTED },
-  emptyCard: { backgroundColor: SURFACE, borderRadius: 20, padding: 32, alignItems: 'center', gap: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 14, elevation: 3 },
-  emptyTitle: { fontSize: 18, fontWeight: '800', color: INK2, fontFamily: 'Inter_800ExtraBold' },
+  emptyCard: { backgroundColor: SURFACE, borderRadius: 24, padding: 32, alignItems: 'center', gap: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: BORDER },
+  emptyTitle: { fontSize: 18, fontWeight: '800', color: INK2 },
   emptySub: { fontSize: 13, fontWeight: '500', color: MUTED, textAlign: 'center', lineHeight: 18 },
 });

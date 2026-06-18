@@ -1,5 +1,5 @@
 /**
- * PublicBioScreen — HiHello/Taplink-style public profile.
+ * PublicBioScreen — public NFC profile.
  * Opened when someone taps an NFC card (/c/[cardId]) or scans a QR (/p/[slug]).
  * Tracks every view and tap automatically.
  */
@@ -16,7 +16,6 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
@@ -30,7 +29,7 @@ import { trackPublicBioTap, trackPublicBioView } from '@/src/services/firestoreS
 import type { BioPage } from '@/src/types/models';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
-import { getSocialAvatar, getInitialsAvatar } from '@/src/utils/socialMediaAvatars';
+import { getSocialAvatar } from '@/src/utils/socialMediaAvatars';
 
 interface Props {
   slug?: string;
@@ -162,14 +161,15 @@ const lb = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    paddingVertical: 14,
+    borderRadius: 18,
+    minHeight: 64,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 1,
   },
   pressed: { opacity: 0.75, transform: [{ scale: 0.98 }] },
   icon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
@@ -324,16 +324,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
   }
 
   // ── Accent color from theme ────────────────────────────────────────────────
-  const accentMap: Record<string, string> = {
-    vibrant_pink: '#E91E8C',
-    ocean_blue: '#2596BE',
-    midnight: '#6366F1',
-    forest: '#059669',
-    sunset: '#F59E0B',
-    rose: '#F43F5E',
-    default: '#2596BE',
-  };
-  const accent = accentMap[bioPage.theme ?? 'default'] ?? '#2596BE';
+  const accent = '#007AFF';
   // Collect social links with real avatars
   const socialLinks = SOCIALS.flatMap((s) => {
     const val = (bioPage as unknown as Record<string, unknown>)[s.key] as string | undefined;
@@ -345,13 +336,6 @@ export function PublicBioScreen({ slug, cardId }: Props) {
 
   return (
     <View style={styles.root}>
-      {/* Full-bleed gradient background */}
-      <LinearGradient
-        colors={[`${accent}28`, `${accent}08`, '#F5F5F7']}
-        locations={[0, 0.35, 1]}
-        style={StyleSheet.absoluteFill}
-      />
-
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
         {/* ── Top bar ── */}
         <View style={styles.topBar}>
@@ -366,7 +350,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
         <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
           {/* ── Hero ── */}
-          <View style={styles.hero}>
+          <View style={styles.heroCard}>
             <View style={[styles.avatarRing, { borderColor: `${accent}40` }]}>
               <ProfileAvatar name={bioPage.displayName} photoUrl={bioPage.photoUrl} accent={accent} size={96} />
             </View>
@@ -455,16 +439,16 @@ export function PublicBioScreen({ slug, cardId }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F5F5F7' },
+  root: { flex: 1, backgroundColor: '#F2F2F7' },
   safe: { flex: 1 },
-  scroll: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 80, gap: 16, alignItems: 'stretch' },
+  scroll: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 80, gap: 14, alignItems: 'stretch' },
 
   // Loading
-  loadingCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, backgroundColor: '#F5F5F7' },
+  loadingCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, backgroundColor: '#F2F2F7' },
   loadingText: { fontSize: 14, fontWeight: '600', color: '#8E8E93' },
 
   // Not found
-  notFoundSafe: { flex: 1, backgroundColor: '#F5F5F7' },
+  notFoundSafe: { flex: 1, backgroundColor: '#F2F2F7' },
   notFoundCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 32 },
   notFoundTitle: { fontSize: 20, fontWeight: '800', color: '#1C1C1E' },
   notFoundSub: { fontSize: 14, fontWeight: '500', color: '#8E8E93', textAlign: 'center' },
@@ -473,15 +457,28 @@ const styles = StyleSheet.create({
 
   // Top bar
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10 },
-  topBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(255,255,255,0.85)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6, elevation: 3 },
+  topBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
 
   // Hero
-  hero: { alignItems: 'center', gap: 8, paddingTop: 8 },
+  heroCard: {
+    alignItems: 'center',
+    gap: 9,
+    paddingTop: 24,
+    paddingBottom: 22,
+    paddingHorizontal: 20,
+    borderRadius: 28,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.05,
+    shadowRadius: 16,
+    elevation: 2,
+  },
   avatarRing: { borderWidth: 3, borderRadius: 54, padding: 3 },
-  name: { fontSize: 28, fontWeight: '900', color: '#0A0A0F', letterSpacing: -0.6, textAlign: 'center' },
+  name: { fontSize: 30, fontWeight: '900', color: '#000000', letterSpacing: 0, textAlign: 'center' },
   tagline: { fontSize: 14, fontWeight: '500', color: '#8E8E93', textAlign: 'center', lineHeight: 20, maxWidth: 280 },
   statRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
-  statPill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.9)', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 },
+  statPill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: '#F2F2F7' },
   statT: { fontSize: 11, fontWeight: '700' },
 
   // CTA
@@ -493,9 +490,9 @@ const styles = StyleSheet.create({
     height: 54,
     borderRadius: 16,
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 6,
+    shadowOpacity: 0.14,
+    shadowRadius: 12,
+    elevation: 2,
   },
   ctaBtnT: { fontSize: 16, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.2 },
 

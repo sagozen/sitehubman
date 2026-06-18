@@ -59,10 +59,10 @@ function moneyLabel(order: Order) {
 }
 
 function statusPill(order: Order) {
-  if (order.status === 'delivered' || order.status === 'ready') {
+  if (order.status === 'delivered' || order.status === 'ready_to_ship') {
     return { label: 'Done', color: '#16A34A', bg: '#ECFDF3' };
   }
-  if (order.status === 'new' || order.status === 'design') {
+  if (order.status === 'draft' || order.status === 'pending_payment' || order.status === 'payment_submitted') {
     return { label: 'Pending', color: '#EA580C', bg: '#FFF7ED' };
   }
   return { label: 'Active', color: '#2563EB', bg: '#EFF6FF' };

@@ -11,7 +11,7 @@ import { AppText } from '@/src/components/AppText';
 import { theme } from '@/src/constants/theme';
 import { getAuthErrorMessage } from '@/src/services/authService';
 import { getOrder, getPrinterJobByOrderId } from '@/src/services/firestoreService';
-import { printHtmlDocument, printHtmlToPdfFile } from '@/src/services/printService';
+import { printHtmlDocument, printHtmlToPdfFile, getPrinterIp, printHtmlToIp } from '@/src/services/printService';
 import {
   PRODUCTION_LABEL_SIZE,
   buildProductionLabelData,
@@ -181,6 +181,15 @@ function ProductionLabelContent() {
   const [busy, setBusy] = useState<'print' | 'pdf' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [label, setLabel] = useState<ProductionLabelData | null>(null);
+  const [printerIp, setPrinterIp] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadPrinterIp() {
+      const ip = await getPrinterIp();
+      setPrinterIp(ip);
+    }
+    void loadPrinterIp();
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -235,7 +244,12 @@ function ProductionLabelContent() {
     if (!label) return;
     setBusy('print');
     try {
-      await printHtmlDocument(buildProductionLabelHtml(label), PRODUCTION_LABEL_SIZE);
+      if (printerIp) {
+        await printHtmlToIp(printerIp, buildProductionLabelHtml(label), label.orderCode);
+        Alert.alert('Success', `Label sent to IP printer at ${printerIp}`);
+      } else {
+        await printHtmlDocument(buildProductionLabelHtml(label), PRODUCTION_LABEL_SIZE);
+      }
     } catch (err) {
       Alert.alert('Print failed', getAuthErrorMessage(err));
     } finally {
@@ -313,6 +327,12 @@ function ProductionLabelContent() {
                   disabled={busy !== null}
                   onPress={() => void handlePdf()}
                 />
+              </View>
+              <View style={styles.printerStatusRow}>
+                <AppIcon name="Printer" size={12} color={printerIp ? '#34C759' : '#8E8E93'} />
+                <AppText style={styles.printerStatusText}>
+                  {printerIp ? `IP Printing: http://${printerIp.replace(/^https?:\/\//, '')}/print` : 'Standard OS Print Dialog'}
+                </AppText>
               </View>
             </View>
 
@@ -528,5 +548,19 @@ const styles = StyleSheet.create({
     borderColor: '#111827',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  printerStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingTop: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#E2E8F0',
+    marginTop: 4,
+  },
+  printerStatusText: {
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '600',
   },
 });
