@@ -32,7 +32,7 @@ export const CARD_PRODUCTS: Record<CardProductSku, CardProductDefinition> = {
     productType: 'physical_nfc',
     labelEn: 'Physical NFC Card',
     subtitleEn: 'Printed card + NFC chip + shipping',
-    priceUsd: 49,
+    priceUsd: 6.99,
     fulfillment: 'physical',
   },
 };

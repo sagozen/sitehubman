@@ -23,12 +23,42 @@ const demoAccounts = [
   { email: 'finance@demo.com',   password: DEMO_PASSWORD, displayName: 'Demo Finance',  role: 'finance' },
   { email: ADMIN_EMAIL,         password: DEMO_PASSWORD, displayName: 'Demo Admin',    role: 'admin' },
   { email: 'super@demo.com',    password: DEMO_PASSWORD, displayName: 'Super Admin',   role: 'super_admin' },
+  { email: 'sales@gmail.com',   password: 'sales1234',   displayName: 'Gmail Sales',    role: 'sales' },
+  { email: 'printer@gmail.com', password: 'printer1234', displayName: 'Gmail Printer',  role: 'printer' },
 ];
 
 async function createAccount({ email, password, displayName, role }) {
+  let uid;
   try {
     const credential = await createUserWithEmailAndPassword(auth, email, password);
-    await setDoc(doc(db, 'users', credential.user.uid), {
+    uid = credential.user.uid;
+    console.log(`Created Auth user: ${email}`);
+  } catch (err) {
+    if (err.code === 'auth/email-already-in-use') {
+      try {
+        const credential = await signInWithEmailAndPassword(auth, email, password);
+        uid = credential.user.uid;
+        console.log(`⚠️  Auth user already exists: ${email}`);
+      } catch (signInErr) {
+        console.error(`❌ Failed Auth sign-in for existing user ${email}:`, signInErr.message);
+        return;
+      }
+    } else {
+      console.error(`❌ Failed Auth creation for ${email}:`, err.message);
+      return;
+    }
+  }
+
+  // Sign in as super@demo.com to gain permissions to write Firestore profile roles
+  try {
+    await signInWithEmailAndPassword(auth, 'super@demo.com', DEMO_PASSWORD);
+  } catch (superErr) {
+    console.error(`❌ Failed to sign in as super@demo.com to seed ${email}:`, superErr.message);
+    return;
+  }
+
+  try {
+    await setDoc(doc(db, 'users', uid), {
       email,
       displayName,
       role,
@@ -36,13 +66,9 @@ async function createAccount({ email, password, displayName, role }) {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
-    console.log(`✅ Created: ${email} (${role})`);
+    console.log(`✅ Seeded Firestore Profile: ${email} (${role})`);
   } catch (err) {
-    if (err.code === 'auth/email-already-in-use') {
-      console.log(`⚠️  Already exists: ${email} — skipping`);
-    } else {
-      console.error(`❌ Failed ${email}:`, err.message);
-    }
+    console.error(`❌ Failed to write Firestore profile for ${email}:`, err.message);
   }
 }
 
@@ -57,4 +83,6 @@ console.log(`  printer@demo.com  / ${DEMO_PASSWORD}  (Printer role)`);
 console.log(`  customer@demo.com / ${DEMO_PASSWORD}  (Customer role)`);
 console.log(`  ${ADMIN_EMAIL}    / ${DEMO_PASSWORD}  (Admin role)`);
 console.log(`  super@demo.com    / ${DEMO_PASSWORD}  (Super Admin role)`);
+console.log(`  sales@gmail.com   / sales1234  (Gmail Sales role)`);
+console.log(`  printer@gmail.com / printer1234  (Gmail Printer role)`);
 process.exit(0);

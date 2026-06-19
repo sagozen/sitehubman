@@ -232,6 +232,14 @@ function DetailContent() {
   const [approvalOpen, setApprovalOpen] = useState(false);
   const salesView = isSales && !isAdmin;
 
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace(user?.role === 'sales' ? '/sales' : '/');
+    }
+  };
+
   const load = useCallback(async () => {
     if (!orderId) {
       setLoading(false);
@@ -503,7 +511,7 @@ function DetailContent() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={12}>
+          <Pressable onPress={handleBack} style={styles.backBtn} hitSlop={12}>
             <AppIcon name="ChevronLeft" size={22} color={PINK} />
           </Pressable>
           <View style={styles.headerText}>
@@ -525,7 +533,7 @@ function DetailContent() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={12}>
+        <Pressable onPress={handleBack} style={styles.backBtn} hitSlop={12}>
           <AppIcon name="ChevronLeft" size={22} color={PINK} />
         </Pressable>
         <View style={styles.headerText}>

@@ -28,7 +28,7 @@ import { needsSalesApproval } from '@/src/utils/orderProduction';
 const ACCENT_ORANGE = '#FF9500';
 function orderAmount(order: Order) {
   const product = productTypeOptions.find((item) => item.value === order.productType);
-  return order.quantity * (product?.price ?? 49);
+  return order.quantity * (product?.price ?? 6.99);
 }
 
 function formatMoney(value: number) {
@@ -379,9 +379,9 @@ const styles = StyleSheet.create({
     width: '48%',
   },
   requestTile: {
-    minHeight: 112,
-    padding: 14,
-    gap: 7,
+    minHeight: 88,
+    padding: 12,
+    gap: 4,
   },
   requestTileTop: {
     flexDirection: 'row',
@@ -404,10 +404,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#34C759',
   },
   requestCount: {
-    fontSize: 28,
-    fontWeight: '800',
+    fontSize: 20,
+    fontWeight: '700',
     color: '#1D1D1F',
-    letterSpacing: 0,
+    letterSpacing: -0.3,
   },
   requestLabel: {
     fontSize: 12,

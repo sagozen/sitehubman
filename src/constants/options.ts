@@ -40,9 +40,9 @@ export const languageOptions = [
  * `getActiveMaterialProductOptions()` in productCatalogService (super admin managed).
  */
 export const productTypeOptions = [
-  { label: 'Wood Card', value: 'wood_card', price: 49, emoji: 'WOOD' },
-  { label: 'Metal Card', value: 'metal_card', price: 89, emoji: 'METAL' },
-  { label: 'PVC Card', value: 'pvc_card', price: 29, emoji: 'PVC' },
+  { label: 'Wood Card', value: 'wood_card', price: 9.99, emoji: 'WOOD' },
+  { label: 'Metal Card', value: 'metal_card', price: 14.99, emoji: 'METAL' },
+  { label: 'PVC Card', value: 'pvc_card', price: 6.99, emoji: 'PVC' },
 ] as const;
 
 export type ProductType = typeof productTypeOptions[number]['value'];

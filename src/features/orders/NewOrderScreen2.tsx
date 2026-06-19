@@ -404,6 +404,14 @@ export function NewOrderScreen() {
   const isNarrow = width < 460;
   const productCardWidthStyle = width >= 520 ? styles.productCardWide : styles.productCardNarrow;
 
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace(user?.role === 'sales' ? '/sales' : '/');
+    }
+  };
+
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [telegram, setTelegram] = useState('');
@@ -630,7 +638,7 @@ export function NewOrderScreen() {
         <View style={styles.premiumHeaderTop}>
           <Pressable
             style={styles.premiumBackBtn}
-            onPress={() => (step > 1 ? setStep((s) => s - 1) : router.back())}
+            onPress={() => (step > 1 ? setStep((s) => s - 1) : handleBack())}
             hitSlop={8}
           >
             <AppIcon name="ChevronLeft" size={22} color="#475569" />
@@ -1222,7 +1230,7 @@ export function NewOrderScreen() {
             stacked={isNarrow}
             secondaryLabel="Go Back"
             secondaryIcon="ChevronLeft"
-            onSecondaryPress={() => router.back()}
+            onSecondaryPress={() => handleBack()}
             primaryLabel="View Order"
             primaryIcon="ExternalLink"
             onPrimaryPress={viewCreatedOrder}
@@ -1231,7 +1239,7 @@ export function NewOrderScreen() {
           <View style={styles.printerActionsRow}>
             <Pressable
               style={({ pressed }) => [styles.printerActionSecondary, pressed && styles.printerActionPressed]}
-              onPress={() => (step > 1 ? setStep((s) => s - 1) : router.back())}
+              onPress={() => (step > 1 ? setStep((s) => s - 1) : handleBack())}
             >
               <AppText style={styles.printerActionSecondaryText}>{step > 1 ? 'Back' : 'Cancel'}</AppText>
             </Pressable>
@@ -1264,7 +1272,7 @@ export function NewOrderScreen() {
             stacked={isNarrow}
             secondaryLabel={step > 1 ? 'Back' : 'Cancel'}
             secondaryIcon={step > 1 ? 'ChevronLeft' : 'X'}
-            onSecondaryPress={() => (step > 1 ? setStep((s) => s - 1) : router.back())}
+            onSecondaryPress={() => (step > 1 ? setStep((s) => s - 1) : handleBack())}
             primaryLabel="Continue"
             primaryIcon="ChevronRight"
             onPrimaryPress={() => {

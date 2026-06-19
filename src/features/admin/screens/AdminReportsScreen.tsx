@@ -55,9 +55,9 @@ interface PrinterStat {
 }
 
 const PRODUCT_PRICES: Record<string, number> = {
-  wood_card: 49,
-  metal_card: 89,
-  pvc_card: 29,
+  wood_card: 9.99,
+  metal_card: 14.99,
+  pvc_card: 6.99,
 };
 
 export default function ReportsScreen() {
@@ -97,13 +97,13 @@ export default function ReportsScreen() {
   // Computed stats
   const totalRevenue = orders
     .filter(o => o.paymentStatus === 'paid')
-    .reduce((s, o) => s + (o.quantity ?? 1) * (PRODUCT_PRICES[o.productType] ?? 49), 0);
+    .reduce((s, o) => s + (o.quantity ?? 1) * (PRODUCT_PRICES[o.productType] ?? 6.99), 0);
 
   const totalCards = printerJobs.reduce((s, j) => s + (j.totalCards ?? 1), 0);
 
   const commissionPaid = orders
     .filter(o => o.paymentStatus === 'paid')
-    .reduce((s, o) => s + (o.quantity ?? 1) * (PRODUCT_PRICES[o.productType] ?? 49) * 0.1, 0);
+    .reduce((s, o) => s + (o.quantity ?? 1) * (PRODUCT_PRICES[o.productType] ?? 6.99) * 0.1, 0);
 
   // Status breakdown
   type StatusBreakdownItem = { label: string; value: string; color: string; count: number };
@@ -125,7 +125,7 @@ export default function ReportsScreen() {
     }
     salesmanMap[sid].count += 1;
     if (o.paymentStatus === 'paid') {
-      salesmanMap[sid].revenue += (o.quantity ?? 1) * (PRODUCT_PRICES[o.productType] ?? 49);
+      salesmanMap[sid].revenue += (o.quantity ?? 1) * (PRODUCT_PRICES[o.productType] ?? 6.99);
     }
   });
   const topSalesmen = Object.values(salesmanMap)

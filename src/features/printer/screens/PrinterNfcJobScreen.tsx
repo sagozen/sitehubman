@@ -385,7 +385,7 @@ export default function NfcProgrammingScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={12}>
+          <Pressable onPress={() => router.canGoBack() ? router.back() : router.replace('/printer/queue')} style={styles.backBtn} hitSlop={12}>
             <AppIcon name="ChevronLeft" size={20} color={theme.colors.textPrimary} />
           </Pressable>
           <View style={styles.headerInfo}>
