@@ -492,7 +492,7 @@ export default function PrinterScanScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F2F2F7' },
-  scroll: { paddingHorizontal: 18, paddingTop: 10, paddingBottom: 120 },
+  scroll: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 120, gap: 16 },
   errorBanner: {
     marginTop: 10,
     padding: 12,
@@ -537,14 +537,18 @@ const styles = StyleSheet.create({
   phaseStep: { fontSize: 11, fontWeight: '800', color: printerUi.muted, letterSpacing: 0.6 },
   phaseBody: { fontSize: 13, fontWeight: '600', color: '#64748B', lineHeight: 18 },
   scanCard: {
-    marginTop: 14,
-    borderRadius: 28,
+    borderRadius: 20,
     backgroundColor: '#FFFFFF',
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: printerUi.border,
-    padding: 18,
+    padding: 16,
     alignItems: 'center',
     gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 1,
   },
   scanHeader: {
     alignSelf: 'stretch',

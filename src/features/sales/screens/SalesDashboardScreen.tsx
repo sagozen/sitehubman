@@ -312,8 +312,8 @@ export default function SalesDashboardScreen() {
 
 const styles = StyleSheet.create({
   scroll: {
-    paddingHorizontal: glassTheme.spacing.screenX,
-    paddingTop: 8,
+    paddingHorizontal: 24,
+    paddingTop: 16,
     paddingBottom: 120,
   },
   recommendPress: {

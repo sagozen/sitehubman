@@ -712,7 +712,7 @@ const styles = StyleSheet.create({
   // Header
   header: {
     backgroundColor: theme.colors.surface,
-    paddingHorizontal: theme.spacing.md,
+    paddingHorizontal: 24,
     paddingTop: theme.spacing.xs,
     paddingBottom: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -740,9 +740,10 @@ const styles = StyleSheet.create({
   },
 
   scroll: {
-    padding: theme.spacing.md,
+    paddingHorizontal: 24,
+    paddingTop: 16,
     paddingBottom: 120,
-    gap: theme.spacing.sm,
+    gap: 16,
   },
 
   // Stats row

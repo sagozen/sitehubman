@@ -136,8 +136,8 @@ const styles = StyleSheet.create({
     backgroundColor: salesUi.bg,
   },
   scroll: {
-    paddingHorizontal: 18,
-    paddingTop: 8,
+    paddingHorizontal: 24,
+    paddingTop: 16,
     paddingBottom: 120,
   },
   earningsCard: {

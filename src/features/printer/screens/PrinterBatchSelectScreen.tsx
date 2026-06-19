@@ -2,7 +2,7 @@ import { IosScrollView } from '@/src/components/IosScrollView';
 import { useMemo } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { GlassSafeScreen } from '@/src/components/GlassSafeScreen';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { AppEmptyState } from '@/src/components/AppState';
@@ -64,25 +64,35 @@ export default function PrinterBatchSelectScreen() {
   }
 
   return (
-    <View style={styles.safe}>
-      <SafeAreaView edges={['top']} style={styles.heroSafe}>
-        <View style={styles.hero}>
-          <View style={styles.heroGlow} />
-          <AppText style={styles.workshopTxt}>Workshop</AppText>
-          <AppText style={styles.pageTitle}>Select Batch</AppText>
-          <AppText style={styles.heroSub}>
-            Choose an active production batch before queue or scan work.
-          </AppText>
-          {hasActiveBatch && batchId ? (
-            <Pressable style={styles.continueBtn} onPress={() => router.replace('/printer/queue')}>
-              <AppText style={styles.continueBtnText}>Continue current batch</AppText>
-              <AppIcon name="ChevronRight" size={16} color="#fff" />
-            </Pressable>
-          ) : null}
+    <GlassSafeScreen>
+      <IosScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false}>
+        
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <View style={styles.profileAvatar}>
+              <AppIcon name="Archive" size={20} color="#007AFF" />
+            </View>
+            <View style={styles.profileCopy}>
+              <AppText style={styles.heroEyebrow}>Workshop</AppText>
+              <AppText style={styles.pageTitle}>Select Batch</AppText>
+              <AppText style={styles.heroSub}>
+                Choose an active production batch to begin.
+              </AppText>
+            </View>
+          </View>
         </View>
-      </SafeAreaView>
 
-      <IosScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+        {hasActiveBatch && batchId ? (
+          <Pressable
+            style={({ pressed }) => [styles.continueBtn, pressed && styles.continueBtnPressed]}
+            onPress={() => router.replace('/printer/queue')}
+          >
+            <AppText style={styles.continueBtnText}>Continue current batch</AppText>
+            <AppIcon name="ChevronRight" size={16} color="#fff" />
+          </Pressable>
+        ) : null}
+
         {error ? (
           <AppText style={styles.errorText}>{error}</AppText>
         ) : null}
@@ -109,85 +119,103 @@ export default function PrinterBatchSelectScreen() {
           ))
         )}
       </IosScrollView>
-    </View>
+    </GlassSafeScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: theme.colors.background },
-  heroSafe: { backgroundColor: HERO_BG },
-  hero: {
-    backgroundColor: HERO_BG,
-    paddingHorizontal: 20,
-    paddingBottom: 22,
-    overflow: 'hidden',
+  body: { flex: 1 },
+  bodyContent: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 120,
+    gap: 16,
   },
-  heroGlow: {
-    position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(100,120,255,0.12)',
-    top: -60,
-    right: -50,
-  },
-  workshopTxt: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.45)',
-    marginBottom: 4,
-  },
-  pageTitle: {
-    fontSize: 30,
-    fontWeight: '800',
-    color: '#fff',
-    letterSpacing: -1.2,
-    marginBottom: 6,
-  },
-  heroSub: { fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 18 },
-  continueBtn: {
-    marginTop: 14,
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
+    justifyContent: 'space-between',
+    paddingTop: 4,
+    paddingBottom: 4,
   },
-  continueBtnText: { color: '#fff', fontWeight: '700', fontSize: 13 },
-  body: { padding: 16, paddingBottom: 120, gap: 10 },
-  createBtn: {
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+    minWidth: 0,
+  },
+  profileAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#EBF7FC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileCopy: {
+    flex: 1,
+    minWidth: 0,
+    gap: 1,
+  },
+  heroEyebrow: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#8E8E93',
+    fontFamily: theme.typography.fontFamilyBold,
+  },
+  pageTitle: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#000000',
+    fontFamily: theme.typography.fontFamilyBlack,
+    letterSpacing: -0.6,
+  },
+  heroSub: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#8E8E93',
+    fontFamily: theme.typography.fontFamilyMedium,
+  },
+  continueBtn: {
+    height: 48,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    backgroundColor: HERO_BG,
+    gap: 6,
+    backgroundColor: '#007AFF',
     borderRadius: 16,
-    paddingVertical: 14,
   },
-  createBtnText: { color: '#fff', fontWeight: '800', fontSize: 15 },
+  continueBtnPressed: {
+    opacity: 0.88,
+  },
+  continueBtnText: { color: '#fff', fontWeight: '800', fontSize: 14, fontFamily: theme.typography.fontFamilyBold },
   batchCard: {
     backgroundColor: '#fff',
-    borderRadius: 18,
-    padding: 14,
+    borderRadius: 20,
+    padding: 16,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#E2E8F0',
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 1,
   },
-  batchCardSelected: { borderColor: '#2563EB', borderWidth: 2 },
+  batchCardSelected: { borderColor: '#007AFF', borderWidth: 2 },
   batchTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  batchNumber: { fontSize: 17, fontWeight: '800', color: '#0F172A' },
+  batchNumber: { fontSize: 17, fontWeight: '800', color: '#000000', fontFamily: theme.typography.fontFamilyExtraBold },
   statusPill: {
     backgroundColor: '#F1F5F9',
     borderRadius: 999,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 4,
   },
   statusPillActive: { backgroundColor: '#DCFCE7' },
-  statusPillText: { fontSize: 11, fontWeight: '700', color: '#64748B', textTransform: 'capitalize' },
-  batchMeta: { marginTop: 6, fontSize: 13, color: '#64748B', fontWeight: '600' },
-  batchBranch: { marginTop: 4, fontSize: 11, color: '#94A3B8' },
+  statusPillText: { fontSize: 10, fontWeight: '700', color: '#64748B', textTransform: 'capitalize', fontFamily: theme.typography.fontFamilyBold },
+  batchMeta: { fontSize: 13, color: '#64748B', fontWeight: '600', fontFamily: theme.typography.fontFamilyMedium },
+  batchBranch: { fontSize: 11, color: '#94A3B8', fontFamily: theme.typography.fontFamilyMedium },
   errorText: { color: theme.status.error, textAlign: 'center' },
   loadingText: { textAlign: 'center', paddingVertical: 24 },
 });

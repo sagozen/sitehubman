@@ -12,6 +12,7 @@ import {
   printerUi,
 } from '@/src/features/printer/components/PrinterScreenUi';
 import { useAuth } from '@/src/hooks/useAuth';
+import { theme } from '@/src/constants/theme';
 import {
   displayTestJobStage,
   displayTestOrderStatus,
@@ -150,10 +151,10 @@ export default function PrinterScanTestDetailScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: printerUi.bg },
-  scroll: { paddingHorizontal: 18, paddingTop: 8, paddingBottom: 40 },
+  scroll: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 40 },
   loading: { textAlign: 'center', marginTop: 40, color: printerUi.muted, fontWeight: '600' },
   backLink: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 8 },
-  backLinkText: { fontSize: 14, fontWeight: '700', color: printerUi.text },
+  backLinkText: { fontSize: 14, fontWeight: '700', color: printerUi.text, fontFamily: theme.typography.fontFamilyBold },
   testBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -168,7 +169,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#FDE68A',
   },
-  testBadgeText: { fontSize: 12, fontWeight: '800', color: '#B45309' },
+  testBadgeText: { fontSize: 12, fontWeight: '800', color: '#B45309', fontFamily: theme.typography.fontFamilyBold },
   actions: { marginTop: 16, gap: 10 },
   primaryBtn: {
     height: 48,
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  primaryBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
+  primaryBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800', fontFamily: theme.typography.fontFamilyBold },
   secondaryBtn: {
     height: 48,
     borderRadius: printerUi.radiusMd,
@@ -192,7 +193,7 @@ const styles = StyleSheet.create({
     gap: 8,
     ...printerUi.shadow,
   },
-  secondaryBtnText: { fontSize: 14, fontWeight: '800', color: printerUi.text },
+  secondaryBtnText: { fontSize: 14, fontWeight: '800', color: printerUi.text, fontFamily: theme.typography.fontFamilyBold },
   btnDisabled: { opacity: 0.55 },
   backBtn: {
     margin: 18,
@@ -202,5 +203,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backBtnText: { color: '#FFFFFF', fontWeight: '800' },
+  backBtnText: { color: '#FFFFFF', fontWeight: '800', fontFamily: theme.typography.fontFamilyBold },
 });

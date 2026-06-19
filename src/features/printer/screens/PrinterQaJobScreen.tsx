@@ -232,7 +232,7 @@ export default function QaVideoCaptureScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#0A0A0F' },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, gap: 12 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 24, paddingVertical: 12, gap: 12 },
   backBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
   headerCenter: { flex: 1, gap: 1 },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: '600' },
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
   recBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(231,76,60,0.2)', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5 },
   recDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: theme.status.error },
   recText: { color: theme.status.error, fontSize: 12, fontWeight: '700' },
-  cameraArea: { flex: 1, padding: 20, gap: 20 },
+  cameraArea: { flex: 1, padding: 24, gap: 20 },
   frameGuide: { flex: 1, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(48,209,88,0.45)', position: 'relative', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.03)' },
   corner: { position: 'absolute', width: 24, height: 24, borderColor: 'rgba(48,209,88,0.72)', borderWidth: 2 },
   cornerTL: { top: -2, left: -2, borderRightWidth: 0, borderBottomWidth: 0, borderTopLeftRadius: 6 },

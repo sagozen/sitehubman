@@ -62,13 +62,13 @@ export default function WagesScreen() {
 
         <View style={styles.heroCard}>
           <View style={styles.heroGlow} />
-          <AppText style={styles.heroLabel}>This Week</AppText>
-          <AppText style={styles.heroAmount}>${totalWage.toFixed(2)}</AppText>
+          <AppText style={styles.heroLabel} variant="caption" weight="bold" tone="inverse">This Week</AppText>
+          <AppText style={styles.heroAmount} variant="display" weight="black" tone="inverse">${totalWage.toFixed(2)}</AppText>
           <View style={styles.heroFooter}>
-            <AppText style={styles.heroMeta}>{totalCards} cards completed</AppText>
+            <AppText style={styles.heroMeta} variant="caption" weight="bold">{totalCards} cards completed</AppText>
             {readyPayout ? (
               <View style={styles.heroPill}>
-                <AppText style={styles.heroPillText}>Ready</AppText>
+                <AppText style={styles.heroPillText} variant="caption" weight="black" tone="inverse">Ready</AppText>
               </View>
             ) : null}
           </View>
@@ -96,7 +96,7 @@ export default function WagesScreen() {
           style={({ pressed }) => [styles.payoutBtn, pressed && styles.payoutBtnPressed]}
           onPress={() => Alert.alert('Payout', 'Payout request will be available soon.')}
         >
-          <AppText style={styles.payoutBtnText}>Request Payout</AppText>
+          <AppText style={styles.payoutBtnText} variant="body" weight="black" tone="inverse">Request Payout</AppText>
         </Pressable>
       </IosScrollView>
     </GlassSafeScreen>
@@ -109,22 +109,22 @@ const styles = StyleSheet.create({
     backgroundColor: printerUi.bg,
   },
   scroll: {
-    paddingHorizontal: 18,
+    paddingHorizontal: 24,
     paddingTop: 8,
     paddingBottom: 120,
-    gap: 0,
+    gap: 16,
   },
   heroCard: {
-    marginTop: 16,
-    borderRadius: 34,
+    borderRadius: 24,
     backgroundColor: printerUi.dark,
-    padding: 18,
+    padding: 20,
     overflow: 'hidden',
     shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.18,
     shadowRadius: 24,
     elevation: 4,
+    position: 'relative',
   },
   heroGlow: {
     position: 'absolute',
@@ -136,16 +136,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(96,165,250,0.2)',
   },
   heroLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.45)',
+    opacity: 0.7,
   },
   heroAmount: {
     marginTop: 4,
-    fontSize: 42,
-    lineHeight: 44,
-    fontWeight: '900',
-    color: '#FFFFFF',
     letterSpacing: -1,
   },
   heroFooter: {
@@ -155,23 +149,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   heroMeta: {
-    fontSize: 13,
-    fontWeight: '700',
     color: '#6EE7B7',
   },
   heroPill: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.12)',
   },
   heroPillText: {
     fontSize: 11,
-    fontWeight: '800',
-    color: '#FFFFFF',
   },
   earningsCard: {
-    marginTop: 16,
     padding: 0,
     overflow: 'hidden',
   },
@@ -181,24 +170,22 @@ const styles = StyleSheet.create({
     marginHorizontal: 14,
   },
   payoutBtn: {
-    marginTop: 16,
     height: 48,
     borderRadius: printerUi.radiusMd,
     backgroundColor: printerUi.green,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: printerUi.green,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
     elevation: 3,
   },
   payoutBtnPressed: {
     opacity: 0.88,
+    transform: [{ scale: 0.98 }],
   },
   payoutBtnText: {
     fontSize: 15,
-    fontWeight: '900',
-    color: '#FFFFFF',
   },
 });

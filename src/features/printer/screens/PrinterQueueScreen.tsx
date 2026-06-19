@@ -5,6 +5,13 @@ import { Redirect, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
+import { GlassSafeScreen } from '@/src/components/GlassSafeScreen';
+import {
+  PrinterSettingsRow,
+  PrinterSurfaceCard,
+  PrinterSegment,
+  printerUi,
+} from '@/src/features/printer/components/PrinterScreenUi';
 import { AppEmptyState } from '@/src/components/AppState';
 import { appRoutes } from '@/src/constants/navigation';
 import { theme } from '@/src/constants/theme';
@@ -240,143 +247,101 @@ export default function PrinterQueueScreen() {
   const needVerificationCount = jobs.filter((job) => job.stage === 'quality_check').length;
   const quickPrintJob = jobs.find((job) => job.stage === 'received') ?? null;
   const sampleOrder = approvedOrders[0] ?? null;
-  const printerActions: { label: string; icon: AppIconName; onPress: () => void; primary?: boolean }[] = [
-    {
-      label: quickPrintJob ? 'Start' : 'Scan',
-      icon: 'ScanLine',
-      onPress: () => {
-        if (quickPrintJob) {
-          router.push({ pathname: '/printer/nfc/[jobId]', params: { jobId: quickPrintJob.id } });
-          return;
-        }
-        router.push('/printer/scan');
-      },
-      primary: true,
-    },
-    { label: 'Print', icon: 'Printer', onPress: () => setIpModalVisible(true) },
-    { label: 'Batch', icon: 'Archive', onPress: () => router.push('/printer/batch-select') },
-    { label: 'Alerts', icon: 'Bell', onPress: () => router.push(appRoutes.printer.notifications) },
-  ];
-
   if (!batchLoading && !batchId) {
     return <Redirect href="/printer/batch-select" />;
   }
 
+  const activeTabLabel = tab === 'all' ? 'All' : tab === 'todo' ? 'TODO' : tab === 'doing' ? 'Doing' : 'Done';
+
   return (
-    <View style={styles.safe}>
-      <SafeAreaView edges={['top']} style={styles.heroSafe}>
-        <View style={styles.hero}>
-          <View style={styles.heroContent}>
-            <View style={styles.identity}>
-              <View style={styles.heroTop}>
-                <View style={styles.profileHead}>
-                  <View style={styles.profileAvatar}>
-                    <AppIcon name="Printer" size={24} color="#FFFFFF" />
-                  </View>
-                  <View style={styles.profileCopy}>
-                    <AppText style={styles.heroEyebrow}>{todayCount} jobs today</AppText>
-                    <AppText style={styles.pageTitle}>Printer</AppText>
-                    <AppText style={styles.heroSub} numberOfLines={2}>
-                      {printerIp ? `IP ${printerIp.replace(/^https?:\/\//, '')}` : 'Scan, print, and test by customer ID'}
-                    </AppText>
-                  </View>
-                </View>
-                <View style={styles.identityBadge}>
-                  <AppIcon name="BadgeCheck" size={22} color={BLUE} />
-                </View>
-              </View>
+    <GlassSafeScreen>
+      <IosScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false}>
+        
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <View style={styles.profileAvatar}>
+              <AppIcon name="Printer" size={20} color={BLUE} />
             </View>
-
-            <View style={styles.actionStrip}>
-              {printerActions.map((action) => (
-                <Pressable
-                  key={action.label}
-                  onPress={action.onPress}
-                  style={({ pressed }) => [styles.actionBtn, pressed && styles.pressed]}
-                  accessibilityRole="button"
-                >
-                  <View style={[styles.actionIcon, action.primary && styles.actionIconPrimary]}>
-                    <AppIcon name={action.icon} size={22} color={action.primary ? '#FFFFFF' : BLUE} />
-                    {action.label === 'Alerts' && unreadCount > 0 ? <View style={styles.notifDot} /> : null}
-                  </View>
-                  <AppText style={styles.actionLabel}>{action.label}</AppText>
-                </Pressable>
-              ))}
-            </View>
-
-            <View style={styles.infoList}>
-              <Pressable style={styles.infoRow} onPress={() => router.push('/printer/batch-select')}>
-                <AppIcon name="Archive" size={18} color="#8E8E93" />
-                <AppText style={styles.infoText} numberOfLines={1}>
-                  Batch {batch?.batchNumber ?? 'not selected'}
-                </AppText>
-                <AppIcon name="ChevronRight" size={16} color="#C7C7CC" />
-              </Pressable>
-              <Pressable style={[styles.infoRow, styles.infoRowLast]} onPress={() => setIpModalVisible(true)}>
-                <AppIcon name="Printer" size={18} color="#8E8E93" />
-                <AppText style={styles.infoText} numberOfLines={1}>
-                  {printerIp ? `Print relay ${printerIp.replace(/^https?:\/\//, '')}` : 'No print relay'}
-                </AppText>
-                <AppIcon name="ChevronRight" size={16} color="#C7C7CC" />
-              </Pressable>
-            </View>
-
-            <View style={styles.searchRow}>
-              <View style={styles.searchBox}>
-                <AppIcon name="Search" size={16} color="#8E8E93" />
-                <TextInput
-                  value={searchInput}
-                  onChangeText={setSearchInput}
-                  onSubmitEditing={submitSearch}
-                  placeholder="Search queue, job, order"
-                  placeholderTextColor="#8E8E93"
-                  returnKeyType="search"
-                  style={styles.searchInput}
-                />
-                {searchInput.length > 0 ? (
-                  <Pressable onPress={clearSearch} hitSlop={8}>
-                    <AppIcon name="X" size={14} color="#8E8E93" />
-                  </Pressable>
-                ) : null}
-              </View>
-              <Pressable
-                style={styles.searchBtn}
-                onPress={() => router.push('/printer/scan')}
-              >
-                {isLoading ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <>
-                    <AppIcon name="ScanLine" size={17} color="#FFFFFF" />
-                    <AppText style={styles.searchBtnText}>Scan</AppText>
-                  </>
-                )}
-              </Pressable>
+            <View style={styles.profileCopy}>
+              <AppText style={styles.heroEyebrow}>Production Workspace</AppText>
+              <AppText style={styles.pageTitle}>Queue</AppText>
+              <AppText style={styles.heroSub} numberOfLines={1}>
+                {todayCount} job{todayCount === 1 ? '' : 's'} today · {needVerificationCount} pending QA
+              </AppText>
             </View>
           </View>
+          <Pressable
+            onPress={() => router.push(appRoutes.printer.notifications)}
+            style={({ pressed }) => [styles.headerIcon, pressed && styles.pressed]}
+          >
+            <AppIcon name="Bell" size={20} color={BLUE} />
+            {unreadCount > 0 ? <View style={styles.unreadDot} /> : null}
+          </Pressable>
         </View>
-      </SafeAreaView>
 
-      <View style={styles.tabsWrap}>
-        <IosScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>
-          {tabs.map((item) => {
-            const active = tab === item.key;
-            return (
-              <Pressable
-                key={item.key}
-                style={[styles.tabItem, active && styles.tabItemActive]}
-                onPress={() => setTab(item.key)}
-              >
-                <View style={[styles.tabItemInner, active && styles.tabItemInnerActive]}>
-                  <AppText style={[styles.tabItemText, active && styles.tabItemTextOn]}>{item.label}</AppText>
-                </View>
+        <PrinterSurfaceCard style={styles.settingsCard}>
+          <PrinterSettingsRow
+            icon="Archive"
+            title="Active Batch"
+            subtitle="Current workspace batch"
+            value={batch?.batchNumber ?? 'Select Batch'}
+            onPress={() => router.push('/printer/batch-select')}
+          />
+          <PrinterSettingsRow
+            icon="Printer"
+            title="Print Relay IP"
+            subtitle="Label printer endpoint"
+            value={printerIp ? printerIp.replace(/^https?:\/\//, '') : 'Tap to connect'}
+            onPress={() => setIpModalVisible(true)}
+            last
+          />
+        </PrinterSurfaceCard>
+
+        <Pressable
+          onPress={() => {
+            if (quickPrintJob) {
+              router.push({ pathname: '/printer/nfc/[jobId]', params: { jobId: quickPrintJob.id } });
+              return;
+            }
+            router.push('/printer/scan');
+          }}
+          style={({ pressed }) => [styles.primaryScanBtn, pressed && styles.primaryScanBtnPressed]}
+        >
+          <AppIcon name="ScanLine" size={20} color="#FFFFFF" />
+          <AppText style={styles.primaryScanBtnText}>
+            {quickPrintJob ? 'Resume Active Job' : 'Scan & Program Card'}
+          </AppText>
+        </Pressable>
+
+        <View style={styles.searchRow}>
+          <View style={styles.searchBox}>
+            <AppIcon name="Search" size={16} color="#8E8E93" />
+            <TextInput
+              value={searchInput}
+              onChangeText={setSearchInput}
+              onSubmitEditing={submitSearch}
+              placeholder="Search queue, job, order"
+              placeholderTextColor="#8E8E93"
+              returnKeyType="search"
+              style={styles.searchInput}
+            />
+            {searchInput.length > 0 ? (
+              <Pressable onPress={clearSearch} hitSlop={8}>
+                <AppIcon name="X" size={14} color="#8E8E93" />
               </Pressable>
-            );
-          })}
-        </IosScrollView>
-      </View>
+            ) : null}
+          </View>
+        </View>
 
-      <IosScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false}>
+        <PrinterSegment
+          items={['All', 'TODO', 'Doing', 'Done']}
+          active={activeTabLabel}
+          onChange={(val) => {
+            const key = val === 'All' ? 'all' : val === 'TODO' ? 'todo' : val === 'Doing' ? 'doing' : 'done';
+            setTab(key);
+          }}
+        />
+
         {approvedOrders.length > 0 ? (
           <View style={styles.receiveSection}>
             <View style={styles.listHeader}>
@@ -557,172 +522,116 @@ export default function PrinterQueueScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+    </GlassSafeScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#F2F2F7',
+  body: { flex: 1 },
+  bodyContent: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 120,
+    gap: 16,
   },
-  heroSafe: {
-    backgroundColor: '#F2F2F7',
-  },
-  hero: {
-    backgroundColor: '#F2F2F7',
-  },
-  heroContent: {
-    paddingHorizontal: 22,
-    paddingTop: 12,
-    paddingBottom: 16,
-    gap: 12,
-    position: 'relative',
-    zIndex: 1,
-  },
-  identity: {
-    padding: 18,
-    borderRadius: 28,
-    backgroundColor: SURFACE,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: SURFACE_BORDER,
-  },
-  heroTop: {
+  header: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 2,
+    paddingTop: 4,
+    paddingBottom: 4,
   },
-  profileHead: {
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
     gap: 12,
+    flex: 1,
     minWidth: 0,
   },
   profileAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: BLUE,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#EBF7FC',
     alignItems: 'center',
     justifyContent: 'center',
   },
   profileCopy: {
     flex: 1,
     minWidth: 0,
+    gap: 1,
   },
-  identityBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#EAF3FF',
+  heroEyebrow: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#8E8E93',
+    fontFamily: theme.typography.fontFamilyBold,
+  },
+  pageTitle: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#000000',
+    fontFamily: theme.typography.fontFamilyBlack,
+    letterSpacing: -0.6,
+  },
+  heroSub: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#8E8E93',
+    fontFamily: theme.typography.fontFamilyMedium,
+  },
+  headerIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: SURFACE,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: SURFACE_BORDER,
+    position: 'relative',
   },
-  notifDot: {
+  unreadDot: {
     position: 'absolute',
-    top: 2,
-    right: 2,
+    top: 9,
+    right: 9,
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: '#FF3B30',
-    borderWidth: 1.5,
-    borderColor: '#FFFFFF',
-  },
-  pageTitle: {
-    fontSize: 34,
-    fontWeight: '900',
-    color: '#000000',
-    letterSpacing: 0,
-    lineHeight: 38,
-    marginBottom: 0,
-  },
-  heroEyebrow: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: BLUE,
-    letterSpacing: 0,
-    marginBottom: -2,
-  },
-  batchLink: {
-    fontSize: 14,
-    lineHeight: 17,
-    fontWeight: '800',
-    color: '#1D1D1F',
-  },
-  actionStrip: {
-    flexDirection: 'row',
-    backgroundColor: SURFACE,
-    borderRadius: 24,
-    overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: SURFACE_BORDER,
-  },
-  actionBtn: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 16,
   },
   pressed: {
-    opacity: 0.72,
+    opacity: 0.75,
   },
-  actionIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F2F2F7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
+  settingsCard: {
+    marginTop: 4,
   },
-  actionIconPrimary: {
+  primaryScanBtn: {
+    height: 52,
+    borderRadius: 24,
     backgroundColor: BLUE,
-  },
-  actionLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#000000',
-    textAlign: 'center',
-  },
-  infoList: {
-    backgroundColor: SURFACE,
-    borderRadius: 22,
-    overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: SURFACE_BORDER,
-  },
-  infoRow: {
-    minHeight: 48,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 14,
-    backgroundColor: SURFACE,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: SURFACE_BORDER,
+    justifyContent: 'center',
+    gap: 8,
+    shadowColor: BLUE,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 3,
   },
-  infoRowLast: {
-    borderBottomWidth: 0,
+  primaryScanBtnPressed: {
+    opacity: 0.88,
+    transform: [{ scale: 0.98 }],
   },
-  infoText: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6E6E73',
-  },
-  heroSub: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: '600',
-    color: '#6E6E73',
-    maxWidth: 260,
+  primaryScanBtnText: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    fontFamily: theme.typography.fontFamilyBlack,
   },
   searchRow: {
     flexDirection: 'row',
-    gap: 10,
     alignItems: 'center',
   },
   searchBox: {
@@ -730,7 +639,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: SURFACE,
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 11,
@@ -742,91 +651,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#000000',
     padding: 0,
-  },
-  searchBtn: {
-    width: 76,
-    height: 44,
-    borderRadius: 16,
-    backgroundColor: BLUE,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    gap: 5,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: BLUE,
-  },
-  searchBtnText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  tabsWrap: {
-    backgroundColor: '#F2F2F7',
-    paddingHorizontal: 14,
-    paddingTop: 12,
-  },
-  tabs: {
-    width: '100%',
-    backgroundColor: '#E9E9EF',
-    borderRadius: 15,
-    padding: 3,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: SURFACE_BORDER,
-  },
-  tabItem: {
-    flex: 1,
-    minWidth: 70,
-    alignItems: 'center',
-    borderRadius: 11,
-    marginHorizontal: 2,
-    backgroundColor: 'transparent',
-  },
-  tabItemInner: {
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 10,
-    paddingVertical: 9,
-  },
-  tabItemActive: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: 'rgba(60,60,67,0.08)',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 1,
-  },
-  tabItemInnerActive: {
-    borderTopWidth: 0,
-  },
-  tabItemText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#6E6E73',
-  },
-  tabItemTextOn: {
-    color: '#000000',
-  },
-  body: { flex: 1 },
-  bodyContent: {
-    paddingHorizontal: 18,
-    paddingTop: 16,
-    paddingBottom: 120,
-    gap: 10,
+    fontFamily: theme.typography.fontFamilyMedium,
   },
   jobCard: {
     backgroundColor: SURFACE,
-    borderRadius: 24,
+    borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: SURFACE_BORDER,
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 10 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
-    shadowRadius: 18,
+    shadowRadius: 12,
     elevation: 1,
     overflow: 'hidden',
     position: 'relative',
@@ -841,7 +678,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 4,
   },
   jobCardPressed: {
-    opacity: 0.82,
+    opacity: 0.88,
   },
   compactCardRow: {
     flexDirection: 'row',
@@ -849,9 +686,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   compactIconWrap: {
-    width: 46,
-    height: 46,
-    borderRadius: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     backgroundColor: '#F2F2F7',
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: SURFACE_BORDER,
@@ -873,89 +710,100 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   compactOverline: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
     color: '#8E8E93',
+    fontFamily: theme.typography.fontFamilyBold,
   },
   compactTitle: {
-    marginTop: 2,
-    fontSize: 18,
-    lineHeight: 21,
-    fontWeight: '900',
+    marginTop: 1,
+    fontSize: 16,
+    fontWeight: '800',
     color: '#000000',
-    letterSpacing: 0,
+    fontFamily: theme.typography.fontFamilyExtraBold,
   },
   compactStagePill: {
     borderRadius: 999,
     paddingHorizontal: 8,
-    paddingVertical: 5,
+    paddingVertical: 4,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
   compactStageText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '800',
+    fontFamily: theme.typography.fontFamilyBold,
   },
   compactBottom: {
-    marginTop: 10,
+    marginTop: 8,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   compactMeta: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#8E8E93',
     fontWeight: '600',
+    fontFamily: theme.typography.fontFamilyMedium,
   },
-  // Orange $ — warm, familiar money color (like Venmo, PayPal, etc.)
   compactAmount: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#1D1D1F',
-    fontWeight: '900',
+    fontWeight: '800',
+    fontFamily: theme.typography.fontFamilyExtraBold,
   },
   compactAmountCurrency: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#FF9500',
-    fontWeight: '900',
+    fontWeight: '800',
+    fontFamily: theme.typography.fontFamilyExtraBold,
   },
   listHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 2,
-    paddingBottom: 6,
+    marginTop: 6,
+    marginBottom: 4,
   },
   listTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
     color: '#000',
-    letterSpacing: 0,
+    fontFamily: theme.typography.fontFamilyExtraBold,
   },
   listSubtitle: {
     marginTop: 1,
     fontSize: 11,
     color: 'rgba(60,60,67,0.45)',
-    fontWeight: '500',
+    fontWeight: '600',
+    fontFamily: theme.typography.fontFamilySemiBold,
   },
   listLink: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 13,
+    fontWeight: '600',
     color: BLUE,
+    fontFamily: theme.typography.fontFamilySemiBold,
   },
   receiveSection: {
-    marginBottom: 8,
+    gap: 8,
   },
   receiveCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     backgroundColor: SURFACE,
-    borderRadius: SURFACE_RADIUS,
+    borderRadius: 20,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: SURFACE_BORDER,
-    padding: 14,
-    marginBottom: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    elevation: 1,
   },
   receiveCopy: {
     flex: 1,
@@ -963,20 +811,23 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   receiveOrderId: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '800',
     color: '#1D1D1F',
+    fontFamily: theme.typography.fontFamilyExtraBold,
   },
   receiveMeta: {
     fontSize: 12,
     color: '#86868B',
+    fontWeight: '500',
+    fontFamily: theme.typography.fontFamilyMedium,
   },
   receiveBtn: {
     backgroundColor: GREEN,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 9,
     borderRadius: 12,
-    minWidth: 76,
+    minWidth: 70,
     alignItems: 'center',
   },
   receiveActions: {
@@ -988,8 +839,9 @@ const styles = StyleSheet.create({
   },
   receiveBtnText: {
     color: '#fff',
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '800',
+    fontFamily: theme.typography.fontFamilyBold,
   },
   receiveLabelText: {
     color: '#1D1D1F',
@@ -1021,7 +873,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.32)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     justifyContent: 'flex-end',
     alignItems: 'center',
     padding: 12,
@@ -1057,28 +909,29 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modalTitle: {
-    fontSize: 22,
-    lineHeight: 26,
+    fontSize: 20,
     fontWeight: '900',
     color: '#000000',
-    letterSpacing: 0,
+    fontFamily: theme.typography.fontFamilyBlack,
+    letterSpacing: -0.4,
   },
   modalSubtitle: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 12,
     fontWeight: '600',
     color: '#8E8E93',
-    marginTop: 2,
+    fontFamily: theme.typography.fontFamilySemiBold,
+    marginTop: 1,
   },
   modalBody: {
     marginBottom: 20,
   },
   inputLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
     color: '#8E8E93',
-    letterSpacing: 0,
-    marginBottom: 8,
+    letterSpacing: 0.5,
+    marginBottom: 6,
+    fontFamily: theme.typography.fontFamilyBold,
   },
   modalInputWrap: {
     flexDirection: 'row',
@@ -1087,9 +940,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F7',
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: SURFACE_BORDER,
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     marginBottom: 12,
   },
   modalInput: {
@@ -1098,32 +951,34 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontWeight: '600',
     padding: 0,
+    fontFamily: theme.typography.fontFamilyMedium,
   },
   modalInfoText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#8E8E93',
     fontWeight: '600',
-    lineHeight: 17,
+    lineHeight: 16,
+    fontFamily: theme.typography.fontFamilyMedium,
   },
   testPrintCard: {
     marginTop: 14,
-    borderRadius: 22,
+    borderRadius: 20,
     backgroundColor: '#F2F2F7',
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: SURFACE_BORDER,
     padding: 14,
-    gap: 12,
+    gap: 10,
   },
   testPrintSub: {
-    marginTop: 2,
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: 11,
+    lineHeight: 16,
     fontWeight: '600',
     color: '#6E6E73',
+    fontFamily: theme.typography.fontFamilyMedium,
   },
   testPrintBtn: {
-    height: 48,
-    borderRadius: 16,
+    height: 46,
+    borderRadius: 14,
     backgroundColor: BLUE,
     flexDirection: 'row',
     alignItems: 'center',
@@ -1131,9 +986,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   testPrintBtnText: {
-    fontSize: 15,
-    fontWeight: '900',
+    fontSize: 14,
+    fontWeight: '800',
     color: '#FFFFFF',
+    fontFamily: theme.typography.fontFamilyBold,
   },
   modalActions: {
     flexDirection: 'row',
@@ -1150,17 +1006,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F7',
   },
   modalBtnCancelText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
     color: '#1D1D1F',
+    fontFamily: theme.typography.fontFamilyBold,
   },
   modalBtnSave: {
     backgroundColor: BLUE,
   },
   modalBtnSaveText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '900',
     color: '#FFFFFF',
+    fontFamily: theme.typography.fontFamilyBlack,
   },
   modalPressed: {
     opacity: 0.86,
