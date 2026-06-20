@@ -1,0 +1,141 @@
+import { useEffect, useState } from 'react';
+import { Alert, StyleSheet, View } from 'react-native';
+import { router } from 'expo-router';
+import { AppText } from '@/src/components/AppText';
+import {
+  AuthFooterLink,
+  AuthFormGroup,
+  AuthHeader,
+  AuthLoginCard,
+  AuthPrimaryButton,
+  AuthScreenShell,
+  AuthTextField,
+} from '@/src/features/auth/components/authUi';
+import { SocialAuthSection } from '@/src/features/auth/SocialAuthSection';
+import { useAuth } from '@/src/hooks/useAuth';
+import { getAuthErrorMessage } from '@/src/services/authService';
+import { AppUser } from '@/src/types/models';
+import { finalizeGuestAccountUpgrade } from '@/src/utils/guestAccountUpgrade';
+import { getPostAuthDestination } from '@/src/utils/guestAuthRedirect';
+import { isGuestUser } from '@/src/utils/authFlow';
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function RegisterScreen() {
+  const { user, isLoading, signUp } = useAuth();
+  const [displayName, setDisplayName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && user && !isGuestUser(user)) {
+      void getPostAuthDestination(user).then((dest) => router.replace(dest));
+    }
+  }, [isLoading, user]);
+
+  async function handleSocialSuccess(signedInUser: AppUser) {
+    await finalizeGuestAccountUpgrade(signedInUser);
+    router.replace(await getPostAuthDestination(signedInUser));
+  }
+
+  async function handleRegister() {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!displayName.trim() || !EMAIL_PATTERN.test(normalizedEmail) || password.length < 6) {
+      Alert.alert('Missing details', 'Name, valid email, and 6+ character password are required.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const registeredUser = await signUp({ displayName, email: normalizedEmail, password });
+      await finalizeGuestAccountUpgrade(registeredUser);
+      router.replace(await getPostAuthDestination(registeredUser));
+    } catch (error) {
+      Alert.alert('Sign up failed', getAuthErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  const busy = isSubmitting || isLoading;
+
+  return (
+    <AuthScreenShell>
+      <AuthLoginCard>
+        <AuthHeader
+          title="Create your NFC identity"
+          subtitle="A guided setup will help you build a card people can save in one tap."
+        />
+
+        <View style={styles.guide}>
+          {['Create your profile', 'Choose your card style', 'Share by NFC or QR'].map((item, index) => (
+            <View key={item} style={styles.guideRow}>
+              <View style={styles.guideDot}>
+                <AppText style={styles.guideDotText}>{index + 1}</AppText>
+              </View>
+              <AppText style={styles.guideText}>{item}</AppText>
+            </View>
+          ))}
+        </View>
+
+        <SocialAuthSection disabled={busy} onSuccess={handleSocialSuccess} />
+
+        <AuthFormGroup>
+          <AuthTextField
+            value={displayName}
+            onChangeText={setDisplayName}
+            placeholder="Display name"
+            editable={!busy}
+            autoCapitalize="words"
+            textContentType="name"
+            autoComplete="name"
+          />
+          <AuthTextField
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Email"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable={!busy}
+            textContentType="emailAddress"
+            autoComplete="email"
+          />
+          <AuthTextField
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Password (6+ characters)"
+            secureTextEntry
+            editable={!busy}
+            isLast
+            textContentType="newPassword"
+            autoComplete="password-new"
+          />
+        </AuthFormGroup>
+
+        <AuthPrimaryButton
+          label={isSubmitting ? 'Creating...' : 'Create account'}
+          onPress={handleRegister}
+          loading={isSubmitting}
+          disabled={busy}
+        />
+
+        <AuthFooterLink
+          prompt="Already have an account?"
+          action="Sign in"
+          onPress={() => router.replace('/auth/login')}
+          disabled={busy}
+        />
+      </AuthLoginCard>
+    </AuthScreenShell>
+  );
+}
+
+const styles = StyleSheet.create({
+  guide: { gap: 10, backgroundColor: '#F5F5F7', borderRadius: 22, padding: 16 },
+  guideRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  guideDot: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#111111', alignItems: 'center', justifyContent: 'center' },
+  guideDotText: { fontSize: 12, fontWeight: '900', color: '#FFFFFF' },
+  guideText: { fontSize: 14, fontWeight: '800', color: '#111111' },
+});

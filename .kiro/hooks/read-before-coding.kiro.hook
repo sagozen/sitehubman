@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Read Before Coding",
+  "description": "At the start of each task, gather context on relevant files before writing anything.",
+  "version": "1",
+  "when": {
+    "type": "preTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before making any changes, read the relevant existing files in the area you will be working in. Understand the project conventions (naming, imports, component structure, design tokens). Do this once now — do not re-read files during the same task unless you discover a new area."
+  }
+}

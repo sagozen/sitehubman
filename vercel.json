@@ -1,0 +1,28 @@
+{
+  "rewrites": [
+    {
+      "source": "/c/:cardId",
+      "destination": "/c/[cardId].html"
+    },
+    {
+      "source": "/p/:slug",
+      "destination": "/p/[slug].html"
+    },
+    {
+      "source": "/public/:slug",
+      "destination": "/public/[slug].html"
+    },
+    {
+      "source": "/order-detail/:orderId",
+      "destination": "/order-detail/[orderId].html"
+    },
+    {
+      "source": "/printer/nfc/:jobId",
+      "destination": "/printer/nfc/[jobId].html"
+    },
+    {
+      "source": "/printer/qa/:jobId",
+      "destination": "/printer/qa/[jobId].html"
+    }
+  ]
+}

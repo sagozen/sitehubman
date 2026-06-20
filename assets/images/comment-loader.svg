@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid">
+  <!-- Speech bubble shell (loading.io comment shape) -->
+  <path d="M78,19H22c-6.6,0-12,5.4-12,12v31c0,6.6,5.4,12,12,12h37.2c0.4,3,1.8,5.6,3.7,7.6c2.4,2.5,5.1,4.1,9.1,4c-1.4-2.1-2-7.2-2-10.3c0-0.4,0-0.8,0-1.3H78c6.6,0,12-5.4,12-12V31C90,24.4,84.6,19,78,19z" fill="#2596be"/>
+  <!-- Dot 1 (bounce stagger 0ms) -->
+  <circle cx="30" cy="47" r="6" fill="#ffffff">
+    <animate attributeName="transform" type="scale" values="0.4;1;0.4" keyTimes="0;0.25;1" dur="1.2s" begin="0s" repeatCount="indefinite" additive="sum" calcMode="spline" keySplines="0.17 0.67 0.83 0.67;0.17 0.67 0.83 0.67"/>
+  </circle>
+  <!-- Dot 2 (bounce stagger 200ms) -->
+  <circle cx="50" cy="47" r="6" fill="#ffffff">
+    <animate attributeName="transform" type="scale" values="0.4;1;0.4" keyTimes="0;0.25;1" dur="1.2s" begin="0.2s" repeatCount="indefinite" additive="sum" calcMode="spline" keySplines="0.17 0.67 0.83 0.67;0.17 0.67 0.83 0.67"/>
+  </circle>
+  <!-- Dot 3 (bounce stagger 400ms) -->
+  <circle cx="70" cy="47" r="6" fill="#ffffff">
+    <animate attributeName="transform" type="scale" values="0.4;1;0.4" keyTimes="0;0.25;1" dur="1.2s" begin="0.4s" repeatCount="indefinite" additive="sum" calcMode="spline" keySplines="0.17 0.67 0.83 0.67;0.17 0.67 0.83 0.67"/>
+  </circle>
+</svg>

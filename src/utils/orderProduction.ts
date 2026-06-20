@@ -1,0 +1,79 @@
+/** Production order ID, QR payload, and job passcode helpers. */
+
+export type OrderSource = 'guest' | 'customer' | 'manual' | 'bulk';
+
+export function generateOrderNumber(): string {
+  const seq = 1000 + Math.floor(Math.random() * 9000);
+  return `ORD-${seq}`;
+}
+
+export function generateProductionPasscode(): string {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+export function buildProductionQrPayload(orderNumber: string, passcode: string): string {
+  return `sitehub://production?ord=${encodeURIComponent(orderNumber)}&pass=${passcode}`;
+}
+
+export function parseProductionScan(raw: string): { orderNumber?: string; passcode?: string; cardCode?: string } {
+  const value = raw.trim();
+  const urlMatch = value.match(/[?&]ord=([^&]+)/i);
+  const passMatch = value.match(/[?&]pass=([^&]+)/i);
+  if (urlMatch) {
+    return {
+      orderNumber: decodeURIComponent(urlMatch[1]).toUpperCase(),
+      passcode: passMatch ? decodeURIComponent(passMatch[1]) : undefined,
+    };
+  }
+  const labelledPassMatch = value.match(/^(ORD-\d{4,6}).*?(?:pass|passcode|code)\D*(\d{4,8})$/i);
+  if (labelledPassMatch) {
+    return {
+      orderNumber: labelledPassMatch[1].toUpperCase(),
+      passcode: labelledPassMatch[2],
+    };
+  }
+  const ordWithPassMatch = value.match(/^(ORD-\d{4,6})(?:[\s:#-]+)(\d{4,8})$/i);
+  if (ordWithPassMatch) {
+    return {
+      orderNumber: ordWithPassMatch[1].toUpperCase(),
+      passcode: ordWithPassMatch[2],
+    };
+  }
+  const ordMatch = value.match(/^ORD-\d{4,6}$/i);
+  if (ordMatch) {
+    return { orderNumber: ordMatch[0].toUpperCase() };
+  }
+  return { cardCode: value.replace(/^URL:/i, '').trim().toUpperCase() };
+}
+
+export function isPhysicalFulfillment(order: { fulfillment?: string; productType?: string }): boolean {
+  return (
+    order.fulfillment === 'physical' ||
+    order.productType === 'physical_nfc' ||
+    order.productType === 'wood_card' ||
+    order.productType === 'metal_card' ||
+    order.productType === 'pvc_card'
+  );
+}
+
+/**
+ * Simplified flow: Sales approves in ONE step from pending_payment.
+ * payment_submitted / payment_verified are legacy stops — still accepted
+ * so existing orders aren't broken, but new orders skip them.
+ */
+export function needsSalesApproval(order: {
+  fulfillment?: string;
+  productType?: string;
+  salesApprovedAt?: string;
+  status?: string;
+}): boolean {
+  if (!isPhysicalFulfillment(order)) return false;
+  if (order.salesApprovedAt) return false;
+  return (
+    order.status === 'pending_payment' ||
+    // Legacy intermediate statuses — still trigger approval button for old orders
+    order.status === 'payment_submitted' ||
+    order.status === 'payment_verified' ||
+    order.status === 'payment_rejected'
+  );
+}

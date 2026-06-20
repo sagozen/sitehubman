@@ -1,0 +1,73 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userPath() {
+      return /databases/(default)/documents/users/$(request.auth.uid);
+    }
+
+    function userExists() {
+      return isSignedIn() && firestore.exists(userPath());
+    }
+
+    function role() {
+      return isSignedIn() && ('role' in request.auth.token)
+        ? request.auth.token.role
+        : (userExists() ? firestore.get(userPath()).data.role : 'guest');
+    }
+
+    function isSalesOrAdmin() {
+      return role() in ['sales', 'sales_rep', 'admin', 'super_admin'];
+    }
+
+    function invoicePath(invoiceId) {
+      return /databases/(default)/documents/invoices/$(invoiceId);
+    }
+
+    match /qa-videos/{jobId}/{fileName} {
+      allow read: if isSignedIn() && (
+        role() in ['admin', 'super_admin', 'qa_inspector', 'printer', 'printer_operator', 'printer_staff']
+      );
+      allow create, update: if isSignedIn()
+        && role() in ['printer', 'printer_operator', 'printer_staff', 'admin', 'super_admin']
+        && request.resource.size < 80 * 1024 * 1024
+        && request.resource.contentType.matches('video/.*');
+      allow delete: if isSignedIn() && role() in ['admin', 'super_admin'];
+    }
+
+    match /order-artwork/{salesUserId}/{fileName} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn()
+        && isSalesOrAdmin()
+        && request.auth.uid == salesUserId
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if isSignedIn()
+        && isSalesOrAdmin()
+        && request.auth.uid == salesUserId;
+    }
+
+    match /payment_proofs/{userId}/{orderId}/{fileName} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isSalesOrAdmin());
+      allow create, update: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if isSignedIn() && (request.auth.uid == userId || isSalesOrAdmin());
+    }
+
+    match /invoices/{invoiceId}/{fileName} {
+      allow read: if isSignedIn() && (
+        role() in ['admin', 'super_admin']
+        || (
+          firestore.exists(invoicePath(invoiceId))
+          && firestore.get(invoicePath(invoiceId)).data.userId == request.auth.uid
+        )
+      );
+      allow write: if false;
+    }
+  }
+}
