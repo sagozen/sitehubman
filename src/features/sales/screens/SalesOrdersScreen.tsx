@@ -1,166 +1,91 @@
 /**
- * SalesOrdersScreen — Super wow edition.
- * Animated segment pill, urgency scores, Apple-quality grouped list.
+ * SalesOrdersScreen — dark canvas, white cards, pill filter.
  */
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator, Alert, Pressable,
-  StyleSheet, TextInput, View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { GlassSafeScreen } from '@/src/components/GlassSafeScreen';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppEmptyState } from '@/src/components/AppState';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import {
-  SalesCompactHero,
-  salesCompactHeroStyles,
-} from '@/src/features/sales/components/SalesCompactHero';
-import { SalesSegment, salesUi } from '@/src/features/sales/components/SalesScreenUi';
+import { SalesProductionApprovalModal } from '@/src/features/sales/components/SalesProductionApprovalModal';
 import { appRoutes } from '@/src/constants/navigation';
 import { orderStatusOptions, productTypeOptions } from '@/src/constants/options';
 import { formatOrderTotal } from '@/src/utils/orderPricing';
 import { useAuth } from '@/src/hooks/useAuth';
-import { useNotifications } from '@/src/hooks/useNotifications';
 import { useOrders } from '@/src/hooks/useOrders';
 import { useSearchQuery } from '@/src/hooks/useSearchQuery';
 import { getAuthErrorMessage } from '@/src/services/authService';
-import { SalesProductionApprovalModal } from '@/src/features/sales/components/SalesProductionApprovalModal';
 import { confirmSalesProductionApproval } from '@/src/services/salesOrderApprovalService';
-import { Order, SalesPaymentConfirmation } from '@/src/types/models';
+import type { Order, SalesPaymentConfirmation } from '@/src/types/models';
 import { isPhysicalFulfillment, needsSalesApproval } from '@/src/utils/orderProduction';
+import { isPaymentVerified } from '@/src/services/paymentVerificationService';
 
-// ─── Filter types ─────────────────────────────────────────────────────────────
-
-type OrderFilterKey = 'all'|'guest'|'customer'|'manual'|'bulk'|'physical_approval'|'ecard';
-type SegmentLabel   = 'All'|'Guest'|'Customer'|'Manual'|'Bulk'|'Approval'|'eCard';
-
-const SEG_TO_FILTER: Record<SegmentLabel, OrderFilterKey> = {
-  All:'all', Guest:'guest', Customer:'customer', Manual:'manual',
-  Bulk:'bulk', Approval:'physical_approval', eCard:'ecard',
+const C = {
+  accent: '#FF9500', accentDim: 'rgba(255,149,0,0.18)',
+  bg1: '#0D1F12', bg2: '#1A3320',
+  card: '#FFFFFF', cardText: '#111111', cardMuted: '#888888',
+  white: '#FFFFFF', whiteDim: 'rgba(255,255,255,0.55)',
+  pill: '#1E2E1E', pillBorder: 'rgba(255,255,255,0.08)',
+  green: '#34C759', red: '#FF3B30', blue: '#007AFF',
 };
-const FILTER_TO_SEG: Record<OrderFilterKey, SegmentLabel> = {
-  all:'All', guest:'Guest', customer:'Customer', manual:'Manual',
-  bulk:'Bulk', physical_approval:'Approval', ecard:'eCard',
-};
-const SEGMENTS: SegmentLabel[] = ['All','Guest','Customer','Manual','Bulk','Approval','eCard'];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+type Filter = 'all' | 'approval' | 'active' | 'done';
+const FILTERS: Filter[] = ['all', 'approval', 'active', 'done'];
+const FL: Record<Filter, string> = { all: 'All', approval: 'Approve', active: 'Active', done: 'Done' };
 
-function statusPill(order: Order) {
-  if (['delivered','ready_to_ship'].includes(order.status))
-    return { label:'Done',    color: salesUi.green,  bg: salesUi.greenSoft  };
-  if (['draft','pending_payment','payment_submitted'].includes(order.status))
-    return { label:'Pending', color: salesUi.accent, bg: salesUi.orangeSoft };
-  if (['payment_rejected','qa_failed','cancelled'].includes(order.status))
-    return { label:'Failed',  color: salesUi.red,    bg: salesUi.redSoft    };
-  return   { label:'Active',  color: salesUi.blue,   bg: salesUi.blueSoft   };
+function matchF(o: Order, f: Filter): boolean {
+  if (f === 'all') return true;
+  if (f === 'approval') return needsSalesApproval(o);
+  if (f === 'done') return ['delivered','ready_to_ship'].includes(o.status);
+  return !['delivered','cancelled','qa_failed','payment_rejected'].includes(o.status) && !needsSalesApproval(o);
 }
 
-function urgencyScore(order: Order): 'high'|'medium'|'low' {
-  if (order.priority === 'urgent') return 'high';
-  const days = (Date.now() - new Date(order.createdAt).getTime()) / 86_400_000;
-  if (days > 3) return 'high';
-  if (days > 1) return 'medium';
-  return 'low';
+function matchQ(o: Order, q: string): boolean {
+  if (!q) return true;
+  const s = q.toLowerCase();
+  const sl = orderStatusOptions.find(x => x.value === o.status)?.label ?? o.status;
+  return [o.id, o.customerName??'', o.phone??'', o.cardCode??'', o.status??'', sl].some(v => v.toLowerCase().includes(s));
 }
 
-function matchesFilter(order: Order, filter: OrderFilterKey) {
-  if (filter === 'all') return true;
-  if (filter === 'guest')    return order.orderSource === 'guest';
-  if (filter === 'customer') return order.orderSource === 'customer';
-  if (filter === 'manual')   return order.orderSource === 'manual';
-  if (filter === 'bulk')     return order.orderSource === 'bulk';
-  if (filter === 'physical_approval') return needsSalesApproval(order);
-  if (filter === 'ecard') return !isPhysicalFulfillment(order);
-  return true;
+function dotColor(o: Order): string {
+  if (['delivered','ready_to_ship'].includes(o.status)) return C.green;
+  if (['draft','pending_payment','payment_submitted'].includes(o.status)) return C.accent;
+  if (['payment_rejected','qa_failed','cancelled'].includes(o.status)) return C.red;
+  return C.blue;
 }
 
-function matchesQuery(order: Order, query: string) {
-  if (!query) return true;
-  const q = query.trim().toLowerCase();
-  const sl = orderStatusOptions.find((o) => o.value === order.status)?.label ?? order.status;
-  const loose = (s: string) => s.toLowerCase().includes(q);
-  return (
-    loose(order.id) || loose(order.customerName ?? '') ||
-    loose(order.phone ?? '') || loose(order.cardCode ?? '') ||
-    loose(order.status ?? '') || loose(sl)
-  );
-}
-
-// ─── OrderCard ────────────────────────────────────────────────────────────────
-
-function OrderCard({
-  order, approving, onApprove,
-}: {
-  order: Order; approving: boolean; onApprove: (o: Order) => void;
-}) {
-  const product     = productTypeOptions.find((p) => p.value === order.productType);
+function Card({ order, approving, onApprove }: { order: Order; approving: boolean; onApprove: (o: Order) => void }) {
+  const product = productTypeOptions.find(p => p.value === order.productType);
   const productName = product?.label ?? order.productType?.replace(/_/g,' ') ?? 'Card';
-  const pill        = statusPill(order);
   const showApprove = needsSalesApproval(order);
-  const urgency     = showApprove ? urgencyScore(order) : null;
-
-  const urgencyColor = urgency === 'high' ? salesUi.red : urgency === 'medium' ? salesUi.accent : salesUi.green;
-  const urgencyBg    = urgency === 'high' ? salesUi.redSoft : urgency === 'medium' ? salesUi.orangeSoft : salesUi.greenSoft;
+  const verified = isPaymentVerified(order);
+  const dc = dotColor(order);
 
   return (
     <Pressable
-      style={({ pressed }) => [
-        styles.card, pressed && styles.cardPressed,
-        showApprove && styles.cardNeedsAction,
-      ]}
+      style={({ pressed }) => [card.wrap, pressed && { opacity: 0.85 }]}
       onPress={() => router.push({ pathname: appRoutes.orderDetail, params: { orderId: order.id } })}
     >
-      {/* Coloured left bar */}
-      <View style={[styles.accentBar, { backgroundColor: pill.color }]} />
-
-      <View style={styles.cardBody}>
-        {/* Row 1: ID + name + pill + amount */}
-        <View style={styles.cardTop}>
-          <View style={styles.cardCopy}>
-            <AppText style={styles.overline}>
-              {order.orderNumber ?? `#${order.id.slice(0,6).toUpperCase()}`}
-            </AppText>
-            <AppText style={styles.customerName} numberOfLines={1}>
-              {order.customerName}
-            </AppText>
-          </View>
-          <View style={styles.cardRight}>
-            <View style={[styles.pill, { backgroundColor: pill.bg }]}>
-              <AppText style={[styles.pillText, { color: pill.color }]}>{pill.label}</AppText>
-            </View>
-            <AppText style={styles.amount}>{formatOrderTotal(order)}</AppText>
-          </View>
+      <View style={[card.topBar, { backgroundColor: dc }]} />
+      <View style={card.body}>
+        <View style={card.row}>
+          <AppText style={card.name} numberOfLines={1}>{order.customerName}</AppText>
+          <AppText style={[card.amount, !verified && { color: C.cardMuted }]}>{formatOrderTotal(order)}</AppText>
         </View>
-
-        {/* Row 2: meta + urgency badge */}
-        <View style={styles.cardMeta}>
-          <AppText style={styles.metaText} numberOfLines={1}>
-            {productName} · {order.paymentStatus}
-          </AppText>
-          {urgency ? (
-            <View style={[styles.urgencyBadge, { backgroundColor: urgencyBg }]}>
-              <AppIcon name="AlertCircle" size={10} color={urgencyColor} />
-              <AppText style={[styles.urgencyText, { color: urgencyColor }]}>
-                {urgency === 'high' ? 'Urgent' : urgency === 'medium' ? 'Review' : 'Approve'}
-              </AppText>
-            </View>
-          ) : null}
-        </View>
-
-        {/* Approve button */}
+        <AppText style={card.meta} numberOfLines={1}>
+          {order.orderNumber ?? `#${order.id.slice(0,6).toUpperCase()}`} · {productName}
+          {!verified ? ' · unpaid' : ''}
+        </AppText>
         {showApprove ? (
           <Pressable
-            style={[styles.approveBtn, approving && styles.approveBtnBusy]}
+            style={[card.btn, approving && { opacity: 0.5 }]}
             disabled={approving}
-            onPress={(e) => { e.stopPropagation(); onApprove(order); }}
+            onPress={e => { e.stopPropagation(); onApprove(order); }}
           >
-            <AppIcon name="CheckCircle" size={14} color="#fff" />
-            <AppText style={styles.approveBtnText}>
-              {approving ? 'Approving…' : 'Approve for Production'}
-            </AppText>
+            <AppText style={card.btnText}>{approving ? 'Approving…' : 'Approve for production →'}</AppText>
           </Pressable>
         ) : null}
       </View>
@@ -168,207 +93,119 @@ function OrderCard({
   );
 }
 
-// ─── Screen ───────────────────────────────────────────────────────────────────
+const card = StyleSheet.create({
+  wrap: { backgroundColor: C.card, borderRadius: 20, overflow: 'hidden', marginBottom: 10 },
+  topBar: { height: 3 },
+  body: { padding: 16, gap: 6 },
+  row: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 },
+  name: { flex: 1, fontSize: 16, fontWeight: '700', color: C.cardText },
+  amount: { fontSize: 15, fontWeight: '700', color: C.cardText },
+  meta: { fontSize: 13, color: C.cardMuted },
+  btn: { alignSelf: 'flex-start', marginTop: 4, backgroundColor: C.accent, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 },
+  btnText: { color: '#fff', fontSize: 12, fontWeight: '800' },
+});
 
 export default function SalesOrdersScreen() {
-  const { user }            = useAuth();
-  const { unreadCount }     = useNotifications();
+  const { user } = useAuth();
   const { orders, isLoading, refresh } = useOrders('sales', user?.id ?? '');
   const { input, setInput, query, submitSearch, clearSearch } = useSearchQuery();
-  const [filter, setFilter]           = useState<OrderFilterKey>('all');
+  const [filter, setFilter] = useState<Filter>('all');
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [approvalOrder, setApprovalOrder] = useState<Order | null>(null);
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  const filtered = useMemo(
-    () => orders.filter((o) => matchesFilter(o, filter) && matchesQuery(o, query)),
-    [filter, orders, query],
-  );
-  const segment = FILTER_TO_SEG[filter];
-
-  // Count badges per segment for the hero
+  const filtered = useMemo(() => orders.filter(o => matchF(o, filter) && matchQ(o, query)), [filter, orders, query]);
   const approvalCount = useMemo(() => orders.filter(needsSalesApproval).length, [orders]);
 
-  function openApproval(order: Order) {
-    if (!user?.id || approvingId) return;
-    setApprovalOrder(order);
-  }
-
-  async function handleConfirmApproval(confirmation: SalesPaymentConfirmation) {
+  async function handleConfirm(c: SalesPaymentConfirmation) {
     if (!user?.id || !approvalOrder) return;
     setApprovingId(approvalOrder.id);
     try {
-      await confirmSalesProductionApproval(approvalOrder.id, confirmation, user.id);
+      await confirmSalesProductionApproval(approvalOrder.id, c, user.id);
       await refresh();
       setApprovalOrder(null);
-      Alert.alert('Sent to printer', 'Payment recorded and production job queued.');
-    } catch (error) {
-      Alert.alert('Approval failed', getAuthErrorMessage(error));
-    } finally {
-      setApprovingId(null);
-    }
+      Alert.alert('Sent to printer', 'Order approved and queued.');
+    } catch (err) { Alert.alert('Failed', getAuthErrorMessage(err)); }
+    finally { setApprovingId(null); }
   }
 
   return (
-    <GlassSafeScreen>
-      <IosScrollView
-        style={styles.root}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* ── Hero ── */}
-        <SalesCompactHero
-          statusLabel="Orders"
-          headline={`${orders.length} total`}
-          caption={approvalCount > 0 ? `${approvalCount} need approval` : 'Track customer orders and delivery'}
-          onNotifications={() => router.push(appRoutes.sales.notifications)}
-          unreadCount={unreadCount}
-          footerMeta={`${filtered.length} showing · ${segment}`}
-          footerPill={query ? 'Filtered' : undefined}
-        >
-          {/* Search bar */}
-          <View style={salesCompactHeroStyles.searchWrap}>
-            <AppIcon name="Search" size={16} color={salesUi.muted} />
+    <View style={{ flex: 1 }}>
+      <LinearGradient colors={[C.bg1, C.bg2, C.bg1]} style={StyleSheet.absoluteFill} />
+      <SafeAreaView style={{ flex: 1 }} edges={['top','left','right']}>
+        <IosScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+
+          {/* Header */}
+          <View style={s.header}>
+            <AppText style={s.title}>Orders</AppText>
+            <View style={s.countBadge}>
+              <AppText style={s.countText}>{orders.length}</AppText>
+            </View>
+          </View>
+
+          {/* Search */}
+          <View style={s.searchWrap}>
+            <AppIcon name="Search" size={15} color={C.whiteDim} />
             <TextInput
-              value={input}
-              onChangeText={setInput}
-              onSubmitEditing={submitSearch}
+              value={input} onChangeText={setInput} onSubmitEditing={submitSearch}
               placeholder="Name, order ID, status…"
-              placeholderTextColor={salesUi.muted}
+              placeholderTextColor={C.whiteDim}
               returnKeyType="search"
-              style={salesCompactHeroStyles.searchInput}
+              style={s.searchInput}
             />
             {input.length > 0 ? (
               <Pressable onPress={clearSearch} hitSlop={8}>
-                <AppIcon name="X" size={14} color={salesUi.muted} />
+                <AppIcon name="X" size={14} color={C.whiteDim} />
               </Pressable>
             ) : null}
           </View>
-        </SalesCompactHero>
 
-        {/* ── Segment ── */}
-        <SalesSegment
-          items={SEGMENTS}
-          active={segment}
-          onChange={(label) => setFilter(SEG_TO_FILTER[label])}
-        />
-
-        {/* ── List header ── */}
-        <View style={styles.listHeader}>
-          <AppText style={styles.listTitle}>Order list</AppText>
-          <View style={styles.countBadge}>
-            <AppText style={styles.countText}>{filtered.length}</AppText>
-          </View>
-        </View>
-
-        {/* ── Content ── */}
-        {isLoading && filtered.length === 0 ? (
-          <View style={styles.loadingWrap}>
-            <ActivityIndicator color={salesUi.accent} />
-            <AppText style={styles.loadingText}>Loading orders…</AppText>
-          </View>
-        ) : filtered.length === 0 ? (
-          <AppEmptyState
-            role="sales" iconName="ClipboardList"
-            title={query ? 'No matching orders' : 'No orders yet'}
-            description={
-              query
-                ? `No results for "${query}". Try a different keyword.`
-                : 'Create the first customer order from this sales account.'
-            }
-          />
-        ) : (
-          <View style={styles.list}>
-            {filtered.map((order) => (
-              <OrderCard
-                key={order.id}
-                order={order}
-                approving={approvingId === order.id}
-                onApprove={openApproval}
-              />
+          {/* Pill filters */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filterRow}>
+            {FILTERS.map(f => (
+              <Pressable key={f} style={[s.pill, filter === f && s.pillActive]} onPress={() => setFilter(f)}>
+                <AppText style={[s.pillText, filter === f && s.pillTextActive]}>
+                  {FL[f]}{f === 'approval' && approvalCount > 0 ? ` · ${approvalCount}` : ''}
+                </AppText>
+              </Pressable>
             ))}
-          </View>
-        )}
-      </IosScrollView>
+          </ScrollView>
+
+          {/* Content */}
+          {isLoading && filtered.length === 0 ? (
+            <View style={{ paddingTop: 40, alignItems: 'center' }}><ActivityIndicator color={C.accent} /></View>
+          ) : filtered.length === 0 ? (
+            <AppEmptyState role="sales" iconName="ClipboardList" title={query ? 'No results' : 'No orders'} description={query ? `Nothing for "${query}"` : 'Create a new order.'} />
+          ) : (
+            filtered.map(o => (
+              <Card key={o.id} order={o} approving={approvingId === o.id}
+                onApprove={o2 => { if (!approvingId) setApprovalOrder(o2); }} />
+            ))
+          )}
+        </IosScrollView>
+      </SafeAreaView>
 
       <SalesProductionApprovalModal
-        visible={Boolean(approvalOrder)}
-        order={approvalOrder}
+        visible={Boolean(approvalOrder)} order={approvalOrder}
         busy={Boolean(approvingId)}
-        onClose={() => setApprovalOrder(null)}
-        onConfirm={handleConfirmApproval}
+        onClose={() => setApprovalOrder(null)} onConfirm={handleConfirm}
       />
-    </GlassSafeScreen>
+    </View>
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  content: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 120 },
-
-  listHeader: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    paddingTop: 22, paddingBottom: 12, paddingHorizontal: 2,
-  },
-  listTitle: { fontSize: 22, fontWeight: '700', color: salesUi.text, letterSpacing: 0.35 },
-  countBadge: {
-    minWidth: 24, height: 24, borderRadius: 12, paddingHorizontal: 8,
-    backgroundColor: salesUi.orangeSoft, alignItems: 'center', justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,149,0,0.2)',
-  },
-  countText: { fontSize: 12, fontWeight: '700', color: salesUi.accent },
-
-  list: { gap: 10 },
-
-  card: {
-    flexDirection: 'row', alignItems: 'stretch',
-    backgroundColor: salesUi.surface, borderRadius: salesUi.radiusMd,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: salesUi.border,
-    overflow: 'hidden', ...salesUi.shadow,
-  },
-  cardPressed: { opacity: 0.86 },
-  cardNeedsAction: { borderColor: 'rgba(255,149,0,0.35)' },
-  accentBar: { width: 3 },
-  cardBody: { flex: 1, paddingHorizontal: 14, paddingVertical: 13 },
-
-  cardTop: {
-    flexDirection: 'row', alignItems: 'flex-start',
-    justifyContent: 'space-between', gap: 10,
-  },
-  cardCopy: { flex: 1, minWidth: 0 },
-  overline: {
-    fontSize: 10, fontWeight: '700', color: salesUi.muted,
-    letterSpacing: 0.4, marginBottom: 3,
-  },
-  customerName: { fontSize: 16, fontWeight: '700', color: salesUi.text },
-  cardRight: { alignItems: 'flex-end', gap: 5 },
-  pill: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999 },
-  pillText: { fontSize: 10, fontWeight: '700' },
-  amount: { fontSize: 16, fontWeight: '700', color: salesUi.accent, letterSpacing: -0.3 },
-
-  cardMeta: {
-    marginTop: 8, flexDirection: 'row',
-    alignItems: 'center', justifyContent: 'space-between', gap: 8,
-  },
-  metaText: { flex: 1, fontSize: 12, fontWeight: '500', color: salesUi.muted },
-  urgencyBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999,
-  },
-  urgencyText: { fontSize: 10, fontWeight: '700' },
-
-  approveBtn: {
-    marginTop: 10, alignSelf: 'flex-start',
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: salesUi.accent, borderRadius: salesUi.radiusSm,
-    paddingHorizontal: 14, paddingVertical: 9,
-  },
-  approveBtnBusy: { opacity: 0.6 },
-  approveBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
-
-  loadingWrap: { paddingVertical: 40, alignItems: 'center', gap: 10 },
-  loadingText: { fontSize: 14, fontWeight: '500', color: salesUi.muted },
+const s = StyleSheet.create({
+  scroll: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 120 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
+  title: { fontSize: 34, fontWeight: '800', color: C.white, letterSpacing: -0.5 },
+  countBadge: { backgroundColor: C.pill, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: C.pillBorder },
+  countText: { fontSize: 14, fontWeight: '700', color: C.whiteDim },
+  searchWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.pill, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1, borderColor: C.pillBorder, marginBottom: 14 },
+  searchInput: { flex: 1, fontSize: 15, color: C.white, padding: 0 },
+  filterRow: { gap: 8, paddingBottom: 16 },
+  pill: { paddingHorizontal: 18, paddingVertical: 9, borderRadius: 999, backgroundColor: C.pill, borderWidth: 1, borderColor: C.pillBorder },
+  pillActive: { backgroundColor: C.white, borderColor: C.white },
+  pillText: { fontSize: 13, fontWeight: '600', color: C.whiteDim },
+  pillTextActive: { color: C.cardText },
 });

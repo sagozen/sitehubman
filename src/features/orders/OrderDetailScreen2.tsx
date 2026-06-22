@@ -1,4 +1,4 @@
-import { IosScrollView } from '@/src/components/IosScrollView';
+﻿import { IosScrollView } from '@/src/components/IosScrollView';
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, ImageBackground, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View,  } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -6,6 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppIcon, AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { AuthGate } from '@/src/components/AuthGate';
+import { OrderWorkflowTimeline } from '@/src/components/OrderWorkflowTimeline';
+import { OrderActionBar } from '@/src/components/OrderActionBar';
 import {
   cardDesignOptions,
   orderCardStatusOptions,
@@ -26,9 +28,15 @@ import {
   reopenOrderCard,
   unfreezeOrderCard,
   updateOrderDetails,
+  getPrinterJobByOrderId,
 } from '@/src/services/firestoreService';
 import { SalesProductionApprovalModal } from '@/src/features/sales/components/SalesProductionApprovalModal';
 import { confirmSalesProductionApproval, cancelOrder } from '@/src/services/salesOrderApprovalService';
+import {
+  markOrderDelivered,
+  markOrderShipped,
+  submitQaDecision,
+} from '@/src/services/productionService';
 import { getPaymentStatusLabel } from '@/src/services/paymentVerificationService';
 import { getAuthErrorMessage } from '@/src/services/authService';
 import { CardDesign, Order, PaymentStatus, SalesPaymentConfirmation } from '@/src/types/models';
@@ -220,8 +228,9 @@ function Section({ title, icon, children }: { title: string; icon: AppIconName; 
 
 function DetailContent() {
   const { user } = useAuth();
-  const { isPrinter, isSales, isAdmin } = useRoleFlags();
+  const { isPrinter, isSales, isAdmin, role } = useRoleFlags();
   const readOnly = isPrinter;
+  const currentRole = role;
   const params = useLocalSearchParams<{ orderId?: string }>();
   const orderId = typeof params.orderId === 'string' ? params.orderId : '';
   const [order, setOrder] = useState<Order | null>(null);
@@ -272,7 +281,7 @@ function DetailContent() {
           productType: form.productType,
           quantity: Math.max(1, Number.parseInt(form.quantity, 10) || 1),
         })
-      : '—';
+      : 'â€”';
   const cardStatus = order?.cardStatus ?? 'active';
   const cardStatusOpt = orderCardStatusOptions.find((item) => item.value === cardStatus) ?? orderCardStatusOptions[0];
   const workflowOpt = orderStatusOptions.find((item) => item.value === order?.status);
@@ -380,6 +389,108 @@ function DetailContent() {
         },
       ],
     );
+  }
+
+  /**
+   * Centralised dispatcher for the role-aware OrderActionBar. Routes each
+   * ActionId to the right underlying handler. The actual logic stays in
+   * the existing helpers (handleMarkPaid, handleConfirmApproval, etc.) —
+   * this is just the bridge between the workflow module and the screen.
+   */
+  async function handleOrderAction(actionId: string) {
+    if (!order) return;
+    switch (actionId) {
+      case 'verify_payment':
+        await handleMarkPaid();
+        break;
+      case 'approve_production':
+        setApprovalOpen(true);
+        break;
+      case 'reject_payment':
+        Alert.alert('Reject payment', 'Mark this payment as rejected?', [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Reject',
+            style: 'destructive',
+            onPress: async () => {
+              setSaving(true);
+              try {
+                await updateOrderDetails(order.id, { paymentStatus: 'paid_verified' } as any, user?.id);
+                setMessage('Payment rejected.');
+                await load();
+              } finally {
+                setSaving(false);
+              }
+            },
+          },
+        ]);
+        break;
+      case 'pass_qa': {
+        const job = await getPrinterJobByOrderId(order.id).catch(() => null);
+        if (!job) {
+          Alert.alert('No job', 'No printer job for this order.');
+          break;
+        }
+        setSaving(true);
+        try {
+          await submitQaDecision(order.id, job.id, 'pass');
+          setMessage('QA passed. Order moved to shipping.');
+          await load();
+        } catch (err) {
+          Alert.alert('QA failed', getAuthErrorMessage(err));
+        } finally {
+          setSaving(false);
+        }
+        break;
+      }
+      case 'fail_qa': {
+        const job = await getPrinterJobByOrderId(order.id).catch(() => null);
+        if (!job) {
+          Alert.alert('No job', 'No printer job for this order.');
+          break;
+        }
+        setSaving(true);
+        try {
+          await submitQaDecision(order.id, job.id, 'fail', 'Visual QA failed');
+          setMessage('QA failed. Order returned to printer.');
+          await load();
+        } catch (err) {
+          Alert.alert('QA failed', getAuthErrorMessage(err));
+        } finally {
+          setSaving(false);
+        }
+        break;
+      }
+      case 'mark_shipped': {
+        setSaving(true);
+        try {
+          await markOrderShipped(order.id, { carrier: 'TBD' }, user?.id);
+          setMessage('Order shipped.');
+          await load();
+        } catch (err) {
+          Alert.alert('Update failed', getAuthErrorMessage(err));
+        } finally {
+          setSaving(false);
+        }
+        break;
+      }
+      case 'mark_delivered': {
+        setSaving(true);
+        try {
+          await markOrderDelivered(order.id, user?.id);
+          setMessage('Order delivered.');
+          await load();
+        } catch (err) {
+          Alert.alert('Update failed', getAuthErrorMessage(err));
+        } finally {
+          setSaving(false);
+        }
+        break;
+      }
+      default:
+        // Other actions fall through to the existing inline buttons.
+        break;
+    }
   }
 
   async function handleFreezeToggle() {
@@ -543,6 +654,11 @@ function DetailContent() {
         <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           {message ? <AppText style={[styles.inlineMessage, message.includes('denied') && styles.inlineError]}>{message}</AppText> : null}
 
+          {order ? <View style={styles.workflowSection}><AppText variant="caption" weight="semibold" style={styles.workflowTitle}>Workflow</AppText><View style={styles.workflowCard}><OrderWorkflowTimeline order={order} layout="step" /></View></View> : null}
+
+          {/* Role-aware action bar (single source of truth from orderWorkflow module) */}
+          {order ? <View style={styles.actionBarWrap}><OrderActionBar order={order} role={currentRole} onAction={handleOrderAction} /></View> : null}
+
           {order.designArtworkUrl ? (
             <ImageBackground source={{ uri: order.designArtworkUrl }} imageStyle={styles.bankArtwork} style={styles.bankCard}>
               <View style={styles.bankOverlay}>
@@ -604,7 +720,7 @@ function DetailContent() {
                 </View>
                 <View style={styles.summaryRow}>
                   <AppText variant="caption" tone="muted" weight="semibold" style={styles.summaryLabel}>Job passcode</AppText>
-                  <AppText variant="body" weight="bold" style={styles.summaryValue}>{order.productionPasscode ?? '—'}</AppText>
+                  <AppText variant="body" weight="bold" style={styles.summaryValue}>{order.productionPasscode ?? 'â€”'}</AppText>
                 </View>
                 <View style={styles.summaryRow}>
                   <AppText variant="caption" tone="muted" weight="semibold" style={styles.summaryLabel}>Sales approval</AppText>
@@ -700,11 +816,11 @@ function DetailContent() {
               </AppText>
               {salesView ? (
                 <AppText variant="caption" tone="muted" style={styles.readOnlyHint}>
-                  Confirm payment when approving production — wallets and revenue are managed by finance.
+                  Confirm payment when approving production â€” wallets and revenue are managed by finance.
                 </AppText>
               ) : (
                 <AppText variant="caption" tone="muted" style={styles.readOnlyHint}>
-                  Gateway and finance tools record payment — not editable on this screen for sales.
+                  Gateway and finance tools record payment â€” not editable on this screen for sales.
                 </AppText>
               )}
               {canMarkPaid ? (
@@ -799,7 +915,7 @@ function DetailContent() {
             </>
             ) : (
               <AppText variant="caption" tone="muted" style={styles.readOnlyHint}>
-                Production view — customer and payment fields are read-only.
+                Production view â€” customer and payment fields are read-only.
               </AppText>
             )}
           </Section>
@@ -841,7 +957,11 @@ export function OrderDetailScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.colors.background },
   keyboard: { flex: 1 },
-  header: {
+  workflowSection: { paddingHorizontal: 16, paddingTop: 18, gap: 8 },
+  workflowTitle: { fontSize: 11, fontWeight: '700', color: theme.colors.textMuted, letterSpacing: 0.6, textTransform: 'uppercase' },
+  workflowCard: { backgroundColor: theme.colors.surface, borderRadius: 16, padding: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.colors.border },
+  actionBarWrap: { paddingHorizontal: 16, paddingTop: 14 },
+header: {
     backgroundColor: theme.colors.background,
     flexDirection: 'row',
     alignItems: 'center',

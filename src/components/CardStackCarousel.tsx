@@ -21,7 +21,6 @@ import { router } from 'expo-router';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { FlippableNfcCard } from '@/src/components/FlippableNfcCard';
-import { HolographicShimmer } from '@/src/components/HolographicShimmer';
 import { HapticTap, HapticPattern } from '@/src/utils/haptics';
 import { Easings } from '@/src/utils/motion';
 import { appRoutes } from '@/src/constants/navigation';
@@ -225,8 +224,7 @@ function AddCardSkeleton({ onPress }: AddCardSkeletonProps) {
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        {/* Moving shimmer to make it feel "alive" without being noisy. */}
-        <HolographicShimmer enabled opacity={0.42} cycleMs={5200} />
+        {/* Soft pulse only — no constant Reanimated shimmer loop. */}
         <Animated.View style={[StyleSheet.absoluteFill, overlayStyle]} pointerEvents="none" />
 
         {/* Top brand row, mirrors NfcGlobalCardFace */}

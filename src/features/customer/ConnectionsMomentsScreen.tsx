@@ -12,11 +12,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { TapMomentCardMemo, type TapMoment, type TapMomentSource } from '@/src/components/TapMomentCard';
+import type { TapMoment, TapMomentSource } from '@/src/components/TapMomentCard';
+import { ChatBubbleMemo } from '@/src/components/ChatBubble';
 import { ConfettiBurst } from '@/src/components/ConfettiBurst';
 import { LiveTapSuccess } from '@/src/components/LiveTapSuccess';
 import { MomentDetailSheet } from '@/src/components/MomentDetailSheet';
-import { SEED_MOMENTS, SEED_MOMENT_LABELS, buildSeedAnalytics, getSeedSlugUrl } from '@/src/data/seedMoments';
+import { SEED_MOMENTS, SEED_MOMENT_LABELS, SEED_SPECS, buildSeedAnalytics, getSeedSlugUrl } from '@/src/data/seedMoments';
 import { appRoutes } from '@/src/constants/navigation';
 import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import { useCustomerConnections } from '@/src/hooks/useCustomerConnections';
@@ -26,6 +27,11 @@ import { usePreferences } from '@/src/hooks/usePreferences';
 
 const BRAND = '#007AFF';
 const MUTED = '#6E6E73';
+
+/** Lookup SEED_SPECS by id for the outbound flag (not exposed via TapMoment). */
+const OUTBOUND_IDS: ReadonlySet<string> = new Set(
+  SEED_SPECS.filter((spec) => spec.outbound).map((spec) => spec.id),
+);
 
 type MomentBucket = {
   label: string;
@@ -132,39 +138,6 @@ export function ConnectionsMomentsScreen() {
   );
   const hasMoments = timelineRows.length > 0;
 
-  const renderTimelineItem: ListRenderItem<TimelineRow> = useCallback(
-    ({ item, index }) => {
-      if (item.kind === 'header') {
-        return (
-          <View style={styles.bucketHead}>
-            <AppText style={[styles.bucketLabel, { color: isDark ? 'rgba(235,235,245,0.7)' : MUTED }]}>
-              {item.label}
-            </AppText>
-            <View style={[styles.bucketLine, { backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)' }]} />
-            <AppText style={[styles.bucketCount, { color: isDark ? 'rgba(235,235,245,0.5)' : MUTED }]}>
-              {item.count}
-            </AppText>
-          </View>
-        );
-      }
-      return (
-        <View style={styles.momentSpacing}>
-          <TapMomentCardMemo
-            moment={item.moment}
-            index={index}
-            relativeLabel={SEED_MOMENT_LABELS[item.moment.id]}
-            onPress={handleMomentPress}
-            onFollowUp={handleFollowUp}
-          />
-        </View>
-      );
-    },
-    [handleFollowUp, handleMomentPress, isDark],
-  );
-
-  const keyExtractor = useCallback((item: TimelineRow) => item.key, []);
-  const itemSeparator = useCallback(() => <View style={styles.rowSeparator} />, []);
-
   const handleFollowUp = useCallback((moment: TapMoment) => {
     setCelebratingFollowUp(moment.id);
     setTimeout(() => setCelebratingFollowUp(null), 1400);
@@ -176,6 +149,45 @@ export function ConnectionsMomentsScreen() {
     setActiveMoment(moment);
     setActiveSlugUrl(slugUrl);
   }, [profileHost]);
+
+  const renderTimelineItem: ListRenderItem<TimelineRow> = useCallback(
+    ({ item, index }) => {
+      if (item.kind === 'header') {
+        return (
+          <View style={cb.daySeparator}>
+            <View style={[cb.dayLine, { backgroundColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.07)' }]} />
+            <AppText style={[cb.dayLabel, { color: isDark ? 'rgba(235,235,245,0.55)' : MUTED }]}>
+              {item.label}
+            </AppText>
+            <View style={[cb.dayLine, { backgroundColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.07)' }]} />
+          </View>
+        );
+      }
+      const nextRow = timelineRows[index + 1];
+      const isLastInGroup = nextRow === undefined || nextRow.kind === 'header';
+      return (
+        <ChatBubbleMemo
+          moment={item.moment}
+          outbound={OUTBOUND_IDS.has(item.moment.id)}
+          relativeLabel={SEED_MOMENT_LABELS[item.moment.id]}
+          onPress={handleMomentPress}
+          onFollowUp={handleFollowUp}
+          isLastInGroup={isLastInGroup}
+        />
+      );
+    },
+    [handleFollowUp, handleMomentPress, isDark, timelineRows],
+  );
+
+  const keyExtractor = useCallback((item: TimelineRow) => item.key, []);
+  const itemSeparator = useCallback(() => <View style={styles.rowSeparator} />, []);
+
+  const setDateRangeStable = useCallback((range: DateRange) => {
+    setDateRange(range);
+  }, []);
+  const setSourceFilterStable = useCallback((src: SourceFilter) => {
+    setSourceFilter(src);
+  }, []);
 
   const closeDetail = useCallback(() => {
     setActiveMoment(null);
@@ -190,11 +202,6 @@ export function ConnectionsMomentsScreen() {
   const handleShareDemo = useCallback(() => {
     setCelebratingTap(true);
   }, []);
-
-  const sortedBuckets = useMemo(() => {
-    // When sorting oldest first, reverse bucket order so "Earlier" appears at top.
-    return sortOrder === 'oldest' ? buckets.slice().reverse() : buckets;
-  }, [buckets, sortOrder]);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
@@ -266,7 +273,7 @@ export function ConnectionsMomentsScreen() {
                   key={range.id}
                   onPress={() => {
                     HapticTap.selection();
-                    setDateRange(range.id);
+                    setDateRangeStable(range.id);
                   }}
                   accessibilityRole="button"
                   accessibilityLabel={`Filter by ${range.label}`}
@@ -305,7 +312,7 @@ export function ConnectionsMomentsScreen() {
                   key={src.id}
                   onPress={() => {
                     HapticTap.selection();
-                    setSourceFilter(src.id);
+                    setSourceFilterStable(src.id);
                   }}
                   accessibilityRole="button"
                   accessibilityLabel={`Filter by ${src.label}`}
@@ -368,19 +375,26 @@ export function ConnectionsMomentsScreen() {
 
         {/* Moments timeline - virtualized FlatList of header + moment rows */}
         {hasMoments ? (
-          <FlatList
-            data={timelineRows}
-            keyExtractor={keyExtractor}
-            renderItem={renderTimelineItem}
-            ItemSeparatorComponent={itemSeparator}
-            scrollEnabled={false}
-            initialNumToRender={6}
-            maxToRenderPerBatch={6}
-            windowSize={5}
-            removeClippedSubviews
-            contentContainerStyle={styles.timelineList}
-          />
-        ) : null}
+          <View style={[cb.chatCard, { backgroundColor: colors.surface }]}>
+            <View style={cb.chatHeader}>
+              <View style={cb.chatHeaderDot} />
+              <AppText style={[cb.chatHeaderText, { color: isDark ? 'rgba(235,235,245,0.55)' : MUTED }]}>
+                Live · {sortedMoments.length} moment{sortedMoments.length === 1 ? '' : 's'}
+              </AppText>
+            </View>
+            <FlatList
+              data={timelineRows}
+              keyExtractor={keyExtractor}
+              renderItem={renderTimelineItem}
+              ItemSeparatorComponent={itemSeparator}
+              scrollEnabled={false}
+              initialNumToRender={10}
+              maxToRenderPerBatch={10}
+              windowSize={7}
+              removeClippedSubviews
+              contentContainerStyle={styles.timelineList}
+            />
+          </View>
         ) : null}
 
         {/* Filtered-empty state (filter excludes everything). */}
@@ -579,16 +593,14 @@ const styles = StyleSheet.create({
     width: StyleSheet.hairlineWidth,
     height: 24,
   },
-  timeline: {
-    gap: 24,
-  },
-  bucket: {
+  timelineList: {
     gap: 12,
   },
   bucketHead: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    paddingTop: 12,
   },
   bucketLabel: {
     fontSize: 13,
@@ -605,7 +617,10 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   momentSpacing: {
-    marginBottom: 12,
+    // Outer View wraps the card so FlatList separators render between rows.
+  },
+  rowSeparator: {
+    height: 2,
   },
   filterRow: {
     gap: 8,
@@ -727,5 +742,59 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '900',
+  },
+});
+
+// Chat card styles - separate object so the chat surface stays self-contained.
+const cb = StyleSheet.create({
+  chatCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(60,60,67,0.14)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.05,
+    shadowRadius: 14,
+    elevation: 2,
+  },
+  chatHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 6,
+  },
+  chatHeaderDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#34C759',
+  },
+  chatHeaderText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: MUTED,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  daySeparator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  dayLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+  },
+  dayLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
 });

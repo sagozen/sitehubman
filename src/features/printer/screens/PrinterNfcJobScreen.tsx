@@ -5,6 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
+import { OrderWorkflowTimeline } from '@/src/components/OrderWorkflowTimeline';
 import { theme } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { usePrinterJobs } from '@/src/hooks/usePrinterJobs';
@@ -234,17 +235,21 @@ export default function NfcProgrammingScreen() {
 
   useEffect(() => {
     if (!job || !order || !card) return;
+    // Capture the values so TypeScript can narrow them across async boundaries.
+    const cardId = card.cardId;
+    const jobId = job.id;
+    const customerName = order.customerName;
     let cancelled = false;
     async function runProvisioning() {
       setProvisioning(true);
       try {
         await new Promise(resolve => setTimeout(resolve, 1500));
         if (cancelled) return;
-        const res = await provisionNfcSecureKeys(card.cardId, job.id, order.customerName);
+        const res = await provisionNfcSecureKeys(cardId, jobId, customerName);
         if (cancelled) return;
         setProvisionedUrl(res.url);
         setProvisionedPasskey(res.nfcPasskey);
-        const updated = await getCardIdentity(card.cardId);
+        const updated = await getCardIdentity(cardId);
         if (!cancelled && updated) {
           setCard(updated);
         }
@@ -720,6 +725,11 @@ export default function NfcProgrammingScreen() {
                   <AppText variant="caption" tone="muted" style={styles.labelLine}>
                     {[order.jobTitle, order.company].filter(Boolean).join(' - ') || order.productType.replace(/_/g, ' ')}
                   </AppText>
+
+                  {/* Full pipeline overview — single source of truth shared with sales/customer/QA */}
+                  <View style={styles.workflowOverview}>
+                    <OrderWorkflowTimeline order={order} layout="step" />
+                  </View>
                   <View style={styles.labelGrid}>
                     <View style={styles.labelGridItem}>
                       <AppText style={styles.labelGridKey}>Order</AppText>
@@ -1080,6 +1090,10 @@ const styles = StyleSheet.create({
   },
   labelLine: {
     lineHeight: 18,
+  },
+  workflowOverview: {
+    marginTop: 12, paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(255,255,255,0.08)',
   },
   labelGrid: {
     flexDirection: 'row',

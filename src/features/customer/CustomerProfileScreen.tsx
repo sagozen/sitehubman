@@ -1,16 +1,16 @@
 /**
- * Customer Profile tab — shows real NFC card (bio data), quick actions,
- * account info, and sign-out. Same visual style as GuestProfileScreen
- * but with real data and no "locked" wall.
+ * CustomerProfileScreen — quiet Apple Settings-style account screen.
+ *
+ * Single column: small avatar, name, slug, card carousel with hint,
+ * "create another card" CTA, Settings-list of account rows, sign out.
  */
 import { IosScrollView } from '@/src/components/IosScrollView';
-import { Alert, Pressable, StyleSheet, View, Image } from 'react-native';
+import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { AppButton } from '@/src/components/AppButton';
 import { CardStackCarousel } from '@/src/components/CardStackCarousel';
 import { appRoutes } from '@/src/constants/navigation';
 import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
@@ -19,21 +19,24 @@ import { useBioPage } from '@/src/hooks/useBioPage';
 import { uploadProfilePhoto } from '@/src/services/profilePhotoService';
 import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
 import { SEED_CARDS } from '@/src/data/seedCards';
-import { useState, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const BRAND = '#007AFF';
 const INK = '#000000';
 const MUTED = '#8E8E93';
+const MUTED2 = '#6E6E73';
 const BG = '#F2F2F7';
 const SURFACE = '#FFFFFF';
-const BORDER = 'rgba(60,60,67,0.14)';
+const HAIRLINE = 'rgba(60,60,67,0.18)';
 
-const ACTIONS: { icon: AppIconName; label: string; route: string }[] = [
-  { icon: 'CreditCard', label: 'Card', route: appRoutes.guestDesign },
-  { icon: 'Users', label: 'Network', route: appRoutes.customerConnections },
-  { icon: 'QrCode', label: 'QR', route: appRoutes.qrGenerator },
-  { icon: 'Sparkles', label: 'Studio', route: appRoutes.studio },
-];
+type AccountRow = {
+  icon: AppIconName;
+  label: string;
+  value: string;
+  /** If true, tapping opens an external picker (image library). */
+  isAvatar?: boolean;
+  onPress?: () => void;
+};
 
 export function CustomerProfileScreen() {
   const { user, signOutUser } = useAuth();
@@ -43,9 +46,7 @@ export function CustomerProfileScreen() {
 
   useEffect(() => {
     if (user?.id) {
-      loadCustomerCloudCard(user.id)
-        .then(setCloudCard)
-        .catch(() => null);
+      loadCustomerCloudCard(user.id).then(setCloudCard).catch(() => null);
     }
   }, [user?.id]);
 
@@ -73,7 +74,7 @@ export function CustomerProfileScreen() {
     ];
   }, [cardEmail, cardName, cardPhone, cardTitle, cloudCard?.cardId, profileUrl]);
 
-  async function pickImage() {
+  const pickImage = useCallback(async () => {
     if (!user?.id) return;
     try {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -108,7 +109,6 @@ export function CustomerProfileScreen() {
           theme: bioPage?.theme ?? 'vibrant_pink',
           photoUrl: res.url,
         });
-        Alert.alert('Success', 'Profile photo updated!');
       } catch (err) {
         Alert.alert('Upload failed', err instanceof Error ? err.message : 'Try again.');
       } finally {
@@ -117,21 +117,48 @@ export function CustomerProfileScreen() {
     } catch (err) {
       Alert.alert('Error', err instanceof Error ? err.message : 'Could not open picker.');
     }
-  }
+  }, [bioPage, saveBioPage, user]);
 
-  function handleSignOut() {
+  const handleSignOut = useCallback(() => {
     Alert.alert('Sign out', 'Sign out of your account?', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Sign out', style: 'destructive', onPress: () => void signOutUser() },
     ]);
-  }
+  }, [signOutUser]);
+
+  const handleCreateCard = useCallback(() => {
+    router.push(appRoutes.guestDesign as any);
+  }, []);
+
+  const accountRows: AccountRow[] = useMemo(
+    () => [
+      {
+        icon: 'UserRound',
+        label: 'Avatar',
+        value: photoUrl ? 'Tap photo to change' : 'Add photo',
+        isAvatar: true,
+        onPress: () => void pickImage(),
+      },
+      { icon: 'PenLine', label: 'Display name', value: cardName || 'Not set', onPress: () => router.push('/edit-bio' as any) },
+      { icon: 'Briefcase', label: 'Title', value: cardTitle || 'Not set', onPress: () => router.push('/edit-bio' as any) },
+      { icon: 'Phone', label: 'Phone', value: cardPhone || 'Not set', onPress: () => router.push('/edit-bio' as any) },
+      { icon: 'Mail', label: 'Email', value: cardEmail || 'Not set', onPress: () => router.push('/edit-bio' as any) },
+      { icon: 'Link', label: 'Public slug', value: bioPage?.slug ? `/${bioPage.slug}` : 'Not published', onPress: () => router.push('/edit-bio' as any) },
+    ],
+    [bioPage?.slug, cardEmail, cardName, cardPhone, cardTitle, photoUrl, pickImage],
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <IosScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
-        <View style={styles.identity}>
-          <Pressable onPress={() => void pickImage()} style={styles.avatarWrap}>
+        {/* ── Header ── */}
+        <View style={styles.header}>
+          <Pressable
+            onPress={() => void pickImage()}
+            style={({ pressed }) => [styles.avatar, pressed && styles.pressed]}
+            accessibilityLabel="Change profile photo"
+          >
             {photoUrl ? (
               <Image source={{ uri: photoUrl }} style={styles.avatarImage} />
             ) : (
@@ -140,86 +167,109 @@ export function CustomerProfileScreen() {
               </View>
             )}
             <View style={styles.avatarBadge}>
-              <AppIcon name={isUploadingPhoto ? 'Loader' : 'Camera'} size={14} color="#FFFFFF" />
+              <AppIcon name={isUploadingPhoto ? 'Loader' : 'Camera'} size={11} color="#FFFFFF" />
             </View>
           </Pressable>
-          <View style={styles.nameRow}>
-            <AppText style={styles.name} numberOfLines={2} adjustsFontSizeToFit>{user?.displayName ?? 'My Account'}</AppText>
-            <AppIcon name="BadgeCheck" size={24} color={BRAND} />
+          <View style={styles.headerCopy}>
+            <AppText style={styles.name} numberOfLines={1}>
+              {user?.displayName ?? 'My account'}
+            </AppText>
+            <AppText style={styles.slug} numberOfLines={1}>
+              {bioPage?.slug ? `sitehub.app/${bioPage.slug}` : 'No public slug yet'}
+            </AppText>
           </View>
-          <AppText style={styles.profileMeta} numberOfLines={1}>
-            {[cardTitle || 'Verified identity', 'NFC card active'].filter(Boolean).join(' / ')}
-          </AppText>
+          <AppIcon name="BadgeCheck" size={18} color={BRAND} />
         </View>
 
-        <View style={styles.cardWrap}>
+        {/* ── Cards carousel + inline hint ── */}
+        <View style={styles.carouselSection}>
+          <View style={styles.sectionHead}>
+            <AppText style={styles.sectionTitle}>YOUR CARDS</AppText>
+            <AppText style={styles.sectionMeta}>
+              {carouselCards.length} active
+            </AppText>
+          </View>
           <CardStackCarousel
             cards={carouselCards}
             addCardHref={appRoutes.guestDesign}
           />
+          <View style={styles.carouselHint}>
+            <AppIcon name="PlusSimple" size={12} color={BRAND} />
+            <AppText style={styles.carouselHintText}>
+              Swipe to the last card and tap the dashed slot — or use the button below.
+            </AppText>
+          </View>
         </View>
 
+        {/* ── Persistent create-card CTA ── */}
         <Pressable
-          onPress={() => router.push(appRoutes.guestDesign as any)}
+          onPress={handleCreateCard}
           style={({ pressed }) => [styles.newCardCta, pressed && styles.pressed]}
           accessibilityRole="button"
           accessibilityLabel="Create a new card"
         >
           <View style={styles.newCardIcon}>
-            <AppIcon name="PlusSimple" size={20} color="#FFFFFF" />
+            <AppIcon name="PlusSimple" size={16} color="#FFFFFF" />
           </View>
           <View style={styles.newCardCopy}>
             <AppText style={styles.newCardTitle}>Create another card</AppText>
-            <AppText style={styles.newCardSub}>Separate work, side project, event, or creator profile</AppText>
+            <AppText style={styles.newCardSub}>Work, side project, event, creator profile…</AppText>
           </View>
-          <AppIcon name="ChevronRight" size={18} color={BRAND} />
+          <AppIcon name="ChevronRight" size={16} color={MUTED} />
         </Pressable>
 
+        {/* ── Account section (Apple Settings list) ── */}
         <View style={styles.section}>
-          <View style={styles.actionStrip}>
-            {ACTIONS.map((a) => (
-              <Pressable
-                key={a.label}
-                onPress={() => router.push(a.route as any)}
-                style={({ pressed }) => [styles.actionBtn, pressed && styles.pressed]}
-                accessibilityRole="button"
-              >
-                <View style={[styles.actionIcon, a.label === 'Studio' && styles.actionIconBlue]}>
-                  <AppIcon name={a.icon} size={22} color={a.label === 'Studio' ? '#FFFFFF' : BRAND} />
-                </View>
-                <AppText style={styles.actionLabel}>{a.label}</AppText>
-              </Pressable>
-            ))}
+          <AppText style={styles.sectionTitle}>ACCOUNT</AppText>
+          <View style={styles.list}>
+            {accountRows.map((row, i) => {
+              const isLast = i === accountRows.length - 1;
+              return (
+                <Pressable
+                  key={row.label}
+                  onPress={row.onPress}
+                  style={({ pressed }) => [
+                    styles.row,
+                    isLast && styles.rowLast,
+                    pressed && styles.pressed,
+                  ]}
+                  accessibilityRole={row.onPress ? 'button' : 'text'}
+                  accessibilityLabel={`${row.label}: ${row.value}`}
+                >
+                  {row.isAvatar ? (
+                    <View style={styles.rowAvatarTile}>
+                      {photoUrl ? (
+                        <Image source={{ uri: photoUrl }} style={styles.rowAvatarImg} />
+                      ) : (
+                        <AppText style={styles.rowAvatarText}>{initial}</AppText>
+                      )}
+                    </View>
+                  ) : (
+                    <View style={styles.rowIconTile}>
+                      <AppIcon name={row.icon} size={15} color={BRAND} />
+                    </View>
+                  )}
+                  <View style={styles.rowCopy}>
+                    <AppText style={styles.rowLabel}>{row.label}</AppText>
+                    <AppText style={styles.rowValue} numberOfLines={1}>{row.value}</AppText>
+                  </View>
+                  <AppIcon name="ChevronRight" size={13} color={MUTED} />
+                </Pressable>
+              );
+            })}
           </View>
         </View>
 
-        <View style={styles.section}>
-          <AppText style={styles.sectionLabel}>Account</AppText>
-          <View style={styles.actionList}>
-            <View style={[styles.actionRow, styles.actionRowFirst]}>
-              <AppIcon name="Mail" size={18} color={MUTED} />
-              <AppText style={styles.infoText}>{user?.email ?? '—'}</AppText>
-            </View>
-            {bioPage?.slug ? (
-              <View style={[styles.actionRow, styles.actionRowLast]}>
-                <AppIcon name="Link" size={18} color={MUTED} />
-                <AppText style={styles.infoText}>/{bioPage.slug}</AppText>
-              </View>
-            ) : (
-              <View style={[styles.actionRow, styles.actionRowLast]}>
-                <AppIcon name="Link" size={18} color={MUTED} />
-                <AppText style={styles.infoText}>No public slug yet</AppText>
-              </View>
-            )}
-          </View>
-        </View>
-
-        <AppButton
-          label="Sign out"
-          variant="ghost"
-          iconName="LogOut"
+        {/* ── Sign out ── */}
+        <Pressable
           onPress={handleSignOut}
-        />
+          style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}
+          accessibilityRole="button"
+          accessibilityLabel="Sign out"
+        >
+          <AppIcon name="LogOut" size={15} color="#FF3B30" />
+          <AppText style={styles.signOutT}>Sign out</AppText>
+        </Pressable>
 
       </IosScrollView>
     </SafeAreaView>
@@ -228,131 +278,125 @@ export function CustomerProfileScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG },
-  content: { padding: 22, gap: 22, paddingBottom: 120 },
+  content: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 120, gap: 18 },
 
-  identity: {
+  // Quiet header
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingTop: 18,
-    paddingBottom: 20,
-    paddingHorizontal: 18,
-    borderRadius: 28,
+    gap: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+  },
+  avatar: { width: 44, height: 44, borderRadius: 22, position: 'relative' },
+  avatarImage: { width: 44, height: 44, borderRadius: 22, backgroundColor: BRAND },
+  avatarFallback: { width: 44, height: 44, borderRadius: 22, backgroundColor: INK, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 17, fontWeight: '700', color: '#FFFFFF' },
+  avatarBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: INK,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: BG,
+  },
+  headerCopy: { flex: 1, gap: 1, minWidth: 0 },
+  name: { fontSize: 18, fontWeight: '700', color: INK, letterSpacing: -0.2 },
+  slug: { fontSize: 12, fontWeight: '500', color: MUTED },
+  pressed: { opacity: 0.65 },
+
+  // Section heads
+  section: { gap: 6 },
+  sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },
+  sectionTitle: { fontSize: 11, fontWeight: '700', color: MUTED, letterSpacing: 0.6 },
+  sectionMeta: { fontSize: 11, fontWeight: '600', color: MUTED },
+
+  // Carousel
+  carouselSection: { gap: 8 },
+  carouselHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+  },
+  carouselHintText: { flex: 1, fontSize: 11, fontWeight: '500', color: MUTED2 },
+
+  // Persistent create-card CTA
+  newCardCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
     backgroundColor: SURFACE,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: BORDER,
   },
-  nameRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, maxWidth: '100%' },
-  profileMeta: { fontSize: 15, fontWeight: '600', color: MUTED, textAlign: 'center' },
-  avatarWrap: {
-    width: 104,
-    height: 104,
-    borderRadius: 52,
-    marginBottom: 8,
-    position: 'relative',
-  },
-  avatarImage: {
-    width: 104,
-    height: 104,
-    borderRadius: 52,
-    backgroundColor: BRAND,
-  },
-  avatarFallback: {
-    width: 104,
-    height: 104,
-    borderRadius: 52,
+  newCardIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
     backgroundColor: BRAND,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarBadge: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
+  newCardCopy: { flex: 1, gap: 1, minWidth: 0 },
+  newCardTitle: { fontSize: 15, fontWeight: '600', color: INK },
+  newCardSub: { fontSize: 11, fontWeight: '500', color: MUTED },
+
+  // Apple Settings-style list
+  list: {
+    backgroundColor: SURFACE,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 11,
+    paddingHorizontal: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: HAIRLINE,
+  },
+  rowLast: { borderBottomWidth: 0 },
+  rowIconTile: {
+    width: 30,
+    height: 30,
+    borderRadius: 7,
+    backgroundColor: `${BRAND}1A`,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rowAvatarTile: {
     width: 30,
     height: 30,
     borderRadius: 15,
     backgroundColor: INK,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: BG,
-  },
-  avatarText: { fontSize: 38, fontWeight: '900', color: '#FFFFFF' },
-  name: { flexShrink: 1, fontSize: 34, lineHeight: 39, fontWeight: '900', color: INK, letterSpacing: 0, textAlign: 'center' },
-
-  cardWrap: {
-    borderRadius: 24, overflow: 'hidden',
-    shadowColor: '#111111', shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.22, shadowRadius: 34, elevation: 10,
-  },
-
-  newCardCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    backgroundColor: SURFACE,
-    borderWidth: 1.5,
-    borderColor: 'rgba(0,122,255,0.28)',
-    borderStyle: 'dashed',
-  },
-  newCardIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: BRAND,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  newCardCopy: { flex: 1, gap: 2, minWidth: 0 },
-  newCardTitle: { fontSize: 15, fontWeight: '900', color: INK, letterSpacing: 0 },
-  newCardSub: { fontSize: 11, fontWeight: '600', color: MUTED, lineHeight: 15 },
-
-  section: { gap: 10 },
-  sectionLabel: { fontSize: 12, fontWeight: '700', color: MUTED, textTransform: 'uppercase', letterSpacing: 0.5 },
-
-  actionStrip: { flexDirection: 'row', backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: BORDER },
-  actionBtn: { flex: 1, alignItems: 'center', gap: 8, paddingVertical: 16 },
-  actionIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F2F2F7',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionIconBlue: {
-    backgroundColor: BRAND,
-  },
-  actionList: {
-    backgroundColor: SURFACE,
-    borderRadius: 24,
     overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: BORDER,
   },
-  actionRow: {
+  rowAvatarImg: { width: 30, height: 30, borderRadius: 15 },
+  rowAvatarText: { fontSize: 13, fontWeight: '700', color: '#FFFFFF' },
+  rowCopy: { flex: 1, gap: 1, minWidth: 0 },
+  rowLabel: { fontSize: 11, fontWeight: '500', color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4 },
+  rowValue: { fontSize: 15, fontWeight: '500', color: INK },
+
+  // Sign out
+  signOut: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    padding: 14,
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
     backgroundColor: SURFACE,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: BORDER,
   },
-  actionRowFirst: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  actionRowLast: {
-    borderBottomWidth: 0,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  pressed: { opacity: 0.72 },
-  actionCopy: { flex: 1, gap: 2 },
-  actionLabel: { fontSize: 11, fontWeight: '800', color: INK, textAlign: 'center' },
-  actionSub: { fontSize: 12, fontWeight: '500', color: MUTED },
-  infoText: { flex: 1, fontSize: 14, fontWeight: '500', color: MUTED },
+  signOutT: { fontSize: 15, fontWeight: '600', color: '#FF3B30' },
 });

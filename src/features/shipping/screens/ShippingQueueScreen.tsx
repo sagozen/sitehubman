@@ -1,196 +1,220 @@
+/**
+ * ShippingQueueScreen — minimal Apple-style inbox.
+ * One list, one action per row. No boxes, no stats, no timeline pills.
+ */
 import { IosScrollView } from '@/src/components/IosScrollView';
-import { useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { AppEmptyState } from '@/src/components/AppState';
-import { theme } from '@/src/constants/theme';
+import { GlassSafeScreen } from '@/src/components/GlassSafeScreen';
 import { useAuth } from '@/src/hooks/useAuth';
-import { listOrdersReadyToShip, markOrderDelivered, markOrderShipped } from '@/src/services/productionService';
-import { Order } from '@/src/types/models';
+import { useLiveOrders } from '@/src/hooks/useLiveOrders';
+import {
+  markOrderDelivered,
+  markOrderShipped,
+  subscribeShippingOrders,
+} from '@/src/services/productionService';
+import type { Order } from '@/src/types/models';
+
+const INK = '#0A0A0F';
+const MUTED = '#8E8E93';
+const TEAL = '#0BAEB6';
+const HAIRLINE = 'rgba(60,60,67,0.10)';
 
 export default function ShippingQueueScreen() {
   const { user } = useAuth();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [shippingId, setShippingId] = useState<string | null>(null);
-  const [carrier, setCarrier] = useState('');
-  const [trackingNumber, setTrackingNumber] = useState('');
-  const [trackingNote, setTrackingNote] = useState('');
+  const subscribe = useMemo(() => subscribeShippingOrders, []);
+  const { orders, loading } = useLiveOrders(subscribe, [subscribe]);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      setOrders(await listOrdersReadyToShip(user?.branch));
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.branch]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  function openShipForm(order: Order) {
-    setShippingId(order.id);
-    setCarrier(order.carrier ?? '');
-    setTrackingNumber(order.trackingNumber ?? '');
-    setTrackingNote(order.trackingNote ?? '');
-  }
-
-  async function handleShip(order: Order) {
-    if (order.status === 'shipped') {
+  const ship = useCallback(
+    async (order: Order, carrier: string, tracking: string) => {
+      if (!carrier.trim() && !tracking.trim()) {
+        Alert.alert('Tracking required', 'Enter a carrier name or tracking number.');
+        return;
+      }
+      setBusyId(order.id);
       try {
-        await markOrderDelivered(order.id, user?.id);
-        setShippingId(null);
-        await load();
+        await markOrderShipped(order.id, { carrier: carrier.trim() || undefined, trackingNumber: tracking.trim() || undefined }, user?.id);
       } catch (err) {
         Alert.alert('Update failed', err instanceof Error ? err.message : 'Try again.');
+      } finally {
+        setBusyId(null);
       }
-      return;
-    }
+    },
+    [user?.id],
+  );
 
-    if (shippingId !== order.id) {
-      openShipForm(order);
-      return;
-    }
+  const deliver = useCallback(
+    async (order: Order) => {
+      setBusyId(order.id);
+      try {
+        await markOrderDelivered(order.id, user?.id);
+      } catch (err) {
+        Alert.alert('Update failed', err instanceof Error ? err.message : 'Try again.');
+      } finally {
+        setBusyId(null);
+      }
+    },
+    [user?.id],
+  );
 
-    if (!carrier.trim() && !trackingNumber.trim()) {
-      Alert.alert('Tracking required', 'Enter a carrier name or tracking number before marking shipped.');
-      return;
-    }
-
-    try {
-      await markOrderShipped(
-        order.id,
-        {
-          carrier: carrier.trim() || undefined,
-          trackingNumber: trackingNumber.trim() || undefined,
-          trackingNote: trackingNote.trim() || undefined,
-        },
-        user?.id
-      );
-      setShippingId(null);
-      setCarrier('');
-      setTrackingNumber('');
-      setTrackingNote('');
-      await load();
-    } catch (err) {
-      Alert.alert('Update failed', err instanceof Error ? err.message : 'Try again.');
-    }
-  }
+  const readyCount = orders.filter((o) => o.status === 'ready_to_ship').length;
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.header}>
-        <AppText style={styles.title}>Shipping</AppText>
-        <AppText style={styles.sub}>Add tracking, then mark shipped</AppText>
+    <GlassSafeScreen>
+      <View style={s.header}>
+        <AppText style={s.title}>Shipping</AppText>
+        <AppText style={s.subtitle}>
+          {orders.length === 0 ? 'Nothing to ship' : `${readyCount} ready · ${orders.length - readyCount} in transit`}
+        </AppText>
       </View>
-      <IosScrollView contentContainerStyle={styles.body}>
-        {loading ? (
-          <AppText tone="muted">Loading…</AppText>
+
+      <IosScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+        {loading && orders.length === 0 ? (
+          <AppText style={s.muted}>Loading…</AppText>
         ) : orders.length === 0 ? (
-          <AppEmptyState
-            role="sales"
-            iconName="Truck"
-            title="Nothing to ship"
-            description="Orders appear here after QA inspector approval."
-          />
+          <View style={s.empty}>
+            <AppText style={s.emptyTitle}>Queue is clear</AppText>
+            <AppText style={s.emptySub}>
+              New orders land here once QA approves them.
+            </AppText>
+          </View>
         ) : (
-          orders.map((order) => (
-            <View key={order.id} style={styles.card}>
-              <AppText style={styles.cardTitle}>{order.customerName}</AppText>
-              <AppText style={styles.cardMeta}>
-                {order.deliveryAddress || 'No address'} · {order.status.replace(/_/g, ' ')}
-              </AppText>
-              {order.trackingNumber ? (
-                <AppText style={styles.tracking}>
-                  {order.carrier ? `${order.carrier} · ` : ''}
-                  {order.trackingNumber}
-                </AppText>
-              ) : null}
-
-              {shippingId === order.id && order.status !== 'shipped' ? (
-                <View style={styles.form}>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Carrier (e.g. J&T, Kerry)"
-                    placeholderTextColor={theme.colors.textMuted}
-                    value={carrier}
-                    onChangeText={setCarrier}
-                  />
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Tracking number"
-                    placeholderTextColor={theme.colors.textMuted}
-                    value={trackingNumber}
-                    onChangeText={setTrackingNumber}
-                  />
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Note (optional)"
-                    placeholderTextColor={theme.colors.textMuted}
-                    value={trackingNote}
-                    onChangeText={setTrackingNote}
-                  />
-                </View>
-              ) : null}
-
-              <Pressable style={styles.shipBtn} onPress={() => void handleShip(order)}>
-                <AppIcon name="Truck" size={16} color="#fff" />
-                <AppText style={styles.shipBtnText}>
-                  {order.status === 'shipped'
-                    ? 'Mark delivered'
-                    : shippingId === order.id
-                      ? 'Confirm shipped'
-                      : 'Add tracking & ship'}
-                </AppText>
-              </Pressable>
-            </View>
-          ))
+          <View>
+            {orders.map((order) => (
+              <ShippingRow
+                key={order.id}
+                order={order}
+                busy={busyId === order.id}
+                onShip={ship}
+                onDeliver={deliver}
+              />
+            ))}
+          </View>
         )}
       </IosScrollView>
-    </SafeAreaView>
+    </GlassSafeScreen>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: theme.colors.background },
-  header: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12 },
-  title: { fontSize: 28, fontWeight: '800', color: theme.colors.textPrimary },
-  sub: { fontSize: 13, color: theme.colors.textMuted, marginTop: 4 },
-  body: { padding: 16, paddingBottom: 80, gap: 10 },
-  card: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 16,
-    padding: 14,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: theme.colors.border,
+const ShippingRow = memo(function ShippingRow({
+  order, busy, onShip, onDeliver,
+}: {
+  order: Order;
+  busy: boolean;
+  onShip: (order: Order, carrier: string, tracking: string) => Promise<void>;
+  onDeliver: (order: Order) => Promise<void>;
+}) {
+  const isShipped = order.status === 'shipped';
+  const [open, setOpen] = useState(false);
+  const [carrier, setCarrier] = useState(order.carrier ?? '');
+  const [tracking, setTracking] = useState(order.trackingNumber ?? '');
+
+  return (
+    <View style={s.row}>
+      <View style={s.rowMain}>
+        <View style={[s.dot, { backgroundColor: isShipped ? TEAL : '#FF9500' }]} />
+        <View style={s.body}>
+          <AppText style={s.name} numberOfLines={1}>{order.customerName}</AppText>
+          <AppText style={s.meta} numberOfLines={1}>
+            {isShipped
+              ? `${order.carrier ?? 'No carrier'} · ${order.trackingNumber ?? 'No tracking'}`
+              : (order.deliveryAddress || 'No address on file')}
+          </AppText>
+        </View>
+      </View>
+
+      {isShipped ? (
+        <Pressable
+          style={({ pressed }) => [s.deliverBtn, pressed && { opacity: 0.7 }, busy && { opacity: 0.4 }]}
+          onPress={() => void onDeliver(order)}
+          disabled={busy}
+        >
+          <AppText style={s.deliverText}>{busy ? '…' : 'Delivered'}</AppText>
+        </Pressable>
+      ) : open ? (
+        <View style={s.formBlock}>
+          <View style={s.formRow}>
+            <TextInput
+              style={s.input}
+              placeholder="Carrier"
+              placeholderTextColor={MUTED}
+              value={carrier}
+              onChangeText={setCarrier}
+            />
+            <TextInput
+              style={s.input}
+              placeholder="Tracking"
+              placeholderTextColor={MUTED}
+              value={tracking}
+              onChangeText={setTracking}
+            />
+          </View>
+          <View style={s.actions}>
+            <Pressable
+              style={({ pressed }) => [s.cancelBtn, pressed && { opacity: 0.7 }]}
+              onPress={() => setOpen(false)}
+            >
+              <AppText style={s.cancelText}>Cancel</AppText>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [s.shipBtn, pressed && { opacity: 0.7 }, busy && { opacity: 0.4 }]}
+              onPress={async () => { await onShip(order, carrier, tracking); setOpen(false); }}
+              disabled={busy}
+            >
+              <AppText style={s.shipText}>{busy ? '…' : 'Ship'}</AppText>
+            </Pressable>
+          </View>
+        </View>
+      ) : (
+        <Pressable
+          style={({ pressed }) => [s.shipBtn, pressed && { opacity: 0.7 }]}
+          onPress={() => setOpen(true)}
+        >
+          <AppText style={s.shipText}>Ship →</AppText>
+        </Pressable>
+      )}
+    </View>
+  );
+});
+
+const s = StyleSheet.create({
+  header: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 8 },
+  title: { fontSize: 32, fontWeight: '700', color: INK, letterSpacing: -0.5 },
+  subtitle: { fontSize: 14, fontWeight: '500', color: MUTED, marginTop: 2 },
+  scroll: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 120 },
+  muted: { color: MUTED, fontSize: 13, textAlign: 'center', paddingTop: 40 },
+
+  empty: { paddingTop: 80, alignItems: 'center', gap: 6 },
+  emptyTitle: { fontSize: 17, fontWeight: '700', color: INK, letterSpacing: -0.2 },
+  emptySub: { fontSize: 13, fontWeight: '500', color: MUTED, textAlign: 'center', lineHeight: 18 },
+
+  row: {
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: HAIRLINE,
+    gap: 10,
   },
-  cardTitle: { fontSize: 16, fontWeight: '800' },
-  cardMeta: { marginTop: 4, fontSize: 12, color: theme.colors.textMuted },
-  tracking: { marginTop: 6, fontSize: 12, fontWeight: '700', color: theme.colors.primary },
-  form: { marginTop: 10, gap: 8 },
+  rowMain: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  body: { flex: 1, minWidth: 0 },
+  name: { fontSize: 16, fontWeight: '600', color: INK },
+  meta: { fontSize: 12, color: MUTED, marginTop: 1 },
+
+  formBlock: { gap: 8 },
+  formRow: { flexDirection: 'row', gap: 6 },
   input: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: theme.colors.border,
+    flex: 1, height: 38,
+    backgroundColor: 'rgba(0,0,0,0.04)',
     borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: theme.colors.textPrimary,
-    backgroundColor: theme.colors.background,
+    paddingHorizontal: 12, fontSize: 14, color: INK,
   },
-  shipBtn: {
-    marginTop: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: theme.colors.primary,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  shipBtnText: { color: '#fff', fontWeight: '800', fontSize: 13 },
+  actions: { flexDirection: 'row', gap: 6, justifyContent: 'flex-end' },
+  cancelBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.05)' },
+  cancelText: { fontSize: 12, fontWeight: '700', color: INK, letterSpacing: 0.2 },
+  shipBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: INK },
+  shipText: { fontSize: 12, fontWeight: '800', color: '#fff', letterSpacing: 0.2 },
+  deliverBtn: { alignSelf: 'flex-start', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: TEAL },
+  deliverText: { fontSize: 12, fontWeight: '800', color: '#fff', letterSpacing: 0.2 },
 });

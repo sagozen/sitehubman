@@ -20,8 +20,8 @@ import { type Href, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   collection,
-  getDocs,
   limit,
+  onSnapshot,
   orderBy,
   query,
   where,
@@ -30,17 +30,20 @@ import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { FlippableNfcCard } from '@/src/components/FlippableNfcCard';
 import { IconFlowHub } from '@/src/components/IconFlowHub';
+import { OrderTimeline } from '@/src/components/OrderTimeline';
 import { appRoutes } from '@/src/constants/navigation';
 import { firebaseCollections } from '@/src/constants/collections';
 import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useBioPage } from '@/src/hooks/useBioPage';
 import { useNotifications } from '@/src/hooks/useNotifications';
+import { useCustomerOrders } from '@/src/hooks/useCustomerOrders';
 import { db } from '@/src/services/firebaseClient';
 import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
 import { SEED_MOMENTS } from '@/src/data/seedMoments';
 import { CUSTOMER_FLOWS, type CustomerFlowDefinition } from '@/src/constants/customerFlows';
-import type { TapEvent } from '@/src/types/models';
+import { buildOrderTimeline } from '@/src/utils/orderTrackTimeline';
+import type { Order, TapEvent } from '@/src/types/models';
 
 const BRAND = '#2596BE';
 const INK = '#0A0A0F';
@@ -130,12 +133,126 @@ const ar = StyleSheet.create({
   time: { fontSize: 11, fontWeight: '600', color: MUTED },
 });
 
+// ─── Live order status pill ───────────────────────────────────────────────────
+function orderStatusTone(order: Order | null): { label: string; color: string; bg: string } {
+  if (!order) return { label: 'No order yet', color: MUTED, bg: 'rgba(142,142,147,0.12)' };
+  if (order.cardStatus === 'closed') return { label: 'Card closed', color: '#1C1C1E', bg: 'rgba(0,0,0,0.06)' };
+  switch (order.status) {
+    case 'delivered':
+    case 'shipped':
+      return { label: 'Delivered', color: '#34C759', bg: 'rgba(52,199,89,0.14)' };
+    case 'ready_to_ship':
+      return { label: 'Ready to ship', color: '#34C759', bg: 'rgba(52,199,89,0.14)' };
+    case 'qa_pending':
+    case 'nfc_verification':
+      return { label: 'QA in progress', color: '#FF9500', bg: 'rgba(255,149,0,0.14)' };
+    case 'nfc_writing':
+      return { label: 'NFC encoding', color: '#FF9500', bg: 'rgba(255,149,0,0.14)' };
+    case 'printing':
+      return { label: 'Printing', color: '#FF9500', bg: 'rgba(255,149,0,0.14)' };
+    case 'printer_assigned':
+      return { label: 'Printer queue', color: '#FF9500', bg: 'rgba(255,149,0,0.14)' };
+    case 'production_approved':
+      return { label: 'Sales approved', color: BRAND, bg: 'rgba(37,150,190,0.14)' };
+    case 'pending_payment':
+    case 'payment_submitted':
+    case 'draft':
+      return { label: 'Awaiting payment', color: '#8E8E93', bg: 'rgba(142,142,147,0.14)' };
+    case 'payment_verified':
+      return { label: 'Payment received', color: BRAND, bg: 'rgba(37,150,190,0.14)' };
+    case 'payment_rejected':
+    case 'cancelled':
+      return { label: 'Order paused', color: '#FF3B30', bg: 'rgba(255,59,48,0.12)' };
+    default:
+      return { label: order.status.replace(/_/g, ' '), color: '#1C1C1E', bg: 'rgba(0,0,0,0.06)' };
+  }
+}
+
+// ─── Inline order status badge ────────────────────────────────────────────────
+const OrderStatusBadge = memo(function OrderStatusBadge({ order }: { order: Order }) {
+  const tone = orderStatusTone(order);
+  return (
+    <View style={[ob.badge, { backgroundColor: tone.bg }]}>
+      <View style={[ob.dot, { backgroundColor: tone.color }]} />
+      <AppText style={[ob.text, { color: tone.color }]} numberOfLines={1}>
+        {tone.label}
+      </AppText>
+    </View>
+  );
+});
+const ob = StyleSheet.create({
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+  dot: { width: 6, height: 6, borderRadius: 3 },
+  text: { fontSize: 10, fontWeight: '800', letterSpacing: 0.2, textTransform: 'uppercase' },
+});
+
+// ─── Live order status banner ─────────────────────────────────────────────────
+const OrderStatusBanner = memo(function OrderStatusBanner({ order }: { order: Order }) {
+  const tone = orderStatusTone(order);
+  const timeline = useMemo(() => buildOrderTimeline(order), [order]);
+  const activeStep = timeline.find((s) => s.active) ?? timeline[timeline.length - 1];
+  const orderNumber = order.orderNumber ?? (order.id ? `#${order.id.slice(0, 6).toUpperCase()}` : 'Order');
+
+  return (
+    <Pressable
+      onPress={() => router.push({ pathname: appRoutes.orderDetail, params: { orderId: order.id } } as any)}
+      style={({ pressed }) => [s.orderBanner, pressed && s.pressed]}
+      accessibilityRole="button"
+      accessibilityLabel={`Order ${orderNumber} status: ${tone.label}. Tap to see details.`}
+    >
+      <View style={s.orderBannerTop}>
+        <View style={[s.orderBannerPill, { backgroundColor: tone.bg }]}>
+          <View style={[s.orderBannerPulse, { backgroundColor: tone.color }]} />
+          <AppText style={[s.orderBannerPillText, { color: tone.color }]}>{tone.label}</AppText>
+        </View>
+        <View style={s.orderBannerMeta}>
+          <AppText style={s.orderBannerLabel}>Order {orderNumber}</AppText>
+          <AppText style={s.orderBannerStep} numberOfLines={1}>{activeStep?.step ?? 'Queued'}</AppText>
+        </View>
+        <AppIcon name="ChevronRight" size={16} color={MUTED} />
+      </View>
+
+      {/* Mini progress track */}
+      <View style={s.orderBannerTrack}>
+        {timeline.map((step, i) => {
+          const isLast = i === timeline.length - 1;
+          const color = step.failed
+            ? '#FF3B30'
+            : step.done
+              ? '#34C759'
+              : step.active
+                ? tone.color
+                : 'rgba(0,0,0,0.12)';
+          return (
+            <View key={`${step.step}-${i}`} style={s.orderBannerTrackItem}>
+              <View style={[s.orderBannerDot, { backgroundColor: color }]} />
+              {!isLast ? <View style={[s.orderBannerLine, { backgroundColor: step.done ? '#34C759' : 'rgba(0,0,0,0.10)' }]} /> : null}
+            </View>
+          );
+        })}
+      </View>
+
+      <AppText style={s.orderBannerUpdated}>
+        {activeStep?.at ? `Updated · ${activeStep.at}` : 'Awaiting first update'}
+      </AppText>
+    </Pressable>
+  );
+});
+
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export function CustomerAccountScreen() {
   const { width: sw } = useWindowDimensions();
   const { user } = useAuth();
   const { bioPage } = useBioPage(user?.id ?? '');
   const { unreadCount } = useNotifications();
+  const { headlineOrder, orders } = useCustomerOrders(user?.id, user?.email);
   const [cloudCard, setCloudCard] = useState<Awaited<ReturnType<typeof loadCustomerCloudCard>>>(null);
   const [tapEvents, setTapEvents] = useState<(TapEvent & { id: string })[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -194,25 +311,48 @@ export function CustomerAccountScreen() {
 
   const loadData = useCallback(async () => {
     if (!user?.id) return;
-    await Promise.all([
-      loadCustomerCloudCard(user.id).then(setCloudCard).catch(() => null),
-      getDocs(
-        query(
-          collection(db, firebaseCollections.tapEvents),
-          where('profileId', '==', user.id),
-          orderBy('createdAt', 'desc'),
-          limit(15),
-        ),
-      ).then((snap) => {
-        setTapEvents(snap.docs.map((d) => {
-          const data = d.data();
-          return { id: d.id, ...data, createdAt: data.createdAt?.toDate?.()?.toISOString?.() ?? data.createdAt ?? '' } as TapEvent & { id: string };
-        }));
-      }).catch(() => null),
-    ]);
+    // Card identity can stay on a one-shot fetch — it changes rarely.
+    try {
+      const card = await loadCustomerCloudCard(user.id);
+      setCloudCard(card);
+    } catch {
+      // ignore — we'll show without it
+    }
   }, [user?.id]);
 
   useEffect(() => { void loadData(); }, [loadData]);
+
+  /**
+   * Live tap events via onSnapshot. Customer sees new taps the moment they
+   * hit Firestore (NFC, QR, profile view) without needing to pull-refresh.
+   */
+  useEffect(() => {
+    if (!user?.id) {
+      setTapEvents([]);
+      return;
+    }
+    const q = query(
+      collection(db, firebaseCollections.tapEvents),
+      where('profileId', '==', user.id),
+      orderBy('createdAt', 'desc'),
+      limit(15),
+    );
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        setTapEvents(snap.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: d.id,
+            ...data,
+            createdAt: data.createdAt?.toDate?.()?.toISOString?.() ?? data.createdAt ?? '',
+          } as TapEvent & { id: string };
+        }));
+      },
+      () => setTapEvents([]),
+    );
+    return unsub;
+  }, [user?.id]);
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -302,6 +442,9 @@ export function CustomerAccountScreen() {
             </Pressable>
           </View>
 
+          {/* ── LIVE ORDER STATUS BANNER (real-time onSnapshot) ── */}
+          {headlineOrder ? <OrderStatusBanner order={headlineOrder} /> : null}
+
           {/* ── QUIET STATS STRIP (replaces the giant snapshot panel) ── */}
           <View style={s.statsStrip}>
             <View style={s.statItem}>
@@ -325,6 +468,40 @@ export function CustomerAccountScreen() {
             </View>
           </View>
 
+          {/* ── FIRST-RUN ONBOARDING (only when no orders + no real activity) ── */}
+          {orders.length === 0 && !hasRealActivity ? (
+            <View style={s.onboardCard}>
+              <View style={s.onboardIcon}>
+                <AppIcon name="Sparkles" size={18} color={BRAND} />
+              </View>
+              <AppText style={s.onboardTitle}>Welcome to SITEHUB</AppText>
+              <AppText style={s.onboardSub}>Three things to get the most out of your card:</AppText>
+              <View style={s.onboardList}>
+                <View style={s.onboardItem}>
+                  <AppText style={s.onboardStep}>1</AppText>
+                  <View style={{ flex: 1 }}>
+                    <AppText style={s.onboardItemTitle}>Set up your card</AppText>
+                    <AppText style={s.onboardItemSub}>Tap "Create another card" to add a second profile (work, creator, community…).</AppText>
+                  </View>
+                </View>
+                <View style={s.onboardItem}>
+                  <AppText style={s.onboardStep}>2</AppText>
+                  <View style={{ flex: 1 }}>
+                    <AppText style={s.onboardItemTitle}>Share with one tap</AppText>
+                    <AppText style={s.onboardItemSub}>Use the Share button to send your card via AirDrop, WhatsApp, or your favorite app.</AppText>
+                  </View>
+                </View>
+                <View style={s.onboardItem}>
+                  <AppText style={s.onboardStep}>3</AppText>
+                  <View style={{ flex: 1 }}>
+                    <AppText style={s.onboardItemTitle}>Watch your network grow</AppText>
+                    <AppText style={s.onboardItemSub}>Every tap on your card shows up in the Network tab in real time.</AppText>
+                  </View>
+                </View>
+              </View>
+            </View>
+          ) : null}
+
           {/* ── ICON FLOW HUB (matches guest home design) ── */}
           <IconFlowHub
             title="Quick actions"
@@ -339,6 +516,40 @@ export function CustomerAccountScreen() {
             textColor={INK}
             mutedColor={MUTED2}
           />
+
+          {/* ── ORDERS (live from Firestore via onSnapshot) ── */}
+          {orders.length > 0 ? (
+            <View style={s.section}>
+              <View style={s.sectionHead}>
+                <View>
+                  <AppText style={s.sectionTitle}>Your orders</AppText>
+                  <AppText style={s.sectionSub}>Live updates from sales and the workshop</AppText>
+                </View>
+              </View>
+              <View style={s.ordersList}>
+                {orders.slice(0, 3).map((order) => (
+                  <Pressable
+                    key={order.id}
+                    onPress={() => router.push({ pathname: appRoutes.orderDetail, params: { orderId: order.id } } as any)}
+                    style={({ pressed }) => [s.orderRow, pressed && s.pressed]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Open order ${order.orderNumber ?? order.id}`}
+                  >
+                    <View style={s.orderRowTop}>
+                      <AppText style={s.orderRowTitle} numberOfLines={1}>
+                        {order.orderNumber ?? `#${order.id.slice(0, 6).toUpperCase()}`}
+                      </AppText>
+                      <OrderStatusBadge order={order} />
+                    </View>
+                    <AppText style={s.orderRowSub} numberOfLines={1}>
+                      {order.customerName} · {order.productType.replace(/_/g, ' ')}
+                    </AppText>
+                    <OrderTimeline order={order} compact />
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          ) : null}
 
           {/* ── ACTIVITY FEED (real data + seed fallback) ── */}
           <View style={s.section}>
@@ -456,6 +667,76 @@ const s = StyleSheet.create({
   statState: { fontSize: 14, fontWeight: '900', color: BRAND },
   statLabel: { fontSize: 10, fontWeight: '700', color: MUTED, letterSpacing: 0.6, textTransform: 'uppercase' },
   statDivider: { width: StyleSheet.hairlineWidth, height: 28, backgroundColor: 'rgba(0,0,0,0.08)' },
+
+  // Live order status banner
+  orderBanner: {
+    backgroundColor: SURFACE,
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: HAIRLINE,
+    gap: 12,
+  },
+  orderBannerTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  orderBannerPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+  },
+  orderBannerPulse: { width: 7, height: 7, borderRadius: 3.5 },
+  orderBannerPillText: { fontSize: 12, fontWeight: '800', letterSpacing: 0.1 },
+  orderBannerMeta: { flex: 1, gap: 1, minWidth: 0 },
+  orderBannerLabel: { fontSize: 11, fontWeight: '700', color: MUTED, letterSpacing: 0.4 },
+  orderBannerStep: { fontSize: 14, fontWeight: '700', color: INK },
+  orderBannerTrack: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  orderBannerTrackItem: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  orderBannerDot: { width: 9, height: 9, borderRadius: 4.5 },
+  orderBannerLine: { flex: 1, height: 2, marginHorizontal: 2 },
+  orderBannerUpdated: { fontSize: 11, fontWeight: '500', color: MUTED },
+
+  // Orders list
+  ordersList: { gap: 8 },
+  orderRow: {
+    backgroundColor: SURFACE,
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: HAIRLINE,
+    gap: 6,
+  },
+  orderRowTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  orderRowTitle: { flex: 1, fontSize: 14, fontWeight: '700', color: INK, letterSpacing: -0.1 },
+  orderRowSub: { fontSize: 11, fontWeight: '500', color: MUTED },
+
+  // First-run onboarding
+  onboardCard: {
+    backgroundColor: SURFACE,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: HAIRLINE,
+    gap: 10,
+  },
+  onboardIcon: {
+    width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(37,150,190,0.12)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  onboardTitle: { fontSize: 16, fontWeight: '800', color: INK, letterSpacing: -0.2 },
+  onboardSub: { fontSize: 12, fontWeight: '500', color: MUTED },
+  onboardList: { gap: 10, marginTop: 4 },
+  onboardItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  onboardStep: {
+    width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(37,150,190,0.14)',
+    color: BRAND, fontSize: 12, fontWeight: '800', textAlign: 'center', lineHeight: 22,
+  },
+  onboardItemTitle: { fontSize: 13, fontWeight: '700', color: INK2 },
+  onboardItemSub: { fontSize: 11, fontWeight: '500', color: MUTED, lineHeight: 16, marginTop: 1 },
 
   // Section heads
   section: { gap: 10 },

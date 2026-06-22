@@ -1,9 +1,7 @@
-import { useMemo } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import type { CustomerFlowDefinition, CustomerFlowId } from '@/src/constants/customerFlows';
-import { CUSTOMER_FLOWS } from '@/src/constants/customerFlows';
 
 export type IconFlowMetrics = Partial<Record<CustomerFlowId, string>>;
 
@@ -38,11 +36,6 @@ export function IconFlowHub({
   mutedColor = '#8E8E93',
 }: Props) {
   const visibleMetrics = metricFlows.filter((flow) => flow.id in metrics);
-  const recentIds: CustomerFlowId[] = []; // recent strip removed for clarity
-  const recentFlows = useMemo(
-    () => recentIds.map((id) => CUSTOMER_FLOWS[id]).filter(Boolean),
-    [recentIds],
-  );
 
   return (
     <View style={styles.wrap}>
@@ -102,29 +95,6 @@ export function IconFlowHub({
           </Pressable>
         ))}
       </View>
-
-      {recentFlows.length > 0 ? (
-        <View style={styles.recentBlock}>
-          <AppText style={[styles.recentTitle, { color: mutedColor }]}>Recent</AppText>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.recentScroll}
-          >
-            {recentFlows.map((flow) => (
-              <Pressable
-                key={flow.id}
-                onPress={() => onLaunch(flow.id)}
-                style={({ pressed }) => [styles.recentItem, pressed && styles.pressed]}
-              >
-                <AppText style={[styles.recentLabel, { color: textColor }]} numberOfLines={1}>
-                  {flow.label}
-                </AppText>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
-      ) : null}
     </View>
   );
 }
@@ -147,7 +117,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
   },
-  // Apple Settings-style grouped list: one white surface, hairline rows.
   actionList: {
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
@@ -190,17 +159,4 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
   pressed: { opacity: 0.65 },
-  recentBlock: { gap: 10 },
-  recentTitle: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  recentScroll: { gap: 20, paddingRight: 8 },
-  recentItem: {
-    alignItems: 'center',
-    gap: 6,
-    width: 72,
-  },
-  recentLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
 });

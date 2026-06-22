@@ -95,17 +95,24 @@ async function ensureManualOrderCardIdentity(order: Order, actorUserId: string):
   const existing = await getCardIdentity(cardId);
   if (existing) return;
 
-  const ownerId = order.createdBy?.trim() || order.userId?.trim() || order.guestId?.trim() || actorUserId;
+  // Owner precedence: explicit ownerId (canonical) -> createdBy (sales rep / staff)
+  // -> manual fallback to actor. We no longer read order.userId / order.guestId
+  // because the Order type doesn't declare them — reading them would always yield
+  // undefined and the CardIdentity would be written with userId=null even when
+  // the real customer does own the card.
+  const ownerId = order.ownerId?.trim() || order.createdBy?.trim() || actorUserId;
   const ownerType = (order.ownerType === 'guest' || order.ownerType === 'customer' || order.ownerType === 'staff' || order.ownerType === 'manual')
     ? order.ownerType
     : 'customer';
 
+  // Mirror ownerId into userId so legacy lookup helpers that key on userId keep
+  // working. New code should prefer ownerId + ownerType.
   await ensureCardIdentity({
     cardId,
     ownerId,
     ownerType,
-    userId: order.userId || null,
-    guestId: order.guestId || null,
+    userId: ownerType === 'customer' || ownerType === 'staff' ? ownerId : null,
+    guestId: ownerType === 'guest' ? ownerId : null,
     publicSlug: cardId,
     status: 'ordered',
     profile: {
@@ -543,7 +550,15 @@ export async function approveOrderForProduction(orderId: string, salesUserId?: s
     throw new Error(`Cannot approve from status "${order.status}".`);
   }
 
-  await lockCardForProduction(order.cardId, orderId, userId);
+  // cardId is optional on the Order type, but production approval requires a
+  // real card source of truth. Bail loudly instead of silently writing an
+  // empty cardId into the locked-card record.
+  const approvedCardId = order.cardId?.trim();
+  if (!approvedCardId) {
+    throw new Error('Order is missing cardId. Cannot approve for production.');
+  }
+
+  await lockCardForProduction(approvedCardId, orderId, userId);
 
   const now = new Date().toISOString();
   const payload = withoutUndefined({
@@ -587,6 +602,32 @@ export async function approveOrderForProduction(orderId: string, salesUserId?: s
     metadata: { orderId, orderNumber: updated.orderNumber ?? '' },
   });
   return updated;
+}
+
+/**
+ * Approve multiple orders for production in one go. Each order is approved
+ * independently so a single failure (e.g. missing cardId on one order) does
+ * not roll back the whole batch. Returns per-order results so the caller
+ * can surface partial success.
+ */
+export async function bulkApproveOrdersForProduction(
+  orderIds: string[],
+  salesUserId?: string,
+): Promise<{ orderId: string; ok: boolean; error?: string }[]> {
+  const results: { orderId: string; ok: boolean; error?: string }[] = [];
+  for (const orderId of orderIds) {
+    try {
+      await approveOrderForProduction(orderId, salesUserId);
+      results.push({ orderId, ok: true });
+    } catch (err) {
+      results.push({
+        orderId,
+        ok: false,
+        error: err instanceof Error ? err.message : 'Approval failed.',
+      });
+    }
+  }
+  return results;
 }
 
 export async function assignOrderToBatch(
@@ -1440,4 +1481,58 @@ export async function listApprovedPhysicalOrdersForPrinter(branch?: string): Pro
 export async function listPaidOrdersUnbatched(branch?: string): Promise<Order[]> {
   const orders = await listApprovedPhysicalOrdersForPrinter(branch);
   return orders.filter((o) => isPaymentVerified(o) && !o.batchId);
+}
+
+// ─── Live subscriptions (used by QA / Shipping / customer dashboards) ───────
+
+/**
+ * Live subscription to orders in a given set of statuses. Used by the QA
+ * and Shipping queues so the list updates the moment sales / printer /
+ * customer action lands. Returns an unsubscribe function.
+ */
+function subscribeOrdersByStatus(
+  statuses: OrderStatus[],
+  callback: (orders: Order[]) => void,
+  onError?: (e: Error) => void,
+  pageSize = 200,
+): () => void {
+  if (statuses.length === 0) {
+    callback([]);
+    return () => {};
+  }
+  // Firestore `in` queries support up to 30 values, which is well within our 14 statuses.
+  const q = query(
+    collection(db, firebaseCollections.orders),
+    where('status', 'in', statuses),
+    firestoreLimit(pageSize),
+  );
+  return onSnapshot(
+    q,
+    (snap) => {
+      const items = snap.docs
+        .map((d) => mapOrder(d.id, d.data() as Record<string, unknown>))
+        .sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''));
+      callback(items);
+    },
+    (err) => {
+      if (onError) onError(err);
+      callback([]);
+    },
+  );
+}
+
+/** Live subscription to orders awaiting QA inspection. */
+export function subscribeOrdersAwaitingQa(
+  callback: (orders: Order[]) => void,
+  onError?: (e: Error) => void,
+): () => void {
+  return subscribeOrdersByStatus(['qa_pending'], callback, onError);
+}
+
+/** Live subscription to orders ready to ship (and shipped, for tracking). */
+export function subscribeShippingOrders(
+  callback: (orders: Order[]) => void,
+  onError?: (e: Error) => void,
+): () => void {
+  return subscribeOrdersByStatus(['ready_to_ship', 'shipped'], callback, onError);
 }

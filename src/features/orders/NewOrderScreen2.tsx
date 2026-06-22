@@ -1,3 +1,17 @@
+/**
+ * NewOrderScreen2 — sales order entry form.
+ *
+ * NOTE: This is a large 2000+ line file that combines form, pricing,
+ * payment, and preview logic. The reusable form primitives (PillPicker,
+ * Field, ToggleControl, FormInput) have been extracted to:
+ *   - '@/src/features/orders/OrderFormControls'
+ *
+ * Future refactor: split this file into:
+ *   - NewOrderForm.tsx         (the form fields)
+ *   - OrderPricingPanel.tsx    (per-card pricing + totals)
+ *   - OrderPreviewPanel.tsx    (CardPreview + ProductBankCard)
+ *   - NewOrderScreen.tsx       (orchestrator, ~150 lines)
+ */
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, TextInput, View, useWindowDimensions,  } from 'react-native';

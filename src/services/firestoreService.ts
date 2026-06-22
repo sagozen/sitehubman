@@ -6,10 +6,13 @@ import {
   increment,
   getDoc,
   getDocs,
+  limit,
   onSnapshot,
+  orderBy,
   query,
   serverTimestamp,
   setDoc,
+  Timestamp,
   updateDoc,
   writeBatch,
   where,
@@ -638,6 +641,91 @@ export async function listOrders(role: UserRole, userId: string, branch?: string
 
 export async function listOrdersSimple(role: UserRole, userId: string): Promise<Order[]> {
   return listOrders(role, userId);
+}
+
+/**
+ * Live subscription to a customer's own orders. Returns an unsubscribe fn.
+ *
+ * Indexes across ownerId, createdBy, and customer email so the customer
+ * sees orders no matter which field sales used to attach them to the
+ * account. Newer orders sort first.
+ *
+ * If userId is missing or the listener fails (rules / offline), we call
+ * back with an empty list — the caller can keep a stale value or show an
+ * offline pill.
+ */
+export function subscribeCustomerOrders(
+  userId: string | null | undefined,
+  customerEmail: string | null | undefined,
+  callback: (orders: Order[]) => void,
+  onError?: (error: Error) => void,
+): () => void {
+  if (!userId) {
+    callback([]);
+    return () => {};
+  }
+  const constraints: Array<ReturnType<typeof where>> = [
+    where('ownerId', '==', userId),
+  ];
+  // Also match the legacy createdBy field — sales-rep-created orders sometimes
+  // set only this, and we want the customer to see them.
+  const collected: Order[] = [];
+  const seenIds = new Set<string>();
+
+  const collect = (snap: { docs: { id: string; data: () => Record<string, unknown> }[] }) => {
+    for (const d of snap.docs) {
+      if (seenIds.has(d.id)) continue;
+      seenIds.add(d.id);
+      collected.push(mapOrder(d.id, d.data()));
+    }
+    callback(
+      collected
+        .slice()
+        .sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt)),
+    );
+  };
+
+  const onSnapError = (error: Error) => {
+    if (onError) onError(error);
+  };
+
+  const unsubs = constraints.map((c) =>
+    onSnapshot(
+      query(collection(db, firebaseCollections.orders), c, orderBy('createdAt', 'desc'), limit(20)),
+      collect,
+      onSnapError,
+    ),
+  );
+
+  // Optional secondary listener by createdBy — only adds, doesn't replace.
+  if (userId) {
+    unsubs.push(
+      onSnapshot(
+        query(
+          collection(db, firebaseCollections.orders),
+          where('createdBy', '==', userId),
+          orderBy('createdAt', 'desc'),
+          limit(20),
+        ),
+        collect,
+        onSnapError,
+      ),
+    );
+  }
+
+  return () => {
+    for (const u of unsubs) {
+      try { u(); } catch { /* unsubscribe errors are best-effort */ }
+    }
+  };
+}
+
+function toMs(value: unknown): number {
+  if (!value) return 0;
+  if (value instanceof Timestamp) return value.toDate().getTime();
+  if (value instanceof Date) return value.getTime();
+  if (typeof value === 'string') return new Date(value).getTime();
+  return 0;
 }
 
 export async function getOrderByOrderNumber(orderNumber: string): Promise<Order | null> {
