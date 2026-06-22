@@ -8,9 +8,9 @@ const GuestConnectionsScreen = lazy(() =>
   }))
 );
 
-const CustomerConnectionsScreen = lazy(() =>
-  import('@/src/features/customer/CustomerConnectionsScreen').then((m) => ({
-    default: m.CustomerConnectionsScreen,
+const ConnectionsMomentsScreen = lazy(() =>
+  import('@/src/features/customer/ConnectionsMomentsScreen').then((m) => ({
+    default: m.ConnectionsMomentsScreen,
   }))
 );
 
@@ -24,7 +24,10 @@ function TabFallback() {
 
 export default function ConnectionsTabRoute() {
   const isGuest = useIsGuest();
-  const Screen = useMemo(() => (isGuest ? GuestConnectionsScreen : CustomerConnectionsScreen), [isGuest]);
+  const Screen = useMemo(
+    () => (isGuest ? GuestConnectionsScreen : ConnectionsMomentsScreen),
+    [isGuest],
+  );
 
   return (
     <Suspense fallback={<TabFallback />}>

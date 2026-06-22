@@ -11,14 +11,15 @@ import * as ImagePicker from 'expo-image-picker';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { AppButton } from '@/src/components/AppButton';
-import { FlippableNfcCard } from '@/src/components/FlippableNfcCard';
+import { CardStackCarousel } from '@/src/components/CardStackCarousel';
 import { appRoutes } from '@/src/constants/navigation';
 import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useBioPage } from '@/src/hooks/useBioPage';
 import { uploadProfilePhoto } from '@/src/services/profilePhotoService';
 import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
-import { useState, useEffect } from 'react';
+import { SEED_CARDS } from '@/src/data/seedCards';
+import { useState, useEffect, useMemo } from 'react';
 
 const BRAND = '#007AFF';
 const INK = '#000000';
@@ -55,6 +56,22 @@ export function CustomerProfileScreen() {
   const cardEmail = bioPage?.email?.trim() || user?.email?.trim() || '';
   const profileUrl = bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : undefined;
   const photoUrl = bioPage?.photoUrl;
+
+  const carouselCards = useMemo(() => {
+    if (SEED_CARDS.length > 0) return SEED_CARDS;
+    return [
+      {
+        id: 'card-current',
+        fullName: cardName || undefined,
+        title: cardTitle || undefined,
+        phone: cardPhone || undefined,
+        email: cardEmail || undefined,
+        profileUrl,
+        cardId: cloudCard?.cardId,
+        isPrimary: true,
+      },
+    ];
+  }, [cardEmail, cardName, cardPhone, cardTitle, cloudCard?.cardId, profileUrl]);
 
   async function pickImage() {
     if (!user?.id) return;
@@ -136,15 +153,27 @@ export function CustomerProfileScreen() {
         </View>
 
         <View style={styles.cardWrap}>
-          <FlippableNfcCard
-            fullName={cardName  || undefined}
-            title={cardTitle    || undefined}
-            phone={cardPhone    || undefined}
-            email={cardEmail    || undefined}
-            profileUrl={profileUrl}
-            cardId={cloudCard?.cardId}
+          <CardStackCarousel
+            cards={carouselCards}
+            addCardHref={appRoutes.guestDesign}
           />
         </View>
+
+        <Pressable
+          onPress={() => router.push(appRoutes.guestDesign as any)}
+          style={({ pressed }) => [styles.newCardCta, pressed && styles.pressed]}
+          accessibilityRole="button"
+          accessibilityLabel="Create a new card"
+        >
+          <View style={styles.newCardIcon}>
+            <AppIcon name="PlusSimple" size={20} color="#FFFFFF" />
+          </View>
+          <View style={styles.newCardCopy}>
+            <AppText style={styles.newCardTitle}>Create another card</AppText>
+            <AppText style={styles.newCardSub}>Separate work, side project, event, or creator profile</AppText>
+          </View>
+          <AppIcon name="ChevronRight" size={18} color={BRAND} />
+        </Pressable>
 
         <View style={styles.section}>
           <View style={styles.actionStrip}>
@@ -255,6 +284,30 @@ const styles = StyleSheet.create({
     borderRadius: 24, overflow: 'hidden',
     shadowColor: '#111111', shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.22, shadowRadius: 34, elevation: 10,
   },
+
+  newCardCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: SURFACE,
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,122,255,0.28)',
+    borderStyle: 'dashed',
+  },
+  newCardIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: BRAND,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  newCardCopy: { flex: 1, gap: 2, minWidth: 0 },
+  newCardTitle: { fontSize: 15, fontWeight: '900', color: INK, letterSpacing: 0 },
+  newCardSub: { fontSize: 11, fontWeight: '600', color: MUTED, lineHeight: 15 },
 
   section: { gap: 10 },
   sectionLabel: { fontSize: 12, fontWeight: '700', color: MUTED, textTransform: 'uppercase', letterSpacing: 0.5 },

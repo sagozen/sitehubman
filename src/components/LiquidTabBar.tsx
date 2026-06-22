@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -179,12 +179,17 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
 
   const isSalesUser = user?.role === 'sales';
   const [activeOrdersCount, setActiveOrdersCount] = useState(0);
+  // Cache the last userId we fetched for, avoid re-fetching on every render
+  const lastFetchedUserRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!isSalesUser || !user?.id) {
       setActiveOrdersCount(0);
+      lastFetchedUserRef.current = null;
       return;
     }
+    // Don't re-fetch if userId hasn't changed
+    if (lastFetchedUserRef.current === user.id) return;
 
     let cancelled = false;
     const task = setTimeout(() => {
@@ -193,6 +198,7 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
           const { listOrders } = await import('@/src/services/firestoreService');
           const orders = await listOrders('sales', user.id);
           if (cancelled) return;
+          lastFetchedUserRef.current = user.id;
           setActiveOrdersCount(
             orders.filter((order) => order.status !== 'delivered' && (order.cardStatus ?? 'active') !== 'closed').length
           );
@@ -200,7 +206,7 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
           if (!cancelled) setActiveOrdersCount(0);
         }
       })();
-    }, 400);
+    }, 800); // increased debounce — tab bar badge is low priority
 
     return () => {
       cancelled = true;

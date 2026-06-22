@@ -50,7 +50,7 @@ export function AppHeader({
             { backgroundColor: pressed ? colors.textPrimary : colors.surfaceSoft },
           ]}
           onPress={onBackPress ?? (() => router.back())}
-          hitSlop={12}
+          hitSlop={8}
         >
           {({ pressed }) => (
             <AppIcon name="ChevronLeft" size={22} color={pressed ? colors.textInverse : colors.textPrimary} />
@@ -76,7 +76,7 @@ export function AppHeader({
             { backgroundColor: pressed ? colors.textPrimary : colors.surfaceSoft },
           ]}
           onPress={onActionPress}
-          hitSlop={12}
+          hitSlop={8}
         >
           {({ pressed }) => (
             <AppIcon name={actionIcon} color={pressed ? colors.textInverse : colors.textPrimary} />

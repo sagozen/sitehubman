@@ -1,33 +1,35 @@
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import { RealIcon } from '@/src/components/RealIcon';
+import { AppIcon } from '@/src/components/AppIcon';
 import type { AppIconName } from '@/src/components/AppIcon';
-import type { FlowRealIconId } from '@/src/constants/flowRealIcons';
 
 type Props = {
-  realIcon: FlowRealIconId;
+  /** Unused for now; kept so call sites don't break. Falls back to fallbackIcon. */
+  realIcon?: string;
   fallbackIcon: AppIconName;
   tint: string;
   size?: number;
-  /** Soft color wash — no border, no squircle. */
+  /** Soft color wash behind the icon — Apple Settings-style tinted tile. */
   glow?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
-/** Bare icon for flow hubs — no boxes, optional soft glow only. */
+/**
+ * Apple Settings-style line tile — monochrome icon on a soft tinted circle.
+ * No brand photos, no glow rings, no per-flow rainbow. One calm color.
+ */
 export function FlowIcon({
-  realIcon,
   fallbackIcon,
   tint,
   size = 44,
   glow = false,
   style,
 }: Props) {
-  const iconSize = Math.round(size * 0.58);
+  const iconSize = Math.round(size * 0.5);
 
   if (!glow) {
     return (
       <View style={[styles.plain, { width: size, height: size }, style]}>
-        <RealIcon id={realIcon} size={iconSize} color={tint} fallbackIcon={fallbackIcon} />
+        <AppIcon name={fallbackIcon} size={iconSize} color={tint} />
       </View>
     );
   }
@@ -41,11 +43,11 @@ export function FlowIcon({
             width: size,
             height: size,
             borderRadius: size / 2,
-            backgroundColor: `${tint}12`,
+            backgroundColor: `${tint}1A`,
           },
         ]}
       />
-      <RealIcon id={realIcon} size={iconSize} color={tint} fallbackIcon={fallbackIcon} />
+      <AppIcon name={fallbackIcon} size={iconSize} color={tint} />
     </View>
   );
 }

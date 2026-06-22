@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
+import { HolographicShimmer } from '@/src/components/HolographicShimmer';
 
 const CARD_GRADIENT = ['#111111', '#202124', '#2596BE'] as const;
 
@@ -19,6 +20,8 @@ type NfcGlobalCardFaceProps = {
   height?: number;
   compact?: boolean;
   backgroundImageUri?: string | null;
+  /** Toggle the moving holographic shimmer overlay. Defaults to true. */
+  shimmer?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -34,6 +37,7 @@ export function NfcGlobalCardFace({
   height,
   compact = false,
   backgroundImageUri,
+  shimmer = true,
   style,
 }: NfcGlobalCardFaceProps) {
   const displayName = fullName.trim() || 'Your Name';
@@ -58,6 +62,7 @@ export function NfcGlobalCardFace({
           />
         </>
       ) : null}
+      {shimmer ? <HolographicShimmer enabled={!compact} opacity={0.55} /> : null}
       <View style={styles.top}>
         <View style={styles.brand}>
           <View style={[styles.logo, compact && styles.logoCompact]}>

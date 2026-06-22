@@ -92,14 +92,22 @@ export const AppSearchBar = forwardRef<AppSearchBarHandle, AppSearchBarProps>(fu
         accessibilityLabel="Search"
         style={({ pressed }) => [
           styles.searchBtn,
-          pressed && !loading && styles.searchBtnPressed,
+          {
+            backgroundColor: pressed ? colors.textPrimary : colors.surfaceSoft,
+          },
           loading && styles.searchBtnDisabled,
         ]}
       >
         {loading ? (
-          <ActivityIndicator size="small" color={theme.colors.textInverse} />
+          <ActivityIndicator size="small" color={colors.textInverse} />
         ) : (
-          <AppIcon name="Search" size={theme.iconSize.sm} color={theme.colors.textInverse} />
+          ({ pressed }) => (
+            <AppIcon
+              name="Search"
+              size={theme.iconSize.sm}
+              color={pressed ? colors.textInverse : colors.textMuted}
+            />
+          )
         )}
       </Pressable>
     </View>
@@ -144,8 +152,6 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.charcoal,
-    opacity: 0.92,
   },
   searchBtnPressed: {
     opacity: 0.78,

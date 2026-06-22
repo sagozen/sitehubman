@@ -1,12 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { FlowIcon } from '@/src/components/FlowIcon';
 import type { CustomerFlowDefinition, CustomerFlowId } from '@/src/constants/customerFlows';
 import { CUSTOMER_FLOWS } from '@/src/constants/customerFlows';
-import { iosTypography } from '@/src/design-system/ios';
-import { getRecentCustomerFlows } from '@/src/services/customerFlowStorage';
 
 export type IconFlowMetrics = Partial<Record<CustomerFlowId, string>>;
 
@@ -23,9 +20,13 @@ type Props = {
 };
 
 /**
- * Icon-driven hub — no cards, borders, or grid boxes.
- * Metrics + airy action rows + horizontal recents.
+ * IconFlowHub - clean text-only flow list.
+ *
+ * No icons, no tinted tiles, no glow. Just an Apple Settings-style
+ * grouped list of action labels so the eye reads straight down the page
+ * without competing visual noise.
  */
+
 export function IconFlowHub({
   title,
   subtitle,
@@ -35,14 +36,9 @@ export function IconFlowHub({
   onLaunch,
   textColor = '#1C1C1E',
   mutedColor = '#8E8E93',
-  recentLimit = 4,
 }: Props) {
-  const [recentIds, setRecentIds] = useState<CustomerFlowId[]>([]);
-
-  useEffect(() => {
-    void getRecentCustomerFlows(recentLimit).then(setRecentIds);
-  }, [recentLimit]);
-
+  const visibleMetrics = metricFlows.filter((flow) => flow.id in metrics);
+  const recentIds: CustomerFlowId[] = []; // recent strip removed for clarity
   const recentFlows = useMemo(
     () => recentIds.map((id) => CUSTOMER_FLOWS[id]).filter(Boolean),
     [recentIds],
@@ -57,57 +53,52 @@ export function IconFlowHub({
         ) : null}
       </View>
 
-      {metricFlows.length > 0 ? (
-        <View style={styles.metricRow}>
-          {metricFlows.map((flow) => (
+      {visibleMetrics.length > 0 ? (
+        <View style={styles.metricList}>
+          {visibleMetrics.map((flow, i) => (
             <Pressable
               key={flow.id}
               onPress={() => onLaunch(flow.id)}
-              style={({ pressed }) => [styles.metricItem, pressed && styles.pressed]}
+              style={({ pressed }) => [
+                styles.row,
+                i === visibleMetrics.length - 1 && styles.rowLast,
+                pressed && styles.pressed,
+              ]}
               accessibilityRole="button"
               accessibilityLabel={flow.label}
             >
-              <FlowIcon
-                realIcon={flow.realIcon}
-                fallbackIcon={flow.fallbackIcon}
-                tint={flow.tint}
-                size={36}
-                glow
-              />
-              <AppText style={[styles.metricValue, { color: textColor }]}>
+              <View style={styles.actionCopy}>
+                <AppText style={[styles.actionLabel, { color: textColor }]}>{flow.label}</AppText>
+              </View>
+              <AppText style={[styles.metricValue, { color: mutedColor }]}>
                 {metrics[flow.id] ?? '—'}
               </AppText>
-              <AppText style={[styles.metricLabel, { color: mutedColor }]} numberOfLines={1}>
-                {flow.label}
-              </AppText>
+              <AppIcon name="ChevronRight" size={14} color={mutedColor} />
             </Pressable>
           ))}
         </View>
       ) : null}
 
       <View style={styles.actionList}>
-        {primaryFlows.map((flow) => (
+        {primaryFlows.map((flow, i) => (
           <Pressable
             key={flow.id}
             onPress={() => onLaunch(flow.id)}
-            style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}
+            style={({ pressed }) => [
+              styles.row,
+              i === primaryFlows.length - 1 && styles.rowLast,
+              pressed && styles.pressed,
+            ]}
             accessibilityRole="button"
             accessibilityLabel={flow.label}
           >
-            <FlowIcon
-              realIcon={flow.realIcon}
-              fallbackIcon={flow.fallbackIcon}
-              tint={flow.tint}
-              size={52}
-              glow
-            />
             <View style={styles.actionCopy}>
               <AppText style={[styles.actionLabel, { color: textColor }]}>{flow.label}</AppText>
-              <AppText style={[styles.actionSub, { color: mutedColor }]} numberOfLines={2}>
+              <AppText style={[styles.actionSub, { color: mutedColor }]} numberOfLines={1}>
                 {flow.subtitle}
               </AppText>
             </View>
-            <AppIcon name="ChevronRight" size={15} color={mutedColor} />
+            <AppIcon name="ChevronRight" size={14} color={mutedColor} />
           </Pressable>
         ))}
       </View>
@@ -126,13 +117,6 @@ export function IconFlowHub({
                 onPress={() => onLaunch(flow.id)}
                 style={({ pressed }) => [styles.recentItem, pressed && styles.pressed]}
               >
-                <FlowIcon
-                  realIcon={flow.realIcon}
-                  fallbackIcon={flow.fallbackIcon}
-                  tint={flow.tint}
-                  size={40}
-                  glow
-                />
                 <AppText style={[styles.recentLabel, { color: textColor }]} numberOfLines={1}>
                   {flow.label}
                 </AppText>
@@ -147,50 +131,44 @@ export function IconFlowHub({
 
 const styles = StyleSheet.create({
   wrap: {
-    gap: 22,
+    gap: 10,
   },
   head: {
-    gap: 4,
+    gap: 2,
+    paddingHorizontal: 4,
   },
   title: {
-    ...iosTypography.h2,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
   },
   subtitle: {
-    ...iosTypography.caption,
+    fontSize: 12,
+    fontWeight: '500',
   },
-  metricRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  metricItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 4,
-  },
-  metricValue: {
-    fontSize: 20,
-    lineHeight: 24,
-    fontWeight: '700',
-  },
-  metricLabel: {
-    fontSize: 10,
-    lineHeight: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.35,
-    textAlign: 'center',
-  },
+  // Apple Settings-style grouped list: one white surface, hairline rows.
   actionList: {
-    gap: 6,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    overflow: 'hidden',
   },
-  actionRow: {
+  metricList: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    paddingVertical: 10,
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(60,60,67,0.18)',
+  },
+  rowLast: {
+    borderBottomWidth: 0,
   },
   actionCopy: {
     flex: 1,
@@ -198,26 +176,23 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   actionLabel: {
-    ...iosTypography.body,
+    fontSize: 15,
     fontWeight: '600',
+    letterSpacing: -0.1,
   },
   actionSub: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  recentBlock: {
-    gap: 10,
-  },
-  recentTitle: {
     fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    fontWeight: '400',
   },
-  recentScroll: {
-    gap: 20,
-    paddingRight: 8,
+  metricValue: {
+    fontSize: 15,
+    fontWeight: '500',
+    letterSpacing: -0.1,
   },
+  pressed: { opacity: 0.65 },
+  recentBlock: { gap: 10 },
+  recentTitle: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  recentScroll: { gap: 20, paddingRight: 8 },
   recentItem: {
     alignItems: 'center',
     gap: 6,
@@ -227,8 +202,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     textAlign: 'center',
-  },
-  pressed: {
-    opacity: 0.62,
   },
 });

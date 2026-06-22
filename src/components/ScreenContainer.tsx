@@ -9,6 +9,7 @@ interface ScreenContainerProps {
   scroll?: boolean;
   contentStyle?: StyleProp<ViewStyle>;
   role?: RoleThemeKey;
+  padding?: 'default' | 'compact';
 }
 
 export function ScreenContainer({
@@ -16,6 +17,7 @@ export function ScreenContainer({
   scroll = true,
   contentStyle,
   role: _role = 'default',
+  padding = 'default',
 }: PropsWithChildren<ScreenContainerProps>) {
   void _role;
 
@@ -25,19 +27,21 @@ export function ScreenContainer({
     </View>
   );
 
+  const horizontalPadding = padding === 'compact' ? theme.spacing.md : theme.spacing.lg;
+
   return (
     <GlassScreenBackdrop>
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         {scroll ? (
           <IosScrollView
             style={styles.scroll}
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[styles.scrollContent, { paddingHorizontal: horizontalPadding }]}
             keyboardShouldPersistTaps="handled"
           >
             {content}
           </IosScrollView>
         ) : (
-          <View style={styles.scrollContent}>{content}</View>
+          <View style={[styles.scrollContent, { paddingHorizontal: horizontalPadding }]}>{content}</View>
         )}
       </SafeAreaView>
     </GlassScreenBackdrop>

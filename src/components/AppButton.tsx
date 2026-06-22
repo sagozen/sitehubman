@@ -1,10 +1,10 @@
-import * as Haptics from 'expo-haptics';
-import { ActivityIndicator, Platform, Pressable, PressableProps, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { ActivityIndicator, Pressable, PressableProps, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { getRoleTheme, RoleThemeKey, theme } from '@/src/constants/theme';
 import { iosDesign } from '@/src/design-system/ios';
 import { usePreferences } from '@/src/hooks/usePreferences';
+import { HapticTap } from '@/src/utils/haptics';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'disabled';
 
@@ -73,8 +73,8 @@ export function AppButton({
       disabled={isDisabled}
       accessibilityRole="button"
       onPress={(event) => {
-        if (!isDisabled && Platform.OS === 'ios') {
-          void Haptics.selectionAsync();
+        if (!isDisabled) {
+          HapticTap.light();
         }
         onPress?.(event);
       }}

@@ -1,10 +1,9 @@
 /**
- * SalesDashboardScreen — Super wow edition.
- * Apple-quality iOS dashboard with animated hero, KPI strip, activity feed.
+ * SalesDashboardScreen — Performance-optimised Apple-quality dashboard.
  */
 import { IosScrollView } from '@/src/components/IosScrollView';
-import { useEffect, useMemo, useRef } from 'react';
-import { Animated, Pressable, StyleSheet, View } from 'react-native';
+import { memo, useEffect, useMemo } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { GlassSafeScreen } from '@/src/components/GlassSafeScreen';
 import { AppIcon } from '@/src/components/AppIcon';
@@ -61,17 +60,12 @@ function RequestTile({
   icon: 'User' | 'CircleUserRound' | 'PenLine' | 'Users';
   accent: string; tint: string; onPress?: () => void;
 }) {
-  const scale = useRef(new Animated.Value(1)).current;
-  const handlePress = () => {
-    Animated.sequence([
-      Animated.spring(scale, { toValue: 0.93, useNativeDriver: true, tension: 300, friction: 10 }),
-      Animated.spring(scale, { toValue: 1,    useNativeDriver: true, tension: 300, friction: 10 }),
-    ]).start();
-    onPress?.();
-  };
   return (
-    <Pressable onPress={handlePress} style={styles.tilePressable}>
-      <Animated.View style={[styles.tileCard, { transform: [{ scale }] }]}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.tilePressable, pressed && { opacity: 0.82 }]}
+    >
+      <View style={styles.tileCard}>
         <View style={styles.tileTop}>
           <View style={[styles.tileIcon, { backgroundColor: tint }]}>
             <AppIcon name={icon} size={18} color={accent} />
@@ -80,14 +74,14 @@ function RequestTile({
         </View>
         <AppText style={styles.tileCount}>{count}</AppText>
         <AppText style={styles.tileLabel} numberOfLines={1}>{label}</AppText>
-      </Animated.View>
+      </View>
     </Pressable>
   );
 }
 
 // ─── OrderCard (pipeline) ─────────────────────────────────────────────────────
 
-function PipelineOrderCard({ order }: { order: Order }) {
+const PipelineOrderCard = memo(function PipelineOrderCard({ order }: { order: Order }) {
   const product = productTypeOptions.find((p) => p.value === order.productType);
   const productLabel = product?.label ?? order.productType?.replace(/_/g, ' ') ?? 'card';
   const nfc = nfcKind(order);
@@ -158,7 +152,7 @@ function PipelineOrderCard({ order }: { order: Order }) {
 
 // ─── SectionHeader ────────────────────────────────────────────────────────────
 
-function SectionHeader({ title, link, onPress }: { title: string; link?: string; onPress?: () => void }) {
+const SectionHeader = memo(function SectionHeader({ title, link, onPress }: { title: string; link?: string; onPress?: () => void }) {
   return (
     <View style={styles.sectionHeader}>
       <AppText style={styles.sectionTitle}>{title}</AppText>

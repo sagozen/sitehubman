@@ -1,15 +1,12 @@
 /**
- * SalesGreetingHero — animated greeting header with earnings display.
- * Time-aware greeting, animated number reveal, action shortcuts.
- * Feels like Apple's native finance/health apps.
+ * SalesGreetingHero — greeting header with earnings.
+ * Time-aware greeting, earnings display, action shortcuts.
+ *
+ * Performance: uses native-driver animations only (opacity/translateY).
+ * No JS-thread animations. No Animated.Value.__getValue() calls.
  */
-import { useEffect, useRef } from 'react';
-import {
-  Animated,
-  Pressable,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { memo, useEffect, useRef } from 'react';
+import { Animated, Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/src/components/AppText';
 import { AppIcon } from '@/src/components/AppIcon';
 import { salesUi } from './SalesScreenUi';
@@ -29,32 +26,6 @@ function formatDate(): string {
     day: 'numeric',
     month: 'long',
   });
-}
-
-// ─── AnimatedNumber ───────────────────────────────────────────────────────────
-
-function AnimatedNumber({ value, prefix = '' }: { value: number; prefix?: string }) {
-  const animVal = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.spring(animVal, {
-      toValue: value,
-      tension: 60,
-      friction: 12,
-      useNativeDriver: false,
-    }).start();
-  }, [value]);
-
-  return (
-    <Animated.Text
-      style={hero.bigNumber}
-    >
-      {prefix}
-      <Animated.Text>
-        {animVal.__getValue().toFixed(2)}
-      </Animated.Text>
-    </Animated.Text>
-  );
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -77,7 +48,7 @@ type Props = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function SalesGreetingHero({
+export const SalesGreetingHero = memo(function SalesGreetingHero({
   displayName = 'Sales',
   totalRealized,
   totalUnrealized,
@@ -86,45 +57,54 @@ export function SalesGreetingHero({
   quickActions = [],
 }: Props) {
   const greeting = getGreeting();
+  const firstName = displayName.split(' ')[0];
 
-  // Fade in entire card
-  const cardOpacity = useRef(new Animated.Value(0)).current;
-  const cardY       = useRef(new Animated.Value(16)).current;
+  // Single entrance animation on mount — native driver, no JS thread
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(10)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(cardOpacity, { toValue: 1, duration: 380, useNativeDriver: true }),
-      Animated.spring(cardY, { toValue: 0, tension: 80, friction: 14, useNativeDriver: true }),
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
     ]).start();
-  }, []);
-
-  const firstName = displayName.split(' ')[0];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // mount only
 
   return (
-    <Animated.View style={[hero.card, { opacity: cardOpacity, transform: [{ translateY: cardY }] }]}>
-      {/* Top shimmer */}
+    <Animated.View
+      style={[
+        hero.card,
+        { opacity, transform: [{ translateY }] },
+      ]}
+    >
       <View pointerEvents="none" style={hero.shimmer} />
-
       <View style={hero.content}>
+
         {/* Greeting row */}
         <View style={hero.topRow}>
           <View style={hero.greetingBlock}>
             <AppText style={hero.greeting}>
-              {greeting.text}{' '}
-              <AppText style={hero.greetingEmoji}>{greeting.emoji}</AppText>
+              {greeting.text} {greeting.emoji}
             </AppText>
             <AppText style={hero.name} numberOfLines={1}>{firstName}</AppText>
             <AppText style={hero.date}>{formatDate()}</AppText>
           </View>
-
-          {/* Status pill */}
           <View style={hero.onlinePill}>
             <View style={hero.onlineDot} />
             <AppText style={hero.onlineText}>Active</AppText>
           </View>
         </View>
 
-        {/* Earnings section */}
+        {/* Earnings */}
         <View style={hero.earningsSection}>
           <View style={hero.earningsBlock}>
             <AppText style={hero.earningsLabel}>COMMISSION EARNED</AppText>
@@ -139,10 +119,7 @@ export function SalesGreetingHero({
               ) : null}
             </View>
           </View>
-
-          {/* Divider */}
           <View style={hero.earningsDivider} />
-
           <View style={hero.earningsBlock}>
             <AppText style={hero.earningsLabel}>PIPELINE VALUE</AppText>
             <View style={hero.earningsRow}>
@@ -182,10 +159,11 @@ export function SalesGreetingHero({
             ))}
           </View>
         ) : null}
+
       </View>
     </Animated.View>
   );
-}
+});
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
@@ -209,20 +187,17 @@ const hero = StyleSheet.create({
     padding: 20,
     gap: 16,
   },
-
-  // Greeting
   topRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
   },
-  greetingBlock: { gap: 1 },
+  greetingBlock: { gap: 1, flex: 1, minWidth: 0 },
   greeting: {
     fontSize: 14,
     fontWeight: '500',
     color: salesUi.muted,
   },
-  greetingEmoji: { fontSize: 14 },
   name: {
     fontSize: 28,
     fontWeight: '700',
@@ -236,12 +211,6 @@ const hero = StyleSheet.create({
     color: salesUi.muted,
     marginTop: 2,
   },
-  bigNumber: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: salesUi.accent,
-    letterSpacing: -0.5,
-  },
   onlinePill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -252,6 +221,7 @@ const hero = StyleSheet.create({
     backgroundColor: salesUi.greenSoft,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(52,199,89,0.25)',
+    marginLeft: 8,
   },
   onlineDot: {
     width: 6,
@@ -264,8 +234,6 @@ const hero = StyleSheet.create({
     fontWeight: '700',
     color: salesUi.green,
   },
-
-  // Earnings
   earningsSection: {
     flexDirection: 'row',
     backgroundColor: salesUi.bg,
@@ -273,7 +241,6 @@ const hero = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: salesUi.border,
     padding: 14,
-    gap: 0,
   },
   earningsBlock: { flex: 1, gap: 5 },
   earningsLabel: {
@@ -306,8 +273,6 @@ const hero = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 999,
     backgroundColor: salesUi.greenSoft,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(52,199,89,0.2)',
   },
   paidBadgeText: { fontSize: 9, fontWeight: '800', color: salesUi.green },
   pendingBadge: {
@@ -315,12 +280,8 @@ const hero = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 999,
     backgroundColor: salesUi.orangeSoft,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,149,0,0.2)',
   },
   pendingBadgeText: { fontSize: 9, fontWeight: '800', color: salesUi.accent },
-
-  // Quick actions
   quickActions: {
     flexDirection: 'row',
     gap: 8,
@@ -333,7 +294,7 @@ const hero = StyleSheet.create({
     backgroundColor: salesUi.accent,
     borderRadius: salesUi.radiusSm,
   },
-  qaBtnPressed: { opacity: 0.8, transform: [{ scale: 0.97 }] },
+  qaBtnPressed: { opacity: 0.8 },
   qaIconWrap: { position: 'relative' },
   qaLabel: {
     fontSize: 11,
