@@ -26,7 +26,14 @@ import {
   query,
   where,
 } from 'firebase/firestore';
-import { AppIcon } from '@/src/components/AppIcon';
+import {
+  BellBoldDuotone,
+  AltArrowRightBoldDuotone,
+  ForwardBoldDuotone,
+  AddCircleBoldDuotone,
+  StarsBoldDuotone,
+  CardBoldDuotone
+} from '@solar-icons/react-native';
 import { AppText } from '@/src/components/AppText';
 import { FlippableNfcCard } from '@/src/components/FlippableNfcCard';
 import { IconFlowHub } from '@/src/components/IconFlowHub';
@@ -216,7 +223,7 @@ const OrderStatusBanner = memo(function OrderStatusBanner({ order }: { order: Or
           <AppText style={s.orderBannerLabel}>Order {orderNumber}</AppText>
           <AppText style={s.orderBannerStep} numberOfLines={1}>{activeStep?.step ?? 'Queued'}</AppText>
         </View>
-        <AppIcon name="ChevronRight" size={16} color={MUTED} />
+        <AltArrowRightBoldDuotone size={16} color={MUTED} />
       </View>
 
       {/* Mini progress track */}
@@ -400,7 +407,7 @@ export function CustomerAccountScreen() {
                 style={({ pressed }) => [s.headerIcon, pressed && s.pressed]}
                 accessibilityLabel="Notifications"
               >
-                <AppIcon name="Bell" size={18} color={INK2} />
+                <BellBoldDuotone size={20} color={INK2} />
                 {unreadCount > 0 ? <View style={s.unreadDot} /> : null}
               </Pressable>
             </View>
@@ -429,7 +436,7 @@ export function CustomerAccountScreen() {
               style={({ pressed }) => [s.shareButton, s.shareButtonHalf, pressed && s.pressed]}
               accessibilityLabel="Share card"
             >
-              <AppIcon name="Share" size={17} color="#FFFFFF" />
+              <ForwardBoldDuotone size={18} color="#FFFFFF" />
               <AppText style={s.shareButtonT}>Share</AppText>
             </Pressable>
             <Pressable
@@ -437,7 +444,7 @@ export function CustomerAccountScreen() {
               style={({ pressed }) => [s.createCardButton, pressed && s.pressed]}
               accessibilityLabel="Create a new card"
             >
-              <AppIcon name="PlusSimple" size={17} color={BRAND} />
+              <AddCircleBoldDuotone size={18} color={BRAND} />
               <AppText style={s.createCardButtonT}>New card</AppText>
             </Pressable>
           </View>
@@ -472,7 +479,7 @@ export function CustomerAccountScreen() {
           {orders.length === 0 && !hasRealActivity ? (
             <View style={s.onboardCard}>
               <View style={s.onboardIcon}>
-                <AppIcon name="Sparkles" size={18} color={BRAND} />
+                <StarsBoldDuotone size={20} color={BRAND} />
               </View>
               <AppText style={s.onboardTitle}>Welcome to SITEHUB</AppText>
               <AppText style={s.onboardSub}>Three things to get the most out of your card:</AppText>
@@ -568,7 +575,7 @@ export function CustomerAccountScreen() {
             <View style={s.feedCard}>
               {displayedActivity.length === 0 ? (
                 <View style={s.emptyFeed}>
-                  <AppIcon name="Nfc" size={28} color="#D1D5DB" />
+                  <CardBoldDuotone size={28} color="#D1D5DB" />
                   <AppText style={s.emptyTitle}>No activity yet</AppText>
                   <AppText style={s.emptySub}>Hand someone your card — taps appear here instantly.</AppText>
                 </View>
@@ -585,9 +592,9 @@ export function CustomerAccountScreen() {
             onPress={() => router.push(appRoutes.nfcDemo as Href)}
             style={({ pressed }) => [s.demoLink, pressed && s.pressed]}
           >
-            <AppIcon name="Nfc" size={14} color={MUTED} />
+            <CardBoldDuotone size={16} color={MUTED} />
             <AppText style={s.demoLinkT}>Try NFC demo</AppText>
-            <AppIcon name="ChevronRight" size={12} color={MUTED} />
+            <AltArrowRightBoldDuotone size={14} color={MUTED} />
           </Pressable>
 
         </IosScrollView>

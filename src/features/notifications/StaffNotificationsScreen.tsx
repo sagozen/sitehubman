@@ -1,7 +1,7 @@
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { router } from 'expo-router';
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppEmptyState } from '@/src/components/AppState';
 import { AppIcon } from '@/src/components/AppIcon';
@@ -89,7 +89,10 @@ export function StaffNotificationsScreen({
               <Pressable
                 key={notification.id}
                 accessibilityRole="button"
-                onPress={() => void markRead(notification.id)}
+                onPress={() => {
+                  void markRead(notification.id);
+                  Alert.alert(notification.title, notification.message || 'No additional details.');
+                }}
                 style={({ pressed }) => [
                   styles.row,
                   {

@@ -1,19 +1,36 @@
 /**
- * SalesPayoutsScreen — Stocks-app large number, clean list.
+ * SalesPayoutsScreen — premium Binance-inspired dark payout dashboard.
+ * Style: Binance dark theme, black and gold palette, luxury fintech aesthetic.
  */
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { GlassSafeScreen } from '@/src/components/GlassSafeScreen';
 import { AppEmptyState } from '@/src/components/AppState';
 import { AppText } from '@/src/components/AppText';
-import { salesUi } from '@/src/features/sales/components/SalesScreenUi';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useOrders } from '@/src/hooks/useOrders';
 import { usePayouts } from '@/src/hooks/usePayouts';
 import type { Payout } from '@/src/types/models';
+import { AppIcon } from '@/src/components/AppIcon';
+import { LinearGradient } from 'expo-linear-gradient';
 
 type Period = 'Today' | 'Week' | 'Month';
+
+// ─── Tokens (Light Theme Payouts Pro) ────────────────────────────────────────
+const BG                  = '#F8FAFC';
+const SURFACE             = 'rgba(255, 255, 255, 0.86)';
+const SURFACE_LIGHT       = '#F1F5F9';
+const BORDER              = 'rgba(15,23,42,0.06)';
+const INK                 = '#020617';
+const MUTED               = '#64748B';
+const DIM                 = '#94A3B8';
+const GREEN               = '#10B981';
+const GREEN_DIM           = '#ECFDF3';
+const RED                 = '#EF4444';
+
+const GOLD_PRIMARY        = '#0E7490'; // Dark Aqua Blue instead of Gold
+const GOLD_PRIMARY_DIM    = '#EAF3FF';
+const GOLD_SECONDARY      = '#0891B2';
 
 function filterByPeriod(payouts: Payout[], p: Period): Payout[] {
   const now = new Date();
@@ -45,20 +62,34 @@ export default function SalesPayoutsScreen() {
   const delivered    = orders.filter((o) => o.status === 'delivered').length;
 
   return (
-    <GlassSafeScreen>
+    <View style={styles.bg}>
       <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
         {/* Header */}
-        <AppText style={styles.title}>Payouts</AppText>
+        <View style={{ paddingTop: 8, paddingBottom: 16 }}>
+          <AppText style={{ fontSize: 10, fontWeight: '900', color: GOLD_PRIMARY, letterSpacing: 1 }}>NFC GLOBAL SALES</AppText>
+          <AppText style={styles.title}>Payouts</AppText>
+        </View>
 
-        {/* Big number */}
-        <View style={styles.hero}>
-          <AppText style={styles.heroLabel}>
-            {period} commission
-            {pendingCount > 0 ? <AppText style={styles.heroPending}> · {pendingCount} pending</AppText> : null}
-          </AppText>
-          <AppText style={styles.heroAmount}>${total.toFixed(2)}</AppText>
-          <AppText style={styles.heroSub}>{delivered} order{delivered === 1 ? '' : 's'} delivered</AppText>
+        {/* Big number Hero container with Glass Gradient */}
+        <View style={styles.heroWrap}>
+          <LinearGradient
+            colors={['rgba(255, 255, 255, 0.9)', 'rgba(241, 245, 249, 0.8)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFillObject}
+          />
+          <View style={styles.hero}>
+            <AppText style={styles.heroLabel}>
+              {period} commission
+              {pendingCount > 0 ? <AppText style={styles.heroPending}> · {pendingCount} pending</AppText> : null}
+            </AppText>
+            <AppText style={styles.heroAmount}>${total.toFixed(2)}</AppText>
+            <View style={styles.heroMetaRow}>
+              <AppIcon name="BadgeCheck" size={14} color={GREEN} />
+              <AppText style={styles.heroSub}>{delivered} order{delivered === 1 ? '' : 's'} delivered</AppText>
+            </View>
+          </View>
         </View>
 
         {/* Period pills */}
@@ -74,16 +105,15 @@ export default function SalesPayoutsScreen() {
           ))}
         </View>
 
-        {/* Stats row */}
+        {/* Stats Row Cards */}
         <View style={styles.statsRow}>
-          <View style={styles.stat}>
-            <AppText style={styles.statValue} numberOfLines={1}>${paidAmt.toFixed(2)}</AppText>
+          <View style={styles.statCard}>
             <AppText style={styles.statLabel}>Paid out</AppText>
+            <AppText style={[styles.statValue, { color: GREEN }]} numberOfLines={1}>${paidAmt.toFixed(2)}</AppText>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.stat}>
-            <AppText style={[styles.statValue, { color: salesUi.accent }]} numberOfLines={1}>${pendingAmt.toFixed(2)}</AppText>
+          <View style={styles.statCard}>
             <AppText style={styles.statLabel}>Awaiting</AppText>
+            <AppText style={[styles.statValue, { color: GOLD_PRIMARY }]} numberOfLines={1}>${pendingAmt.toFixed(2)}</AppText>
           </View>
         </View>
 
@@ -94,24 +124,29 @@ export default function SalesPayoutsScreen() {
         {filtered.length === 0 ? (
           <AppEmptyState role="sales" iconName="Wallet" title="No payouts" description="Payouts for this period will appear here." />
         ) : (
-          <View>
+          <View style={styles.listWrap}>
             {filtered.slice(0, 10).map((payout, i) => {
               const label = payout.periodLabel || `Payout ${payout.id.slice(0, 6).toUpperCase()}`;
               const isPaid = payout.status === 'paid';
               const isLast = i === Math.min(filtered.length, 10) - 1;
               return (
                 <View key={payout.id} style={[payRow.wrap, isLast && payRow.last]}>
+                  <View style={payRow.iconShell}>
+                    <AppIcon name="Wallet" size={18} color={isPaid ? GREEN : GOLD_PRIMARY} />
+                  </View>
                   <View style={payRow.left}>
                     <AppText style={payRow.name} numberOfLines={1}>{label}</AppText>
                     <AppText style={payRow.date}>{new Date(payout.createdAt).toLocaleDateString()}</AppText>
                   </View>
                   <View style={payRow.right}>
-                    <AppText style={[payRow.amount, { color: isPaid ? salesUi.green : salesUi.accent }]}>
+                    <AppText style={payRow.amount}>
                       ${payout.amount.toFixed(2)}
                     </AppText>
-                    <AppText style={[payRow.status, { color: isPaid ? salesUi.green : salesUi.accent }]}>
-                      {isPaid ? 'Paid' : 'Pending'}
-                    </AppText>
+                    <View style={[payRow.statusPill, { backgroundColor: isPaid ? GREEN_DIM : GOLD_PRIMARY_DIM }]}>
+                      <AppText style={[payRow.status, { color: isPaid ? GREEN : GOLD_PRIMARY }]}>
+                        {isPaid ? 'Paid' : 'Pending'}
+                      </AppText>
+                    </View>
                   </View>
                 </View>
               );
@@ -119,57 +154,89 @@ export default function SalesPayoutsScreen() {
           </View>
         )}
       </IosScrollView>
-    </GlassSafeScreen>
+    </View>
   );
 }
 
 const payRow = StyleSheet.create({
   wrap: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: 14, gap: 8,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: salesUi.border,
+    flexDirection: 'row', alignItems: 'center',
+    paddingVertical: 16, gap: 12,
+    borderBottomWidth: 1, borderBottomColor: BORDER,
   },
   last: { borderBottomWidth: 0 },
+  iconShell: {
+    width: 38, height: 38, borderRadius: 19,
+    backgroundColor: SURFACE_LIGHT,
+    alignItems: 'center', justifyContent: 'center',
+  },
   left: { flex: 1, gap: 2 },
-  name: { fontSize: 15, fontWeight: '600', color: salesUi.text },
-  date: { fontSize: 12, color: salesUi.muted },
-  right: { alignItems: 'flex-end', gap: 3 },
-  amount: { fontSize: 16, fontWeight: '700', letterSpacing: -0.3 },
-  status: { fontSize: 11, fontWeight: '700' },
+  name: { fontSize: 15, fontWeight: '700', color: INK },
+  date: { fontSize: 11, color: MUTED },
+  right: { alignItems: 'flex-end', gap: 6 },
+  amount: { fontSize: 16, fontWeight: '800', color: INK, letterSpacing: -0.3 },
+  statusPill: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 },
+  status: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.2 },
 });
 
 const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 120 },
-  title: { fontSize: 32, fontWeight: '700', color: salesUi.text, letterSpacing: -0.5, marginBottom: 28 },
+  bg: { flex: 1, backgroundColor: BG },
+  blob: { position: 'absolute', opacity: 0.8 },
+  scroll: { paddingHorizontal: 16, paddingBottom: 120 },
+  title: { fontSize: 30, fontWeight: '900', color: INK, letterSpacing: -0.6, fontFamily: 'Inter_900Black' },
 
-  hero: {
-    gap: 4, paddingBottom: 24,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: salesUi.border, marginBottom: 20,
+  heroWrap: {
+    borderRadius: 24, overflow: 'hidden',
+    borderWidth: 1, borderColor: BORDER,
+    marginBottom: 20,
+    backgroundColor: SURFACE,
+    shadowColor: '#0f172a', shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.05, shadowRadius: 24, elevation: 1,
   },
-  heroLabel: { fontSize: 13, fontWeight: '500', color: salesUi.muted, textTransform: 'uppercase', letterSpacing: 0.5 },
-  heroPending: { color: salesUi.accent },
-  heroAmount: { fontSize: 46, fontWeight: '700', color: salesUi.text, letterSpacing: -2, marginTop: 4 },
-  heroSub: { fontSize: 13, color: salesUi.muted },
+  hero: { padding: 22, gap: 6 },
+  heroLabel: { fontSize: 11, fontWeight: '700', color: MUTED, textTransform: 'uppercase', letterSpacing: 1 },
+  heroPending: { color: GOLD_PRIMARY },
+  heroAmount: { fontSize: 46, fontWeight: '900', color: INK, letterSpacing: -2, marginTop: 4 },
+  heroMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
+  heroSub: { fontSize: 12, fontWeight: '600', color: MUTED },
 
   periodRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
   periodPill: {
     paddingHorizontal: 16, paddingVertical: 8,
-    borderRadius: 999, backgroundColor: salesUi.surface,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: salesUi.border,
+    borderRadius: 999, backgroundColor: SURFACE,
+    borderWidth: 1, borderColor: BORDER,
+    shadowColor: '#0f172a', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.02, shadowRadius: 6, elevation: 1,
   },
-  periodPillActive: { backgroundColor: salesUi.text, borderColor: salesUi.text },
-  periodText: { fontSize: 13, fontWeight: '600', color: salesUi.muted },
-  periodTextActive: { color: '#fff' },
+  periodPillActive: { backgroundColor: GOLD_PRIMARY, borderColor: GOLD_PRIMARY },
+  periodText: { fontSize: 13, fontWeight: '700', color: MUTED },
+  periodTextActive: { color: '#FFFFFF' },
 
   statsRow: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingBottom: 24, borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: salesUi.border, marginBottom: 24,
+    flexDirection: 'row', gap: 12, marginBottom: 24,
   },
-  stat: { flex: 1, gap: 4 },
-  statValue: { fontSize: 24, fontWeight: '700', color: salesUi.text, letterSpacing: -0.5 },
-  statLabel: { fontSize: 12, color: salesUi.muted },
-  statDivider: { width: StyleSheet.hairlineWidth, height: 36, backgroundColor: salesUi.border, marginHorizontal: 20 },
+  statCard: {
+    flex: 1,
+    backgroundColor: SURFACE,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: BORDER,
+    gap: 4,
+    shadowColor: '#0f172a', shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.03, shadowRadius: 16, elevation: 1,
+  },
+  statValue: { fontSize: 22, fontWeight: '900', letterSpacing: -0.5 },
+  statLabel: { fontSize: 11, fontWeight: '700', color: MUTED, textTransform: 'uppercase', letterSpacing: 0.5 },
 
-  sectionLabel: { fontSize: 13, fontWeight: '700', color: salesUi.muted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
+  sectionLabel: { fontSize: 11, fontWeight: '700', color: MUTED, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 },
+  listWrap: {
+    backgroundColor: SURFACE,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: BORDER,
+    shadowColor: '#0f172a', shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.04, shadowRadius: 20, elevation: 1,
+  },
 });

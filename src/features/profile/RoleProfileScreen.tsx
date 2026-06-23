@@ -507,48 +507,65 @@ function RoleProfileLayout({
 export function SalesProfileScreen() {
   const { user } = useAuth();
   const { orders, isLoading, error } = useOrders('sales', user?.id ?? '');
-  const delivered = orders.filter((order) => order.status === 'delivered').length;
-  const active = orders.filter((order) => order.status !== 'delivered' && (order.cardStatus ?? 'active') !== 'closed').length;
-  const paid = orders.filter((order) => order.paymentStatus === 'paid').length;
+
+  // Sales-focused stats — no finance
+  const totalOrders  = orders.length;
+  const needsAction  = orders.filter(o =>
+    ['pending_payment', 'payment_verified'].includes(o.status)
+  ).length;
+  const inProduction = orders.filter(o =>
+    ['production_approved', 'printer_assigned', 'printing',
+     'nfc_writing', 'nfc_verification', 'qa_pending'].includes(o.status)
+  ).length;
+  const completed    = orders.filter(o =>
+    ['ready_to_ship', 'shipped', 'delivered'].includes(o.status)
+  ).length;
+
   const salesTheme = getRoleTheme('sales');
 
   return (
     <RoleProfileLayout
       variant="sales"
-      title="Profile"
-      subtitle="Sales account"
+      title="My Profile"
+      subtitle="Sales agent"
       isLoading={isLoading}
       error={error}
       stats={[
-        { label: 'Total Orders', value: String(orders.length), icon: 'ClipboardList' },
-        { label: 'Active', value: String(active), icon: 'Package' },
-        { label: 'Delivered', value: String(delivered), icon: 'ShieldCheck', tone: salesTheme.primary },
-        { label: 'Paid', value: String(paid), icon: 'Wallet', tone: salesTheme.primary },
+        { label: 'Total Orders',     value: String(totalOrders),  icon: 'ClipboardList' },
+        { label: 'Needs Attention',  value: String(needsAction),  icon: 'Bell' },
+        { label: 'In Production',    value: String(inProduction), icon: 'Package', tone: salesTheme.primary },
+        { label: 'Completed',        value: String(completed),    icon: 'ShieldCheck', tone: salesTheme.primary },
       ]}
       actions={[
         {
           label: 'New Order',
-          description: 'Create a customer order.',
+          description: 'Create a new customer card order.',
           icon: 'ClipboardList',
           onPress: () => router.push(appRoutes.sales.newOrder),
         },
         {
-          label: 'Settings',
-          description: 'Language, theme, access, and session.',
-          icon: 'Settings',
-          onPress: () => router.push(appRoutes.sales.settings),
-        },
-        {
           label: 'My Orders',
-          description: 'View orders assigned to this sales account.',
-          icon: 'ClipboardList',
+          description: 'View and manage all your customer orders.',
+          icon: 'Package',
           onPress: () => router.push(appRoutes.sales.orders),
         },
         {
-          label: 'My Payouts',
-          description: 'Track commission and payout status.',
+          label: 'My Earnings',
+          description: 'Track commission from completed orders.',
           icon: 'Wallet',
           onPress: () => router.push(appRoutes.sales.payouts),
+        },
+        {
+          label: 'Printer Settings',
+          description: 'Configure and test label/card printers.',
+          icon: 'Printer',
+          onPress: () => router.push('/printer-settings' as any),
+        },
+        {
+          label: 'Settings',
+          description: 'Language, theme, and account options.',
+          icon: 'Settings',
+          onPress: () => router.push(appRoutes.sales.settings),
         },
       ]}
       activity={orders.slice(0, 4).map((order) => ({

@@ -27,11 +27,12 @@ const sitehubTabIcons: Record<string, { active: IoniconName; inactive: IoniconNa
   profile: { active: 'analytics', inactive: 'analytics-outline' },
   settings: { active: 'settings', inactive: 'settings-outline' },
   orders: genBookTabIcons.Library,
+  customers: { active: 'people', inactive: 'people-outline' },
   payouts: { active: 'wallet', inactive: 'wallet-outline' },
   queue: genBookTabIcons.Library,
   scan: genBookTabIcons.Search,
   wages: { active: 'wallet', inactive: 'wallet-outline' },
-  me: genBookTabIcons.Profile,
+  me: { active: 'person', inactive: 'person-outline' },
   'new-order': { active: 'add', inactive: 'add-outline' },
 };
 
@@ -47,4 +48,4 @@ export function getLiquidTabIcon(routeName: string, focused: boolean): IoniconNa
 }
 
 /** Premium mobile tab icon size. */
-export const LIQUID_TAB_ICON_SIZE = 28;
+export const LIQUID_TAB_ICON_SIZE = 24;

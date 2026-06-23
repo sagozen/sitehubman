@@ -11,11 +11,13 @@ export default function SalesLayout() {
       >
         <Tabs.Screen name="index" options={{ title: 'Home' }} />
         <Tabs.Screen name="orders" options={{ title: 'Orders' }} />
-        <Tabs.Screen name="payouts" options={{ title: 'Payouts' }} />
+        <Tabs.Screen name="payouts" options={{ title: 'Earnings' }} />
         <Tabs.Screen name="me" options={{ title: 'Me' }} />
+        <Tabs.Screen name="customers" options={{ href: null, tabBarStyle: { display: 'none' } }} />
         <Tabs.Screen name="notifications" options={{ href: null, tabBarStyle: { display: 'none' } }} />
         <Tabs.Screen name="new-order" options={{ href: null, tabBarStyle: { display: 'none' } }} />
         <Tabs.Screen name="settings" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+        <Tabs.Screen name="print-jobs" options={{ href: null, tabBarStyle: { display: 'none' } }} />
       </Tabs>
     </AuthGate>
   );

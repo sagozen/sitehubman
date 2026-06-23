@@ -14,12 +14,14 @@
  */
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, TextInput, View, useWindowDimensions,  } from 'react-native';
+import { Alert, Image, Pressable, StyleSheet, TextInput, View, useWindowDimensions,  } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
+import { ShieldCheckBoldDuotone, PhoneBoldDuotone, LetterBoldDuotone, MapPointBoldDuotone, UserBoldDuotone, CardBoldDuotone, BoxBoldDuotone, GalleryBoldDuotone, UploadSquareBoldDuotone, QrCodeBoldDuotone, AltArrowLeftBoldDuotone, ShareBoldDuotone } from '@solar-icons/react-native';
 import { AppText } from '@/src/components/AppText';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
 import { IosFormActionFooter } from '@/src/components/IosFormActionFooter';
@@ -131,13 +133,17 @@ const premiumFormStyles = StyleSheet.create({
   },
   card: {
     borderRadius: salesUi.radiusLg,
-    backgroundColor: salesUi.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: salesUi.border,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: 'rgba(226, 232, 240, 0.8)',
     paddingHorizontal: 16,
     paddingVertical: 16,
     gap: theme.spacing.sm + 2,
-    ...salesUi.shadow,
+    shadowColor: '#64748B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 2,
   },
 });
 
@@ -300,42 +306,49 @@ function ProductBankCard({
   onPress: () => void;
 }) {
   const palette = PRODUCT_CARD_THEMES[option.value];
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }]
+  }));
 
   return (
     <Pressable
+      onPressIn={() => { scale.value = withSpring(0.97, { damping: 20, stiffness: 300 }); }}
+      onPressOut={() => { scale.value = withSpring(1, { damping: 20, stiffness: 300 }); }}
       onPress={onPress}
-      style={[styles.productCardShell, cardWidthStyle, selected && styles.productCardShellActive]}
     >
-      <LinearGradient
-        colors={palette.colors}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.bankCard}
-      >
-        <View style={styles.bankCardTop}>
-          <View style={[styles.chip, { borderColor: palette.accent }]}>
-            <View style={[styles.chipLine, { backgroundColor: palette.accent }]} />
-            <View style={[styles.chipLine, { backgroundColor: palette.accent }]} />
+      <Animated.View style={[styles.productCardShell, cardWidthStyle, selected && styles.productCardShellActive, animatedStyle]}>
+        <LinearGradient
+          colors={palette.colors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.bankCard}
+        >
+          <View style={styles.bankCardTop}>
+            <View style={[styles.chip, { borderColor: palette.accent }]}>
+              <View style={[styles.chipLine, { backgroundColor: palette.accent }]} />
+              <View style={[styles.chipLine, { backgroundColor: palette.accent }]} />
+            </View>
+            <AppIcon name="Nfc" size={20} color={palette.accent} />
           </View>
-          <AppIcon name="Nfc" size={20} color={palette.accent} />
-        </View>
-        <View style={styles.bankCardMid}>
-          <AppText style={[styles.bankCardBrand, { color: palette.muted }]}>BIOCLOUD CARD</AppText>
-          <AppText style={[styles.bankCardName, { color: palette.text }]}>{option.label}</AppText>
-        </View>
-        <View style={styles.bankCardBottom}>
-          <View>
-            <AppText style={[styles.bankCardMeta, { color: palette.muted }]}>NFC + QR READY</AppText>
-            <AppText style={[styles.bankCardMeta, { color: palette.muted }]}>CUSTOM ARTWORK</AppText>
+          <View style={styles.bankCardMid}>
+            <AppText style={[styles.bankCardBrand, { color: palette.muted }]}>BIOCLOUD CARD</AppText>
+            <AppText style={[styles.bankCardName, { color: palette.text }]}>{option.label}</AppText>
           </View>
-          <AppText style={[styles.bankCardPrice, { color: palette.text }]}>${option.price}</AppText>
-        </View>
-      </LinearGradient>
-      {selected ? (
-        <View style={styles.selectedCheck}>
-          <AppIcon name="ShieldCheck" size={14} color="#fff" />
-        </View>
-      ) : null}
+          <View style={styles.bankCardBottom}>
+            <View>
+              <AppText style={[styles.bankCardMeta, { color: palette.muted }]}>NFC + QR READY</AppText>
+              <AppText style={[styles.bankCardMeta, { color: palette.muted }]}>CUSTOM ARTWORK</AppText>
+            </View>
+            <AppText style={[styles.bankCardPrice, { color: palette.text }]}>${option.price}</AppText>
+          </View>
+        </LinearGradient>
+        {selected ? (
+          <View style={styles.selectedCheck}>
+            <ShieldCheckBoldDuotone size={14} color="#fff" />
+          </View>
+        ) : null}
+      </Animated.View>
     </Pressable>
   );
 }
@@ -374,7 +387,7 @@ function CardPreview({
           <AppText style={styles.previewSubtitle}>{formatProductLabel(product)} / {cardDesignOptions.find((item) => item.value === cardDesign)?.label ?? cardDesign}</AppText>
         </View>
         <View style={styles.previewBadge}>
-          <AppIcon name="CreditCard" size={14} color={PINK} />
+          <CardBoldDuotone size={14} color={PINK} />
           <AppText style={styles.previewBadgeText}>Live preview</AppText>
         </View>
       </View>
@@ -396,7 +409,7 @@ function CardPreview({
         ) : null}
         {qrPrinted ? (
           <View style={styles.previewFlag}>
-            <AppIcon name="QrCode" size={12} color="#FFFFFF" />
+            <QrCodeBoldDuotone size={12} color="#FFFFFF" />
             <AppText style={styles.previewFlagT}>QR</AppText>
           </View>
         ) : null}
@@ -655,7 +668,7 @@ export function NewOrderScreen() {
             onPress={() => (step > 1 ? setStep((s) => s - 1) : handleBack())}
             hitSlop={8}
           >
-            <AppIcon name="ChevronLeft" size={22} color="#475569" />
+            <AltArrowLeftBoldDuotone size={22} color="#475569" />
           </Pressable>
           <View style={styles.premiumHeaderTitleWrap}>
             <AppText style={styles.premiumStepText}>{`Step ${step} of ${totalSteps}`}</AppText>
@@ -668,7 +681,13 @@ export function NewOrderScreen() {
           {['Customer', 'Product', 'Payment'].map((label, i) => {
             const active = i + 1 === step;
             return (
-              <View key={label} style={[styles.premiumSegmentItem, active && styles.premiumSegmentItemActive]}>
+              <View key={label} style={[styles.premiumSegmentItem, active && { overflow: 'hidden' }]}>
+                {active && (
+                  <LinearGradient
+                    colors={['#1E293B', '#0F172A']}
+                    style={StyleSheet.absoluteFill}
+                  />
+                )}
                 <AppIcon
                   name={PRINTER_STEP_ICONS[label as keyof typeof PRINTER_STEP_ICONS]}
                   size={13}
@@ -706,7 +725,7 @@ export function NewOrderScreen() {
             />
             <View style={styles.createdInfoCard}>
               <View style={styles.createdInfoHeader}>
-                <AppIcon name="ShieldCheck" size={20} color={theme.status.success} />
+                <ShieldCheckBoldDuotone size={20} color={theme.status.success} />
                 <View style={styles.createdInfoCopy}>
                   <AppText style={styles.createdInfoTitle}>Order ready for printing</AppText>
                   <AppText style={styles.createdInfoText}>
@@ -737,7 +756,7 @@ export function NewOrderScreen() {
           isPrinterFlow ? (
             <View style={styles.printerCustomerCard}>
               <View style={styles.printerCustomerRow}>
-                <AppIcon name="Phone" size={17} color="#C4CFDE" />
+                <PhoneBoldDuotone size={17} color="#C4CFDE" />
                 <TextInput
                   style={styles.printerCustomerInput}
                   value={phone}
@@ -748,7 +767,7 @@ export function NewOrderScreen() {
                 />
               </View>
               <View style={styles.printerCustomerRow}>
-                <AppIcon name="Share" size={17} color="#C4CFDE" />
+                <ShareBoldDuotone size={17} color="#C4CFDE" />
                 <TextInput
                   style={styles.printerCustomerInput}
                   value={telegram}
@@ -759,7 +778,7 @@ export function NewOrderScreen() {
                 />
               </View>
               <View style={styles.printerCustomerRow}>
-                <AppIcon name="Mail" size={17} color="#C4CFDE" />
+                <LetterBoldDuotone size={17} color="#C4CFDE" />
                 <TextInput
                   style={styles.printerCustomerInput}
                   value={email}
@@ -771,7 +790,7 @@ export function NewOrderScreen() {
                 />
               </View>
               <View style={styles.printerCustomerRow}>
-                <AppIcon name="MapPin" size={17} color="#C4CFDE" />
+                <MapPointBoldDuotone size={17} color="#C4CFDE" />
                 <TextInput
                   style={styles.printerCustomerInput}
                   value={company}
@@ -781,7 +800,7 @@ export function NewOrderScreen() {
                 />
               </View>
               <View style={styles.printerCustomerRowLast}>
-                <AppIcon name="UserRound" size={17} color="#C4CFDE" />
+                <UserBoldDuotone size={17} color="#C4CFDE" />
                 <TextInput
                   style={styles.printerCustomerInput}
                   value={jobTitle}
@@ -796,7 +815,7 @@ export function NewOrderScreen() {
               <AppText style={premiumFormStyles.sectionLabel}>Customer Information</AppText>
               <View style={styles.premiumCustomerCard}>
                 <View style={styles.premiumCustomerRow}>
-                  <AppIcon name="User" size={17} color="#C4CFDE" />
+                  <UserBoldDuotone size={17} color="#C4CFDE" />
                   <TextInput
                     style={styles.premiumCustomerInput}
                     value={customerName}
@@ -807,7 +826,7 @@ export function NewOrderScreen() {
                   />
                 </View>
                 <View style={styles.premiumCustomerRow}>
-                  <AppIcon name="Phone" size={17} color="#C4CFDE" />
+                  <PhoneBoldDuotone size={17} color="#C4CFDE" />
                   <TextInput
                     style={styles.premiumCustomerInput}
                     value={phone}
@@ -818,7 +837,12 @@ export function NewOrderScreen() {
                   />
                 </View>
                 <View style={styles.premiumCustomerRow}>
-                  <AppIcon name="Share" size={17} color="#C4CFDE" />
+                  <View style={{ width: 17, height: 17, justifyContent: 'center', alignItems: 'center' }}>
+                    <Image
+                      source={require('@/assets/images/auth/telegram.png')}
+                      style={{ width: 15, height: 15, borderRadius: 2 }}
+                    />
+                  </View>
                   <TextInput
                     style={styles.premiumCustomerInput}
                     value={telegram}
@@ -830,7 +854,7 @@ export function NewOrderScreen() {
                 </View>
                 <AppText style={styles.premiumHint}>At least one contact is required.</AppText>
                 <View style={styles.premiumCustomerRow}>
-                  <AppIcon name="Mail" size={17} color="#C4CFDE" />
+                  <LetterBoldDuotone size={17} color="#C4CFDE" />
                   <TextInput
                     style={styles.premiumCustomerInput}
                     value={email}
@@ -842,7 +866,7 @@ export function NewOrderScreen() {
                   />
                 </View>
                 <View style={styles.premiumCustomerRow}>
-                  <AppIcon name="MapPin" size={17} color="#C4CFDE" />
+                  <MapPointBoldDuotone size={17} color="#C4CFDE" />
                   <TextInput
                     style={styles.premiumCustomerInput}
                     value={company}
@@ -852,7 +876,7 @@ export function NewOrderScreen() {
                   />
                 </View>
                 <View style={styles.premiumCustomerRowLast}>
-                  <AppIcon name="UserRound" size={17} color="#C4CFDE" />
+                  <UserBoldDuotone size={17} color="#C4CFDE" />
                   <TextInput
                     style={styles.premiumCustomerInput}
                     value={jobTitle}
@@ -889,7 +913,7 @@ export function NewOrderScreen() {
 
                 <View style={styles.printerProductHead}>
                   <View style={styles.printerProductIcon}>
-                    <AppIcon name="CreditCard" size={24} color="#2563EB" />
+                    <CardBoldDuotone size={24} color="#2563EB" />
                   </View>
                   <View style={styles.printerProductInfo}>
                     <AppText style={styles.printerProductTitle}>{selectedProduct.label}</AppText>
@@ -902,7 +926,7 @@ export function NewOrderScreen() {
 
                 <View style={styles.printerQtyBar}>
                   <View style={styles.printerQtyLabelWrap}>
-                    <AppIcon name="Package" size={14} color="#8FA1BC" />
+                    <BoxBoldDuotone size={14} color="#8FA1BC" />
                     <AppText style={styles.printerQtyLabel}>Qty</AppText>
                   </View>
                   <View style={styles.printerQtyControls}>
@@ -938,7 +962,7 @@ export function NewOrderScreen() {
               </View>
 
               <Pressable style={styles.printerAddProductBtn} onPress={addAnotherProduct}>
-                <AppIcon name="Package" size={16} color="#2563EB" />
+                <BoxBoldDuotone size={16} color="#2563EB" />
                 <AppText style={styles.printerAddProductText}>Add another product</AppText>
               </Pressable>
             </View>
@@ -985,7 +1009,7 @@ export function NewOrderScreen() {
                 <View style={styles.uploadBox}>
                   <View style={styles.uploadCopy}>
                     <View style={styles.uploadIcon}>
-                      <AppIcon name="Image" size={18} color={PINK} />
+                      <GalleryBoldDuotone size={18} color={PINK} />
                     </View>
                     <View style={styles.uploadTextWrap}>
                       <AppText style={styles.uploadTitle}>Custom artwork</AppText>
@@ -1001,7 +1025,7 @@ export function NewOrderScreen() {
                       </Pressable>
                     ) : null}
                     <Pressable style={styles.uploadBtn} onPress={pickArtwork}>
-                      <AppIcon name="Upload" size={15} color="#fff" />
+                      <UploadSquareBoldDuotone size={15} color="#fff" />
                       <AppText style={styles.uploadBtnText}>{customArtwork ? 'Replace' : 'Upload'}</AppText>
                     </Pressable>
                   </View>
@@ -1048,7 +1072,7 @@ export function NewOrderScreen() {
 
                 <View style={[styles.toggleRow, isNarrow && styles.stackRow]}>
                   <View style={[styles.toggleItem, isNarrow && styles.full]}>
-                    <AppIcon name="QrCode" size={18} color={PINK} />
+                    <QrCodeBoldDuotone size={18} color={PINK} />
                     <AppText style={styles.toggleLabel}>QR printed</AppText>
                     <ToggleControl value={qrPrinted} onChange={setQrPrinted} />
                   </View>

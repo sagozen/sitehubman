@@ -1,352 +1,559 @@
-/**
- * SalesDashboardScreen
- * Design ref: dark canvas + white floating cards + big editorial text.
- * Sales accent: #FF9500 orange.
- */
-import { IosScrollView } from '@/src/components/IosScrollView';
-import { memo, useEffect, useMemo } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useEffect, useMemo } from 'react';
+import {
+  Alert,
+  Pressable,
+  StyleSheet,
+  View,
+  Share,
+  Linking,
+  Image,
+} from 'react-native';
 import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { IosScrollView } from '@/src/components/IosScrollView';
 import { AppIcon } from '@/src/components/AppIcon';
-import { AppEmptyState, AppLoadingState } from '@/src/components/AppState';
+import { PenBoldDuotone, TrashBinTrashBoldDuotone, PrinterBoldDuotone, UserBoldDuotone, DocumentBoldDuotone, WalletBoldDuotone, FireBoldDuotone, StarsBoldDuotone, AddCircleBoldDuotone, BoxBoldDuotone, Card2BoldDuotone } from '@solar-icons/react-native';
 import { AppText } from '@/src/components/AppText';
-import { appRoutes } from '@/src/constants/navigation';
-import { productTypeOptions } from '@/src/constants/options';
-import { SalesBulkUpload } from '@/src/features/sales/components/SalesBulkUpload';
 import { useAuth } from '@/src/hooks/useAuth';
-import { useNotifications } from '@/src/hooks/useNotifications';
 import { useOrders } from '@/src/hooks/useOrders';
+import { appRoutes } from '@/src/constants/navigation';
 import { isPaymentVerified } from '@/src/services/paymentVerificationService';
-import type { Order } from '@/src/types/models';
+import { formatOrderTotal } from '@/src/utils/orderPricing';
 import { needsSalesApproval } from '@/src/utils/orderProduction';
-import { getOrderTotalUsd } from '@/src/utils/orderPricing';
+import type { Order } from '@/src/types/models';
 
-// ─── Tokens ──────────────────────────────────────────────────────────────────
+// ─── Tokens ─────────────────────────────────────────────────────────────────
+const BG = '#F8FAFC';
+const SURFACE = '#FFFFFF';
+const INK = '#020617';
+const MUTED = '#64748B';
+const RED_BRAND = '#E53935'; // Red background like the image
+const BLUE = '#4285F4';
+const BLUE_LIGHT = '#E8F0FE';
+const ORANGE = '#F08428'; // Bright orange from the image
+const ORANGE_LIGHT = '#FEF0E5'; // Very light orange background
+const TEAL = '#0D9488';
 
-const C = {
-  accent:    '#FF9500',
-  accentDim: 'rgba(255,149,0,0.18)',
-  bg1:       '#0D1F12',
-  bg2:       '#1A3320',
-  card:      '#FFFFFF',
-  cardText:  '#111111',
-  cardMuted: '#888888',
-  white:     '#FFFFFF',
-  whiteDim:  'rgba(255,255,255,0.55)',
-  pill:      '#1E2E1E',
-  pillBorder:'rgba(255,255,255,0.08)',
-  green:     '#34C759',
-  red:       '#FF3B30',
-  blue:      '#007AFF',
-};
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function fmt(v: number) { return v.toFixed(2); }
-function isPending(o: Order) {
-  return ['draft','pending_payment','payment_submitted'].includes(o.status);
-}
-function getGreeting() {
-  const h = new Date().getHours();
-  return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
-}
-
-// ─── StatusPill ───────────────────────────────────────────────────────────────
-
-type SourceKey = 'guest'|'customer'|'manual'|'bulk';
-const SOURCE_LABELS: Record<SourceKey,string> = {
-  guest:'Guest', customer:'Customer', manual:'Manual', bulk:'Bulk',
-};
-
-// ─── OrderCard — white floating card ─────────────────────────────────────────
-
-const OrderCard = memo(function OrderCard({ order }: { order: Order }) {
-  const product  = productTypeOptions.find(p => p.value === order.productType);
-  const label    = product?.label ?? order.productType?.replace(/_/g,' ') ?? 'Card';
-  const verified = isPaymentVerified(order);
-  const needs    = needsSalesApproval(order);
-  const amount   = getOrderTotalUsd(order);
-
-  let dotColor = C.blue;
-  if (['delivered','ready_to_ship'].includes(order.status)) dotColor = C.green;
-  else if (isPending(order)) dotColor = C.accent;
-  else if (['payment_rejected','qa_failed','cancelled'].includes(order.status)) dotColor = C.red;
-
-  return (
-    <Pressable
-      style={({ pressed }) => [oc.wrap, pressed && { opacity: 0.88 }]}
-      onPress={() => router.push({ pathname: appRoutes.orderDetail, params: { orderId: order.id } })}
-    >
-      {/* Status bar */}
-      <View style={[oc.bar, { backgroundColor: dotColor }]} />
-
-      <View style={oc.body}>
-        {/* Row 1 */}
-        <View style={oc.row}>
-          <AppText style={oc.name} numberOfLines={1}>{order.customerName}</AppText>
-          <AppText style={[oc.amount, !verified && oc.amountMuted]}>${fmt(amount)}</AppText>
-        </View>
-        {/* Row 2 */}
-        <View style={oc.row}>
-          <AppText style={oc.meta} numberOfLines={1}>
-            {order.orderNumber ?? `#${order.id.slice(0,6).toUpperCase()}`} · {label}
-            {!verified ? ' · unpaid' : ''}
-          </AppText>
-          {needs ? (
-            <View style={oc.approvePill}>
-              <AppText style={oc.approveText}>Approve →</AppText>
-            </View>
-          ) : null}
-        </View>
-      </View>
-    </Pressable>
-  );
-});
-
-const oc = StyleSheet.create({
-  wrap: {
-    backgroundColor: C.card,
-    borderRadius: 20,
-    overflow: 'hidden',
-    marginBottom: 10,
-  },
-  bar: { height: 3, width: '100%' },
-  body: { padding: 16, gap: 6 },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  name: { flex: 1, fontSize: 16, fontWeight: '700', color: C.cardText },
-  amount: { fontSize: 16, fontWeight: '700', color: C.cardText },
-  amountMuted: { color: C.cardMuted },
-  meta: { flex: 1, fontSize: 13, color: C.cardMuted },
-  approvePill: {
-    backgroundColor: C.accentDim,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderWidth: 1,
-    borderColor: C.accent,
-  },
-  approveText: { fontSize: 11, fontWeight: '800', color: C.accent },
-});
-
-// ─── Screen ───────────────────────────────────────────────────────────────────
+// ─── Main Screen ────────────────────────────────────────────────────────────
 
 export default function SalesDashboardScreen() {
-  const { user }             = useAuth();
-  const { orders, isLoading, refresh } = useOrders('sales', user?.id ?? '');
-  const { unreadCount }      = useNotifications();
+  const { user } = useAuth();
+  const { orders, refresh } = useOrders('sales', user?.id ?? '');
+  const insets = useSafeAreaInsets();
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  const unpaid   = useMemo(() => orders.filter(o => !isPaymentVerified(o)), [orders]);
-  const paid     = useMemo(() => orders.filter(o => isPaymentVerified(o)), [orders]);
-  const unrealized = useMemo(() => unpaid.reduce((s,o) => s + getOrderTotalUsd(o), 0), [unpaid]);
-  const realized   = useMemo(() => paid.reduce((s,o) => s + getOrderTotalUsd(o), 0), [paid]);
-  const active     = useMemo(
-    () => orders.filter(o => o.status !== 'delivered' && (o.cardStatus ?? 'active') !== 'closed'),
-    [orders],
-  );
-  const pipeline       = useMemo(() => active.slice(0, 12), [active]);
-  const pendingApproval = useMemo(() => orders.filter(needsSalesApproval), [orders]);
-  const today          = useMemo(() => {
-    const t = new Date().toDateString();
-    return orders.filter(o => new Date(o.createdAt).toDateString() === t).length;
+  const firstName = (user?.displayName ?? 'Sales').split(' ')[0] || 'Sales';
+  const referralCode = user?.email
+    ? `SALE-${user.email.replace(/[@.]/g, '').slice(0, 10).toUpperCase()}`
+    : `SALE-${firstName.toUpperCase()}25`;
+
+  // Dashboard stats
+  const dashStats = useMemo(() => {
+    const today = new Date().toDateString();
+    let todayOrders = 0;
+    let todayRevenue = 0;
+    orders.forEach(o => {
+      const isToday = new Date(o.createdAt).toDateString() === today;
+      if (isToday) {
+        todayOrders++;
+        if (o.amount) todayRevenue += o.amount;
+      }
+    });
+    return { todayOrders, todayRevenue };
   }, [orders]);
 
-  const firstName  = (user?.displayName ?? 'Sales').split(' ')[0];
-  const totalPipe  = realized + unrealized;
-
-  // Source category counts
-  const srcCounts = useMemo(() => ({
-    guest:    orders.filter(o => o.orderSource === 'guest'    && isPending(o)).length,
-    customer: orders.filter(o => o.orderSource === 'customer' && isPending(o)).length,
-    manual:   orders.filter(o => o.orderSource === 'manual'   && isPending(o)).length,
-    bulk:     orders.filter(o => o.orderSource === 'bulk'     && isPending(o)).length,
-  }), [orders]);
+  // Recent orders (last 5)
+  const recentOrders = useMemo(() => {
+    return [...orders]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 5);
+  }, [orders]);
 
   return (
-    <View style={{ flex: 1 }}>
-      <LinearGradient colors={[C.bg1, C.bg2, C.bg1]} style={StyleSheet.absoluteFill} />
-      <SafeAreaView style={{ flex: 1 }} edges={['top','left','right']}>
-        <IosScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+    <View style={s.bg}>
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+        <IosScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
 
-          {/* ── Top row: name + bell ── */}
-          <View style={s.topRow}>
-            <View style={s.avatarCircle}>
-              <AppText style={s.avatarLetter}>{firstName[0]?.toUpperCase() ?? 'S'}</AppText>
+          {/* ── Top Identity & Revenue Card (from the image) ── */}
+          <View style={s.identityCard}>
+            {/* User Info Row */}
+            <View style={s.userRow}>
+              {user?.photoURL ? (
+                <Image source={{ uri: user.photoURL }} style={s.avatar} />
+              ) : (
+                <View style={s.avatarFallback}>
+                  <UserBoldDuotone size={30} color={RED_BRAND} />
+                </View>
+              )}
+              <View style={s.userInfo}>
+                <AppText style={s.userName}>{user?.displayName || 'Sales Agent'}</AppText>
+                <AppText style={s.userRole}>Ref Code: {referralCode}</AppText>
+              </View>
             </View>
-            <View style={s.topCenter}>
-              <AppText style={s.greeting}>{getGreeting()}</AppText>
-              <AppText style={s.topName}>{firstName}</AppText>
+
+            {/* Stats Row */}
+            <View style={s.statsRow}>
+              <View style={s.statCol}>
+                <AppText style={s.statLabel}>Today's Orders</AppText>
+                <View style={s.statValRow}>
+                  <AppText style={s.statValue}>{dashStats.todayOrders}</AppText>
+                  <AppIcon name="ChevronRight" size={14} color={MUTED} />
+                </View>
+              </View>
+              <View style={s.statDivider} />
+              <View style={s.statCol}>
+                <AppText style={s.statLabel}>Today's Revenue</AppText>
+                <View style={s.statValRow}>
+                  <AppText style={s.statValue}>${dashStats.todayRevenue.toFixed(2)}</AppText>
+                  <AppIcon name="ChevronRight" size={14} color={MUTED} />
+                </View>
+              </View>
             </View>
+          </View>
+
+          {/* ── Two Big Action Buttons (New Order & Printing) ── */}
+          <View style={s.actionRow}>
             <Pressable
-              style={({ pressed }) => [s.iconCircle, pressed && { opacity: 0.7 }]}
-              onPress={() => router.push(appRoutes.sales.newOrder)}
+              style={({ pressed }) => [s.bigActionBtn, { backgroundColor: BLUE_LIGHT }, pressed && { opacity: 0.85 }]}
+              onPress={() => router.push(appRoutes.sales.newOrder as any)}
             >
-              <AppIcon name="Plus" size={22} color={C.white} />
+              <View style={[s.bigActionIconBox, { backgroundColor: BLUE }]}>
+                <BoxBoldDuotone size={26} color="#FFF" />
+              </View>
+              <AppText style={[s.bigActionText, { color: INK }]}>New Order</AppText>
             </Pressable>
-          </View>
 
-          {/* ── Hero banner — white card on dark ── */}
-          <View style={s.heroBanner}>
-            <View style={s.heroLeft}>
-              <AppText style={s.heroTitle}>Pipeline</AppText>
-              <AppText style={s.heroAmount}>${fmt(totalPipe)}</AppText>
-              <Pressable
-                style={({ pressed }) => [s.heroBtn, pressed && { opacity: 0.85 }]}
-                onPress={() => router.push(appRoutes.sales.orders)}
-              >
-                <AppText style={s.heroBtnText}>View orders</AppText>
-              </Pressable>
-            </View>
-            <View style={s.heroRight}>
-              <View style={s.heroStatItem}>
-                <AppText style={s.heroStatVal}>${fmt(realized)}</AppText>
-                <AppText style={s.heroStatLabel}>Earned</AppText>
-              </View>
-              <View style={s.heroStatItem}>
-                <AppText style={s.heroStatVal}>{today}</AppText>
-                <AppText style={s.heroStatLabel}>Today</AppText>
-              </View>
-            </View>
-          </View>
-
-          {/* ── Approval alert ── */}
-          {pendingApproval.length > 0 ? (
             <Pressable
-              style={({ pressed }) => [s.alertBanner, pressed && { opacity: 0.85 }]}
-              onPress={() => router.push(appRoutes.sales.orders)}
+              style={({ pressed }) => [s.bigActionBtn, { backgroundColor: ORANGE_LIGHT }, pressed && { opacity: 0.85 }]}
+              onPress={() => {
+                // Navigate to the new Print Jobs tab
+                router.push('/sales/print-jobs' as any);
+              }}
             >
-              <AppText style={s.alertNum}>{pendingApproval.length}</AppText>
-              <View>
-                <AppText style={s.alertTitle}>Need approval</AppText>
-                <AppText style={s.alertSub}>Tap to review →</AppText>
+              <View style={[s.bigActionIconBox, { backgroundColor: ORANGE }]}>
+                <PrinterBoldDuotone size={26} color="#FFF" />
               </View>
-            </Pressable>
-          ) : null}
-
-          {/* ── Sources ── */}
-          <View style={s.sectionRow}>
-            <AppText style={s.sectionTitle}>Sources</AppText>
-            <Pressable hitSlop={12} onPress={() => router.push(appRoutes.sales.orders)}>
-              <AppText style={s.seeAll}>See all</AppText>
+              <AppText style={[s.bigActionText, { color: INK }]}>Printing</AppText>
             </Pressable>
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.sourceScroll}>
-            {(Object.keys(srcCounts) as SourceKey[]).map(key => (
-              <Pressable
-                key={key}
-                style={({ pressed }) => [s.sourcePill, pressed && { opacity: 0.75 }]}
-                onPress={() => router.push(appRoutes.sales.orders)}
-              >
-                <AppText style={s.sourcePillCount}>{srcCounts[key]}</AppText>
-                <AppText style={s.sourcePillLabel}>{SOURCE_LABELS[key]}</AppText>
-              </Pressable>
-            ))}
-          </ScrollView>
 
-          {/* ── Pipeline ── */}
-          <View style={s.sectionRow}>
-            <AppText style={s.sectionTitle}>Pipeline</AppText>
-            {active.length > 0 ? (
-              <Pressable hitSlop={12} onPress={() => router.push(appRoutes.sales.orders)}>
-                <AppText style={s.seeAll}>See all {active.length}</AppText>
-              </Pressable>
-            ) : null}
+          {/* ── Quick Actions ── */}
+          <AppText style={s.sectionTitle}>Quick Actions</AppText>
+          <View style={s.card}>
+            <View style={s.quickGrid}>
+              <QuickAction
+                icon={<PenBoldDuotone size={22} color="#10B981" />}
+                label="Add Order"
+                color="#10B981"
+                bgColor="#d1fae5"
+                onPress={() => router.push(appRoutes.sales.newOrder as any)}
+              />
+              <View style={s.quickDivider} />
+              <QuickAction
+                icon={<UserBoldDuotone size={22} color="#2563EB" />}
+                label="CRM Leads"
+                color="#2563EB"
+                bgColor="#dbeafe"
+                onPress={() => router.push('/sales/customers' as any)}
+              />
+              <View style={s.quickDivider} />
+              <QuickAction
+                icon={<DocumentBoldDuotone size={22} color="#7C3AED" />}
+                label="Orders"
+                color="#7C3AED"
+                bgColor="#ede9fe"
+                onPress={() => router.push(appRoutes.sales.orders as any)}
+              />
+              <View style={s.quickDivider} />
+              <QuickAction
+                icon={<WalletBoldDuotone size={22} color="#F59E0B" />}
+                label="Commission"
+                color="#F59E0B"
+                bgColor="#fef3c7"
+                onPress={() => router.push(appRoutes.sales.payouts as any)}
+              />
+            </View>
           </View>
 
-          {isLoading ? (
-            <AppLoadingState title="Loading…" role="sales" />
-          ) : pipeline.length === 0 ? (
-            <AppEmptyState
-              title="No active orders"
-              description="Create a new order to get started."
-              iconName="ClipboardList"
-              role="sales"
-            />
+          {/* ── Smart Tasks ── */}
+          <AppText style={s.sectionTitle}>Smart Tasks</AppText>
+          <AppText style={s.sectionSub}>Recommendations & urgent follow-ups</AppText>
+          <View style={s.card}>
+            <Pressable
+              style={s.taskRow}
+              onPress={() => Linking.openURL('https://www.tiktok.com/business/en-US/blog/tiktok-viral-tips')}
+            >
+              <View style={[s.taskIconBox, { backgroundColor: '#fce7f3' }]} >
+                <FireBoldDuotone size={20} color="#db2777" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <AppText style={s.taskTitle}>Post on TikTok today</AppText>
+                <AppText style={[s.taskLink, { color: '#db2777' }]}>View Viral Tips</AppText>
+              </View>
+              <AppIcon name="ChevronRight" size={16} color={MUTED} />
+            </Pressable>
+            <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginVertical: 12, marginLeft: 52 }} />
+            <Pressable
+              style={s.taskRow}
+              onPress={() => Alert.alert('Follow Up', 'Message 3 customers.')}
+            >
+              <View style={[s.taskIconBox, { backgroundColor: '#e0e7ff' }]}>
+                <StarsBoldDuotone size={20} color="#4f46e5" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <AppText style={s.taskTitle}>Follow up 3 pending orders</AppText>
+                <AppText style={[s.taskLink, { color: '#4f46e5' }]}>Send Reminders</AppText>
+              </View>
+              <AppIcon name="ChevronRight" size={16} color={MUTED} />
+            </Pressable>
+          </View>
+
+          {/* ── Referral Code Share ── */}
+          <AppText style={s.sectionTitle}>Referral Program</AppText>
+          <View style={s.card}>
+            <Pressable
+              style={s.taskRow}
+              onPress={async () => {
+                try {
+                  await Share.share({
+                    message: `Get 25% off your first NFC smart card! Use my code: ${referralCode}\n\nBuild your professional network today.`,
+                  });
+                } catch (e) {}
+              }}
+            >
+              <View style={[s.taskIconBox, { backgroundColor: '#FFE0E0' }]}>
+                <FireBoldDuotone size={20} color={RED_BRAND} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <AppText style={s.taskTitle}>Share my referral code</AppText>
+                <AppText style={[s.taskLink, { color: RED_BRAND }]}>{referralCode}</AppText>
+              </View>
+              <AppIcon name="Share2" size={16} color={MUTED} />
+            </Pressable>
+          </View>
+
+          {/* ── Recent Orders ── */}
+          <View style={s.sectionRow}>
+            <AppText style={s.sectionTitle}>Recent Orders</AppText>
+            <Pressable onPress={() => router.push(appRoutes.sales.orders as any)}>
+              <AppText style={s.seeAll}>See All</AppText>
+            </Pressable>
+          </View>
+
+          {recentOrders.length === 0 ? (
+            <View style={s.emptyCard}>
+              <AppText style={{ fontSize: 14, fontWeight: '600', color: MUTED, textAlign: 'center', paddingVertical: 20 }}>
+                No orders yet. Create your first order!
+              </AppText>
+            </View>
           ) : (
-            pipeline.map(o => <OrderCard key={o.id} order={o} />)
+            recentOrders.map((o) => (
+              <RecentOrderCard key={o.id} order={o} referralCode={referralCode} />
+            ))
           )}
 
-          <SalesBulkUpload />
-
+          <View style={{ height: 32 }} />
         </IosScrollView>
       </SafeAreaView>
     </View>
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+// ─── Quick Action Button ────────────────────────────────────────────────────
+
+function QuickAction({
+  icon,
+  label,
+  color,
+  bgColor,
+  onPress,
+}: {
+  icon: any;
+  label: string;
+  color: string;
+  bgColor: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable style={s.quickItem} onPress={onPress}>
+      <View style={[s.quickIconBox, { backgroundColor: bgColor }]}>
+        {typeof icon === 'string' ? <AppIcon name={icon} size={22} color={color} /> : icon}
+      </View>
+      <AppText style={s.quickLabel} numberOfLines={2}>{label}</AppText>
+    </Pressable>
+  );
+}
+
+// ─── Recent Order Card ──────────────────────────────────────────────────────
+
+function RecentOrderCard({ order, referralCode }: { order: Order; referralCode: string }) {
+  const total = formatOrderTotal(order);
+  return (
+    <Pressable 
+      style={({ pressed }) => [
+        s.orderCardCompact, 
+        pressed && { backgroundColor: '#F8FAFF' }
+      ]}
+      onPress={() => router.push(`/order-detail/${order.id}` as any)}
+    >
+      <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center', marginRight: 14 }}>
+        <DocumentBoldDuotone size={22} color={MUTED} />
+      </View>
+      <View style={{ flex: 1, gap: 4 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <AppText style={s.orderNameCompact} numberOfLines={1}>{order.customerName ?? 'Guest'}</AppText>
+          <AppText style={s.orderPriceCompact}>{total}</AppText>
+        </View>
+        <AppText style={s.orderIdCompact}>#{order.id.slice(0, 8).toUpperCase()}</AppText>
+      </View>
+      <AppIcon name="ChevronRight" size={18} color={MUTED} style={{ marginLeft: 12 }} />
+    </Pressable>
+  );
+}
+
+// ─── Styles ─────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
-  scroll: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 120 },
-
-  // Top row
-  topRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 24 },
-  avatarCircle: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: C.accent,
-    alignItems: 'center', justifyContent: 'center',
+  bg: { flex: 1, backgroundColor: BG },
+  redHeaderBg: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: RED_BRAND,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
-  avatarLetter: { fontSize: 18, fontWeight: '700', color: '#fff' },
-  topCenter: { flex: 1, gap: 1 },
-  greeting: { fontSize: 12, color: C.whiteDim, fontWeight: '400' },
-  topName: { fontSize: 18, fontWeight: '700', color: C.white },
-  iconCircle: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: C.pill,
-    borderWidth: 1, borderColor: C.pillBorder,
-    alignItems: 'center', justifyContent: 'center',
-  },
+  scroll: { paddingHorizontal: 16, paddingBottom: 120, paddingTop: 12 },
 
-  // Hero banner — white card
-  heroBanner: {
-    backgroundColor: C.card,
+  // Identity Card
+  identityCard: {
+    backgroundColor: SURFACE,
     borderRadius: 24,
-    padding: 22,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  userRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
-  heroLeft: { flex: 1, gap: 8 },
-  heroTitle: { fontSize: 12, fontWeight: '600', color: C.cardMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
-  heroAmount: { fontSize: 36, fontWeight: '800', color: C.cardText, letterSpacing: -1 },
-  heroBtn: {
-    alignSelf: 'flex-start',
-    backgroundColor: C.cardText,
-    borderRadius: 999,
-    paddingHorizontal: 18,
-    paddingVertical: 9,
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#F1F5F9',
   },
-  heroBtnText: { color: C.white, fontSize: 13, fontWeight: '700' },
-  heroRight: { gap: 16, paddingLeft: 16, borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: 'rgba(0,0,0,0.12)' },
-  heroStatItem: { alignItems: 'flex-end', gap: 2 },
-  heroStatVal: { fontSize: 18, fontWeight: '700', color: C.cardText },
-  heroStatLabel: { fontSize: 11, color: C.cardMuted },
+  avatarFallback: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#FFEBEE',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  userInfo: {
+    flex: 1,
+    marginLeft: 14,
+  },
+  userName: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: INK,
+  },
+  userRole: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: MUTED,
+    marginTop: 3,
+  },
 
-  // Alert
-  alertBanner: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
-    backgroundColor: C.accentDim,
-    borderRadius: 18, padding: 16, marginBottom: 20,
-    borderWidth: 1, borderColor: C.accent,
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  alertNum: { fontSize: 36, fontWeight: '800', color: C.accent, letterSpacing: -1 },
-  alertTitle: { fontSize: 15, fontWeight: '700', color: C.white },
-  alertSub: { fontSize: 12, color: C.whiteDim, marginTop: 2 },
+  statCol: {
+    flex: 1,
+  },
+  statDivider: {
+    width: 1,
+    height: '80%',
+    backgroundColor: '#E2E8F0',
+    marginHorizontal: 16,
+  },
+  statLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: INK,
+    marginBottom: 8,
+  },
+  statValRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: INK,
+  },
 
-  // Sources
-  sectionRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 },
-  sectionTitle: { fontSize: 24, fontWeight: '800', color: C.white },
-  seeAll: { fontSize: 14, color: C.whiteDim, fontWeight: '500' },
-  sourceScroll: { gap: 10, paddingBottom: 16 },
-  sourcePill: {
-    backgroundColor: C.pill,
-    borderRadius: 16, paddingVertical: 14, paddingHorizontal: 18,
-    borderWidth: 1, borderColor: C.pillBorder,
-    alignItems: 'center', gap: 4, minWidth: 84,
+  // Big Action Buttons
+  actionRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 20,
   },
-  sourcePillCount: { fontSize: 22, fontWeight: '800', color: C.white },
-  sourcePillLabel: { fontSize: 12, color: C.whiteDim, fontWeight: '500' },
+  bigActionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 20,
+    gap: 12,
+  },
+  bigActionIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bigActionText: {
+    fontSize: 15,
+    fontWeight: '900',
+    flex: 1,
+  },
+
+  // Cards & Sections
+  card: {
+    backgroundColor: SURFACE,
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
+  },
+
+  // Quick Actions
+  quickGrid: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  quickItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 8,
+  },
+  quickIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: INK,
+    textAlign: 'center',
+  },
+  quickDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: '#E2E8F0',
+    alignSelf: 'center',
+  },
+
+  // Smart Tasks
+  taskRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  taskIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#ede9fe',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  taskTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: INK,
+    marginBottom: 2,
+  },
+  taskLink: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: TEAL,
+    textDecorationLine: 'underline',
+  },
+
+  // Sections
+  sectionSub: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: MUTED,
+    marginBottom: 10,
+  },
+  sectionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: INK,
+  },
+  seeAll: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: TEAL,
+  },
+
+  // Order Card
+  emptyCard: {
+    backgroundColor: SURFACE,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
+  },
+  orderCardCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: SURFACE,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  orderNameCompact: { fontSize: 15, fontWeight: '800', color: INK },
+  orderIdCompact: { fontSize: 12, fontWeight: '700', color: MUTED },
+  orderPriceCompact: { fontSize: 15, fontWeight: '900', color: TEAL },
 });

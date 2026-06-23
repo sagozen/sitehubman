@@ -255,7 +255,7 @@ export function SalesInfoRow({
 }) {
   return (
     <View style={[row.wrap, last && row.last]}>
-      <SquircleIconTile name={icon} sizeKey="sm" iconColor={salesUi.accent} />
+      <AppIcon name={icon} size={22} color="#0E7490" />
       <AppText style={row.title}>{title}</AppText>
       <AppText style={row.value} numberOfLines={1}>
         {value}
@@ -269,7 +269,7 @@ const row = StyleSheet.create({
     minHeight: 52,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
     paddingHorizontal: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: salesUi.border,
@@ -308,7 +308,7 @@ export function SalesMenuRow({
       onPress={onPress}
       style={({ pressed }) => [menu.wrap, last && menu.last, pressed && menu.pressed]}
     >
-      <SquircleIconTile name={icon} sizeKey="sm" iconColor={salesUi.accent} />
+      <AppIcon name={icon} size={22} color="#0E7490" />
       <AppText style={menu.title}>{title}</AppText>
       <AppIcon name="ChevronRight" size={16} color={salesUi.muted} />
     </Pressable>
@@ -320,7 +320,7 @@ const menu = StyleSheet.create({
     minHeight: 52,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
     paddingHorizontal: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: salesUi.border,

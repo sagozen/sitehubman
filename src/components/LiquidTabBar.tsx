@@ -1,14 +1,221 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { getLiquidTabIcon, LIQUID_TAB_ICON_SIZE } from '@/src/constants/liquidTabIcons';
 import { appRoutes } from '@/src/constants/navigation';
 import { theme } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { usePreferences } from '@/src/hooks/usePreferences';
+
+// ─── Sales icon map ─────────────────────────────────────────────────────────
+const SALES_ICON_MAP: Record<string, string> = {
+  index: 'Home',
+  orders: 'ClipboardList',
+  payouts: 'Wallet',
+  me: 'User',
+};
+
+// ─── Premium Sales Tab Bar ────────────────────────────────────────────────────
+function SalesTabBar({
+  items,
+  activeRoute,
+  navigation,
+  descriptors,
+  paddingBottom,
+  newOrderHref,
+  ordersBadgeLabel,
+}: {
+  items: NavItem[];
+  activeRoute: any;
+  navigation: any;
+  descriptors?: Record<string, any>;
+  paddingBottom: number;
+  newOrderHref: string;
+  ordersBadgeLabel: string;
+}) {
+  const leftItems  = items.slice(0, 2); // Home, Orders
+  const rightItems = items.slice(2);    // Payouts, Me
+
+  function SalesTab({ route }: { route: any }) {
+    const isActive  = activeRoute?.name === route.name;
+    const label     = routeLabel(route, descriptors);
+    const iconName  = (SALES_ICON_MAP[route.name] ?? 'Home') as any;
+    const showBadge = route.name === 'orders' && !!ordersBadgeLabel;
+
+    return (
+      <Pressable
+        onPress={() => {
+          const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+          if (!isActive && !event.defaultPrevented) navigation.navigate(route.name);
+        }}
+        style={({ pressed }) => [st.tab, pressed && { opacity: 0.72 }]}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ selected: isActive }}
+      >
+        <View style={[st.tabInner, isActive && st.tabInnerActive]}>
+          {/* Red badge */}
+          {showBadge ? (
+            <View style={st.badge}>
+              <AppText style={st.badgeText}>{ordersBadgeLabel}</AppText>
+            </View>
+          ) : null}
+          {/* Icon */}
+          <AppIcon
+            name={iconName}
+            size={22}
+            color={isActive ? '#0E7490' : '#94A3B8'}
+          />
+          {/* Label */}
+          <AppText style={[st.tabLabel, isActive ? st.tabLabelActive : st.tabLabelInactive]}>
+            {label}
+          </AppText>
+        </View>
+      </Pressable>
+    );
+  }
+
+  return (
+    <View style={[st.wrapper, { paddingBottom }]}>
+      <View style={st.bar}>
+        {/* Left tabs — Home, Orders */}
+        <View style={st.side}>
+          {leftItems.map(item => <SalesTab key={item.route.key} route={item.route} />)}
+        </View>
+
+        {/* Center FAB — New Order */}
+        <View style={st.fabWrap}>
+          <Pressable
+            onPress={() => router.push(newOrderHref as any)}
+            style={({ pressed }) => [{ transform: [{ scale: pressed ? 0.92 : 1 }] }]}
+            accessibilityRole="button"
+            accessibilityLabel="New order"
+          >
+            <LinearGradient
+              colors={['#0E7490', '#0891B2']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={st.fab}
+            >
+              <Ionicons name="add" size={30} color="#FFFFFF" />
+            </LinearGradient>
+          </Pressable>
+        </View>
+
+        {/* Right tabs — Payouts, Me */}
+        <View style={st.side}>
+          {rightItems.map(item => <SalesTab key={item.route.key} route={item.route} />)}
+        </View>
+      </View>
+    </View>
+  );
+}
+
+// ─── Sales styles ─────────────────────────────────────────────────────────────
+const st = StyleSheet.create({
+  wrapper: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 14,
+    backgroundColor: 'transparent',
+  },
+  bar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 36,
+    paddingHorizontal: 4,
+    paddingVertical: 10,
+    shadowColor: '#0E7490',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 28,
+    elevation: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(14,116,144,0.10)',
+  },
+  side: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    borderRadius: 22,
+    gap: 3,
+    minWidth: 58,
+  },
+  tabInnerActive: {
+    backgroundColor: '#F0FDFF',
+  },
+  tabLabel: {
+    fontSize: 10,
+    letterSpacing: 0.1,
+  },
+  tabLabelActive: {
+    fontWeight: '800',
+    color: '#0E7490',
+  },
+  tabLabelInactive: {
+    fontWeight: '600',
+    color: '#94A3B8',
+  },
+  fabWrap: {
+    width: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fab: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#0E7490',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 14,
+    elevation: 10,
+  },
+  badge: {
+    position: 'absolute',
+    top: 3,
+    right: 3,
+    zIndex: 10,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#EF4444',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '900',
+    lineHeight: 11,
+    includeFontPadding: false,
+  },
+});
 
 interface Props {
   state: any;
@@ -224,6 +431,21 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
   const items: NavItem[] = visibleRoutes.map((route: any) => ({ type: 'route', route }) as RouteItem);
 
   if (shouldHide) return null;
+
+  // ── Premium sales bar — early return ─────────────────────────────────────
+  if (isSalesBar) {
+    return (
+      <SalesTabBar
+        items={items}
+        activeRoute={activeRoute}
+        navigation={navigation}
+        descriptors={descriptors}
+        paddingBottom={Math.max(insets.bottom, theme.spacing.xs)}
+        newOrderHref={newOrderHref}
+        ordersBadgeLabel={ordersBadgeLabel}
+      />
+    );
+  }
 
   return (
     <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, theme.spacing.xs) }]}>

@@ -71,7 +71,7 @@ export default function PrinterBatchSelectScreen() {
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <View style={styles.profileAvatar}>
-              <AppIcon name="Archive" size={20} color="#007AFF" />
+              <AppIcon name="Archive" size={20} color="#0E7490" />
             </View>
             <View style={styles.profileCopy}>
               <AppText style={styles.heroEyebrow}>Workshop</AppText>
@@ -124,7 +124,7 @@ export default function PrinterBatchSelectScreen() {
 }
 
 const styles = StyleSheet.create({
-  body: { flex: 1 },
+  body: { flex: 1, backgroundColor: '#F8FAFC' },
   bodyContent: {
     paddingHorizontal: 24,
     paddingTop: 16,
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: '#EBF7FC',
+    backgroundColor: '#E0F2FE',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#0E7490',
     borderRadius: 16,
   },
   continueBtnPressed: {
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 1,
   },
-  batchCardSelected: { borderColor: '#007AFF', borderWidth: 2 },
+  batchCardSelected: { borderColor: '#0E7490', borderWidth: 2 },
   batchTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   batchNumber: { fontSize: 17, fontWeight: '800', color: '#000000', fontFamily: theme.typography.fontFamilyExtraBold },
   statusPill: {

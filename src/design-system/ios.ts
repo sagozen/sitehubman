@@ -1,12 +1,12 @@
 import { Platform, TextStyle, ViewStyle } from 'react-native';
 
 export const iosFonts = {
-  regular: Platform.select({ ios: undefined, web: '-apple-system, BlinkMacSystemFont, "SF Pro Text"', default: 'Inter_400Regular' }),
-  medium: Platform.select({ ios: undefined, web: '-apple-system, BlinkMacSystemFont, "SF Pro Text"', default: 'Inter_500Medium' }),
-  semibold: Platform.select({ ios: undefined, web: '-apple-system, BlinkMacSystemFont, "SF Pro Text"', default: 'Inter_600SemiBold' }),
-  bold: Platform.select({ ios: undefined, web: '-apple-system, BlinkMacSystemFont, "SF Pro Display"', default: 'Inter_700Bold' }),
-  extrabold: Platform.select({ ios: undefined, web: '-apple-system, BlinkMacSystemFont, "SF Pro Display"', default: 'Inter_800ExtraBold' }),
-  black: Platform.select({ ios: undefined, web: '-apple-system, BlinkMacSystemFont, "SF Pro Display"', default: 'Inter_900Black' }),
+  regular: Platform.select({ ios: 'Inter_400Regular', web: 'Inter_400Regular, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif', default: 'Inter_400Regular' }),
+  medium: Platform.select({ ios: 'Inter_500Medium', web: 'Inter_500Medium, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif', default: 'Inter_500Medium' }),
+  semibold: Platform.select({ ios: 'Inter_600SemiBold', web: 'Inter_600SemiBold, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif', default: 'Inter_600SemiBold' }),
+  bold: Platform.select({ ios: 'Inter_700Bold', web: 'Inter_700Bold, -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif', default: 'Inter_700Bold' }),
+  extrabold: Platform.select({ ios: 'Inter_800ExtraBold', web: 'Inter_800ExtraBold, -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif', default: 'Inter_800ExtraBold' }),
+  black: Platform.select({ ios: 'Inter_900Black', web: 'Inter_900Black, -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif', default: 'Inter_900Black' }),
 } as const;
 
 /** Apple HIG palette — neutral-first, semantic color for meaning only */
@@ -214,10 +214,10 @@ export const rolePalettes = {
     surfaceTint: premiumPalette.charcoalSoft,
   },
   sales: {
-    primary: premiumPalette.accent,
-    primaryDark: premiumPalette.accentDark,
-    soft: premiumPalette.accentSoft,
-    surfaceTint: premiumPalette.charcoalSoft,
+    primary: '#F4C20D',
+    primaryDark: '#B88A00',
+    soft: 'rgba(244,194,13,0.12)',
+    surfaceTint: 'rgba(244,194,13,0.06)',
   },
   printer: {
     primary: premiumPalette.accent,

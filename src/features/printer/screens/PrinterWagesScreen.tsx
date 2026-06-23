@@ -147,7 +147,7 @@ export default function WagesScreen() {
 
   return (
     <GlassSafeScreen>
-      <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <IosScrollView style={{ flex: 1, backgroundColor: '#F8FAFC' }} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
         {/* Editorial header */}
         <PrinterScreenHeader title="Wages" sub="Earnings and payouts" />
