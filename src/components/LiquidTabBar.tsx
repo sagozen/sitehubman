@@ -69,7 +69,7 @@ function SalesTabBar({
           <AppIcon
             name={iconName}
             size={22}
-            color={isActive ? '#0E7490' : '#94A3B8'}
+            color={isActive ? '#2596BE' : '#8E8E93'}
           />
           {/* Label */}
           <AppText style={[st.tabLabel, isActive ? st.tabLabelActive : st.tabLabelInactive]}>
@@ -81,14 +81,13 @@ function SalesTabBar({
   }
 
   return (
-    <View style={[st.wrapper, { paddingBottom }]}>
+    <View style={[st.wrapper, { paddingBottom: Math.max(paddingBottom, 12), pointerEvents: 'box-none' as any }]}>
       <View style={st.bar}>
         {/* Left tabs — Home, Orders */}
         <View style={st.side}>
           {leftItems.map(item => <SalesTab key={item.route.key} route={item.route} />)}
         </View>
 
-        {/* Center FAB — New Order */}
         <View style={st.fabWrap}>
           <Pressable
             onPress={() => router.push(newOrderHref as any)}
@@ -96,14 +95,9 @@ function SalesTabBar({
             accessibilityRole="button"
             accessibilityLabel="New order"
           >
-            <LinearGradient
-              colors={['#0E7490', '#0891B2']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={st.fab}
-            >
-              <Ionicons name="add" size={30} color="#FFFFFF" />
-            </LinearGradient>
+            <View style={st.fab}>
+              <Ionicons name="add" size={28} color="#FFFFFF" />
+            </View>
           </Pressable>
         </View>
 
@@ -123,23 +117,21 @@ const st = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 14,
+    paddingHorizontal: 24,
     backgroundColor: 'transparent',
   },
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 36,
-    paddingHorizontal: 4,
-    paddingVertical: 10,
-    shadowColor: '#0E7490',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18,
-    shadowRadius: 28,
-    elevation: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(14,116,144,0.10)',
+    backgroundColor: 'rgba(255, 255, 255, 0.88)',
+    borderRadius: 30,
+    paddingHorizontal: 12,
+    height: 60,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 8,
   },
   side: {
     flex: 1,
@@ -155,43 +147,45 @@ const st = StyleSheet.create({
   tabInner: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 7,
+    paddingVertical: 6,
     paddingHorizontal: 10,
-    borderRadius: 22,
+    borderRadius: 14,
     gap: 3,
-    minWidth: 58,
+    minWidth: 54,
   },
   tabInnerActive: {
-    backgroundColor: '#F0FDFF',
+    backgroundColor: 'rgba(37, 150, 190, 0.08)', // soft active state
   },
   tabLabel: {
-    fontSize: 10,
-    letterSpacing: 0.1,
+    fontSize: 11,
+    letterSpacing: 0,
   },
   tabLabelActive: {
-    fontWeight: '800',
-    color: '#0E7490',
+    fontWeight: '700',
+    color: '#2596BE',
   },
   tabLabelInactive: {
-    fontWeight: '600',
-    color: '#94A3B8',
+    fontWeight: '500',
+    color: '#8E8E93',
   },
   fabWrap: {
-    width: 72,
+    width: 60,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: -18, // Slightly raised above the bar
   },
   fab: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#2596BE',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#0E7490',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.45,
-    shadowRadius: 14,
-    elevation: 10,
+    shadowColor: '#2596BE',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
   },
   badge: {
     position: 'absolute',
@@ -450,7 +444,7 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
   return (
     <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, theme.spacing.xs) }]}>
       {showFloatingAction ? (
-        <View pointerEvents="none" style={styles.roleDockShapeWrap}>
+        <View style={[styles.roleDockShapeWrap, { pointerEvents: 'none' as any }]}>
           <LiquidGlassChrome
             isDark={isDark}
             reduceTransparency={reduceTransparency}

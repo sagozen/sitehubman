@@ -5,11 +5,13 @@ import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import {
   AuthFooterLink,
+  AuthFormGroup,
   AuthIconTextField,
   AuthLoginCard,
   AuthLoginShell,
   AuthPrimaryButton,
   AuthTextButton,
+  AuthTextField,
   AuthTrustFooter,
   AuthWelcomeHeader,
 } from '@/src/features/auth/components/authUi';
@@ -84,9 +86,8 @@ export function LoginScreen() {
           <AppText style={styles.emailTitle}>Or use email</AppText>
         </View>
 
-        <View style={styles.fields}>
-          <AuthIconTextField
-            fieldIcon="email"
+        <AuthFormGroup>
+          <AuthTextField
             label="Email"
             value={email}
             onChangeText={setEmail}
@@ -98,8 +99,7 @@ export function LoginScreen() {
             textContentType="emailAddress"
             autoComplete="email"
           />
-          <AuthIconTextField
-            fieldIcon="password"
+          <AuthTextField
             label="Password"
             value={password}
             onChangeText={setPassword}
@@ -108,6 +108,7 @@ export function LoginScreen() {
             editable={!busy}
             textContentType="password"
             autoComplete="password"
+            isLast
             trailing={
               <Pressable onPress={() => setShowPassword((v) => !v)} hitSlop={8} style={styles.eyeBtn}>
                 <AppIcon
@@ -118,7 +119,7 @@ export function LoginScreen() {
               </Pressable>
             }
           />
-        </View>
+        </AuthFormGroup>
 
         <AuthPrimaryButton
           label={isSubmitting ? 'Signing in...' : 'Sign in'}

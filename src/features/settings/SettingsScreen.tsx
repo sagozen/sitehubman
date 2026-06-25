@@ -176,7 +176,8 @@ export function SettingsScreen() {
             <SettingsRow icon="CreditCard" title="Card studio" value="Design" onPress={() => router.push(appRoutes.studio as any)} />
             <SettingsRow icon="Users" title="Network" value="People" onPress={() => router.push(appRoutes.customerConnections)} />
             <SettingsRow icon="BarChart" title="Analysis" value="Signals" onPress={() => router.push('/(tabs)/profile')} />
-            <SettingsRow icon="Package" title="Orders" value="Track" onPress={() => router.push(appRoutes.guestTrackOrder)} last />
+            <SettingsRow icon="Package" title="Orders" value="Track" onPress={() => router.push(appRoutes.guestTrackOrder)} />
+            <SettingsRow icon="Sparkles" title="Marketing Showcase" value="Premium" onPress={() => router.push('/promotional-preview')} last />
           </View>
         </View>
 

@@ -10,7 +10,7 @@ export default function TabsLayout() {
         screenOptions={{ headerShown: false }}
       >
         <Tabs.Screen name="index" options={{ title: 'Home' }} />
-        <Tabs.Screen name="connections" options={{ title: 'Network' }} />
+        <Tabs.Screen name="connections" options={{ title: 'Moments' }} />
         <Tabs.Screen name="share" options={{ title: 'Share' }} />
         {/* Hidden alias for older attendance route names / cached bundles */}
         <Tabs.Screen name="attendance" options={{ href: null }} />

@@ -267,7 +267,7 @@ function AppleSignInButton({ onPress, disabled, loading }: AppleSignInButtonProp
         onPress={onPress}
         buttonStyle={appleEnums.buttonStyle}
         buttonType={appleEnums.buttonType}
-        cornerRadius={iosDesign.radius.lg}
+        cornerRadius={16}
         style={styles.appleNative}
       />
     );
@@ -294,11 +294,11 @@ const styles = StyleSheet.create({
   },
   appleNative: {
     width: '100%',
-    height: 54,
+    height: 52,
   },
   appleFallback: {
-    minHeight: 54,
-    borderRadius: 27,
+    minHeight: 52,
+    borderRadius: 16,
     backgroundColor: '#000000',
     flexDirection: 'row',
     alignItems: 'center',
@@ -312,8 +312,8 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   googleBtn: {
-    minHeight: 54,
-    borderRadius: 27,
+    minHeight: 52,
+    borderRadius: 16,
     backgroundColor: iosPalette.light.surface,
     flexDirection: 'row',
     alignItems: 'center',
@@ -324,18 +324,18 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(17,17,17,0.08)',
   },
   googleBtnLogin: {
-    minHeight: 54,
-    borderRadius: 27,
+    minHeight: 52,
+    borderRadius: 16,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: authLoginTheme.googleBorder,
+    borderColor: '#E5E5EA',
   },
   googleLabelLogin: {
     color: authLoginTheme.titleNavy,
   },
   telegramBtn: {
-    minHeight: 54,
-    borderRadius: 27,
+    minHeight: 52,
+    borderRadius: 16,
     backgroundColor: '#229ED9',
     flexDirection: 'row',
     alignItems: 'center',
@@ -346,11 +346,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
   },
   telegramBtnLogin: {
-    minHeight: 54,
-    borderRadius: 27,
+    minHeight: 52,
+    borderRadius: 16,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: authLoginTheme.googleBorder,
+    borderColor: '#E5E5EA',
     shadowOpacity: 0.03,
   },
   telegramLabelLogin: {

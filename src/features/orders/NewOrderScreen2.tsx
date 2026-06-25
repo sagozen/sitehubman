@@ -418,6 +418,156 @@ function CardPreview({
   );
 }
 
+// ─── Premium iOS Components ──────────────────────────────────────────────────
+
+function OrderHeader({ step, totalSteps, onBack }: any) {
+  return (
+    <View style={newS.headerTop}>
+      <Pressable style={newS.backBtn} onPress={onBack} hitSlop={8}>
+        <AltArrowLeftBoldDuotone size={22} color="#475569" />
+      </Pressable>
+      <View style={newS.headerTitleWrap}>
+        <AppText style={newS.stepText}>{`Step ${step} of ${totalSteps}`}</AppText>
+        <AppText style={newS.title}>New Order</AppText>
+      </View>
+      <View style={newS.backPlaceholder} />
+    </View>
+  );
+}
+
+function StepSegmentControl({ step }: any) {
+  return (
+    <View style={newS.segmentWrap}>
+      {['Customer', 'Product', 'Payment'].map((label, i) => {
+        const active = i + 1 === step;
+        return (
+          <View key={label} style={[newS.segmentItem, active && newS.segmentItemActive]}>
+            <AppIcon
+              name={PRINTER_STEP_ICONS[label as keyof typeof PRINTER_STEP_ICONS]}
+              size={13}
+              color={active ? '#FFFFFF' : '#8FA1BC'}
+            />
+            <AppText style={[newS.segmentText, active && newS.segmentTextActive]}>
+              {label}
+            </AppText>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+function FormInputRow({ icon, value, onChangeText, placeholder, keyboardType = 'default', autoCapitalize = 'sentences', isLast = false }: any) {
+  return (
+    <View style={[newS.inputRow, isLast && newS.inputRowLast]}>
+      <View style={newS.inputIcon}>{icon}</View>
+      <TextInput
+        style={newS.input}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor="#94A3B8"
+        keyboardType={keyboardType}
+        autoCapitalize={autoCapitalize}
+      />
+    </View>
+  );
+}
+
+function HelperNote({ text }: any) {
+  return (
+    <View style={newS.helperNote}>
+      <AppIcon name="Info" size={14} color="#F59E0B" />
+      <AppText style={newS.helperText}>{text}</AppText>
+    </View>
+  );
+}
+
+function CustomerInfoForm({ p }: any) {
+  return (
+    <View style={newS.formContainer}>
+      <View style={newS.formCard}>
+        <FormInputRow
+          icon={<UserBoldDuotone size={18} color="#94A3B8" />}
+          value={p.customerName} onChangeText={p.setCustomerName}
+          placeholder="Full name of client" autoCapitalize="words"
+        />
+        <FormInputRow
+          icon={<PhoneBoldDuotone size={18} color="#94A3B8" />}
+          value={p.phone} onChangeText={p.setPhone}
+          placeholder="Phone number" keyboardType="phone-pad"
+        />
+        <FormInputRow
+          icon={<ShareBoldDuotone size={18} color="#94A3B8" />}
+          value={p.telegram} onChangeText={p.setTelegram}
+          placeholder="Telegram username" autoCapitalize="none"
+        />
+        <FormInputRow
+          icon={<LetterBoldDuotone size={18} color="#94A3B8" />}
+          value={p.email} onChangeText={p.setEmail}
+          placeholder="Email address" keyboardType="email-address" autoCapitalize="none"
+        />
+        <HelperNote text="Add at least one contact method: phone, Telegram, or email." />
+        <FormInputRow
+          icon={<MapPointBoldDuotone size={18} color="#94A3B8" />}
+          value={p.company} onChangeText={p.setCompany}
+          placeholder="Company name"
+        />
+        <FormInputRow
+          icon={<UserBoldDuotone size={18} color="#94A3B8" />}
+          value={p.jobTitle} onChangeText={p.setJobTitle}
+          placeholder="Job title" isLast
+        />
+      </View>
+      <AppText style={newS.microcopy}>Customer details can be edited before production approval.</AppText>
+    </View>
+  );
+}
+
+function BottomActionBar({ step, totalSteps, saving, onBack, onContinue }: any) {
+  const isSubmit = step === totalSteps;
+  return (
+    <View style={newS.bottomBar}>
+      <Pressable style={newS.bottomBtnSecondary} onPress={onBack}>
+        <AppText style={newS.bottomBtnSecondaryText}>{step > 1 ? 'Back' : 'Cancel'}</AppText>
+      </Pressable>
+      <Pressable style={newS.bottomBtnPrimary} onPress={onContinue} disabled={saving}>
+        <AppText style={newS.bottomBtnPrimaryText}>
+          {saving ? 'Saving...' : (isSubmit ? 'Submit Order' : 'Continue')}
+        </AppText>
+      </Pressable>
+    </View>
+  );
+}
+
+const newS = StyleSheet.create({
+  headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 16 },
+  backBtn: { width: 44, height: 44, borderRadius: 14, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 },
+  backPlaceholder: { width: 44 },
+  headerTitleWrap: { alignItems: 'center', gap: 2 },
+  stepText: { fontSize: 13, fontWeight: '600', color: '#8E8E93' },
+  title: { fontSize: 22, fontWeight: '800', color: '#111827', letterSpacing: -0.5 },
+  segmentWrap: { marginHorizontal: 16, height: 44, borderRadius: 22, backgroundColor: '#FFFFFF', padding: 4, flexDirection: 'row', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 },
+  segmentItem: { flex: 1, height: '100%', borderRadius: 18, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6 },
+  segmentItemActive: { backgroundColor: '#111827' },
+  segmentText: { fontSize: 13, fontWeight: '600', color: '#94A3B8' },
+  segmentTextActive: { color: '#FFFFFF' },
+  formContainer: { paddingHorizontal: 16, marginTop: 12 },
+  formCard: { backgroundColor: '#FFFFFF', borderRadius: 24, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 16, elevation: 2 },
+  inputRow: { height: 50, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F1F5F9' },
+  inputRowLast: { borderBottomWidth: 0, height: 50, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16 },
+  inputIcon: { width: 28, alignItems: 'flex-start' },
+  input: { flex: 1, fontSize: 15, fontWeight: '500', color: '#111827', height: '100%' },
+  helperNote: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FFFBEB', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F1F5F9' },
+  helperText: { fontSize: 12, fontWeight: '500', color: '#B45309', flex: 1 },
+  microcopy: { fontSize: 12, fontWeight: '500', color: '#94A3B8', textAlign: 'center', marginTop: 16, paddingHorizontal: 20 },
+  bottomBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8, gap: 12, backgroundColor: '#F5F5F7' },
+  bottomBtnSecondary: { flex: 0.35, height: 50, borderRadius: 16, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 8 },
+  bottomBtnSecondaryText: { fontSize: 15, fontWeight: '600', color: '#64748B' },
+  bottomBtnPrimary: { flex: 0.65, height: 50, borderRadius: 16, backgroundColor: '#2596BE', alignItems: 'center', justifyContent: 'center', shadowColor: '#2596BE', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 12 },
+  bottomBtnPrimaryText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+});
+
 export function NewOrderScreen() {
   const { user } = useAuth();
   useProductCatalog();
@@ -662,44 +812,8 @@ export function NewOrderScreen() {
       edges={['top', 'left', 'right']}
     >
       <View style={styles.premiumHeaderWrap}>
-        <View style={styles.premiumHeaderTop}>
-          <Pressable
-            style={styles.premiumBackBtn}
-            onPress={() => (step > 1 ? setStep((s) => s - 1) : handleBack())}
-            hitSlop={8}
-          >
-            <AltArrowLeftBoldDuotone size={22} color="#475569" />
-          </Pressable>
-          <View style={styles.premiumHeaderTitleWrap}>
-            <AppText style={styles.premiumStepText}>{`Step ${step} of ${totalSteps}`}</AppText>
-            <AppText style={styles.premiumTitle}>New Order</AppText>
-          </View>
-          <View style={styles.premiumBackPlaceholder} />
-        </View>
-
-        <View style={styles.premiumSegmentWrap}>
-          {['Customer', 'Product', 'Payment'].map((label, i) => {
-            const active = i + 1 === step;
-            return (
-              <View key={label} style={[styles.premiumSegmentItem, active && { overflow: 'hidden' }]}>
-                {active && (
-                  <LinearGradient
-                    colors={['#1E293B', '#0F172A']}
-                    style={StyleSheet.absoluteFill}
-                  />
-                )}
-                <AppIcon
-                  name={PRINTER_STEP_ICONS[label as keyof typeof PRINTER_STEP_ICONS]}
-                  size={13}
-                  color={active ? '#FFFFFF' : '#8FA1BC'}
-                />
-                <AppText style={[styles.premiumSegmentText, active && styles.premiumSegmentTextActive]}>
-                  {label}
-                </AppText>
-              </View>
-            );
-          })}
-        </View>
+        <OrderHeader step={step} totalSteps={totalSteps} onBack={() => (step > 1 ? setStep((s) => s - 1) : handleBack())} />
+        <StepSegmentControl step={step} />
       </View>
 
       <IosScrollView
@@ -811,82 +925,16 @@ export function NewOrderScreen() {
               </View>
             </View>
           ) : (
-            <View style={premiumFormStyles.section}>
-              <AppText style={premiumFormStyles.sectionLabel}>Customer Information</AppText>
-              <View style={styles.premiumCustomerCard}>
-                <View style={styles.premiumCustomerRow}>
-                  <UserBoldDuotone size={17} color="#C4CFDE" />
-                  <TextInput
-                    style={styles.premiumCustomerInput}
-                    value={customerName}
-                    onChangeText={setCustomerName}
-                    placeholder="Full name of client"
-                    placeholderTextColor={SOFT_PLACEHOLDER}
-                    autoCapitalize="words"
-                  />
-                </View>
-                <View style={styles.premiumCustomerRow}>
-                  <PhoneBoldDuotone size={17} color="#C4CFDE" />
-                  <TextInput
-                    style={styles.premiumCustomerInput}
-                    value={phone}
-                    onChangeText={setPhone}
-                    placeholder="012 345 678"
-                    placeholderTextColor={SOFT_PLACEHOLDER}
-                    keyboardType="phone-pad"
-                  />
-                </View>
-                <View style={styles.premiumCustomerRow}>
-                  <View style={{ width: 17, height: 17, justifyContent: 'center', alignItems: 'center' }}>
-                    <Image
-                      source={require('@/assets/images/auth/telegram.png')}
-                      style={{ width: 15, height: 15, borderRadius: 2 }}
-                    />
-                  </View>
-                  <TextInput
-                    style={styles.premiumCustomerInput}
-                    value={telegram}
-                    onChangeText={setTelegram}
-                    placeholder="@username"
-                    placeholderTextColor={SOFT_PLACEHOLDER}
-                    autoCapitalize="none"
-                  />
-                </View>
-                <AppText style={styles.premiumHint}>At least one contact is required.</AppText>
-                <View style={styles.premiumCustomerRow}>
-                  <LetterBoldDuotone size={17} color="#C4CFDE" />
-                  <TextInput
-                    style={styles.premiumCustomerInput}
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="client@example.com"
-                    placeholderTextColor={SOFT_PLACEHOLDER}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                  />
-                </View>
-                <View style={styles.premiumCustomerRow}>
-                  <MapPointBoldDuotone size={17} color="#C4CFDE" />
-                  <TextInput
-                    style={styles.premiumCustomerInput}
-                    value={company}
-                    onChangeText={setCompany}
-                    placeholder="Company name"
-                    placeholderTextColor={SOFT_PLACEHOLDER}
-                  />
-                </View>
-                <View style={styles.premiumCustomerRowLast}>
-                  <UserBoldDuotone size={17} color="#C4CFDE" />
-                  <TextInput
-                    style={styles.premiumCustomerInput}
-                    value={jobTitle}
-                    onChangeText={setJobTitle}
-                    placeholder="Job title"
-                    placeholderTextColor={SOFT_PLACEHOLDER}
-                  />
-                </View>
-              </View>
-            </View>
+            <CustomerInfoForm
+              p={{
+                customerName, setCustomerName,
+                phone, setPhone,
+                telegram, setTelegram,
+                email, setEmail,
+                company, setCompany,
+                jobTitle, setJobTitle
+              }}
+            />
           )
         )}
 
@@ -1304,30 +1352,19 @@ export function NewOrderScreen() {
               </Pressable>
             )}
           </View>
-        ) : step < totalSteps ? (
-          <IosFormActionFooter
-            embedded
-            stacked={isNarrow}
-            secondaryLabel={step > 1 ? 'Back' : 'Cancel'}
-            secondaryIcon={step > 1 ? 'ChevronLeft' : 'X'}
-            onSecondaryPress={() => (step > 1 ? setStep((s) => s - 1) : handleBack())}
-            primaryLabel="Continue"
-            primaryIcon="ChevronRight"
-            onPrimaryPress={() => {
-              if (validate()) setStep((s) => s + 1);
-            }}
-          />
         ) : (
-          <IosFormActionFooter
-            embedded
-            stacked={isNarrow}
-            secondaryLabel="Back"
-            secondaryIcon="ChevronLeft"
-            onSecondaryPress={() => setStep((s) => Math.max(1, s - 1))}
-            primaryLabel={saving ? 'Submitting...' : 'Submit Order'}
-            onPrimaryPress={handleSubmit}
-            loading={saving}
-            disabled={saving}
+          <BottomActionBar 
+            step={step} 
+            totalSteps={totalSteps} 
+            saving={saving} 
+            onBack={() => (step > 1 ? setStep((s) => s - 1) : handleBack())} 
+            onContinue={() => {
+              if (step < totalSteps) {
+                if (validate()) setStep((s) => s + 1);
+              } else {
+                handleSubmit();
+              }
+            }} 
           />
         )}
       </View>

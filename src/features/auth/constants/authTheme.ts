@@ -8,6 +8,17 @@ import {
 } from '@/src/constants/snapTapBrand';
 
 export const authLoginTheme = {
+  // Colors
+  palette: {
+    background: '#F5F5F7', // Apple-style light gray
+    surface: '#FFFFFF',
+    textPrimary: '#1D1D1F', // SF Pro High Contrast
+    textSecondary: '#86868B', // Muted
+    accent: SNAP_TAP_BRAND,
+    accentPressed: SNAP_TAP_BRAND_PRESSED,
+    border: 'rgba(0, 0, 0, 0.08)',
+    glass: 'rgba(255, 255, 255, 0.7)',
+  },
   gradient: ['#F8FAFC', '#ECFDF5', '#EAF3FF', '#FFFFFF'] as const,
   gradientLocations: [0, 0.34, 0.72, 1] as const,
   cardBg: '#FFFFFF',
@@ -27,4 +38,19 @@ export const authLoginTheme = {
   telegram: '#2AABEE',
   googleBorder: 'rgba(15, 23, 42, 0.1)',
   decorOpacity: 0.2,
+
+  // Premium Design Tokens
+  radius: {
+    card: 28,
+    button: 100, // Pill
+    field: 16,
+  },
+  spacing: {
+    xs: 4,
+    sm: 8,
+    md: 16,
+    lg: 24,
+    xl: 32,
+    xxl: 48,
+  },
 } as const;
