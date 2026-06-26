@@ -3,7 +3,7 @@ import { AuthGate } from '@/src/components/AuthGate';
 
 export default function AdminLayout() {
   return (
-    <AuthGate allowedRoles={['admin', 'super_admin']}>
+    <AuthGate allowedRoles={['super_admin']}>
       <Stack screenOptions={{ headerShown: false }} />
     </AuthGate>
   );

@@ -4,7 +4,7 @@ import { LiquidTabBar } from '@/src/components/LiquidTabBar';
 
 export default function SalesLayout() {
   return (
-    <AuthGate allowedRoles={['sales', 'agent']}>
+    <AuthGate allowedRoles={['sales']}>
       <Tabs
         tabBar={(props) => <LiquidTabBar {...props} />}
         screenOptions={{ headerShown: false }}

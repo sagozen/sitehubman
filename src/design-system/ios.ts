@@ -1,12 +1,12 @@
 import { Platform, TextStyle, ViewStyle } from 'react-native';
 
 export const iosFonts = {
-  regular: Platform.select({ ios: 'Inter_400Regular', web: 'Inter_400Regular, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif', default: 'Inter_400Regular' }),
-  medium: Platform.select({ ios: 'Inter_500Medium', web: 'Inter_500Medium, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif', default: 'Inter_500Medium' }),
-  semibold: Platform.select({ ios: 'Inter_600SemiBold', web: 'Inter_600SemiBold, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif', default: 'Inter_600SemiBold' }),
-  bold: Platform.select({ ios: 'Inter_700Bold', web: 'Inter_700Bold, -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif', default: 'Inter_700Bold' }),
-  extrabold: Platform.select({ ios: 'Inter_800ExtraBold', web: 'Inter_800ExtraBold, -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif', default: 'Inter_800ExtraBold' }),
-  black: Platform.select({ ios: 'Inter_900Black', web: 'Inter_900Black, -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif', default: 'Inter_900Black' }),
+  regular: Platform.select({ ios: 'System', android: 'sans-serif', web: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif', default: 'System' }),
+  medium: Platform.select({ ios: 'System', android: 'sans-serif-medium', web: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif', default: 'System' }),
+  semibold: Platform.select({ ios: 'System', android: 'sans-serif-medium', web: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif', default: 'System' }),
+  bold: Platform.select({ ios: 'System', android: 'sans-serif', web: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif', default: 'System' }),
+  extrabold: Platform.select({ ios: 'System', android: 'sans-serif', web: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif', default: 'System' }),
+  black: Platform.select({ ios: 'System', android: 'sans-serif', web: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif', default: 'System' }),
 } as const;
 
 /** Apple HIG palette — neutral-first, semantic color for meaning only */

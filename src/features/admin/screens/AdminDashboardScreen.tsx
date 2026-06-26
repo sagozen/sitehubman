@@ -1,4 +1,3 @@
-import { IosScrollView } from '@/src/components/IosScrollView';
 import { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { Redirect, router } from 'expo-router';
@@ -6,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppAvatar } from '@/src/components/AppAvatar';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
+import { IosScrollView } from '@/src/components/IosScrollView';
 import {
   ProfileStatCell,
   ProfileStatsGrid,
@@ -17,7 +17,6 @@ import { appRoutes } from '@/src/constants/navigation';
 import { theme } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { usePreferences } from '@/src/hooks/usePreferences';
-import { useProductionStats } from '@/src/hooks/useProductionStats';
 import { useRoleFlags } from '@/src/hooks/useRoleFlags';
 import { fetchAdminOrderStats, fetchTodayOrderCount } from '@/src/services/adminStatsService';
 
@@ -28,27 +27,16 @@ const MENU: {
   iconColor: string;
   route: string;
 }[] = [
-  { title: 'Users', desc: 'Staff accounts and roles', icon: 'User', iconColor: '#000000', route: '/admin/users' },
-  { title: 'Orders', desc: 'All orders and status', icon: 'ClipboardList', iconColor: theme.colors.primary, route: '/admin/orders' },
-  { title: 'Batches', desc: 'Production batches and assignments', icon: 'Package', iconColor: '#5856D6', route: '/admin/batches' },
-  { title: 'Labels', desc: 'Print handoff labels and barcodes', icon: 'Printer', iconColor: '#111827', route: '/admin/labels' },
-  { title: 'Printer Health', desc: 'Device status (placeholder telemetry)', icon: 'Printer', iconColor: '#32ADE6', route: '/admin/printer-health' },
-  { title: 'Audit Logs', desc: 'QA, shipping, and reprint history', icon: 'FileText', iconColor: '#34C759', route: '/admin/audit-logs' },
-  { title: 'NFC Logs', desc: 'Chip write and verify logs', icon: 'Nfc', iconColor: '#5856D6', route: '/admin/nfc-logs' },
-  { title: 'Salary', desc: 'Wages and commission', icon: 'BadgeDollarSign', iconColor: '#FF9500', route: '/admin/salary' },
-  { title: 'QA Videos', desc: 'Review proof recordings', icon: 'FileVideo', iconColor: '#FF3B30', route: '/admin/qa-videos' },
-  { title: 'Reprints', desc: 'SLA and stuck replacement jobs', icon: 'RefreshCw', iconColor: '#D70015', route: '/admin/reprints' },
-  { title: 'Finance', desc: 'Payments, invoices, and refunds', icon: 'Wallet', iconColor: '#32ADE6', route: '/admin/finance' },
-  { title: 'Reports', desc: 'Performance and production trends', icon: 'TrendingUp', iconColor: '#007AFF', route: '/admin/reports' },
-  { title: 'Products', desc: 'Super admin — live card prices', icon: 'Package', iconColor: '#AF52DE', route: '/admin/products' },
-  { title: 'Settings', desc: 'Rates, branches, and config', icon: 'Settings', iconColor: '#8E8E93', route: '/admin/settings' },
+  { title: 'Users', desc: 'Customer, sales, and owner accounts', icon: 'User', iconColor: '#000000', route: '/admin/users' },
+  { title: 'Orders', desc: 'All customer and sales orders', icon: 'ClipboardList', iconColor: theme.colors.primary, route: '/admin/orders' },
+  { title: 'Products', desc: 'Live card prices and catalog', icon: 'Package', iconColor: '#AF52DE', route: '/admin/products' },
+  { title: 'Settings', desc: 'Branches, defaults, and app config', icon: 'Settings', iconColor: '#8E8E93', route: '/admin/settings' },
 ];
 
 export default function AdminDashboardScreen() {
   const { user, signOutUser } = useAuth();
   const { isAdmin } = useRoleFlags();
   const { colors } = usePreferences();
-  const { stats: production, isLoading: productionLoading } = useProductionStats();
   const [stats, setStats] = useState({ orders: 0, revenue: 0, pending: 0, todayOrders: 0 });
   const [signingOut, setSigningOut] = useState(false);
 
@@ -63,7 +51,7 @@ export default function AdminDashboardScreen() {
           todayOrders,
         });
       } catch {
-        // keep defaults
+        // Keep the dashboard usable offline or before indexes are ready.
       }
     }
     void load();
@@ -84,14 +72,14 @@ export default function AdminDashboardScreen() {
 
   if (!isAdmin) return <Redirect href="/auth/login" />;
 
-  const displayName = user?.displayName?.trim() || 'Administrator';
+  const displayName = user?.displayName?.trim() || 'Super Admin';
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
       <View style={styles.topBar}>
         <View style={styles.topCopy}>
           <AppText variant="caption" tone="muted" weight="medium">
-            Admin
+            Super Admin
           </AppText>
           <AppText variant="h2" weight="bold" numberOfLines={1} style={{ color: colors.typographyColor }}>
             {displayName}
@@ -123,90 +111,12 @@ export default function AdminDashboardScreen() {
         <SettingsSection title="Overview" compact />
         <SettingsGroup compact>
           <ProfileStatsGrid>
-            <ProfileStatCell
-              compact
-              index={0}
-              total={4}
-              label="Total orders"
-              value={String(stats.orders)}
-              icon="ClipboardList"
-            />
-            <ProfileStatCell
-              compact
-              index={1}
-              total={4}
-              label="Revenue"
-              value={`$${stats.revenue}`}
-              icon="Wallet"
-              tone={theme.colors.success}
-            />
-            <ProfileStatCell
-              compact
-              index={2}
-              total={4}
-              label="In progress"
-              value={String(stats.pending)}
-              icon="Clock"
-              tone="#FF9500"
-            />
-            <ProfileStatCell
-              compact
-              index={3}
-              total={4}
-              label="Today"
-              value={String(stats.todayOrders)}
-              icon="Calendar"
-              tone={colors.primary}
-            />
+            <ProfileStatCell compact index={0} total={4} label="Orders" value={String(stats.orders)} icon="ClipboardList" />
+            <ProfileStatCell compact index={1} total={4} label="Revenue" value={`$${stats.revenue}`} icon="Wallet" tone={theme.colors.success} />
+            <ProfileStatCell compact index={2} total={4} label="Active" value={String(stats.pending)} icon="Clock" tone="#FF9500" />
+            <ProfileStatCell compact index={3} total={4} label="Today" value={String(stats.todayOrders)} icon="Calendar" tone={colors.primary} />
           </ProfileStatsGrid>
         </SettingsGroup>
-
-        <SettingsSection title="Production floor" compact />
-        <SettingsGroup compact>
-          <ProfileStatsGrid>
-            <ProfileStatCell
-              compact
-              index={0}
-              total={4}
-              label="Cards today"
-              value={productionLoading ? '…' : String(production?.cardsToday ?? 0)}
-              icon="Package"
-            />
-            <ProfileStatCell
-              compact
-              index={1}
-              total={4}
-              label="Active batches"
-              value={productionLoading ? '…' : String(production?.batchesActive ?? 0)}
-              icon="Package"
-              tone="#5856D6"
-            />
-            <ProfileStatCell
-              compact
-              index={2}
-              total={4}
-              label="QA pass rate"
-              value={productionLoading ? '…' : `${production?.qaPassRate ?? 100}%`}
-              icon="ShieldCheck"
-              tone="#34C759"
-            />
-            <ProfileStatCell
-              compact
-              index={3}
-              total={4}
-              label="Jobs in queue"
-              value={productionLoading ? '…' : String(production?.jobsInQueue ?? 0)}
-              icon="ClipboardList"
-              tone="#FF9500"
-            />
-          </ProfileStatsGrid>
-        </SettingsGroup>
-        {production && !productionLoading ? (
-          <AppText variant="caption" tone="muted" style={styles.productionMeta}>
-            {production.qaPending} awaiting QA · {production.readyToShip} ready to ship ·{' '}
-            {production.reprintsToday} reprints today
-          </AppText>
-        ) : null}
 
         <SettingsSection title="Management" compact />
         <SettingsGroup compact>
@@ -251,9 +161,5 @@ const styles = StyleSheet.create({
   scroll: {
     paddingBottom: theme.spacing.xxl,
     gap: theme.spacing.md,
-  },
-  productionMeta: {
-    paddingHorizontal: theme.spacing.lg,
-    marginTop: -theme.spacing.xs,
   },
 });

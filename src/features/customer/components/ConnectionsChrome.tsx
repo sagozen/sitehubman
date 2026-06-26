@@ -6,7 +6,6 @@ import {
   CONNECTIONS_TAB_SHORT_LABEL,
   type ConnectionsHubId,
 } from '@/src/constants/connectionsFlowIcons';
-import { printerUi } from '@/src/features/printer/components/PrinterScreenUi';
 
 export type ConnectionsTheme = {
   background: string;
@@ -24,6 +23,12 @@ export type ConnectionsTheme = {
 };
 
 const TAB_ORDER: ConnectionsHubId[] = ['nfc', 'profiles', 'social', 'devices', 'analytics', 'security'];
+const connectionUi = {
+  text: '#0F172A',
+  muted: '#64748B',
+  accent: '#2596BE',
+  dark: '#0B1220',
+};
 
 /** Flat underline tabs — no pill box. */
 export function ConnectionsFlatTabs({
@@ -82,7 +87,7 @@ export function ConnectionsListRow({
   last?: boolean;
   destructive?: boolean;
 }) {
-  const titleColor = destructive ? '#FF3B30' : printerUi.text;
+  const titleColor = destructive ? '#FF3B30' : connectionUi.text;
   const body = (
     <>
       <AppIcon name={icon} size={17} color="#C4CFDE" />
@@ -150,7 +155,7 @@ export function ConnectionsToggleRow({
         value={enabled}
         onValueChange={onToggle}
         disabled={disabled}
-        trackColor={{ false: '#E2E8F0', true: printerUi.accent }}
+        trackColor={{ false: '#E2E8F0', true: connectionUi.accent }}
         thumbColor="#FFFFFF"
       />
     </View>
@@ -172,17 +177,17 @@ const styles = StyleSheet.create({
   flatTabText: {
     fontSize: 13,
     fontWeight: '700',
-    color: printerUi.muted,
+    color: connectionUi.muted,
   },
   flatTabTextActive: {
-    color: printerUi.text,
+    color: connectionUi.text,
   },
   flatTabLine: {
     marginTop: 6,
     height: 2,
     width: '100%',
     borderRadius: 1,
-    backgroundColor: printerUi.dark,
+    backgroundColor: connectionUi.dark,
   },
   flatTabSpacer: {
     marginTop: 6,
@@ -222,12 +227,12 @@ const styles = StyleSheet.create({
   rowTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: printerUi.text,
+    color: connectionUi.text,
   },
   rowSub: {
     fontSize: 11,
     fontWeight: '600',
-    color: printerUi.muted,
+    color: connectionUi.muted,
     lineHeight: 15,
   },
   rowValue: {

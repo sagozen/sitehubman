@@ -338,12 +338,8 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
   const isSalesBar =
     tabRoutes.some((route: any) => route.name === 'orders') &&
     tabRoutes.some((route: any) => route.name === 'payouts');
-  const isPrinterBar =
-    tabRoutes.some((route: any) => route.name === 'queue') &&
-    tabRoutes.some((route: any) => route.name === 'scan');
   const isConsumerBar =
     !isSalesBar &&
-    !isPrinterBar &&
     tabRoutes.some((route: any) => route.name === 'index') &&
     tabRoutes.some((route: any) => route.name === 'profile') &&
     tabRoutes.some((route: any) => route.name === 'settings');
@@ -373,7 +369,7 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
 
     return tabRoutes.filter(isTabVisible);
   }, [descriptors, isConsumerBar, tabRoutes]);
-  const showFloatingAction = isSalesBar || isPrinterBar;
+  const showFloatingAction = isSalesBar;
   const activeIconColor = colors.systemBlue;
   const inactiveIconColor = colors.textMuted;
   const activeLabelColor = colors.systemBlue;
@@ -418,9 +414,7 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
 
   const newOrderHref = isSalesBar
     ? appRoutes.sales.newOrder
-    : isPrinterBar
-      ? '/printer/scan'
-      : appRoutes.newOrder;
+    : appRoutes.newOrder;
 
   const items: NavItem[] = visibleRoutes.map((route: any) => ({ type: 'route', route }) as RouteItem);
 
