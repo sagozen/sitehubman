@@ -1,4 +1,3 @@
-import { useAuth } from '@/src/hooks/useAuth';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { lazy, Suspense, useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
@@ -15,12 +14,6 @@ const CustomerProfileScreen = lazy(() =>
   }))
 );
 
-const PayoutsProfileScreen = lazy(() =>
-  import('@/src/features/payouts/PayoutsProfileScreen').then((m) => ({
-    default: m.PayoutsProfileScreen,
-  }))
-);
-
 function TabFallback() {
   return (
     <View style={styles.fallback}>
@@ -31,13 +24,11 @@ function TabFallback() {
 
 export default function PayoutsProfileTabRoute() {
   const isGuest = useIsGuest();
-  const { user } = useAuth();
 
   const Screen = useMemo(() => {
     if (isGuest) return GuestProfileScreen;
-    if (user?.role === 'customer') return CustomerProfileScreen;
-    return PayoutsProfileScreen;
-  }, [isGuest, user?.role]);
+    return CustomerProfileScreen;
+  }, [isGuest]);
 
   return (
     <Suspense fallback={<TabFallback />}>

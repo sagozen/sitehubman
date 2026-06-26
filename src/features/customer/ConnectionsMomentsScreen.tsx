@@ -82,6 +82,8 @@ export function ConnectionsMomentsScreen() {
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
   const [dateRange, setDateRange] = useState<DateRange>('all');
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   const [activeMoment, setActiveMoment] = useState<TapMoment | null>(null);
   const [activeSlugUrl, setActiveSlugUrl] = useState<string | null>(null);
 
@@ -118,9 +120,15 @@ export function ConnectionsMomentsScreen() {
     return SEED_MOMENTS.filter((moment) => {
       if (sourceFilter !== 'all' && moment.source !== sourceFilter) return false;
       if (cutoff > 0 && toMs(moment.occurredAt) < cutoff) return false;
+      if (searchQuery.trim().length > 0) {
+        const q = searchQuery.trim().toLowerCase();
+        const nameMatch = moment.name.toLowerCase().includes(q);
+        const subMatch = (moment.subtitle ?? '').toLowerCase().includes(q);
+        if (!nameMatch && !subMatch) return false;
+      }
       return true;
     });
-  }, [dateRange, sourceFilter]);
+  }, [dateRange, sourceFilter, searchQuery]);
 
   const sortedMoments = useMemo(() => {
     const copy = filteredMoments.slice();
@@ -213,7 +221,82 @@ export function ConnectionsMomentsScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={BRAND} />
         }
       >
-        <MomentsSearchAndFilter />
+        <MomentsSearchAndFilter
+          query={searchQuery}
+          onChangeQuery={setSearchQuery}
+          onToggleFilter={() => setShowFilters(!showFilters)}
+          onToggleSort={handleSortToggle}
+          filterActive={showFilters || dateRange !== 'all' || sourceFilter !== 'all'}
+        />
+
+        {showFilters ? (
+          <View style={styles.filterTray}>
+            <View style={styles.filterRow}>
+              <AppText style={[styles.filterLabel, { color: isDark ? 'rgba(235,235,245,0.4)' : MUTED }]}>
+                Timeframe
+              </AppText>
+              <View style={styles.chipRow}>
+                {DATE_RANGES.map((range) => {
+                  const active = dateRange === range.id;
+                  return (
+                    <Pressable
+                      key={range.id}
+                      onPress={() => setDateRangeStable(range.id)}
+                      style={({ pressed }) => [
+                        styles.chip,
+                        active && styles.chipActive,
+                        pressed && styles.chipPressed,
+                      ]}
+                    >
+                      <AppText style={[styles.chipText, active && styles.chipTextActive]}>
+                        {range.label}
+                      </AppText>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
+            <View style={styles.filterRow}>
+              <AppText style={[styles.filterLabel, { color: isDark ? 'rgba(235,235,245,0.4)' : MUTED }]}>
+                Source
+              </AppText>
+              <View style={styles.chipRow}>
+                {SOURCE_FILTERS.map((filter) => {
+                  const active = sourceFilter === filter.id;
+                  return (
+                    <Pressable
+                      key={filter.id}
+                      onPress={() => setSourceFilterStable(filter.id)}
+                      style={({ pressed }) => [
+                        styles.chip,
+                        active && styles.chipActive,
+                        pressed && styles.chipPressed,
+                      ]}
+                    >
+                      {filter.icon ? (
+                        <AppIcon
+                          name={filter.icon}
+                          size={14}
+                          color={active ? '#FFFFFF' : BRAND}
+                        />
+                      ) : null}
+                      <AppText
+                        style={[
+                          styles.chipText,
+                          active && styles.chipTextActive,
+                          filter.icon ? styles.chipTextWithIcon : undefined,
+                        ]}
+                      >
+                        {filter.label}
+                      </AppText>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          </View>
+        ) : null}
 
         {/* Moments timeline - virtualized FlatList of header + moment rows */}
         {hasMoments ? (
@@ -463,6 +546,11 @@ const styles = StyleSheet.create({
   },
   rowSeparator: {
     height: 2,
+  },
+  filterTray: {
+    gap: 16,
+    marginBottom: 20,
+    paddingHorizontal: 16,
   },
   filterRow: {
     gap: 8,

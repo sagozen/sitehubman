@@ -29,14 +29,4 @@ export const appRoutes = {
     notifications: '/sales/notifications',
     settings: '/sales/settings',
   },
-  printer: {
-    batchSelect: '/printer/batch-select',
-    queue: '/printer/queue',
-    newOrder: '/printer/new-order',
-    settings: '/printer/settings',
-    wages: '/printer/wages',
-    notifications: '/printer/notifications',
-  },
-  qa: { root: '/qa' },
-  shipping: { root: '/shipping' },
 } as const;

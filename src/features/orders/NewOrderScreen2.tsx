@@ -618,7 +618,7 @@ export function NewOrderScreen() {
   const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
 
   if (isPrinterFlow) {
-    return <Redirect href="/printer/queue" />;
+    return <Redirect href="/sales/orders" />;
   }
 
   const selectedProduct =

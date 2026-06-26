@@ -80,8 +80,6 @@ function RootLayout() {
 
             <Stack.Screen name="guest-post-login-choice" options={{ headerShown: false }} />
 
-            <Stack.Screen name="printer-settings" options={{ headerShown: false }} />
-
             <Stack.Screen name="+not-found" />
 
           </Stack>

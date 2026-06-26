@@ -17,7 +17,6 @@ export default function SalesLayout() {
         <Tabs.Screen name="notifications" options={{ href: null, tabBarStyle: { display: 'none' } }} />
         <Tabs.Screen name="new-order" options={{ href: null, tabBarStyle: { display: 'none' } }} />
         <Tabs.Screen name="settings" options={{ href: null, tabBarStyle: { display: 'none' } }} />
-        <Tabs.Screen name="print-jobs" options={{ href: null, tabBarStyle: { display: 'none' } }} />
       </Tabs>
     </AuthGate>
   );

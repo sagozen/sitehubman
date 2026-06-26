@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Platform, Pressable, StyleSheet, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/src/components/AppIcon';
@@ -532,7 +531,7 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
             onPress={() => router.push(newOrderHref)}
             style={({ pressed }) => [pressed && styles.actionButtonPressed]}
             accessibilityRole="button"
-            accessibilityLabel={isPrinterBar ? 'Scan new job' : 'New sale'}
+            accessibilityLabel="New sale"
           >
             <LiquidGlassChrome
               isDark={isDark}

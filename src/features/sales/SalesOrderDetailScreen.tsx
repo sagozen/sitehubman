@@ -45,13 +45,14 @@ import { useAuth } from '@/src/hooks/useAuth';
 import {
   getOrder,
   updateOrderDetails,
+  updateOrderStatus,
   getPrinterJobByOrderId,
 } from '@/src/services/firestoreService';
 import { confirmSalesProductionApproval } from '@/src/services/salesOrderApprovalService';
 import { SalesProductionApprovalModal } from '@/src/features/sales/components/SalesProductionApprovalModal';
 import { getAuthErrorMessage } from '@/src/services/authService';
 import { getPaymentStatusLabel, isPaymentVerified } from '@/src/services/paymentVerificationService';
-import type { Order, PrinterJob, SalesPaymentConfirmation } from '@/src/types/models';
+import type { Order, OrderStatus, PrinterJob, SalesPaymentConfirmation } from '@/src/types/models';
 import {
   buildProductionQrPayload,
   needsSalesApproval,
@@ -424,7 +425,7 @@ function DetailContent() {
     if (!order) return;
     
     // Each status maps to the NEXT status + what to tell the user
-    const FLOW: Record<string, { next: string; prompt: string; btn: string }> = {
+    const FLOW: Partial<Record<OrderStatus, { next: OrderStatus; prompt: string; btn: string }>> = {
       production_approved: { next: 'printer_assigned', prompt: 'Assign this order to printer?',                btn: 'Assign Printer' },
       printer_assigned:    { next: 'printing',         prompt: 'Start printing the card now?',                 btn: 'Start Printing' },
       printing:            { next: 'nfc_writing',      prompt: 'Card printed! Ready to write NFC data?',       btn: 'Start NFC Write' },
@@ -441,7 +442,7 @@ function DetailContent() {
         { text: 'Cancel', style: 'cancel' },
         { text: '✓ Complete', onPress: async () => {
           setSaving(true);
-          try { await updateOrderDetails(order.id, { status: 'delivered' }, user?.id); await load(); }
+          try { await updateOrderStatus(order.id, 'delivered', user?.id); await load(); }
           catch (e) { Alert.alert('Error', getAuthErrorMessage(e)); }
           finally { setSaving(false); }
         }},
@@ -456,7 +457,7 @@ function DetailContent() {
         onPress: async () => {
           setSaving(true);
           try {
-            await updateOrderDetails(order.id, { status: step.next }, user?.id);
+            await updateOrderStatus(order.id, step.next, user?.id);
             await load();
           } catch (e) {
             Alert.alert('Error', getAuthErrorMessage(e));
@@ -590,7 +591,7 @@ function DetailContent() {
       label: 'Start Printing →',
       color: PURPLE,
       icon: <PrinterBoldDuotone size={20} color="#FFF" />,
-      onPress: () => router.push(`/print-job/${order.id}` as any),
+      onPress: handleNextProgress,
     };
   } else if (order.status === 'printing') {
     action = {

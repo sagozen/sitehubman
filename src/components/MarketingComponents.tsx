@@ -220,7 +220,7 @@ export function FeatureAnnouncementCard({
           </AppText>
         </View>
         <AppText variant="caption" tone="muted">
-          WHAT'S NEW
+          {"WHAT'S NEW"}
         </AppText>
       </View>
 

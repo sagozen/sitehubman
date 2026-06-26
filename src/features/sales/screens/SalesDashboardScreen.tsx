@@ -9,12 +9,11 @@ import {
   Image,
 } from 'react-native';
 import { router } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { AppIcon } from '@/src/components/AppIcon';
 import { 
   PenBoldDuotone, 
-  PrinterBoldDuotone, 
   UserBoldDuotone, 
   DocumentBoldDuotone, 
   WalletBoldDuotone, 
@@ -43,7 +42,6 @@ const PRIMARY = '#2596BE';
 export default function SalesDashboardScreen() {
   const { user } = useAuth();
   const { orders, refresh } = useOrders('sales', user?.id ?? '');
-  const insets = useSafeAreaInsets();
 
   useEffect(() => { refresh(); }, [refresh]);
 
@@ -117,12 +115,12 @@ export default function SalesDashboardScreen() {
               onPress={() => router.push(appRoutes.sales.newOrder as any)}
             />
             <BigActionCard 
-              title="Printing"
-              subtitle="Production queue"
-              icon={<PrinterBoldDuotone size={28} color="#FFFFFF" />}
-              bgColor="#FFF3E0"
-              iconBg="#FF9800"
-              onPress={() => router.push('/sales/print-jobs' as any)}
+              title="Orders"
+              subtitle="Manage pipeline"
+              icon={<DocumentBoldDuotone size={28} color="#FFFFFF" />}
+              bgColor="#E5F1FF"
+              iconBg="#007AFF"
+              onPress={() => router.push(appRoutes.sales.orders as any)}
             />
           </View>
 
@@ -215,14 +213,14 @@ function SalesOverviewCard({ referralCode, stats }: { referralCode: string, stat
       </View>
       <View style={s.statMetricsBox}>
         <View style={s.statCol}>
-          <AppText style={s.statLabel}>Today's Orders</AppText>
+          <AppText style={s.statLabel}>{"Today's Orders"}</AppText>
           <View style={s.statValRow}>
             <AppText style={s.statValue}>{stats.todayOrders}</AppText>
           </View>
         </View>
         <View style={s.statDivider} />
         <View style={s.statCol}>
-          <AppText style={s.statLabel}>Today's Revenue</AppText>
+          <AppText style={s.statLabel}>{"Today's Revenue"}</AppText>
           <View style={s.statValRow}>
             <AppText style={s.statValue}>${stats.todayRevenue.toFixed(2)}</AppText>
           </View>
@@ -277,7 +275,7 @@ function ReferralCard({ referralCode }: { referralCode: string }) {
           await Share.share({
             message: `Get 25% off your first NFC smart card! Use my code: ${referralCode}\n\nBuild your professional network today.`,
           });
-        } catch (e) {}
+        } catch {}
       }}
     >
       <View style={[s.taskIconBox, { backgroundColor: '#FFEAEF' }]}>
