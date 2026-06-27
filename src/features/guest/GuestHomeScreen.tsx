@@ -3,7 +3,9 @@ import {
   Pressable,
   StyleSheet,
   View,
+  Image,
 } from 'react-native';
+import { HapticTap } from '@/src/utils/haptics';
 import { type Href, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
@@ -30,17 +32,11 @@ const SURFACE = '#FFFFFF';
 const BG = '#FFFFFF';
 
 // ─── Quick actions ───────────────────────────────────────────────────────────
-const ACTIONS: {
-  icon: AppIconName;
-  label: string;
-  color: string;
-  route?: Href;
-  action?: 'share';
-}[] = [
-  { icon: 'CreditCard', label: 'Card', color: INK, route: appRoutes.guestDesign as Href },
-  { icon: 'Users', label: 'Network', color: INK, route: appRoutes.customerConnections as Href },
-  { icon: 'BarChart', label: 'Insights', color: INK, route: appRoutes.guestAnalytics as Href },
-  { icon: 'Sparkles', label: 'Studio', color: BRAND, route: appRoutes.studio as Href },
+const ACTIONS = [
+  { label: 'Card', image: require('@/assets/images/3d_create_card_v2.png'), route: appRoutes.guestDesign as Href },
+  { label: 'Network', image: require('@/assets/images/3d_share_card_v2.png'), route: appRoutes.customerConnections as Href },
+  { label: 'Insights', image: require('@/assets/images/3d_analytics_v2.png'), route: appRoutes.guestAnalytics as Href },
+  { label: 'Studio', image: require('@/assets/images/3d_signals_v2.png'), route: appRoutes.studio as Href },
 ];
 
 // ─── Order status ────────────────────────────────────────────────────────────
@@ -204,11 +200,16 @@ export function GuestHomeScreen() {
             {ACTIONS.map((a) => (
               <Pressable
                 key={a.label}
-                onPress={() => handleAction(a)}
+                onPress={() => {
+                  HapticTap.light();
+                  handleAction(a);
+                }}
                 style={({ pressed }) => [s.actionBtn, pressed && s.pressed]}
                 accessibilityRole="button"
               >
-                <AppIcon name={a.icon} size={24} color={a.color} />
+                <View style={s.actionImageWrap}>
+                  <Image source={a.image} style={s.actionImage} resizeMode="contain" />
+                </View>
                 <AppText style={s.actionLabel}>{a.label}</AppText>
               </Pressable>
             ))}
@@ -363,9 +364,33 @@ const s = StyleSheet.create({
   shareButtonT: { fontSize: 16, fontWeight: '900', color: '#FFFFFF', fontFamily: 'Inter_900Black' },
 
   // Action strip — compact, card already did the talking
-  actionStrip: { flexDirection: 'row', backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden' },
-  actionBtn: { flex: 1, alignItems: 'center', paddingVertical: 16, gap: 7 },
-  actionLabel: { fontSize: 11, fontWeight: '800', color: INK2, textAlign: 'center', fontFamily: 'Inter_800ExtraBold' },
+  actionStrip: {
+    flexDirection: 'row',
+    backgroundColor: SURFACE,
+    borderRadius: 24,
+    overflow: 'hidden',
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(60, 60, 67, 0.03)',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.02,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  actionBtn: { flex: 1, alignItems: 'center', gap: 4 },
+  actionImageWrap: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
+  actionImage: {
+    width: '100%',
+    height: '100%',
+  },
+  actionLabel: { fontSize: 11, fontWeight: '800', color: INK2, textAlign: 'center', fontFamily: 'Inter_800ExtraBold', letterSpacing: -0.2 },
   actionSub: { fontSize: 9, fontWeight: '500', color: MUTED },
 
   // Section

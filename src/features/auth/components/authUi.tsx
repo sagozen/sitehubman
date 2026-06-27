@@ -17,12 +17,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/src/components/AppText';
 import { AppIcon } from '@/src/components/AppIcon';
 
-const BRAND = '#2596BE';
+const BRAND = '#007AFF';
 const INK = '#000000';
 const INK2 = '#1C1C1E';
 const MUTED = '#8E8E93';
 const SURFACE = '#FFFFFF';
-const BACKGROUND = '#F5F5F7';
+const BACKGROUND = '#FFFFFF';
 const BORDER = '#E5E5EA';
 
 // ─── Shell ────────────────────────────────────────────────────────────────────
@@ -231,43 +231,43 @@ const s = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingTop: 24, paddingBottom: 40, gap: 20 },
 
-  card: { width: '100%', gap: 20 },
+  card: { width: '100%', gap: 24 },
 
   headerWrap: { gap: 8, marginBottom: 8, alignItems: 'center' },
   nfcBadgeContainer: { marginBottom: 12 },
   nfcBadge: { width: 56, height: 56, borderRadius: 16, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2, borderWidth: 1, borderColor: BORDER },
-  headerTitle: { fontSize: 32, lineHeight: 36, fontWeight: '800', color: INK, letterSpacing: -0.5, textAlign: 'center' },
-  headerSub: { fontSize: 16, lineHeight: 22, fontWeight: '500', color: MUTED, textAlign: 'center' },
+  headerTitle: { fontSize: 30, lineHeight: 34, fontWeight: '900', color: INK, letterSpacing: -0.6, textAlign: 'center', fontFamily: 'Inter_900Black' },
+  headerSub: { fontSize: 15, lineHeight: 22, fontWeight: '500', color: MUTED, textAlign: 'center', fontFamily: 'Inter_500Medium' },
 
   field: { gap: 6 },
   fieldLabel: { fontSize: 11, fontWeight: '800', color: MUTED, letterSpacing: 0, marginLeft: 2 },
-  fieldRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: SURFACE, borderRadius: 16, borderWidth: 1, borderColor: BORDER, paddingHorizontal: 15, minHeight: 56 },
+  fieldRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: SURFACE, borderRadius: 20, borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.04)', paddingHorizontal: 15, minHeight: 56 },
   fieldInput: { flex: 1, fontSize: 16, fontWeight: '500', color: INK2, paddingVertical: Platform.OS === 'ios' ? 15 : 11 },
   fieldTrailing: { alignItems: 'center', justifyContent: 'center', paddingLeft: 4 },
 
-  formGroup: { backgroundColor: SURFACE, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: BORDER },
-  groupField: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, minHeight: 52 },
-  groupFieldBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: BORDER },
+  formGroup: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.04)', shadowColor: '#000000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.02, shadowRadius: 12, elevation: 1 },
+  groupField: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, minHeight: 54 },
+  groupFieldBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(0,0,0,0.06)' },
   groupFieldLabel: { fontSize: 16, fontWeight: '500', color: INK2, width: 85 },
   groupFieldInput: { flex: 1, fontSize: 16, fontWeight: '400', color: INK2, paddingVertical: Platform.OS === 'ios' ? 14 : 10 },
 
-  primaryBtn: { height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: BRAND },
-  primaryBtnT: { fontSize: 17, fontWeight: '700', color: '#FFFFFF' },
-  textBtn: { height: 50, alignItems: 'center', justifyContent: 'center', borderRadius: 16, borderWidth: 1, borderColor: BORDER, backgroundColor: SURFACE },
-  textBtnT: { fontSize: 16, fontWeight: '600', color: INK2 },
+  primaryBtn: { height: 52, borderRadius: 999, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: '#111827' },
+  primaryBtnT: { fontSize: 16, fontWeight: '800', color: '#FFFFFF', fontFamily: 'Inter_800ExtraBold', letterSpacing: -0.3 },
+  textBtn: { height: 50, alignItems: 'center', justifyContent: 'center', borderRadius: 999, borderWidth: 1, borderColor: BORDER, backgroundColor: SURFACE },
+  textBtnT: { fontSize: 15, fontWeight: '700', color: INK2, fontFamily: 'Inter_700Bold' },
   btnOff: { opacity: 0.5 },
-  btnPressed: { opacity: 0.82, transform: [{ scale: 0.98 }] },
+  btnPressed: { opacity: 0.88, transform: [{ scale: 0.96 }] },
 
   divider: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  divLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: BORDER },
-  divT: { fontSize: 13, fontWeight: '600', color: MUTED },
+  divLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(0,0,0,0.06)' },
+  divT: { fontSize: 13, fontWeight: '600', color: MUTED, fontFamily: 'Inter_600SemiBold' },
 
   footerRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 6, marginTop: 12 },
-  footerPrompt: { fontSize: 15, fontWeight: '500', color: MUTED },
-  footerAction: { fontSize: 15, fontWeight: '700', color: BRAND },
+  footerPrompt: { fontSize: 15, fontWeight: '500', color: MUTED, fontFamily: 'Inter_500Medium' },
+  footerAction: { fontSize: 15, fontWeight: '750' as any, color: BRAND, fontFamily: 'Inter_700Bold' },
 
   trust: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 20 },
-  trustT: { fontSize: 12, fontWeight: '500', color: '#A1A1A6' },
+  trustT: { fontSize: 12, fontWeight: '500', color: '#A1A1A6', fontFamily: 'Inter_500Medium' },
 
-  sectionLabel: { fontSize: 12, fontWeight: '600', color: MUTED, letterSpacing: 0.3, textTransform: 'uppercase', marginLeft: 2 },
+  sectionLabel: { fontSize: 12, fontWeight: '600', color: MUTED, letterSpacing: 0.3, textTransform: 'uppercase', marginLeft: 2, fontFamily: 'Inter_600SemiBold' },
 });

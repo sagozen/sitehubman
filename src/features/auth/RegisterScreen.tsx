@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View, Image } from 'react-native';
 import { router } from 'expo-router';
 import { AppText } from '@/src/components/AppText';
 import {
@@ -63,6 +63,9 @@ export function RegisterScreen() {
   return (
     <AuthScreenShell>
       <AuthLoginCard>
+        <View style={styles.topIconWrap}>
+          <Image source={require('@/assets/images/3d_create_card_v2.png')} style={styles.topIcon} resizeMode="contain" />
+        </View>
         <AuthHeader
           title="Create your NFC identity"
           subtitle="A guided setup will help you build a card people can save in one tap."
@@ -133,9 +136,38 @@ export function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  guide: { gap: 10, backgroundColor: '#F5F5F7', borderRadius: 22, padding: 16 },
-  guideRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  guideDot: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#111111', alignItems: 'center', justifyContent: 'center' },
-  guideDotText: { fontSize: 12, fontWeight: '900', color: '#FFFFFF' },
-  guideText: { fontSize: 14, fontWeight: '800', color: '#111111' },
+  topIconWrap: {
+    alignItems: 'center',
+    marginBottom: 8,
+    marginTop: 6,
+  },
+  topIcon: {
+    width: 80,
+    height: 80,
+  },
+  guide: {
+    gap: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 18,
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 0, 0, 0.04)',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.02,
+    shadowRadius: 12,
+    elevation: 2,
+    marginBottom: 4,
+  },
+  guideRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  guideDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#007AFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  guideDotText: { fontSize: 11, fontWeight: '900', color: '#FFFFFF', fontFamily: 'Inter_900Black' },
+  guideText: { fontSize: 13, fontWeight: '800', color: '#111827', fontFamily: 'Inter_800ExtraBold', letterSpacing: -0.3 },
 });
