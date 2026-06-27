@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { AccessibilityInfo, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, Platform, Pressable, StyleSheet, View, Animated } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/src/components/AppIcon';
@@ -10,6 +10,7 @@ import { appRoutes } from '@/src/constants/navigation';
 import { theme } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { usePreferences } from '@/src/hooks/usePreferences';
+import { HapticTap } from '@/src/utils/haptics';
 
 // ─── Sales icon map ─────────────────────────────────────────────────────────
 const SALES_ICON_MAP: Record<string, string> = {
@@ -49,10 +50,11 @@ function SalesTabBar({
     return (
       <Pressable
         onPress={() => {
+          HapticTap.selection();
           const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
           if (!isActive && !event.defaultPrevented) navigation.navigate(route.name);
         }}
-        style={({ pressed }) => [st.tab, pressed && { opacity: 0.72 }]}
+        style={({ pressed }) => [st.tab, pressed && { opacity: 0.72 }, Platform.OS === 'web' && { outlineStyle: 'none' } as any]}
         accessibilityRole="button"
         accessibilityLabel={label}
         accessibilityState={{ selected: isActive }}
@@ -90,7 +92,7 @@ function SalesTabBar({
         <View style={st.fabWrap}>
           <Pressable
             onPress={() => router.push(newOrderHref as any)}
-            style={({ pressed }) => [{ transform: [{ scale: pressed ? 0.92 : 1 }] }]}
+            style={({ pressed }) => [{ transform: [{ scale: pressed ? 0.92 : 1 }] }, Platform.OS === 'web' && { outlineStyle: 'none' } as any]}
             accessibilityRole="button"
             accessibilityLabel="New order"
           >
@@ -222,8 +224,22 @@ type NavItem = RouteItem;
 /** Guest + customer footer tabs — fixed order so Connections never drops off. */
 const CONSUMER_TAB_ORDER = ['index', 'connections', 'share', 'profile', 'settings'] as const;
 
-const DOCK_HEIGHT = 72;
+const DOCK_HEIGHT = 76;
 const FAB_SIZE = theme.controlHeight.hero;
+
+const TAB_ROUTE_ICON_MAP: Record<string, string> = {
+  index: 'Home',
+  connections: 'Users',
+  attendance: 'Users',
+  share: 'Share2',
+  profile: 'User',
+  settings: 'Sliders',
+  orders: 'ClipboardList',
+  customers: 'Users',
+  payouts: 'Wallet',
+  me: 'User',
+  'new-order': 'Plus',
+};
 
 function TabIcon({
   routeName,
@@ -238,6 +254,18 @@ function TabIcon({
   inactiveIconColor: string;
   badgeLabel?: string;
 }) {
+  const iconName = TAB_ROUTE_ICON_MAP[routeName] || 'Home';
+  const scale = useRef(new Animated.Value(active ? 1.15 : 1.0)).current;
+
+  useEffect(() => {
+    Animated.spring(scale, {
+      toValue: active ? 1.15 : 1.0,
+      useNativeDriver: true,
+      tension: 110,
+      friction: 7,
+    }).start();
+  }, [active]);
+
   return (
     <View style={styles.iconBadgeContainer}>
       {badgeLabel ? (
@@ -247,13 +275,14 @@ function TabIcon({
           </AppText>
         </View>
       ) : null}
-      <View style={styles.iconShell}>
-        <Ionicons
-          name={getLiquidTabIcon(routeName, active)}
+      <Animated.View style={[styles.iconShell, { transform: [{ scale }] }]}>
+        <AppIcon
+          name={iconName}
           size={LIQUID_TAB_ICON_SIZE}
           color={active ? activeIconColor : inactiveIconColor}
+          variant={active ? 'solar-bold' : 'solar-duotone'}
         />
-      </View>
+      </Animated.View>
     </View>
   );
 }
@@ -468,10 +497,11 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
               <Pressable
                 key={route.key}
                 onPress={() => {
+                  HapticTap.selection();
                   const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
                   if (!isActive && !event.defaultPrevented) navigation.navigate(route.name);
                 }}
-                style={({ pressed }) => [styles.tabItem, isShareTab && styles.shareTabItem, pressed && styles.tabItemPressed]}
+                style={({ pressed }) => [styles.tabItem, isShareTab && styles.shareTabItem, pressed && styles.tabItemPressed, Platform.OS === 'web' && { outlineStyle: 'none' } as any]}
                 accessibilityRole="button"
                 accessibilityLabel={label}
                 accessibilityState={{ selected: isActive }}
@@ -479,7 +509,7 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
                 <View style={[styles.tabContent, isShareTab && styles.shareTabContent]}>
                   {isShareTab ? (
                     <View style={[styles.shareCenterButton, { backgroundColor: colors.systemBlue }, isActive && styles.shareCenterButtonActive]}>
-                      <Ionicons name={getLiquidTabIcon(route.name, true)} size={25} color="#FFFFFF" />
+                      <AppIcon name="QrCode" size={22} color="#FFFFFF" variant="solar-bold" />
                     </View>
                   ) : (
                     <>
@@ -529,7 +559,7 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
         <View style={styles.dockShadow}>
           <Pressable
             onPress={() => router.push(newOrderHref)}
-            style={({ pressed }) => [pressed && styles.actionButtonPressed]}
+            style={({ pressed }) => [pressed && styles.actionButtonPressed, Platform.OS === 'web' && { outlineStyle: 'none' } as any]}
             accessibilityRole="button"
             accessibilityLabel="New sale"
           >
@@ -623,9 +653,9 @@ const styles = StyleSheet.create({
     gap: 1,
   },
   shareCenterButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#007AFF',

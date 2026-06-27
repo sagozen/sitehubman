@@ -27,7 +27,7 @@ const INK = '#0A0A0F';
 const INK2 = '#1C1C1E';
 const MUTED = '#8E8E93';
 const SURFACE = '#FFFFFF';
-const BG = '#F5F5F7';
+const BG = '#FFFFFF';
 
 // ─── Quick actions ───────────────────────────────────────────────────────────
 const ACTIONS: {

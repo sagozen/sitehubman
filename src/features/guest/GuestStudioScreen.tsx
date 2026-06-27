@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react';
 const BRAND = '#2596BE';
 const INK = '#111111';
 const MUTED = '#8E8E93';
-const BG = '#F5F5F7';
+const BG = '#FFFFFF';
 const SURFACE = '#FFFFFF';
 
 const STUDIO_ACTIONS: { icon: AppIconName; label: string; route: string }[] = [

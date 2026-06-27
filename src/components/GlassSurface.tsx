@@ -37,8 +37,10 @@ export function GlassSurface({
         elevated && theme.shadows.card,
         {
           borderRadius,
-          borderColor: isDark ? colors.separator : colors.border,
-          backgroundColor: elevated ? colors.surface : colors.surface,
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(60, 60, 67, 0.06)',
+          backgroundColor: elevated
+            ? isDark ? 'rgba(28, 28, 30, 0.85)' : 'rgba(255, 255, 255, 0.94)'
+            : isDark ? 'rgba(28, 28, 30, 0.42)' : 'rgba(255, 255, 255, 0.65)',
         },
         style,
       ]}
@@ -50,7 +52,7 @@ export function GlassSurface({
 
 const styles = StyleSheet.create({
   surface: {
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     overflow: 'hidden',
   },
   content: {

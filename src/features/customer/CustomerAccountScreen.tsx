@@ -34,25 +34,45 @@ export function CustomerAccountScreen() {
   }, [user]);
 
   const handleQr = useCallback(() => {
-    router.push('/qr-generator' as any);
+    router.push(appRoutes.qrGenerator as any);
   }, []);
 
   const handleAction = useCallback((id: string) => {
     switch(id) {
       case 'create':
-        router.push('/new-order' as any);
+        router.push(appRoutes.newOrder as any);
         break;
       case 'share':
         handleShare();
         break;
       case 'scan':
-        router.push('/scan' as any);
+        router.push(appRoutes.scan as any);
         break;
       case 'orders':
-        router.push(appRoutes.accountOrders as any);
+        router.push(appRoutes.customer.orders as any);
         break;
     }
   }, [handleShare]);
+
+  const handleModulePress = useCallback((id: string) => {
+    switch (id) {
+      case 'orders':
+        router.push(appRoutes.customer.orders as any);
+        break;
+      case 'templates':
+        router.push(appRoutes.customer.templates as any);
+        break;
+      case 'analytics':
+        router.push(appRoutes.customerAnalysis as any);
+        break;
+      case 'network':
+        router.push(appRoutes.customerConnections as any);
+        break;
+      case 'signals':
+        Alert.alert('Signals Module', 'Signals updates coming soon!');
+        break;
+    }
+  }, []);
 
   return (
     <View style={styles.root}>
@@ -72,13 +92,23 @@ export function CustomerAccountScreen() {
         <QuickActionGrid onActionPress={handleAction} />
 
         {/* 3. Tasks (Continue Working) */}
-        <ContinueWorkingTasks />
+        <ContinueWorkingTasks 
+          onTaskPress={(id) => {
+            if (id === 'profile') {
+              router.push(appRoutes.editBio as any);
+            } else if (id === 'order') {
+              router.push(appRoutes.customer.templates as any);
+            } else if (id === 'share') {
+              router.push(appRoutes.customerConnections as any);
+            }
+          }}
+        />
 
         {/* 5. Recent Activity */}
         <RecentActivityTimeline />
 
         {/* 6. Modules Carousel */}
-        <CustomerModuleCarousel />
+        <CustomerModuleCarousel onModulePress={handleModulePress} />
 
       </IosScrollView>
     </View>
@@ -88,7 +118,7 @@ export function CustomerAccountScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F5F5F7',
+    backgroundColor: '#FFFFFF',
   },
   scrollContent: {
     paddingBottom: 100, // Space for Liquid Dock

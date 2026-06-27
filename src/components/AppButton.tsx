@@ -1,4 +1,4 @@
-import { ActivityIndicator, Pressable, PressableProps, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { ActivityIndicator, Pressable, PressableProps, StyleProp, StyleSheet, View, ViewStyle, type TextStyle } from 'react-native';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { getRoleTheme, RoleThemeKey, theme } from '@/src/constants/theme';
@@ -39,34 +39,33 @@ export function AppButton({
 
   const variantStyle: Record<ButtonVariant, ViewStyle> = {
     primary: {
-      backgroundColor: colors.primary,
+      backgroundColor: '#111827', // Obsidian deep black
       borderWidth: 0,
-      borderColor: 'transparent',
     },
     secondary: {
-      backgroundColor: colors.surfaceSoft,
+      backgroundColor: 'rgba(0,0,0,0.04)',
     },
     outline: {
-      backgroundColor: colors.surface,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border,
+      backgroundColor: '#FFFFFF',
+      borderWidth: 1.5,
+      borderColor: '#E5E7EB',
     },
     ghost: {
       backgroundColor: 'transparent',
     },
     disabled: {
-      backgroundColor: colors.surfaceSoft,
+      backgroundColor: '#E5E7EB',
     },
   };
 
   const labelColor =
     resolvedVariant === 'primary'
-      ? colors.textInverse
+      ? '#FFFFFF'
       : resolvedVariant === 'disabled'
-        ? colors.textMuted
-        : colors.textPrimary;
+        ? '#9CA3AF'
+        : '#111827';
 
-  const iconColor = resolvedVariant === 'primary' ? colors.textInverse : colors.textPrimary;
+  const iconColor = resolvedVariant === 'primary' ? '#FFFFFF' : '#111827';
 
   return (
     <Pressable
@@ -78,6 +77,7 @@ export function AppButton({
         }
         onPress?.(event);
       }}
+      android_ripple={null} // Ripple-free premium feel
       style={({ pressed }) => [
         styles.button,
         variantStyle[resolvedVariant],
@@ -85,15 +85,15 @@ export function AppButton({
         pressed && !isDisabled && styles.pressed,
         isDisabled && styles.disabled,
         style,
-      ]}
+      ] as ViewStyle[]}
       {...rest}
     >
       {loading ? (
-        <ActivityIndicator color={labelColor} />
+        <ActivityIndicator color={labelColor} size="small" />
       ) : (
         <View style={[styles.content, iconPosition === 'right' && styles.contentReverse]}>
-          {iconName ? <AppIcon name={iconName} size={theme.iconSize.sm} color={iconColor} /> : null}
-          <AppText variant="body" weight="semibold" style={{ color: labelColor }}>
+          {iconName ? <AppIcon name={iconName} size={18} color={iconColor} /> : null}
+          <AppText variant="body" weight="bold" style={{ color: labelColor } as TextStyle}>
             {label}
           </AppText>
         </View>
@@ -104,29 +104,29 @@ export function AppButton({
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: theme.controlHeight.primary,
-    borderRadius: 14,
+    minHeight: 52,
+    borderRadius: 999, // Pill buttons by default
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: theme.spacing.comfort,
-  },
+    paddingHorizontal: 24,
+  } as ViewStyle,
   content: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: theme.spacing.xs,
-  },
+    gap: 8,
+  } as ViewStyle,
   contentReverse: {
     flexDirection: 'row-reverse',
-  },
+  } as ViewStyle,
   fullWidth: {
     width: '100%',
-  },
+  } as ViewStyle,
   pressed: {
-    opacity: 0.72,
-    transform: [{ scale: iosDesign.animation.pressScale }],
-  },
+    opacity: 0.9,
+    transform: [{ scale: 0.96 }], // Elegant spring scale press animation
+  } as ViewStyle,
   disabled: {
-    opacity: 0.5,
-  },
+    opacity: 0.35, // Premium disabled state transparency
+  } as ViewStyle,
 });

@@ -110,7 +110,7 @@ export function GuestProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F2F2F7' },
+  safe: { flex: 1, backgroundColor: '#FFFFFF' },
   content: { padding: 20, gap: 20, paddingBottom: 120 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   avatarWrap: {

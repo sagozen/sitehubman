@@ -1,5 +1,5 @@
-import { CustomerAccountScreen } from '@/src/features/customer/CustomerAccountScreen';
+import { Redirect } from 'expo-router';
 
 export default function AccountOrdersRoute() {
-  return <CustomerAccountScreen />;
+  return <Redirect href="/customer/orders" />;
 }

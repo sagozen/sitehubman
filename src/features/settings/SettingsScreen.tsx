@@ -25,7 +25,7 @@ import { getRoleLabel, getRoleScopeSummary } from '@/src/utils/roleCapabilities'
 const BRAND = '#2596BE';
 const INK = '#0A0A0F';
 const MUTED = '#8E8E93';
-const BG = '#F5F5F7';
+const BG = '#FFFFFF';
 
 type SavingKey = 'language' | 'colorMode' | 'profileTheme' | 'typographyColor' | 'reset' | 'signOut' | null;
 type Message = { type: 'success' | 'error'; text: string } | null;
@@ -175,8 +175,8 @@ export function SettingsScreen() {
           <View style={styles.list}>
             <SettingsRow icon="CreditCard" title="Card studio" value="Design" onPress={() => router.push(appRoutes.studio as any)} />
             <SettingsRow icon="Users" title="Network" value="People" onPress={() => router.push(appRoutes.customerConnections)} />
-            <SettingsRow icon="BarChart" title="Analysis" value="Signals" onPress={() => router.push('/(tabs)/profile')} />
-            <SettingsRow icon="Package" title="Orders" value="Track" onPress={() => router.push(appRoutes.guestTrackOrder)} />
+            <SettingsRow icon="BarChart" title="Analysis" value="Signals" onPress={() => router.push(isGuest ? appRoutes.guestAnalytics : appRoutes.customerAnalysis)} />
+            <SettingsRow icon="Package" title="Orders" value="Track" onPress={() => router.push(isGuest ? appRoutes.guestTrackOrder : appRoutes.customer.orders)} />
             <SettingsRow icon="Sparkles" title="Marketing Showcase" value="Premium" onPress={() => router.push('/promotional-preview')} last />
           </View>
         </View>

@@ -39,11 +39,11 @@ export function StatCard({ title, value, trend, trendDirection, icon, style, ...
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: theme.radius.lg,
-    padding: theme.spacing.md,
+    borderRadius: theme.radius.xl,
+    padding: theme.spacing.comfort,
     backgroundColor: theme.colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: theme.colors.border,
+    borderWidth: 1,
+    borderColor: 'rgba(60, 60, 67, 0.06)',
     ...theme.shadows.card,
   },
   header: {

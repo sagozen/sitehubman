@@ -1,201 +1,292 @@
-/**
- * AppIcon - shared icon component using Feather (standard Lucide-inspired linear vectors).
- * Keeps icon style consistent globally (same stroke width, default size 22px).
- */
-
 import type { ComponentProps } from 'react';
-import { Feather } from '@expo/vector-icons';
-import { View } from 'react-native';
+import { Feather, Ionicons } from '@expo/vector-icons';
+import { View, StyleSheet } from 'react-native';
 import { usePreferences } from '@/src/hooks/usePreferences';
+import * as Solar from '@solar-icons/react-native';
 
 const DEFAULT_ICON_SIZE = 22;
 
-type FeatherIconProps = ComponentProps<typeof Feather>;
+export type IconVariant = 
+  | 'phosphor-duotone'
+  | 'phosphor-fill'
+  | 'solar-bold'
+  | 'solar-duotone'
+  | 'lucide-minimal'
+  | 'default';
 
-// ─── Direct mappings from previous names to Feather (Lucide) icons ──────────
-const icons: Record<string, keyof typeof Feather.glyphMap> = {
-  Archive: 'archive',
-  ArchiveRestore: 'archive',
-  ArrowLeft: 'arrow-left',
-  BadgeDollarSign: 'dollar-sign',
-  BadgeCheck: 'check-circle',
-  BarChart: 'bar-chart-2',
-  BarChart2: 'bar-chart-2',
-  Bell: 'bell',
-  Briefcase: 'briefcase',
-  Building2: 'home',
-  Calendar: 'calendar',
-  CalendarDays: 'calendar',
-  Camera: 'camera',
-  Check: 'check',
-  CheckCheck: 'check',
-  CheckCircle: 'check-circle',
-  ChevronDown: 'chevron-down',
-  ChevronLeft: 'chevron-left',
-  ChevronRight: 'chevron-right',
-  ChevronUp: 'chevron-up',
-  ClipboardList: 'clipboard',
-  Clock: 'clock',
-  CreditCard: 'credit-card',
-  Circle: 'circle',
-  CircleAlert: 'alert-circle',
-  CircleCheck: 'check-circle',
-  CircleDollarSign: 'dollar-sign',
-  CircleUserRound: 'user',
-  AlertCircle: 'alert-circle',
-  Lock: 'lock',
-  Sliders: 'sliders',
-  CloudUpload: 'upload-cloud',
-  TrendingUp: 'trending-up',
-  TrendingDown: 'trending-down',
-  Minus: 'minus',
-  DollarSign: 'dollar-sign',
-  Banknote: 'credit-card',
-  QrCode: 'grid',
-  ExternalLink: 'external-link',
-  Download: 'download',
-  Eye: 'eye',
-  EyeOff: 'eye-off',
-  FileText: 'file-text',
-  FileVideo: 'video',
-  FlipHorizontal: 'repeat',
-  Globe: 'globe',
-  Twitter: 'twitter',
-  Facebook: 'facebook',
-  Linkedin: 'linkedin',
+export type IconUsage = 
+  | 'navigation'
+  | 'toolbar'
+  | 'card'
+  | 'input';
+
+// Map usage presets to exact pixel sizes requested
+const USAGE_SIZES: Record<IconUsage, number> = {
+  navigation: 24,
+  toolbar: 22,
+  card: 20,
+  input: 18,
+};
+
+// ─── Direct mappings from friendly names to Ionicons / Feather ─────────────────
+const ionicMap: Record<string, { outline: keyof typeof Ionicons.glyphMap; fill: keyof typeof Ionicons.glyphMap }> = {
+  Home: { outline: 'home-outline', fill: 'home' },
+  CreditCard: { outline: 'card-outline', fill: 'card' },
+  Wallet: { outline: 'wallet-outline', fill: 'wallet' },
+  User: { outline: 'person-outline', fill: 'person' },
+  ClipboardList: { outline: 'clipboard-outline', fill: 'clipboard' },
+  Search: { outline: 'search-outline', fill: 'search' },
+  Sliders: { outline: 'settings-outline', fill: 'settings' },
+  Printer: { outline: 'print-outline', fill: 'print' },
+  Bell: { outline: 'notifications-outline', fill: 'notifications' },
+  Users: { outline: 'people-outline', fill: 'people' },
+  BarChart2: { outline: 'bar-chart-outline', fill: 'bar-chart' },
+  Copy: { outline: 'copy-outline', fill: 'copy' },
+  Share2: { outline: 'share-outline', fill: 'share' },
+  Plus: { outline: 'add-outline', fill: 'add' },
+  X: { outline: 'close-outline', fill: 'close' },
+  BadgePercent: { outline: 'pricetag-outline', fill: 'pricetag' },
+  AlertCircle: { outline: 'alert-circle-outline', fill: 'alert-circle' },
+  ChevronRight: { outline: 'chevron-forward-outline', fill: 'chevron-forward' },
+  ChevronLeft: { outline: 'chevron-back-outline', fill: 'chevron-back' },
+  ChevronUp: { outline: 'chevron-up-outline', fill: 'chevron-up' },
+  ChevronDown: { outline: 'chevron-down-outline', fill: 'chevron-down' },
+  PenLine: { outline: 'create-outline', fill: 'create' },
+  Trash2: { outline: 'trash-outline', fill: 'trash' },
+  BadgeCheck: { outline: 'checkmark-circle-outline', fill: 'checkmark-circle' },
+  Nfc: { outline: 'radio-outline', fill: 'radio' },
+  Camera: { outline: 'camera-outline', fill: 'camera' },
+  Lock: { outline: 'lock-closed-outline', fill: 'lock-closed' },
+  MapPin: { outline: 'pin-outline', fill: 'pin' },
+  Mail: { outline: 'mail-outline', fill: 'mail' },
+  Phone: { outline: 'call-outline', fill: 'call' },
+  Info: { outline: 'information-circle-outline', fill: 'information-circle' },
+  ShieldCheck: { outline: 'shield-checkmark-outline', fill: 'shield-checkmark' },
+  ExternalLink: { outline: 'open-outline', fill: 'open' },
+  Download: { outline: 'download-outline', fill: 'download' },
+  CheckCheck: { outline: 'checkmark-done-outline', fill: 'checkmark-done' },
+  Clock: { outline: 'time-outline', fill: 'time' },
+  Eye: { outline: 'eye-outline', fill: 'eye' },
+  EyeOff: { outline: 'eye-off-outline', fill: 'eye-off' },
+  Star: { outline: 'star-outline', fill: 'star' },
+  Heart: { outline: 'heart-outline', fill: 'heart' },
+  UserRound: { outline: 'person-outline', fill: 'person' },
+  Briefcase: { outline: 'briefcase-outline', fill: 'briefcase' },
+  Link: { outline: 'link-outline', fill: 'link' },
+  PlusSimple: { outline: 'add-outline', fill: 'add' },
+  LogOut: { outline: 'log-out-outline', fill: 'log-out' },
+};
+
+const featherMap: Record<string, keyof typeof Feather.glyphMap> = {
   Home: 'home',
-  History: 'clock',
-  Image: 'image',
-  Info: 'info',
-  Instagram: 'instagram',
-  Link: 'link',
-  LogOut: 'log-out',
-  Loader: 'loader',
-  Loader2: 'loader',
+  CreditCard: 'credit-card',
+  Wallet: 'credit-card',
+  User: 'user',
+  ClipboardList: 'clipboard',
+  Search: 'search',
+  Sliders: 'sliders',
+  Printer: 'printer',
+  Bell: 'bell',
+  Users: 'users',
+  BarChart2: 'bar-chart-2',
+  Copy: 'copy',
+  Share2: 'share-2',
+  Plus: 'plus',
+  X: 'x',
+  BadgePercent: 'tag',
+  AlertCircle: 'alert-circle',
+  ChevronRight: 'chevron-right',
+  ChevronLeft: 'chevron-left',
+  ChevronUp: 'chevron-up',
+  ChevronDown: 'chevron-down',
+  PenLine: 'edit-2',
+  Trash2: 'trash-2',
+  BadgeCheck: 'check-circle',
+  Nfc: 'rss',
+  Camera: 'camera',
+  Lock: 'lock',
   MapPin: 'map-pin',
   Mail: 'mail',
-  MoreHorizontal: 'more-horizontal',
-  MoreVertical: 'more-vertical',
-  Nfc: 'rss',
-  Package: 'package',
-  PenLine: 'edit-2',
   Phone: 'phone',
-  Printer: 'printer',
-  Plus: 'plus',
-  PlusSimple: 'plus',
-  XCircle: 'x-circle',
-  RefreshCw: 'refresh-cw',
-  RotateCcw: 'rotate-ccw',
-  Restart: 'rotate-ccw',
-  ScanLine: 'maximize',
-  Search: 'search',
-  Settings: 'settings',
-  Save: 'save',
-  Send: 'send',
-  Share: 'share-2',
-  Share2: 'share-2',
-  Shield: 'shield',
+  Info: 'info',
   ShieldCheck: 'shield',
-  Snowflake: 'wind',
-  Sparkles: 'sun',
-  Tag: 'tag',
-  Target: 'target',
-  Trash2: 'trash-2',
-  TriangleAlert: 'alert-triangle',
-  Truck: 'truck',
-  Upload: 'upload',
-  User: 'user',
-  UserPlus: 'user-plus',
-  UserRound: 'user',
-  Users: 'users',
-  Wallet: 'credit-card',
-  X: 'x',
-  Zap: 'zap',
-  ZapOff: 'zap-off',
-  Bolt: 'zap',
-  Pause: 'pause',
-  Play: 'play',
+  ExternalLink: 'external-link',
+  Download: 'download',
+  CheckCheck: 'check',
+  Clock: 'clock',
+  Eye: 'eye',
+  EyeOff: 'eye-off',
+  Star: 'star',
+  Heart: 'heart',
 };
 
-import * as Solar from '@solar-icons/react-native';
-
-// Fallback safety check for name mapping
-const getFeatherName = (name: string): keyof typeof Feather.glyphMap => {
-  const mappedName = icons[name];
-  if (mappedName && mappedName in Feather.glyphMap) {
-    return mappedName;
-  }
-  // Try direct lookup
-  if (name in Feather.glyphMap) {
-    return name as any;
-  }
-  // General fallbacks
-  if (name.toLowerCase().includes('user')) return 'user';
-  if (name.toLowerCase().includes('arrow')) return 'arrow-left';
-  if (name.toLowerCase().includes('check')) return 'check';
-  return 'info';
+// Solar specific overrides mapping
+const solarKeyMap: Record<string, string> = {
+  Home: 'Home',
+  CreditCard: 'Card2',
+  Wallet: 'Wallet',
+  User: 'User',
+  ClipboardList: 'ClipboardList',
+  Search: 'Magnifier',
+  Sliders: 'Settings',
+  Printer: 'Printer',
+  Bell: 'Bell',
+  Users: 'UsersGroupTwoRounded',
+  BarChart2: 'Chart',
+  Copy: 'Copy',
+  Share2: 'Share',
+  Plus: 'AddCircle',
+  X: 'CloseCircle',
+  BadgePercent: 'Sale',
+  AlertCircle: 'DangerCircle',
+  ChevronRight: 'AltArrowRight',
+  ChevronLeft: 'AltArrowLeft',
+  ChevronUp: 'AltArrowUp',
+  ChevronDown: 'AltArrowDown',
+  PenLine: 'Pen',
+  Trash2: 'TrashBinTrash',
+  BadgeCheck: 'CheckCircle',
+  Nfc: 'Scanner',
+  Camera: 'Camera',
+  Lock: 'Lock',
+  MapPin: 'MapPoint',
+  Mail: 'Letter',
+  Phone: 'Phone',
+  Info: 'InfoSquare',
+  ShieldCheck: 'ShieldCheck',
+  ExternalLink: 'Login',
+  Download: 'Download',
+  CheckCheck: 'CheckCircle',
+  Clock: 'ClockCircle',
+  Eye: 'Eye',
+  EyeOff: 'EyeClosed',
+  UserRound: 'User',
+  Briefcase: 'Case',
+  Link: 'Link',
+  PlusSimple: 'AddCircle',
+  LogOut: 'Logout',
 };
 
-export type AppIconName = string;
-
-interface AppIconProps extends Omit<FeatherIconProps, 'size' | 'color' | 'name'> {
-  name: AppIconName;
+interface AppIconProps extends Omit<ComponentProps<typeof Feather>, 'size' | 'color' | 'name'> {
+  name: string;
+  variant?: IconVariant;
+  usage?: IconUsage;
   size?: number;
   color?: string;
 }
 
 export function AppIcon({
   name,
-  size = DEFAULT_ICON_SIZE,
+  variant,
+  usage,
+  size,
   color,
   ...rest
 }: AppIconProps) {
   const { colors } = usePreferences();
   const resolvedColor = color ?? colors.textPrimary;
+  
+  // Resolve size based on usage preset or direct size prop
+  const resolvedSize = size ?? (usage ? USAGE_SIZES[usage] : DEFAULT_ICON_SIZE);
 
-  // Map requested icon names to Solar bold/duotone components for premium Gen Z styling
-  const solarMap: Record<string, keyof typeof Solar> = {
-    Home: 'HomeBold',
-    CreditCard: 'CardBold',
-    Wallet: 'WalletBold',
-    User: 'UserBold',
-    ClipboardList: 'ClipboardListBold',
-    Search: 'MagnifierBold',
-    Sliders: 'SettingsBold',
-    Printer: 'PrinterBold',
-    Bell: 'BellBold',
-    Users: 'UsersGroupTwoRoundedBold',
-    BarChart2: 'ChartBold',
-    Copy: 'CopyBold',
-    Share2: 'ShareBold',
-    Plus: 'AddCircleBold',
-    X: 'CloseCircleBold',
-    BadgePercent: 'SaleBold',
-    AlertCircle: 'DangerCircleBold',
-    ChevronRight: 'AltArrowRightBold',
-    PenLine: 'PenBold',
-    Trash2: 'TrashBinTrashBold',
-    BadgeCheck: 'CheckCircleBold',
-  };
+  // Read preferred global variant if not explicitly passed
+  // We default to 'solar-duotone' or 'phosphor-duotone' for premium UI feel
+  const resolvedVariant = variant ?? 'solar-duotone';
 
-  const solarKey = solarMap[name];
-  if (solarKey && solarKey in Solar) {
-    const SolarIconComponent = Solar[solarKey] as any;
+  // 1. Solar Bold or Solar Duotone
+  if (resolvedVariant === 'solar-bold' || resolvedVariant === 'solar-duotone') {
+    const baseSolarName = solarKeyMap[name] || name;
+    const suffix = resolvedVariant === 'solar-duotone' ? 'BoldDuotone' : 'Bold';
+    const solarKey = `${baseSolarName}${suffix}`;
+
+    if (solarKey in Solar) {
+      const SolarIconComponent = Solar[solarKey as keyof typeof Solar] as any;
+      return (
+        <SolarIconComponent
+          size={resolvedSize}
+          color={resolvedColor}
+          {...rest}
+        />
+      );
+    }
+  }
+
+  // 2. Phosphor Duotone
+  if (resolvedVariant === 'phosphor-duotone') {
+    const mapping = ionicMap[name];
+    if (mapping) {
+      return (
+        <View style={{ width: resolvedSize, height: resolvedSize, alignItems: 'center', justifyContent: 'center' }}>
+          {/* Duotone Layer 1: Low opacity filled shape */}
+          <Ionicons
+            name={mapping.fill}
+            size={resolvedSize}
+            color={resolvedColor}
+            style={[StyleSheet.absoluteFillObject, { opacity: 0.15 }]}
+          />
+          {/* Duotone Layer 2: Full opacity outline shape */}
+          <Ionicons
+            name={mapping.outline}
+            size={resolvedSize}
+            color={resolvedColor}
+          />
+        </View>
+      );
+    }
+  }
+
+  // 3. Phosphor Fill
+  if (resolvedVariant === 'phosphor-fill') {
+    const mapping = ionicMap[name];
+    if (mapping) {
+      return (
+        <Ionicons
+          name={mapping.fill}
+          size={resolvedSize}
+          color={resolvedColor}
+          {...rest}
+        />
+      );
+    }
+  }
+
+  // 4. Lucide / Minimal Linear style (using Feather with consistent stroke weight)
+  if (resolvedVariant === 'lucide-minimal' || resolvedVariant === 'default') {
+    const featherName = featherMap[name] || name;
+    if (featherName in Feather.glyphMap) {
+      return (
+        <Feather
+          name={featherName as any}
+          size={resolvedSize}
+          color={resolvedColor}
+          strokeWidth={1.8} // Consistent, premium thin weight
+          {...rest}
+        />
+      );
+    }
+  }
+
+  // Fallback to basic Ionicons Outline
+  const fallbackMapping = ionicMap[name];
+  if (fallbackMapping) {
     return (
-      <SolarIconComponent
-        size={size}
+      <Ionicons
+        name={fallbackMapping.outline}
+        size={resolvedSize}
         color={resolvedColor}
         {...rest}
       />
     );
   }
 
-  const featherName = getFeatherName(name);
+  // Final fallback Feather representation
+  const finalFeatherName = featherMap[name] in Feather.glyphMap ? featherMap[name] : 'info';
   return (
     <Feather
-      name={featherName}
-      size={size}
+      name={finalFeatherName as any}
+      size={resolvedSize}
       color={resolvedColor}
+      strokeWidth={1.8}
       {...rest}
     />
   );

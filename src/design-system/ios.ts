@@ -11,7 +11,7 @@ export const iosFonts = {
 
 /** Apple HIG palette — neutral-first, semantic color for meaning only */
 export const premiumPalette = {
-  background: '#F2F2F7',
+  background: '#FFFFFF',
   surface: '#FFFFFF',
   surfaceSoft: '#F9F9FB',
   surfaceGlass: 'rgba(255,255,255,0.86)',
@@ -74,53 +74,53 @@ export const iosPalette = {
 
 export const iosTypography = {
   display: {
-    fontSize: 40,
-    lineHeight: 46,
+    fontSize: 42,
+    lineHeight: 50,
     fontFamily: iosFonts.black,
     fontWeight: '900',
-    letterSpacing: 0,
+    letterSpacing: -1.0,
   } satisfies TextStyle,
   h1: {
-    fontSize: 32,
-    lineHeight: 38,
+    fontSize: 34,
+    lineHeight: 40,
     fontFamily: iosFonts.extrabold,
     fontWeight: '800',
-    letterSpacing: 0,
+    letterSpacing: -0.6,
   } satisfies TextStyle,
   h2: {
     fontSize: 22,
     lineHeight: 28,
     fontFamily: iosFonts.bold,
     fontWeight: '700',
-    letterSpacing: 0,
+    letterSpacing: -0.4,
   } satisfies TextStyle,
   body: {
-    fontSize: 17,
+    fontSize: 16,
     lineHeight: 24,
     fontFamily: iosFonts.regular,
     fontWeight: '400',
-    letterSpacing: 0,
+    letterSpacing: -0.2,
   } satisfies TextStyle,
   bodySmall: {
-    fontSize: 15,
-    lineHeight: 21,
+    fontSize: 14,
+    lineHeight: 20,
     fontFamily: iosFonts.regular,
     fontWeight: '400',
-    letterSpacing: 0,
+    letterSpacing: -0.1,
   } satisfies TextStyle,
   caption: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 12,
+    lineHeight: 16,
     fontFamily: iosFonts.medium,
-    fontWeight: '500',
+    fontWeight: '550' as any, // Apple semibold feel
     letterSpacing: 0,
   } satisfies TextStyle,
   metric: {
-    fontSize: 34,
-    lineHeight: 40,
+    fontSize: 36,
+    lineHeight: 44,
     fontFamily: iosFonts.black,
     fontWeight: '900',
-    letterSpacing: 0,
+    letterSpacing: -0.8,
   } satisfies TextStyle,
 } as const;
 
@@ -140,8 +140,8 @@ export const iosDesign = {
   radius: {
     sm: 8,
     md: 12,
-    lg: 16,
-    xl: 20,
+    lg: 20,
+    xl: 24,
     hero: 24,
     pill: 999,
   },
@@ -175,24 +175,24 @@ export const iosDesign = {
   shadows: {
     card: {
       shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: Platform.select({ ios: 0.07, android: 0.08, default: 0.06 }),
-      shadowRadius: 14,
-      elevation: 1,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: Platform.select({ ios: 0.04, android: 0.05, default: 0.04 }),
+      shadowRadius: 18,
+      elevation: 2,
     } satisfies ViewStyle,
     floating: {
       shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: Platform.select({ ios: 0.12, android: 0.12, default: 0.1 }),
-      shadowRadius: 22,
-      elevation: 2,
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: Platform.select({ ios: 0.08, android: 0.08, default: 0.06 }),
+      shadowRadius: 24,
+      elevation: 4,
     } satisfies ViewStyle,
     control: {
-      shadowColor: '#1C1C1E',
-      shadowOffset: { width: 0, height: 1 },
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 2 },
       shadowOpacity: Platform.select({ ios: 0.03, android: 0.04, default: 0.03 }),
-      shadowRadius: 4,
-      elevation: 0,
+      shadowRadius: 8,
+      elevation: 1,
     } satisfies ViewStyle,
   },
   animation: {

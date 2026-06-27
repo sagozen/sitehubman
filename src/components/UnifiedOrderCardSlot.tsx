@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     opacity: 0.88,
   },
   skeleton: {
-    borderRadius: 16,
+    borderRadius: 24,
     borderWidth: 1.5,
     borderStyle: 'dashed',
     borderColor: 'rgba(37,150,190,0.45)',

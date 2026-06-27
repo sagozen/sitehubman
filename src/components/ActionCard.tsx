@@ -37,14 +37,14 @@ export function ActionCard({ title, subtitle, icon, onPress, disabled, style, ..
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: theme.radius.lg,
+    borderRadius: theme.radius.xl,
     ...theme.shadows.control,
   },
   content: {
-    padding: theme.spacing.md,
+    padding: theme.spacing.comfort,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.md,
+    gap: theme.spacing.comfort,
   },
   iconContainer: {
     width: 44,

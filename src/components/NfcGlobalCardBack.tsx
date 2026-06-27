@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   cardCompact: {
-    borderRadius: 20,
+    borderRadius: 24,
     shadowOffset: { width: 0, height: 14 },
     shadowRadius: 28,
     elevation: 6,

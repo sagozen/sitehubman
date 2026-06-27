@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Redirect, router } from 'expo-router';
 import { AppText } from '@/src/components/AppText';
@@ -10,11 +10,6 @@ import { getDashboardRoute } from '@/src/utils/authFlow';
 export default function IndexRoute() {
   const { user, isLoading, error } = useAuth();
 
-  useEffect(() => {
-    if (!isLoading) {
-      router.replace(user ? getDashboardRoute(user) : '/auth/login');
-    }
-  }, [user, isLoading]);
 
   if (isLoading) {
     return (

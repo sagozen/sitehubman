@@ -144,7 +144,7 @@ export const CUSTOMER_FLOWS: Record<CustomerFlowId, CustomerFlowDefinition> = {
     fallbackIcon: 'Package',
     tint: '#FF3B30',
     photo: actionPhotos.order,
-    route: appRoutes.accountOrders,
+    route: appRoutes.customer.orders,
     primary: false,
     metric: false,
   },

@@ -28,17 +28,34 @@ type FlippableNfcCardProps = {
 export function FlippableNfcCard(props: FlippableNfcCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [flipAnim] = useState(new Animated.Value(0));
+  const [scaleAnim] = useState(new Animated.Value(1));
 
   function handleFlip() {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const toValue = isFlipped ? 0 : 1;
     setIsFlipped(!isFlipped);
-    Animated.spring(flipAnim, {
-      toValue,
-      friction: 8,
-      tension: 10,
-      useNativeDriver: true,
-    }).start();
+    
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.94,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+      Animated.parallel([
+        Animated.spring(flipAnim, {
+          toValue,
+          friction: 8,
+          tension: 10,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1.0,
+          friction: 6,
+          tension: 12,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
   }
 
   const frontInterpolate = flipAnim.interpolate({
@@ -57,7 +74,7 @@ export function FlippableNfcCard(props: FlippableNfcCardProps) {
       <Animated.View
         style={[
           styles.cardSide,
-          { transform: [{ rotateY: frontInterpolate }] },
+          { transform: [{ rotateY: frontInterpolate }, { scale: scaleAnim }] },
           isFlipped && styles.hidden,
         ]}
         pointerEvents={isFlipped ? 'none' : 'auto'}
@@ -82,7 +99,7 @@ export function FlippableNfcCard(props: FlippableNfcCardProps) {
         style={[
           styles.cardSide,
           styles.backSide,
-          { transform: [{ rotateY: backInterpolate }] },
+          { transform: [{ rotateY: backInterpolate }, { scale: scaleAnim }] },
           !isFlipped && styles.hidden,
         ]}
         pointerEvents={!isFlipped ? 'none' : 'auto'}

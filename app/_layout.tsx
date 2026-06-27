@@ -24,7 +24,14 @@ function RootLayout() {
 
         <GuestGateProvider>
 
-          <Stack screenOptions={{ headerShown: false }}>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              animation: 'slide_from_right',
+              gestureEnabled: true,
+              gestureDirection: 'horizontal',
+            }}
+          >
 
             <Stack.Screen name="index" />
 
@@ -39,6 +46,8 @@ function RootLayout() {
             <Stack.Screen name="admin" />
 
             <Stack.Screen name="account" />
+
+            <Stack.Screen name="customer" />
 
             <Stack.Screen name="new-order" />
 
@@ -65,6 +74,12 @@ function RootLayout() {
             <Stack.Screen name="scan" options={{ headerShown: false }} />
 
             <Stack.Screen name="nfc-demo" options={{ headerShown: false }} />
+
+            <Stack.Screen name="qr-generator" options={{ headerShown: false }} />
+
+            <Stack.Screen name="studio" options={{ headerShown: false }} />
+
+            <Stack.Screen name="icon-preview" options={{ headerShown: false }} />
 
             <Stack.Screen name="guest-analytics" options={{ headerShown: false }} />
 

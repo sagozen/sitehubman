@@ -1,12 +1,12 @@
-import { View, StyleSheet, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable, Image } from 'react-native';
 import { AppText } from '@/src/components/AppText';
-import { AddCircleBoldDuotone, ShareBoldDuotone, ScannerBoldDuotone, BoxBoldDuotone } from '@solar-icons/react-native';
+import { HapticTap } from '@/src/utils/haptics';
 
 const ACTIONS = [
-  { id: 'create', label: 'Create Card', icon: AddCircleBoldDuotone, color: '#2596BE' },
-  { id: 'share', label: 'Share', icon: ShareBoldDuotone, color: '#7C3AED' },
-  { id: 'scan', label: 'Scan', icon: ScannerBoldDuotone, color: '#059669' },
-  { id: 'orders', label: 'Track', icon: BoxBoldDuotone, color: '#D97706' },
+  { id: 'create', label: 'Create Card', image: require('@/assets/images/3d_create_card_v2.png') },
+  { id: 'share', label: 'Share', image: require('@/assets/images/3d_share_card_v2.png') },
+  { id: 'scan', label: 'Scan', image: require('@/assets/images/3d_scan_card_v2.png') },
+  { id: 'orders', label: 'Track', image: require('@/assets/images/3d_track_card_v2.png') },
 ];
 
 export function QuickActionGrid({ onActionPress }: { onActionPress: (id: string) => void }) {
@@ -16,10 +16,13 @@ export function QuickActionGrid({ onActionPress }: { onActionPress: (id: string)
         <Pressable
           key={action.id}
           style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-          onPress={() => onActionPress(action.id)}
+          onPress={() => {
+            HapticTap.light();
+            onActionPress(action.id);
+          }}
         >
           <View style={styles.iconWrap}>
-            <action.icon size={32} color={action.color} />
+            <Image source={action.image} style={styles.iconImage} resizeMode="contain" />
           </View>
           <AppText style={styles.label}>{action.label}</AppText>
         </Pressable>
@@ -39,7 +42,7 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   cardPressed: {
     transform: [{ scale: 0.94 }],
@@ -52,11 +55,18 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.03,
     shadowRadius: 12,
-    elevation: 3,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(60, 60, 67, 0.04)',
+    overflow: 'hidden',
+  },
+  iconImage: {
+    width: 60,
+    height: 60,
   },
   label: {
     fontSize: 12,

@@ -4,14 +4,17 @@ export const appRoutes = {
   customerTabs: '/(tabs)',
   accountOrders: '/account/orders',
   customerConnections: '/(tabs)/connections',
+  customerAnalysis: '/(tabs)/profile',
+  customerSettings: '/(tabs)/settings',
+  customerShare: '/(tabs)/share',
   /** @deprecated Use customerConnections — kept for cached guest routes */
   customerConnectionsLegacy: '/(tabs)/attendance',
   scan: '/scan',
   nfcDemo: '/nfc-demo',
   qrGenerator: '/qr-generator',
+  studio: '/studio',
   guestAnalytics: '/guest-analytics',
   guestDesign: '/guest-design',
-  studio: '/studio',
   guestCardPreview: '/card-preview/[cardId]',
   /** @deprecated Deep links only — redirects to guestDesign */
   guestChooseCard: '/guest-choose-card',
@@ -21,6 +24,15 @@ export const appRoutes = {
   guestPostLoginChoice: '/guest-post-login-choice',
   newOrder: '/new-order',
   orderDetail: '/order-detail/[orderId]',
+  editBio: '/edit-bio',
+  themePicker: '/theme-picker',
+  customer: {
+    root: '/customer',
+    orders: '/customer/orders',
+    templates: '/customer/templates',
+    profile: '/customer/profile',
+    notifications: '/customer/notifications',
+  },
   sales: {
     root: '/sales',
     orders: '/sales/orders',
@@ -28,5 +40,7 @@ export const appRoutes = {
     payouts: '/sales/payouts',
     notifications: '/sales/notifications',
     settings: '/sales/settings',
+    customers: '/sales/customers',
+    me: '/sales/me',
   },
 } as const;

@@ -30,7 +30,7 @@ import { formatOrderTotal } from '@/src/utils/orderPricing';
 import type { Order } from '@/src/types/models';
 
 // ─── Tokens ─────────────────────────────────────────────────────────────────
-const BACKGROUND = '#F5F5F7';
+const BACKGROUND = '#FFFFFF';
 const SURFACE = '#FFFFFF';
 const INK = '#1C1C1E';
 const MUTED = '#8E8E93';
@@ -83,11 +83,14 @@ export default function SalesDashboardScreen() {
             <AppText style={s.headerSub}>NFC Global Sales · Today</AppText>
           </View>
           <View style={s.headerRight}>
-            <Pressable style={s.bellBtn}>
+            <Pressable 
+              style={s.bellBtn}
+              onPress={() => router.push(appRoutes.sales.notifications as any)}
+            >
               <BellBoldDuotone size={24} color={INK} />
               <View style={s.bellDot} />
             </Pressable>
-            <Pressable onPress={() => router.push('/sales/me' as any)}>
+            <Pressable onPress={() => router.push(appRoutes.sales.me as any)}>
               {user?.telegramPhotoUrl ? (
                 <Image source={{ uri: user.telegramPhotoUrl }} style={s.smallAvatar} />
               ) : (
@@ -137,7 +140,7 @@ export default function SalesDashboardScreen() {
               icon={<UserBoldDuotone size={24} color="#5856D6" />}
               label="CRM Leads"
               bgColor="#EAE9FA"
-              onPress={() => router.push('/sales/customers' as any)}
+              onPress={() => router.push(appRoutes.sales.customers as any)}
             />
             <QuickActionItem
               icon={<DocumentBoldDuotone size={24} color="#007AFF" />}

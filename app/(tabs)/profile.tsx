@@ -9,8 +9,8 @@ const GuestProfileScreen = lazy(() =>
 );
 
 const CustomerProfileScreen = lazy(() =>
-  import('@/src/features/customer/CustomerAnalysisScreen').then((m) => ({
-    default: m.CustomerAnalysisScreen,
+  import('@/src/features/customer/CustomerProfileScreen').then((m) => ({
+    default: m.CustomerProfileScreen,
   }))
 );
 

@@ -1,11 +1,3 @@
-/**
- * GuestDesignScreen — MVP single-scroll card builder.
- * Inspired by HiHello / Taplink onboarding:
- * 1. Live card preview (always visible at top)
- * 2. Fill your info
- * 3. Pick card style (virtual or physical + color)
- * 4. Choose payment → save
- */
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -18,12 +10,15 @@ import {
   TextInput,
   View,
   useWindowDimensions,
+  type TextStyle,
+  type ViewStyle,
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   formatFooterDualPrice,
   getEcardPriceUsd,
@@ -64,7 +59,7 @@ function FieldRow({
   return (
     <Pressable
       onPress={() => ref.current?.focus()}
-      style={[fi.row, last && fi.rowLast]}
+      style={[fi.row, last && fi.rowLast] as ViewStyle[]}
     >
       <AppIcon name={icon} size={18} color={INK} />
       <TextInput
@@ -80,9 +75,9 @@ function FieldRow({
   );
 }
 const fi = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: 13, paddingHorizontal: 18, minHeight: 62, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(17,17,17,0.06)', backgroundColor: SURFACE },
-  rowLast: { borderBottomWidth: 0 },
-  input: { flex: 1, fontSize: 16, fontWeight: '700', color: INK, padding: 0 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 13, paddingHorizontal: 18, minHeight: 62, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(17,17,17,0.06)', backgroundColor: SURFACE } as ViewStyle,
+  rowLast: { borderBottomWidth: 0 } as ViewStyle,
+  input: { flex: 1, fontSize: 16, fontWeight: '700', color: INK, padding: 0 } as TextStyle,
 });
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -101,7 +96,7 @@ export function GuestDesignScreen() {
 
   // Card style
   const [cardType, setCardType]   = useState<'virtual' | 'physical'>('virtual');
-  const [styleIdx, setStyleIdx]   = useState(0);           // 0 = black, 1 = green
+  const [styleIdx, setStyleIdx]   = useState(0);
   const [product, setProduct]     = useState<ProductType>('pvc_card');
   const [cardDesign, setCardDesign] = useState<CardDesign>('classic_black');
 
@@ -112,7 +107,7 @@ export function GuestDesignScreen() {
   const [saving, setSaving] = useState(false);
   const [loadingDraft, setLoadingDraft] = useState(true);
 
-  const cardWidth = Math.min(sw - 48, 360);
+  const cardWidth = Math.min(sw - 48, 340);
   const cardHeight = cardWidth / 1.586;
 
   const priceUsd = cardType === 'virtual' ? getEcardPriceUsd() : getPhysicalPriceUsd(product);
@@ -191,95 +186,101 @@ export function GuestDesignScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={insets.top}
       >
-        {/* ── Header ── */}
+        {/* ── Premium Apple-Editorial Header ── */}
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={10}>
             <AppIcon name="ChevronLeft" size={22} color={INK2} />
           </Pressable>
-          <AppText style={styles.headerTitle}>Studio</AppText>
+          <AppText style={styles.headerTitle}>Studio Design</AppText>
           <View style={styles.pricePill}>
             <AppText style={styles.priceT}>{formatFooterDualPrice(priceUsd)}</AppText>
           </View>
         </View>
 
         <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-          <View style={styles.heroCopy}>
-            <AppText style={styles.heroTitle}>Design your card</AppText>
-            <AppText style={styles.heroSub}>Preview updates live — complete in 60 seconds.</AppText>
-          </View>
-
-          {/* ── CARD STAGE ── */}
-          <View style={styles.previewStage}>
-            <View style={styles.cardStackBack} />
-            <View style={styles.previewWrap}>
-              <NfcGlobalCardFace
-                fullName={name || 'Your Name'}
-                title={jobTitle}
-                company={company}
-                email={email}
-                phone={phone}
-                width={cardWidth}
-                height={cardHeight}
-              />
+          {/* Edge-to-Edge Premium Hero Section with Glass Overlay */}
+          <LinearGradient
+            colors={['rgba(37,150,190,0.06)', 'rgba(255,255,255,0)']}
+            style={styles.heroBanner}
+          >
+            <View style={styles.heroCopy}>
+              <AppText style={styles.heroTitle}>Customize Identity</AppText>
+              <AppText style={styles.heroSub}>Choose style options and fill profile credentials</AppText>
             </View>
-            <View style={styles.liveRow}>
-              <View style={styles.liveDot} />
-              <AppText style={styles.previewHint}>Live preview</AppText>
+
+            {/* Premium Card Stage with Depth Projection */}
+            <View style={styles.previewStage}>
+              <View style={styles.cardShadowBack} />
+              <View style={styles.previewWrap}>
+                <NfcGlobalCardFace
+                  fullName={name || 'Your Full Name'}
+                  title={jobTitle || 'Verified NFC Member'}
+                  company={company || 'NFC Global'}
+                  email={email || 'member@nfcglobal.co'}
+                  phone={phone || undefined}
+                  width={cardWidth}
+                  height={cardHeight}
+                />
+              </View>
+              <View style={styles.liveRow}>
+                <View style={styles.liveDot} />
+                <AppText style={styles.previewHint}>Live Production Preview</AppText>
+              </View>
+            </View>
+          </LinearGradient>
+
+          {/* Sections with Soft Visual Grouping and comfortable whitespace */}
+          <View style={styles.sectionsContainer}>
+            {/* Identity Group */}
+            <View style={styles.section}>
+              <AppText style={styles.sectionTitle}>Profile details</AppText>
+              <View style={styles.card}>
+                <FieldRow icon="User"  value={name}  onChange={setName}  placeholder="Full name *" autoCapitalize="words" />
+                <FieldRow icon="Phone" value={phone} onChange={setPhone} placeholder="Phone *" keyboardType="phone-pad" />
+                <FieldRow icon="Mail"  value={email} onChange={setEmail} placeholder="Email *" keyboardType="email-address" autoCapitalize="none" last />
+              </View>
+            </View>
+
+            {/* Delivery / Choice Group */}
+            <View style={styles.section}>
+              <AppText style={styles.sectionTitle}>Product format</AppText>
+              <View style={styles.segmentRow}>
+                {(['virtual', 'physical'] as const).map((t) => (
+                  <Pressable
+                    key={t}
+                    onPress={() => { setCardType(t); void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+                    style={[styles.segBtn, cardType === t && styles.segBtnActive] as ViewStyle[]}
+                  >
+                    <AppText style={[styles.segBtnT, cardType === t && styles.segBtnTActive] as TextStyle[]}>
+                      {t === 'virtual' ? 'E-Card (Digital Only)' : 'Physical Card (Metal/Wood/PVC)'}
+                    </AppText>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            {/* Payment Method Group */}
+            <View style={styles.section}>
+              <AppText style={styles.sectionTitle}>Checkout options</AppText>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.payScroll}>
+                {paymentMethods.map((pm) => (
+                  <Pressable
+                    key={pm.id}
+                    onPress={() => { setPaymentMethod(pm.id); void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+                    style={[styles.payPill, paymentMethod === pm.id && styles.payPillActive] as ViewStyle[]}
+                  >
+                    <AppText style={[styles.payPillT, paymentMethod === pm.id && styles.payPillTActive] as TextStyle[]}>
+                      {pm.labelEn.replace('Pay with ', '')}
+                    </AppText>
+                  </Pressable>
+                ))}
+              </ScrollView>
             </View>
           </View>
-
-          {/* ── IDENTITY (ZARA-SIMPLE) ── */}
-          <View style={styles.section}>
-            <AppText style={styles.sectionTitle}>Your details</AppText>
-            <View style={styles.card}>
-              <FieldRow icon="User"  value={name}  onChange={setName}  placeholder="Full name *" autoCapitalize="words" />
-              <FieldRow icon="Phone" value={phone} onChange={setPhone} placeholder="Phone *" keyboardType="phone-pad" />
-              <FieldRow icon="Mail"  value={email} onChange={setEmail} placeholder="Email *" keyboardType="email-address" autoCapitalize="none" last />
-            </View>
-          </View>
-
-          {/* ── DELIVERY ── */}
-          <View style={styles.section}>
-            <AppText style={styles.sectionTitle}>Card type</AppText>
-            <View style={styles.segmentRow}>
-              {(['virtual', 'physical'] as const).map((t) => (
-                <Pressable
-                  key={t}
-                  onPress={() => { setCardType(t); void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
-                  style={[styles.segBtn, cardType === t && styles.segBtnActive]}
-                >
-                  <AppText style={[styles.segBtnT, cardType === t && styles.segBtnTActive]}>
-                    {t === 'virtual' ? 'Virtual' : 'Physical'}
-                  </AppText>
-                </Pressable>
-              ))}
-            </View>
-          </View>
-
-          {/* ── PAYMENT ── */}
-          <View style={styles.section}>
-            <AppText style={styles.sectionTitle}>Payment</AppText>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.payScroll}>
-              {paymentMethods.map((pm) => (
-                <Pressable
-                  key={pm.id}
-                  onPress={() => { setPaymentMethod(pm.id); void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
-                  style={[styles.payPill, paymentMethod === pm.id && styles.payPillActive]}
-                >
-                  <AppText style={[styles.payPillT, paymentMethod === pm.id && styles.payPillTActive]}>
-                    {pm.labelEn.replace('Pay with ', '')}
-                  </AppText>
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
-
-          {/* Spacer for footer */}
-          <View style={{ height: 20 }} />
         </IosScrollView>
 
-        {/* ── SAVE / ORDER BUTTON ── */}
-        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        {/* ── Premium Fixed Footer ── */}
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }] as ViewStyle[]}>
           <Pressable
             onPress={() => void handleSave()}
             disabled={saving || !infoComplete}
@@ -287,7 +288,7 @@ export function GuestDesignScreen() {
               styles.saveBtn,
               (!infoComplete || saving) && styles.saveBtnOff,
               pressed && infoComplete && !saving && styles.saveBtnPressed,
-            ]}
+            ] as ViewStyle[]}
             accessibilityRole="button"
             testID="guest-design-save"
           >
@@ -296,7 +297,7 @@ export function GuestDesignScreen() {
               : <>
                   <AppIcon name="Check" size={19} color="#FFFFFF" />
                   <AppText style={styles.saveBtnT}>
-                    {cardType === 'physical' ? 'Order card' : 'Save card'}
+                    {cardType === 'physical' ? 'Order Premium Card' : 'Activate E-Card'}
                   </AppText>
                 </>}
           </Pressable>
@@ -307,70 +308,70 @@ export function GuestDesignScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: BG },
-  flex: { flex: 1 },
-  loadingCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: BG },
+  safe: { flex: 1, backgroundColor: BG } as ViewStyle,
+  flex: { flex: 1 } as ViewStyle,
+  loadingCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: BG } as ViewStyle,
 
-  // Header
-  header: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 24, paddingVertical: 12, backgroundColor: BG },
-  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { flex: 1, fontSize: 18, fontWeight: '900', color: INK, letterSpacing: 0 },
-  pricePill: { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 999, backgroundColor: INK },
-  priceT: { fontSize: 12, fontWeight: '800', color: BRAND },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingVertical: 16, backgroundColor: BG } as ViewStyle,
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6, elevation: 2 } as ViewStyle,
+  headerTitle: { flex: 1, fontSize: 17, fontWeight: '800', color: INK, letterSpacing: -0.4 } as TextStyle,
+  pricePill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: INK } as ViewStyle,
+  priceT: { fontSize: 12, fontWeight: '800', color: BRAND } as TextStyle,
 
-  scroll: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 20, gap: 28 },
+  scroll: { paddingBottom: 40 } as ViewStyle,
 
-  heroCopy: { gap: 6 },
-  heroTitle: { fontSize: 32, lineHeight: 36, fontWeight: '900', color: INK, letterSpacing: -0.5 },
-  heroSub: { fontSize: 15, fontWeight: '600', color: MUTED, lineHeight: 21 },
+  heroBanner: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 28, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.03)' } as ViewStyle,
+  heroCopy: { gap: 6, marginBottom: 24 } as ViewStyle,
+  heroTitle: { fontSize: 32, fontWeight: '900', color: INK, letterSpacing: -0.8 } as TextStyle,
+  heroSub: { fontSize: 14, fontWeight: '600', color: MUTED, lineHeight: 20 } as TextStyle,
 
-  // Preview
-  previewStage: { alignItems: 'center', paddingTop: 14, gap: 12 },
-  cardStackBack: {
+  // Premium depth card preview stage
+  previewStage: { alignItems: 'center', position: 'relative', paddingVertical: 12 } as ViewStyle,
+  cardShadowBack: {
     position: 'absolute',
-    top: 0,
-    width: '82%',
-    height: 38,
-    borderRadius: 24,
-    backgroundColor: '#DADAE0',
-  },
+    bottom: 24,
+    width: '75%',
+    height: 18,
+    backgroundColor: '#000000',
+    opacity: 0.06,
+    borderRadius: 99,
+    transform: [{ scaleX: 1.1 }],
+  } as ViewStyle,
   previewWrap: {
-    alignItems: 'center',
-    borderRadius: 28,
+    borderRadius: 24,
     overflow: 'hidden',
-    shadowColor: '#111111',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.22,
-    shadowRadius: 34,
-    elevation: 10,
-  },
-  liveRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: BRAND },
-  previewHint: { fontSize: 12, fontWeight: '800', color: MUTED },
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 18 },
+    shadowOpacity: 0.12,
+    shadowRadius: 28,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.04)',
+  } as ViewStyle,
+  liveRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 20 } as ViewStyle,
+  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: BRAND } as ViewStyle,
+  previewHint: { fontSize: 11, fontWeight: '800', color: MUTED, textTransform: 'uppercase', letterSpacing: 0.5 } as TextStyle,
 
-  // Sections
-  section: { gap: 10 },
-  sectionTitle: { fontSize: 22, fontWeight: '900', color: INK, letterSpacing: 0 },
-  card: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden' },
+  sectionsContainer: { paddingHorizontal: 20, paddingTop: 32, gap: 32 } as ViewStyle,
+  section: { gap: 12 } as ViewStyle,
+  sectionTitle: { fontSize: 20, fontWeight: '800', color: INK, letterSpacing: -0.4 } as TextStyle,
+  card: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(0,0,0,0.03)', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 10 } as ViewStyle,
 
-  // Segment
-  segmentRow: { flexDirection: 'row', gap: 10 },
-  segBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 22, backgroundColor: SURFACE, borderWidth: 1, borderColor: 'rgba(17,17,17,0.06)' },
-  segBtnActive: { backgroundColor: INK, borderColor: INK },
-  segBtnT: { fontSize: 14, fontWeight: '800', color: MUTED },
-  segBtnTActive: { color: '#FFFFFF' },
+  segmentRow: { flexDirection: 'column', gap: 10 } as ViewStyle,
+  segBtn: { width: '100%', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 16, backgroundColor: SURFACE, borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)' } as ViewStyle,
+  segBtnActive: { backgroundColor: INK, borderColor: INK } as ViewStyle,
+  segBtnT: { fontSize: 14, fontWeight: '700', color: MUTED } as TextStyle,
+  segBtnTActive: { color: '#FFFFFF' } as TextStyle,
 
-  // Payment
-  payScroll: { gap: 8, paddingRight: 4 },
-  payPill: { paddingHorizontal: 17, paddingVertical: 13, borderRadius: 999, backgroundColor: SURFACE, borderWidth: 1, borderColor: 'rgba(17,17,17,0.06)' },
-  payPillActive: { backgroundColor: INK, borderColor: INK },
-  payPillT: { fontSize: 14, fontWeight: '800', color: INK },
-  payPillTActive: { color: '#FFFFFF' },
+  payScroll: { gap: 8, paddingRight: 4 } as ViewStyle,
+  payPill: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: 999, backgroundColor: SURFACE, borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)' } as ViewStyle,
+  payPillActive: { backgroundColor: INK, borderColor: INK } as ViewStyle,
+  payPillT: { fontSize: 13, fontWeight: '750' as any, color: INK } as TextStyle,
+  payPillTActive: { color: '#FFFFFF' } as TextStyle,
 
-  // Footer CTA
-  footer: { paddingHorizontal: 24, paddingTop: 10, backgroundColor: BG },
-  saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, height: 58, borderRadius: 29, backgroundColor: INK },
-  saveBtnOff: { backgroundColor: '#C4CFDE', shadowOpacity: 0 },
-  saveBtnPressed: { opacity: 0.88, transform: [{ scale: 0.98 }] },
-  saveBtnT: { fontSize: 15, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.2 },
+  footer: { paddingHorizontal: 20, paddingTop: 12, backgroundColor: BG, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.04)' } as ViewStyle,
+  saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 52, borderRadius: 16, backgroundColor: INK } as ViewStyle,
+  saveBtnOff: { backgroundColor: '#C4CFDE', shadowOpacity: 0 } as ViewStyle,
+  saveBtnPressed: { opacity: 0.92, transform: [{ scale: 0.98 }] } as ViewStyle,
+  saveBtnT: { fontSize: 14, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.2 } as TextStyle,
 });
