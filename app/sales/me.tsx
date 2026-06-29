@@ -1,5 +1,5 @@
-import { SalesProfileScreen } from '@/src/features/profile/RoleProfileScreen';
+import { SettingsScreen } from '@/src/features/settings/SettingsScreen';
 
 export default function SalesMeScreen() {
-  return <SalesProfileScreen />;
+  return <SettingsScreen />;
 }

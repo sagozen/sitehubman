@@ -3,7 +3,7 @@ import { PanResponder, View, StyleSheet } from 'react-native';
 import { AuthGate } from '@/src/components/AuthGate';
 import { LiquidTabBar } from '@/src/components/LiquidTabBar';
 
-const SALES_TABS = ['dashboard', 'orders', 'payouts', 'settings'];
+const SALES_TABS = ['dashboard', 'orders', 'payouts', 'me'];
 
 export default function SalesLayout() {
   const router = useRouter();
@@ -43,11 +43,12 @@ export default function SalesLayout() {
           <Tabs.Screen name="dashboard" options={{ title: 'Home' }} />
           <Tabs.Screen name="orders" options={{ title: 'Orders' }} />
           <Tabs.Screen name="payouts" options={{ title: 'Earnings' }} />
-          <Tabs.Screen name="settings" options={{ title: 'Settings' }} />
+          <Tabs.Screen name="me" options={{ title: 'Me' }} />
           <Tabs.Screen name="index" options={{ href: null, tabBarStyle: { display: 'none' } }} />
           <Tabs.Screen name="customers" options={{ href: null, tabBarStyle: { display: 'none' } }} />
           <Tabs.Screen name="notifications" options={{ href: null, tabBarStyle: { display: 'none' } }} />
           <Tabs.Screen name="new-order" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+          <Tabs.Screen name="settings" options={{ href: null, tabBarStyle: { display: 'none' } }} />
         </Tabs>
       </View>
     </AuthGate>

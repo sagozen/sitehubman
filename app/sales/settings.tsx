@@ -1,5 +1,5 @@
-import { SettingsScreen } from '@/src/features/settings/SettingsScreen';
+import { Redirect } from 'expo-router';
 
-export default function SalesSettingsScreen() {
-  return <SettingsScreen />;
+export default function SalesSettingsRedirect() {
+  return <Redirect href="/sales/me" />;
 }
