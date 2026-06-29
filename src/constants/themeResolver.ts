@@ -203,6 +203,7 @@ export function normalizeUiPreferences(raw: Partial<UiPreferences> | null | unde
     profileTheme,
     colorMode,
     typographyColor,
+    primaryCardId: raw?.primaryCardId,
   };
 }
 

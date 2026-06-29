@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Platform, Pressable, StyleSheet, View, Animated } from 'react-native';
+import { createShadow } from '@/src/utils/shadows';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/src/components/AppIcon';
@@ -128,11 +129,7 @@ const st = StyleSheet.create({
     borderRadius: 30,
     paddingHorizontal: 12,
     height: 60,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 8,
+    ...createShadow({ color: '#000', offset: { width: 0, height: 4 }, opacity: 0.08, radius: 16, elevation: 8 }),
   },
   side: {
     flex: 1,
@@ -182,11 +179,7 @@ const st = StyleSheet.create({
     backgroundColor: '#2596BE',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#2596BE',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
+    ...createShadow({ color: '#2596BE', offset: { width: 0, height: 4 }, opacity: 0.25, radius: 12, elevation: 8 }),
   },
   badge: {
     position: 'absolute',
@@ -635,13 +628,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dockShadow: {
-    ...(Platform.OS !== 'web' ? {
-      shadowColor: '#000000',
-      shadowOffset: { width: 0, height: -2 },
-      shadowOpacity: 0.05,
-      shadowRadius: 12,
-    } : {}),
-    elevation: 8,
+    ...createShadow({ color: '#000000', offset: { width: 0, height: -2 }, opacity: 0.05, radius: 12, elevation: 8 }),
   },
   dockShadowFlex: {
     flex: 1,
@@ -683,11 +670,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#007AFF',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.22,
-    shadowRadius: 12,
-    elevation: 10,
+    ...createShadow({ color: '#007AFF', offset: { width: 0, height: 5 }, opacity: 0.22, radius: 12, elevation: 10 }),
   },
   shareCenterButtonActive: {
     transform: [{ scale: 1.02 }],
@@ -782,10 +765,6 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#111111',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.24,
-    shadowRadius: 16,
-    elevation: 10,
+    ...createShadow({ color: '#111111', offset: { width: 0, height: 8 }, opacity: 0.24, radius: 16, elevation: 10 }),
   },
 });

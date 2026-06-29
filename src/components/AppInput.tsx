@@ -8,8 +8,8 @@ import {
   View,
   Pressable,
   ScrollView,
-  Platform,
 } from 'react-native';
+import { createShadow } from '@/src/utils/shadows';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -208,16 +208,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     justifyContent: 'flex-end',
     position: 'relative',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
-      },
-      android: {
-        elevation: 1,
-      },
+    ...createShadow({
+      color: '#000',
+      offset: { width: 0, height: 1 },
+      opacity: 0.05,
+      radius: 2,
+      elevation: 1,
     }),
   },
   focusedBorder: {

@@ -16,10 +16,12 @@ import { appRoutes } from '@/src/constants/navigation';
 import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useBioPage } from '@/src/hooks/useBioPage';
+import { usePreferences } from '@/src/hooks/usePreferences';
 import { uploadProfilePhoto } from '@/src/services/profilePhotoService';
 import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
 import { SEED_CARDS } from '@/src/data/seedCards';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { CarouselCard } from '@/src/components/CardStackCarousel';
 
 const BRAND = '#007AFF';
 const INK = '#000000';
@@ -41,6 +43,7 @@ type AccountRow = {
 export function CustomerProfileScreen() {
   const { user, signOutUser } = useAuth();
   const { bioPage, saveBioPage } = useBioPage(user?.id ?? '');
+  const { preferences, updatePreferences } = usePreferences();
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [cloudCard, setCloudCard] = useState<Awaited<ReturnType<typeof loadCustomerCloudCard>>>(null);
 
@@ -59,8 +62,8 @@ export function CustomerProfileScreen() {
   const photoUrl = bioPage?.photoUrl;
 
   const carouselCards = useMemo(() => {
-    if (SEED_CARDS.length > 0) return SEED_CARDS;
-    return [
+    const activePrimaryId = preferences.primaryCardId || 'card-primary';
+    const baseCards = SEED_CARDS.length > 0 ? SEED_CARDS : [
       {
         id: 'card-current',
         fullName: cardName || undefined,
@@ -69,10 +72,21 @@ export function CustomerProfileScreen() {
         email: cardEmail || undefined,
         profileUrl,
         cardId: cloudCard?.cardId,
-        isPrimary: true,
       },
     ];
-  }, [cardEmail, cardName, cardPhone, cardTitle, cloudCard?.cardId, profileUrl]);
+    return baseCards.map(c => ({
+      ...c,
+      isPrimary: c.id === activePrimaryId || (baseCards.length === 1 && c.id === 'card-current'),
+    }));
+  }, [preferences.primaryCardId, cardEmail, cardName, cardPhone, cardTitle, cloudCard?.cardId, profileUrl]);
+
+  const handleCardPress = useCallback(async (card: CarouselCard) => {
+    try {
+      await updatePreferences({ primaryCardId: card.id });
+    } catch (err) {
+      Alert.alert('Error', 'Could not update primary card.');
+    }
+  }, [updatePreferences]);
 
   const pickImage = useCallback(async () => {
     if (!user?.id) return;
@@ -189,10 +203,13 @@ export function CustomerProfileScreen() {
               {carouselCards.length} active
             </AppText>
           </View>
-          <CardStackCarousel
-            cards={carouselCards}
-            addCardHref={appRoutes.guestDesign}
-          />
+          <View style={styles.carouselWrapper}>
+            <CardStackCarousel
+              cards={carouselCards}
+              addCardHref={appRoutes.guestDesign}
+              onCardPress={handleCardPress}
+            />
+          </View>
           <View style={styles.carouselHint}>
             <AppIcon name="PlusSimple" size={12} color={BRAND} />
             <AppText style={styles.carouselHintText}>
@@ -318,6 +335,9 @@ const styles = StyleSheet.create({
 
   // Carousel
   carouselSection: { gap: 8 },
+  carouselWrapper: {
+    marginHorizontal: -16,
+  },
   carouselHint: {
     flexDirection: 'row',
     alignItems: 'center',

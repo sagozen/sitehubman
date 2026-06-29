@@ -6,9 +6,11 @@ import { router } from 'expo-router';
 import { appRoutes } from '@/src/constants/navigation';
 import { HapticTap } from '@/src/utils/haptics';
 import { MotionScale } from '@/src/utils/motion';
+import { usePreferences } from '@/src/hooks/usePreferences';
+import { SEED_CARDS } from '@/src/data/seedCards';
 
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = width - 32;
+const CARD_WIDTH = width - 48;
 
 const BRAND = '#2596BE';
 const INK = '#0A0A0F';
@@ -23,13 +25,19 @@ function getGreeting() {
 }
 
 export function CustomerHeroCard({ user }: any) {
-  const name = user?.displayName || 'Chanthean Sok';
-  const title = user?.title || 'Business Development Manager';
-  const company = user?.company || 'NFC Global';
+  const { preferences } = usePreferences();
+  const activeCardId = preferences.primaryCardId || 'card-primary';
+  const activeCard = SEED_CARDS.find(c => c.id === activeCardId) || SEED_CARDS[0];
+
+  const name = activeCard?.fullName || user?.displayName || 'Chanthean Sok';
+  const parts = (activeCard?.title || '').split(/[·/]/);
+  const title = parts[0]?.trim() || user?.title || 'Business Development Manager';
+  const company = parts[1]?.trim() || user?.company || 'NFC Global';
+
   const avatarUrl = user?.photoURL || user?.telegramPhotoUrl || '';
   const coverUrl = user?.coverURL || 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&q=80&w=1000';
 
-  const initial = (user?.displayName?.trim() || 'C')[0].toUpperCase();
+  const initial = (name.trim() || 'C')[0].toUpperCase();
 
   return (
     <View style={styles.container}>

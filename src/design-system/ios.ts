@@ -1,4 +1,5 @@
 import { Platform, TextStyle, ViewStyle } from 'react-native';
+import { createShadow } from '@/src/utils/shadows';
 
 export const iosFonts = {
   regular: Platform.select({ ios: 'System', android: 'sans-serif', web: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif', default: 'System' }),
@@ -173,28 +174,28 @@ export const iosDesign = {
   },
   hitTarget: 44,
   shadows: {
-    card: {
-      shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: Platform.select({ ios: 0.04, android: 0.05, default: 0.04 }),
-      shadowRadius: 18,
+    card: createShadow({
+      color: '#000000',
+      offset: { width: 0, height: 6 },
+      opacity: Platform.select({ ios: 0.04, android: 0.05, default: 0.04 }) ?? 0.04,
+      radius: 18,
       elevation: 2,
-    } satisfies ViewStyle,
-    floating: {
-      shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 12 },
-      shadowOpacity: Platform.select({ ios: 0.08, android: 0.08, default: 0.06 }),
-      shadowRadius: 24,
+    }),
+    floating: createShadow({
+      color: '#000000',
+      offset: { width: 0, height: 12 },
+      opacity: Platform.select({ ios: 0.08, android: 0.08, default: 0.06 }) ?? 0.06,
+      radius: 24,
       elevation: 4,
-    } satisfies ViewStyle,
-    control: {
-      shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: Platform.select({ ios: 0.03, android: 0.04, default: 0.03 }),
-      shadowRadius: 8,
+    }),
+    control: createShadow({
+      color: '#000000',
+      offset: { width: 0, height: 2 },
+      opacity: Platform.select({ ios: 0.03, android: 0.04, default: 0.03 }) ?? 0.03,
+      radius: 8,
       elevation: 1,
-    } satisfies ViewStyle,
-  },
+    }),
+  } satisfies Record<string, ViewStyle>,
   animation: {
     pressScale: 0.98,
     softPressScale: 0.99,

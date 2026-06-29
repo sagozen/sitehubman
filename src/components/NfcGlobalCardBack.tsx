@@ -1,4 +1,5 @@
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { createShadow } from '@/src/utils/shadows';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
 import { AppText } from '@/src/components/AppText';
@@ -107,17 +108,11 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
     backgroundColor: '#111111',
-    shadowColor: '#111111',
-    shadowOffset: { width: 0, height: 24 },
-    shadowOpacity: 0.28,
-    shadowRadius: 55,
-    elevation: 10,
+    ...createShadow({ color: '#111111', offset: { width: 0, height: 24 }, opacity: 0.28, radius: 55, elevation: 10 }),
   },
   cardCompact: {
     borderRadius: 24,
-    shadowOffset: { width: 0, height: 14 },
-    shadowRadius: 28,
-    elevation: 6,
+    ...createShadow({ color: '#111111', offset: { width: 0, height: 14 }, opacity: 0.28, radius: 28, elevation: 6 }),
   },
 
   // Magnetic stripe (placed higher up)

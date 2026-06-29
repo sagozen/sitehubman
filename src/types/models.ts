@@ -600,6 +600,7 @@ export interface UiPreferences {
   profileTheme: ProfileTheme;
   colorMode: 'light' | 'dark' | 'system';
   typographyColor: TypographyColorKey;
+  primaryCardId?: string;
 }
 
 // Notifications

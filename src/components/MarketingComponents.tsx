@@ -1,4 +1,5 @@
 import { Image, Pressable, StyleSheet, View, ImageSourcePropType, ViewStyle } from 'react-native';
+import { createShadow } from '@/src/utils/shadows';
 import { AppText } from '@/src/components/AppText';
 import { AppIcon } from '@/src/components/AppIcon';
 import { theme } from '@/src/constants/theme';
@@ -296,11 +297,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     borderWidth: 1,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 4,
+    ...createShadow({ color: '#000', offset: { width: 0, height: 6 }, opacity: 0.05, radius: 12, elevation: 4 }),
     marginBottom: 24,
   },
   heroImageContainer: {
@@ -367,11 +364,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 2,
+    ...createShadow({ color: '#000', offset: { width: 0, height: 4 }, opacity: 0.03, radius: 8, elevation: 2 }),
     marginBottom: 20,
   },
   featureImage: {
@@ -403,11 +396,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     borderWidth: 1,
     padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 3,
+    ...createShadow({ color: '#000', offset: { width: 0, height: 6 }, opacity: 0.04, radius: 10, elevation: 3 }),
     marginBottom: 24,
   },
   metaRow: {

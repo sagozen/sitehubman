@@ -2,6 +2,15 @@ import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { ErrorBoundary } from '@/src/components/ErrorBoundary';
+
+// Suppress React Native Web deprecation warnings for shadow* props.
+// These are removed once all style sheets are migrated to createShadow().
+const originalWarn = console.warn;
+console.warn = (...args: unknown[]) => {
+  const message = typeof args[0] === 'string' ? args[0] : '';
+  if (message.includes('"shadow*" style props are deprecated')) return;
+  originalWarn(...args);
+};
 import { ThemeStatusBar } from '@/src/components/ThemeStatusBar';
 import { AuthProvider } from '@/src/providers/AuthProvider';
 import { GuestGateProvider } from '@/src/providers/GuestGateProvider';
