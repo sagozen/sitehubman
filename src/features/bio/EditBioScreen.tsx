@@ -245,8 +245,7 @@ export function EditBioScreen() {
             <AppText style={styles.navSaveText}>{isSaving ? 'Saving...' : 'Done'}</AppText>
           </Pressable>
         </View>
-        <AppText style={styles.largeTitle}>Edit Profile</AppText>
-        <AppText style={styles.headerSub}>Customize what people see when scanning your card.</AppText>
+        <AppText style={styles.headerSub}>Customize what people see.</AppText>
       </View>
 
       <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
