@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Pressable, useWindowDimensions, type TextStyle, type ViewStyle } from 'react-native';
+import { createShadow } from '@/src/utils/shadows';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/src/components/AppText';
@@ -166,11 +167,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.06)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 2,
+    ...createShadow({ color: '#000', offset: { width: 0, height: 2 }, opacity: 0.03, radius: 6, elevation: 2 }),
   } as ViewStyle,
   headerCopy: { flex: 1, gap: 1 } as ViewStyle,
   title: { fontSize: 26, fontWeight: '900', color: '#111827', letterSpacing: -0.6 } as TextStyle,
@@ -184,9 +181,9 @@ const styles = StyleSheet.create({
   catBtnTextActive: { color: '#FFFFFF' } as TextStyle,
 
   scroll: { padding: 20, gap: 28, paddingBottom: 60 } as ViewStyle,
-  templateCard: { backgroundColor: '#FFFFFF', borderRadius: 28, overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.04)', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.04, shadowRadius: 20, elevation: 3 } as ViewStyle,
+  templateCard: { backgroundColor: '#FFFFFF', borderRadius: 28, overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.04)', ...createShadow({ color: '#000', offset: { width: 0, height: 12 }, opacity: 0.04, radius: 20, elevation: 3 }) } as ViewStyle,
   cardPreviewContainer: { paddingVertical: 32, paddingHorizontal: 16, alignItems: 'center', backgroundColor: '#F9FAFB', borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.03)' } as ViewStyle,
-  previewShadow: { shadowColor: '#000000', shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.1, shadowRadius: 24, elevation: 8 } as ViewStyle,
+  previewShadow: { ...createShadow({ color: '#000000', offset: { width: 0, height: 16 }, opacity: 0.1, radius: 24, elevation: 8 }) } as ViewStyle,
   cardDetails: { padding: 20, gap: 12 } as ViewStyle,
   nameRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 } as ViewStyle,
   titleCol: { flex: 1, gap: 2 } as ViewStyle,

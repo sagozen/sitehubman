@@ -1,5 +1,6 @@
 import { useCallback, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View, useWindowDimensions, ScrollView } from 'react-native';
+import { createShadow } from '@/src/utils/shadows';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 import { CardTypeEdgeBadge } from '@/src/components/CardTypeEdgeBadge';
@@ -346,10 +347,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: 'rgba(37,150,190,0.25)',
-    shadowColor: '#2596BE',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 4,
+    ...createShadow({ color: '#2596BE', offset: { width: 0, height: 4 }, opacity: 0.2, radius: 12, elevation: 4 }),
   },
 });

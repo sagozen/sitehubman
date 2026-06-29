@@ -8,6 +8,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { createShadow } from '@/src/utils/shadows';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   Easing,
@@ -313,11 +314,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 36,
     gap: 18,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.18,
-    shadowRadius: 28,
-    elevation: 18,
+    ...createShadow({ color: '#000000', offset: { width: 0, height: -8 }, opacity: 0.18, radius: 28, elevation: 18 }),
   },
   handle: {
     alignSelf: 'center',

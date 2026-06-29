@@ -1,5 +1,6 @@
 import { memo, useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { createShadow } from '@/src/utils/shadows';
 import Animated, {
   interpolate,
   useAnimatedStyle,
@@ -278,11 +279,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     padding: 18,
     overflow: 'hidden',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 14 },
-    shadowOpacity: 0.18,
-    shadowRadius: 24,
-    elevation: 8,
+    ...createShadow({ color: '#000000', offset: { width: 0, height: 14 }, opacity: 0.18, radius: 24, elevation: 8 }),
     minHeight: 152,
   },
   sheen: {

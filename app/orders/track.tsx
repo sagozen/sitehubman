@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, ScrollView, Pressable, ActivityIndicator, Alert, useWindowDimensions, Animated, type TextStyle, type ViewStyle } from 'react-native';
+import { createShadow } from '@/src/utils/shadows';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/src/components/AppText';
@@ -48,10 +49,7 @@ function LaserEngraveOverlay({ width, height }: { width: number; height: number 
           right: 0,
           height: 3,
           backgroundColor: '#38BDF8',
-          shadowColor: '#38BDF8',
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0.9,
-          shadowRadius: 10,
+          ...createShadow({ color: '#38BDF8', offset: { width: 0, height: 0 }, opacity: 0.9, radius: 10, elevation: 0 }),
           transform: [{ translateY: sweep }],
         }}
       />
@@ -239,11 +237,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.06)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 2,
+    ...createShadow({ color: '#000', offset: { width: 0, height: 2 }, opacity: 0.03, radius: 6, elevation: 2 }),
   } as ViewStyle,
   headerCopy: { flex: 1, gap: 1 } as ViewStyle,
   title: { fontSize: 26, fontWeight: '900', color: '#111827', letterSpacing: -0.6 } as TextStyle,
@@ -264,7 +258,7 @@ const styles = StyleSheet.create({
   closeBtn: { paddingVertical: 10, paddingHorizontal: 2 } as ViewStyle,
   closeBtnText: { fontSize: 14, fontWeight: '800', color: '#007AFF' } as TextStyle,
   previewContainer: { alignItems: 'center', paddingVertical: 16 } as ViewStyle,
-  previewShadow: { shadowColor: '#000000', shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.08, shadowRadius: 24, elevation: 8, position: 'relative' } as ViewStyle,
+  previewShadow: { ...createShadow({ color: '#000000', offset: { width: 0, height: 16 }, opacity: 0.08, radius: 24, elevation: 8 }), position: 'relative' } as ViewStyle,
 
   // Laser engraver
   laserLabelBox: { position: 'absolute', bottom: 12, right: 12, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(17,24,39,0.85)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 } as ViewStyle,
@@ -285,7 +279,7 @@ const styles = StyleSheet.create({
   timelineHeader: { fontSize: 16, fontWeight: '900', color: '#111827', letterSpacing: -0.3, marginBottom: 16 } as TextStyle,
 
   // List view
-  orderCard: { backgroundColor: '#FFFFFF', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)', padding: 18, gap: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.01, shadowRadius: 10, elevation: 2 } as ViewStyle,
+  orderCard: { backgroundColor: '#FFFFFF', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)', padding: 18, gap: 16, ...createShadow({ color: '#000', offset: { width: 0, height: 4 }, opacity: 0.01, radius: 10, elevation: 2 }) } as ViewStyle,
   orderCardPressed: { opacity: 0.9, transform: [{ scale: 0.98 }] } as ViewStyle,
   orderTop: { flexDirection: 'row', justifyStyle: 'space-between', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 } as ViewStyle,
   orderHead: { gap: 3, flex: 1 } as ViewStyle,
