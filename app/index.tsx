@@ -1,30 +1,13 @@
-import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Redirect, router } from 'expo-router';
-import { AppText } from '@/src/components/AppText';
-import { CommentLoader } from '@/src/components/CommentLoader';
-import { theme } from '@/src/constants/theme';
+import { Redirect } from 'expo-router';
 import { useAuth } from '@/src/hooks/useAuth';
 import { getDashboardRoute } from '@/src/utils/authFlow';
+import { HomeSkeleton } from '@/src/components/HomeSkeleton';
 
 export default function IndexRoute() {
-  const { user, isLoading, error } = useAuth();
-
+  const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <View style={styles.center}>
-        <CommentLoader size={56} color={theme.colors.primary} bubbleColor="#FFFFFF" />
-        <AppText variant="caption" tone="muted">
-          Restoring session...
-        </AppText>
-        {error ? (
-          <AppText variant="caption" style={styles.errorHint}>
-            {error}
-          </AppText>
-        ) : null}
-      </View>
-    );
+    return <HomeSkeleton />;
   }
 
   return <Redirect href={user ? getDashboardRoute(user) : '/(auth)/login'} />;
