@@ -660,7 +660,7 @@ export function subscribeCustomerOrders(
   callback: (orders: Order[]) => void,
   onError?: (error: Error) => void,
 ): () => void {
-  if (!userId) {
+  if (!userId || userId === 'guest') {
     callback([]);
     return () => {};
   }

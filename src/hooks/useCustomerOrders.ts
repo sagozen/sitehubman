@@ -24,7 +24,7 @@ export function useCustomerOrders(userId: string | null | undefined, email: stri
       unsubRef.current();
       unsubRef.current = null;
     }
-    if (!userId) {
+    if (!userId || userId === 'guest') {
       setOrders([]);
       setLoading(false);
       return;
