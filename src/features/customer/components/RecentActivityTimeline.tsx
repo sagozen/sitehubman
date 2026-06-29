@@ -1,4 +1,4 @@
-import { View, StyleSheet, Image, Pressable, type ViewStyle, type TextStyle } from 'react-native';
+import { View, StyleSheet, Image, Pressable, type ViewStyle, type TextStyle, type ImageStyle } from 'react-native';
 import { AppText } from '@/src/components/AppText';
 import { HapticTap } from '@/src/utils/haptics';
 
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#FFFFFF',
     zIndex: 2,
-  } as ViewStyle,
+  } as ImageStyle,
   line: {
     width: 2,
     flex: 1,

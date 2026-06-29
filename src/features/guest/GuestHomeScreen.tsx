@@ -137,7 +137,7 @@ export function GuestHomeScreen() {
     else router.push(appRoutes.guestDesign as Href);
   }
 
-  function handleAction(a: typeof ACTIONS[0]) {
+  function handleAction(a: any) {
     if (a.action === 'share') { handleShare(); return; }
     if (a.route) router.push(a.route);
   }

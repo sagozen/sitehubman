@@ -215,7 +215,7 @@ export async function readNfcUid(): Promise<string> {
 }
 
 function getPwdBytes(passkey: string): number[] {
-  const bytes = [];
+  const bytes: number[] = [];
   for (let i = 0; i < 4; i++) {
     bytes.push(passkey.charCodeAt(i % passkey.length) & 0xFF);
   }

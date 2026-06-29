@@ -13,18 +13,4 @@ export default function IndexRoute() {
   return <Redirect href={user ? getDashboardRoute(user) : '/(auth)/login'} />;
 }
 
-const styles = StyleSheet.create({
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: theme.spacing.sm,
-    backgroundColor: '#F5F5F7',
-    paddingHorizontal: theme.spacing.lg,
-  },
-  errorHint: {
-    textAlign: 'center',
-    marginTop: theme.spacing.xs,
-    color: theme.colors.danger,
-  },
-});
+

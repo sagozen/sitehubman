@@ -62,30 +62,64 @@ export function CustomerProfileScreen() {
   const photoUrl = bioPage?.photoUrl;
 
   const carouselCards = useMemo(() => {
-    const activePrimaryId = preferences.primaryCardId || 'card-primary';
-    const baseCards = SEED_CARDS.length > 0 ? SEED_CARDS : [
-      {
-        id: 'card-current',
-        fullName: cardName || undefined,
-        title: cardTitle || undefined,
-        phone: cardPhone || undefined,
-        email: cardEmail || undefined,
-        profileUrl,
-        cardId: cloudCard?.cardId,
-      },
-    ];
+    const activePrimaryId = preferences.primaryCardId || 'card-current';
+    
+    const userProfileCard = {
+      id: 'card-current',
+      role: 'personal',
+      fullName: cardName || user?.displayName || 'My Profile Card',
+      title: cardTitle || 'Digital Creator',
+      phone: cardPhone || '',
+      email: cardEmail || user?.email || '',
+      website: profileUrl || '',
+      profileUrl: profileUrl || '',
+      cardId: cloudCard?.cardId || 'BC-NFC_USER',
+      backgroundImageUri: photoUrl,
+    };
+
+    const otherCards = SEED_CARDS.filter(c => c.id !== 'card-primary');
+    const baseCards = [userProfileCard, ...otherCards];
+
     return baseCards.map(c => ({
       ...c,
-      isPrimary: c.id === activePrimaryId || (baseCards.length === 1 && c.id === 'card-current'),
+      isPrimary: c.id === activePrimaryId,
     }));
-  }, [preferences.primaryCardId, cardEmail, cardName, cardPhone, cardTitle, cloudCard?.cardId, profileUrl]);
+  }, [preferences.primaryCardId, cardEmail, cardName, cardPhone, cardTitle, cloudCard?.cardId, profileUrl, photoUrl, user?.displayName, user?.email]);
 
   const handleCardPress = useCallback(async (card: CarouselCard) => {
-    try {
-      await updatePreferences({ primaryCardId: card.id });
-    } catch (err) {
-      Alert.alert('Error', 'Could not update primary card.');
-    }
+    Alert.alert(
+      'Primary Card Configuration',
+      `Set "${card.fullName || 'this card'}" as your primary card on the Home Screen?`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Set & Stay Here',
+          onPress: async () => {
+            try {
+              await updatePreferences({ primaryCardId: card.id });
+            } catch (err) {
+              Alert.alert('Error', 'Could not update primary card.');
+            }
+          },
+        },
+        {
+          text: 'Set & Go to Home Screen',
+          style: 'default',
+          onPress: async () => {
+            try {
+              await updatePreferences({ primaryCardId: card.id });
+              router.replace('/');
+            } catch (err) {
+              Alert.alert('Error', 'Could not update primary card.');
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   }, [updatePreferences]);
 
   const pickImage = useCallback(async () => {

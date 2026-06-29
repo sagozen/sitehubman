@@ -109,11 +109,11 @@ function assertSignedInStaff() {
   }
 }
 
-function sortNewestFirst<T extends { createdAt?: string; updatedAt?: string }>(items: T[]) {
+function sortNewestFirst<T extends { createdAt?: string; updatedAt?: string }>(items: T[]): T[] {
   return items.sort((a, b) => (b.createdAt ?? b.updatedAt ?? '').localeCompare(a.createdAt ?? a.updatedAt ?? ''));
 }
 
-function sortIsoNewestFirst<T extends { createdAt: string }>(items: T[]) {
+function sortIsoNewestFirst<T extends { createdAt: string }>(items: T[]): T[] {
   return items.sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
 }
 
@@ -723,7 +723,9 @@ export function subscribeCustomerOrders(
 
 function toMs(value: unknown): number {
   if (!value) return 0;
-  if (value instanceof Timestamp) return value.toDate().getTime();
+  if (value && typeof value === 'object' && 'toDate' in value && typeof (value as any).toDate === 'function') {
+    return (value as any).toDate().getTime();
+  }
   if (value instanceof Date) return value.getTime();
   if (typeof value === 'string') return new Date(value).getTime();
   return 0;

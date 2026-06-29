@@ -8,6 +8,10 @@ import { HapticTap } from '@/src/utils/haptics';
 import { MotionScale } from '@/src/utils/motion';
 import { usePreferences } from '@/src/hooks/usePreferences';
 import { SEED_CARDS } from '@/src/data/seedCards';
+import { useBioPage } from '@/src/hooks/useBioPage';
+import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
+import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
+import { useState, useEffect, useMemo } from 'react';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - 48;
@@ -26,16 +30,44 @@ function getGreeting() {
 
 export function CustomerHeroCard({ user }: any) {
   const { preferences } = usePreferences();
-  const activeCardId = preferences.primaryCardId || 'card-primary';
-  const activeCard = SEED_CARDS.find(c => c.id === activeCardId) || SEED_CARDS[0];
+  const { bioPage } = useBioPage(user?.id ?? '');
+  const [cloudCard, setCloudCard] = useState<any>(null);
 
-  const name = activeCard?.fullName || user?.displayName || 'Chanthean Sok';
-  const parts = (activeCard?.title || '').split(/[·/]/);
-  const title = parts[0]?.trim() || user?.title || 'Business Development Manager';
-  const company = parts[1]?.trim() || user?.company || 'NFC Global';
+  useEffect(() => {
+    if (user?.id) {
+      loadCustomerCloudCard(user.id).then(setCloudCard).catch(() => null);
+    }
+  }, [user?.id]);
 
-  const avatarUrl = user?.photoURL || user?.telegramPhotoUrl || '';
-  const coverUrl = user?.coverURL || 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&q=80&w=1000';
+  const cardName  = bioPage?.displayName?.trim() || user?.displayName?.trim() || 'My Name';
+  const cardTitle = bioPage?.tagline?.trim() || 'Digital Creator';
+  const cardPhone = bioPage?.whatsapp?.trim() || user?.phone?.trim() || '';
+  const cardEmail = bioPage?.email?.trim() || user?.email?.trim() || '';
+  const profileUrl = bioPage?.slug ? buildSlugProfileUrl(bioPage.slug) : undefined;
+  const photoUrl = bioPage?.photoUrl;
+
+  const activeCardId = preferences.primaryCardId || 'card-current';
+
+  const activeCard = useMemo(() => {
+    if (activeCardId === 'card-current') {
+      return {
+        fullName: cardName,
+        title: cardTitle,
+        phone: cardPhone,
+        email: cardEmail,
+        website: profileUrl || '',
+        profileUrl: profileUrl || `sitehubman.com/profile/${user?.id || 'demo'}`,
+        backgroundImageUri: photoUrl,
+      };
+    }
+    return SEED_CARDS.find(c => c.id === activeCardId) || SEED_CARDS[0];
+  }, [activeCardId, cardName, cardTitle, cardPhone, cardEmail, profileUrl, photoUrl, user?.id]);
+
+  const name = activeCard?.fullName || cardName;
+  const title = activeCard?.title || cardTitle;
+
+  const avatarUrl = photoUrl || user?.photoURL || user?.telegramPhotoUrl || '';
+  const coverUrl = activeCard?.backgroundImageUri || 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&q=80&w=1000';
 
   const initial = (name.trim() || 'C')[0].toUpperCase();
 
@@ -53,7 +85,9 @@ export function CustomerHeroCard({ user }: any) {
           {avatarUrl ? (
             <Image source={{ uri: avatarUrl }} style={styles.profileAvatarImg} resizeMode="cover" />
           ) : (
-            <AppText style={styles.profileAvatarT}>{initial}</AppText>
+            <View style={styles.avatarFallback}>
+              <AppText style={styles.profileAvatarT}>{initial}</AppText>
+            </View>
           )}
         </Pressable>
         
@@ -66,7 +100,7 @@ export function CustomerHeroCard({ user }: any) {
             <AppIcon name="BadgeCheck" size={18} color={BRAND} />
           </View>
           <AppText style={styles.identityMeta} numberOfLines={1}>
-            {[title, company].filter(Boolean).join(' / ')}
+            {title}
           </AppText>
         </View>
 
@@ -98,9 +132,11 @@ export function CustomerHeroCard({ user }: any) {
         <NfcGlobalCardFace
           fullName={name}
           title={title}
-          company={company}
+          phone={activeCard?.phone}
+          email={activeCard?.email}
+          website={activeCard?.website}
           backgroundImageUri={coverUrl}
-          profileUrl={`sitehubman.com/profile/${user?.id || 'demo'}`}
+          profileUrl={activeCard?.profileUrl}
           width={CARD_WIDTH}
         />
       </View>
@@ -132,6 +168,13 @@ const styles = StyleSheet.create({
   profileAvatarImg: {
     width: '100%',
     height: '100%',
+  } as ViewStyle,
+  avatarFallback: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: INK,
   } as ViewStyle,
   profileAvatarT: { 
     fontSize: 21, 

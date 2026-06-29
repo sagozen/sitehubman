@@ -8,6 +8,7 @@ import {
   View,
   Pressable,
   ScrollView,
+  ViewStyle,
 } from 'react-native';
 import { createShadow } from '@/src/utils/shadows';
 import Animated, {
@@ -26,7 +27,7 @@ interface AppInputProps extends Omit<TextInputProps, 'style' | 'role'> {
   helperText?: string;
   suggestions?: string[];
   style?: StyleProp<TextStyle>;
-  containerStyle?: StyleProp<TextStyle>;
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 const SPRING_CONFIG = {
@@ -99,7 +100,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
 
   // UI colors based on focus and error states
   const borderHighlightColor = error
-    ? colors.danger
+    ? theme.colors.danger
     : focused
     ? colors.primary
     : colors.border;
@@ -127,7 +128,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
         >
           <AppText
             style={{
-              color: error ? colors.danger : focused ? colors.primary : colors.textMuted,
+              color: error ? theme.colors.danger : focused ? colors.primary : colors.textMuted,
               fontWeight: '500',
             }}
           >
@@ -157,7 +158,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
 
       {/* Smart validation / Helper text */}
       {error ? (
-        <AppText variant="caption" style={{ color: colors.danger, marginTop: 4, paddingLeft: 4 }}>
+        <AppText variant="caption" style={{ color: theme.colors.danger, marginTop: 4, paddingLeft: 4 }}>
           {error}
         </AppText>
       ) : helperText ? (

@@ -4,6 +4,8 @@ import { View, StyleSheet } from 'react-native';
 import { usePreferences } from '@/src/hooks/usePreferences';
 import * as Solar from '@solar-icons/react-native';
 
+export type AppIconName = string;
+
 const DEFAULT_ICON_SIZE = 22;
 
 export type IconVariant = 

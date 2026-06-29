@@ -33,7 +33,7 @@ function buildOrdersQuery(
   cursorSnap?: Awaited<ReturnType<typeof getDoc>>
 ) {
   const col = collection(db, firebaseCollections.orders);
-  const constraints = [];
+  const constraints: any[] = [];
   if (role === 'customer') {
     constraints.push(where('createdBy', '==', userId));
   } else if (role === 'sales' || role === 'agent') {

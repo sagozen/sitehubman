@@ -1,4 +1,4 @@
-﻿import { IosScrollView } from '@/src/components/IosScrollView';
+import { IosScrollView } from '@/src/components/IosScrollView';
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, ImageBackground, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View,  } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -754,7 +754,7 @@ function DetailContent() {
 
           <Section title="Summary" icon="ClipboardList">
             <View style={styles.summaryGrid}>
-              {summaryRows.map(([label, value]) => (
+              {(summaryRows as any[]).map(([label, value]) => (
                 <View key={label} style={styles.summaryRow}>
                   <AppText variant="caption" tone="muted" weight="semibold" style={styles.summaryLabel}>{label}</AppText>
                   <AppText variant="body" weight="bold" style={[styles.summaryValue, label === 'Card' && { color: cardStatusOpt.color }]}>{value}</AppText>
