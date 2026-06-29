@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { appRoutes } from '@/src/constants/navigation';
 import { useEffect, useRef } from 'react';
+import { useNotifications } from '@/src/hooks/useNotifications';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - 32;
@@ -17,6 +18,7 @@ export function CustomerHeroCard({ user }: any) {
   const avatarUrl = user?.photoURL || user?.telegramPhotoUrl || 'https://i.pravatar.cc/300?img=12';
   const coverUrl = user?.coverURL || 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&q=80&w=1000';
 
+  const { unreadCount } = useNotifications();
   const pulse = useRef(new Animated.Value(0.85)).current;
 
   useEffect(() => {
@@ -55,6 +57,7 @@ export function CustomerHeroCard({ user }: any) {
             onPress={() => router.push(appRoutes.customer.notifications as any)}
           >
             <BellBoldDuotone size={22} color="#111827" />
+            {unreadCount > 0 ? <View style={styles.unreadDot} /> : null}
           </Pressable>
           <Pressable onPress={() => router.push(appRoutes.customer.profile as any)}>
             <Image source={{ uri: avatarUrl }} style={styles.avatar} resizeMode="cover" />
@@ -142,6 +145,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -175,8 +179,16 @@ const styles = StyleSheet.create({
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 20 },
     shadowOpacity: 0.12,
-    shadowRadius: 30,
-    elevation: 12,
-    alignItems: 'center',
+    shadowRadius: 10,
+    elevation: 4,
+  } as ViewStyle,
+  unreadDot: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FF3B30',
   } as ViewStyle,
 });
