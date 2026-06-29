@@ -1,1 +1,5 @@
-export { default } from '@/src/features/admin/screens/AdminDashboardScreen';
+import { Redirect } from 'expo-router';
+
+export default function AdminIndexRedirect() {
+  return <Redirect href="/admin/dashboard" />;
+}

@@ -35,9 +35,27 @@ function RootLayout() {
 
             <Stack.Screen name="index" />
 
+            <Stack.Screen name="(auth)/login" />
+            <Stack.Screen name="(auth)/register" />
+            
+            <Stack.Screen name="cards" />
+            <Stack.Screen name="orders" />
+            <Stack.Screen name="payments" />
+            <Stack.Screen name="production" />
+            
+            <Stack.Screen name="u/[slug]" options={{ headerShown: false }} />
+
             <Stack.Screen name="auth/login" />
 
             <Stack.Screen name="auth/register" />
+
+            <Stack.Screen name="login" />
+
+            <Stack.Screen name="signin" />
+
+            <Stack.Screen name="signup" />
+
+            <Stack.Screen name="register" />
 
             <Stack.Screen name="(tabs)" />
 

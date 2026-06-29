@@ -58,11 +58,11 @@ export function GuestProfileScreen() {
               Create an account to sync cards, get a real NFC chip, and build your permanent digital
               identity.
             </AppText>
-            <AppButton label="Sign In" onPress={() => router.push('/auth/login')} />
+            <AppButton label="Sign In" onPress={() => router.push('/(auth)/login')} />
             <AppButton
               label="Create account"
               variant="outline"
-              onPress={() => router.push('/auth/register')}
+              onPress={() => router.push('/(auth)/register')}
             />
           </View>
         ) : null}

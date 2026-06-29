@@ -1,14 +1,6 @@
-import { useAuth } from '@/src/hooks/useAuth';
-import { useRoleFlags } from '@/src/hooks/useRoleFlags';
-import { OrderDetailScreen } from '@/src/features/orders/OrderDetailScreen2';
-import { SalesOrderDetailScreen } from '@/src/features/sales/SalesOrderDetailScreen';
+import { Redirect, useLocalSearchParams } from 'expo-router';
 
-export default function OrderDetailRoute() {
-  const { isSales, isAdmin } = useRoleFlags();
-  // Sales-only sees the premium redesigned screen; admin and other roles
-  // keep the full edit form.
-  if (isSales && !isAdmin) {
-    return <SalesOrderDetailScreen />;
-  }
-  return <OrderDetailScreen />;
+export default function LegacyOrderDetailRedirect() {
+  const { orderId } = useLocalSearchParams();
+  return <Redirect href={`/orders/detail/${orderId}`} />;
 }

@@ -297,7 +297,7 @@ function RecentOrderCard({ order }: { order: Order }) {
   return (
     <Pressable 
       style={({ pressed }) => [s.orderCardCompact, pressed && s.pressedBg]}
-      onPress={() => router.push(`/order-detail/${order.id}` as any)}
+      onPress={() => router.push(`/orders/detail/${order.id}` as any)}
     >
       <View style={s.orderIconWrap}>
         <DocumentBoldDuotone size={24} color={PRIMARY} />

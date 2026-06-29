@@ -192,7 +192,7 @@ export default function AdminOrdersScreen() {
                 <View key={order.id}>
                   <Pressable
                     style={({ pressed }) => [styles.orderRow, pressed && { backgroundColor: colors.surfaceSoft }]}
-                    onPress={() => router.push({ pathname: '/order-detail/[orderId]', params: { orderId: order.id } })}
+                    onPress={() => router.push({ pathname: '/orders/detail/[orderId]', params: { orderId: order.id } })}
                   >
                     <View style={styles.orderCopy}>
                       <AppText variant="caption" tone="muted" weight="bold">

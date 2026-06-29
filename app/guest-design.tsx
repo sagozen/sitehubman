@@ -1,5 +1,5 @@
-import { GuestDesignScreen } from '@/src/features/guest/GuestDesignScreen';
+import { Redirect } from 'expo-router';
 
-export default function GuestDesignRoute() {
-  return <GuestDesignScreen />;
+export default function LegacyGuestDesignRedirect() {
+  return <Redirect href="/cards/design" />;
 }

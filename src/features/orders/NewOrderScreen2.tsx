@@ -803,7 +803,7 @@ export function NewOrderScreen() {
 
   function viewCreatedOrder() {
     if (!createdOrderId) return;
-    router.replace({ pathname: '/order-detail/[orderId]', params: { orderId: createdOrderId } });
+    router.replace({ pathname: '/orders/detail/[orderId]', params: { orderId: createdOrderId } });
   }
 
   return (

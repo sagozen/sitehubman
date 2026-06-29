@@ -62,7 +62,7 @@ export function LoginScreen() {
     setIsGuestLoading(true);
     try {
       await signInAsGuest();
-      router.replace('/(tabs)');
+      router.replace('/');
     } catch (error) {
       Alert.alert('Guest sign-in failed', getAuthErrorMessage(error));
     } finally {
@@ -140,7 +140,7 @@ export function LoginScreen() {
         <AuthFooterLink
           prompt="Don't have an account?"
           action="Create account"
-          onPress={() => router.push('/auth/register')}
+          onPress={() => router.push('/(auth)/register')}
           disabled={busy}
           variant="login"
         />

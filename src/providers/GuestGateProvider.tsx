@@ -47,7 +47,7 @@ export function GuestGateProvider({ children }: PropsWithChildren) {
                });
                
                if (!migrated && gate.unlockIntent === 'checkout') {
-                  redirectTarget = '/(tabs)/connections'; // Fallback on failed checkout intent
+                  redirectTarget = '/connections'; // Fallback on failed checkout intent
                }
             }
 

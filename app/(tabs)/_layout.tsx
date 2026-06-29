@@ -21,17 +21,20 @@ export default function TabsLayout() {
     onPanResponderRelease: (_, gestureState) => {
       const { dx } = gestureState;
       const currentIndex = CONSUMER_TABS.indexOf(currentTab);
-      if (currentIndex === -1) return;
+      const getTabPath = (tabName: string) => {
+        if (tabName === 'index') return '/';
+        return `/${tabName}`;
+      };
 
       if (dx < -60) {
         // Swiped left -> Next tab
         if (currentIndex < CONSUMER_TABS.length - 1) {
-          router.navigate(`/(tabs)/${CONSUMER_TABS[currentIndex + 1]}` as any);
+          router.navigate(getTabPath(CONSUMER_TABS[currentIndex + 1]) as any);
         }
       } else if (dx > 60) {
         // Swiped right -> Previous tab
         if (currentIndex > 0) {
-          router.navigate(`/(tabs)/${CONSUMER_TABS[currentIndex - 1]}` as any);
+          router.navigate(getTabPath(CONSUMER_TABS[currentIndex - 1]) as any);
         }
       }
     },

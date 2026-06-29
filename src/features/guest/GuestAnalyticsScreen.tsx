@@ -12,6 +12,7 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { getCustomerInsights, type CustomerInsights } from '@/src/services/customerInsightsService';
+import { appRoutes } from '@/src/constants/navigation';
 
 const BRAND = '#2596BE';
 
@@ -106,7 +107,7 @@ export function GuestAnalyticsScreen() {
             <AppText style={styles.emptySub}>
               Create your e-card or place an order to start seeing activity here.
             </AppText>
-            <AppButton label="Design your card" onPress={() => router.push('/guest-design')} />
+            <AppButton label="Design your card" onPress={() => router.push(appRoutes.guestDesign)} />
           </View>
         ) : (
           <>

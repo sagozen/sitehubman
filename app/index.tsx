@@ -27,7 +27,7 @@ export default function IndexRoute() {
     );
   }
 
-  return <Redirect href={user ? getDashboardRoute(user) : '/auth/login'} />;
+  return <Redirect href={user ? getDashboardRoute(user) : '/(auth)/login'} />;
 }
 
 const styles = StyleSheet.create({

@@ -221,7 +221,7 @@ export default function SalesOrdersScreen() {
                       idx < paginatedOrders.length - 1 && s.rowDivider,
                       pressed && { backgroundColor: '#F8FAFF' },
                     ]}
-                    onPress={() => router.push(`/order-detail/${o.id}` as any)}
+                    onPress={() => router.push(`/orders/detail/${o.id}` as any)}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 16 }}>
                       {/* Rank Number */}

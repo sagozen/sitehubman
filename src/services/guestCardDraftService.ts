@@ -776,7 +776,7 @@ export async function createGuestCardOrder(cardId: string, input: GuestCardOrder
     title: 'New order - payment pending',
     message: `${input.shippingName.trim() || card.profile.fullName} placed an NFC card order. Verify KHQR/ABA then mark paid.`,
     priority: 'high',
-    actionUrl: `/order-detail/${orderRef.id}`,
+    actionUrl: `/orders/detail/${orderRef.id}`,
     createdBy: uid,
   }).catch(() => undefined);
 

@@ -26,7 +26,7 @@ export function AuthGate({ allowedRoles, children }: PropsWithChildren<AuthGateP
   }
 
   if (!user) {
-    return <Redirect href="/auth/login" />;
+    return <Redirect href="/(auth)/login" />;
   }
 
   if (!canAccessRole(user, allowedRoles)) {

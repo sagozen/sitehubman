@@ -1,6 +1,5 @@
-import { RegisterScreen } from '@/src/features/auth/RegisterScreen';
+import { Redirect } from 'expo-router';
 
-export default function RegisterRoute() {
-  return <RegisterScreen />;
+export default function LegacyRegisterRedirect() {
+  return <Redirect href="/(auth)/register" />;
 }
-

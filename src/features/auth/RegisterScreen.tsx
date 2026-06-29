@@ -127,7 +127,7 @@ export function RegisterScreen() {
         <AuthFooterLink
           prompt="Already have an account?"
           action="Sign in"
-          onPress={() => router.replace('/auth/login')}
+          onPress={() => router.replace('/(auth)/login')}
           disabled={busy}
         />
       </AuthLoginCard>

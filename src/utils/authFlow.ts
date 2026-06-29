@@ -18,9 +18,9 @@ export function normalizeRole(role: unknown): UserRole {
 }
 
 export function getDashboardRoute(user: AppUser | null): Href {
-  if (!user) return '/auth/login';
-  if (user.role === 'super_admin') return '/admin';
-  if (user.role === 'sales') return '/sales';
+  if (!user) return '/(auth)/login';
+  if (user.role === 'super_admin') return '/admin/dashboard';
+  if (user.role === 'sales') return '/sales/dashboard';
   return '/(tabs)';
 }
 

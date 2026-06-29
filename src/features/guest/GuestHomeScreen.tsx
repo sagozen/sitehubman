@@ -145,7 +145,7 @@ export function GuestHomeScreen() {
           {/* ── GUEST PROFILE HEADER ── */}
           <View style={s.profileHeader}>
             <Pressable
-              onPress={() => router.push('/(tabs)/profile')}
+              onPress={() => router.push('/profile')}
               style={({ pressed }) => [s.profileAvatar, pressed && s.pressed]}
             >
               <AppText style={s.profileAvatarT}>{initial}</AppText>
@@ -164,7 +164,7 @@ export function GuestHomeScreen() {
             </View>
             <View style={s.headerActions}>
               <Pressable
-                onPress={() => isGuest ? requireAccount(undefined, { message: 'Sign in to receive card and profile notifications.' }) : router.push('/(tabs)/notifications')}
+                onPress={() => isGuest ? requireAccount(undefined, { message: 'Sign in to receive card and profile notifications.' }) : router.push('/notifications')}
                 style={({ pressed }) => [s.headerIcon, pressed && s.pressed]}
               >
                 <AppIcon name="Bell" size={19} color={INK} />
@@ -265,7 +265,7 @@ export function GuestHomeScreen() {
               </View>
               <View style={s.ordersCard}>
                 {recentOrders.map((o) => (
-                  <OrderRow key={o.id} order={o} onPress={() => router.push(`/order-detail/${o.id}` as Href)} />
+                  <OrderRow key={o.id} order={o} onPress={() => router.push(`/orders/detail/${o.id}` as Href)} />
                 ))}
               </View>
             </View>
