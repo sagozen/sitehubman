@@ -121,6 +121,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   scrollContent: {
-    paddingBottom: 100, // Space for Liquid Dock
+    paddingHorizontal: 24,
+    paddingTop: 10,
+    paddingBottom: 120, // Space for Liquid Dock
+    gap: 24,
   },
 });
+

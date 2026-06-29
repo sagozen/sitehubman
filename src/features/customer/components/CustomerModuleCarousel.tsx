@@ -49,7 +49,6 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   sectionTitle: {
-    paddingHorizontal: 16,
     fontSize: 20,
     fontWeight: '800',
     color: '#111827',
@@ -57,7 +56,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   scrollContent: {
-    paddingHorizontal: 16,
+    paddingRight: 24,
     gap: 12,
   },
   card: {

@@ -40,7 +40,6 @@ export function ContinueWorkingTasks({ onTaskPress }: { onTaskPress?: (id: strin
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
     marginBottom: 32,
   },
   sectionTitle: {

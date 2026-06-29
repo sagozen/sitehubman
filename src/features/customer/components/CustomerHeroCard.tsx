@@ -102,7 +102,6 @@ export function CustomerHeroCard({ user }: any) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 28,
     gap: 20,

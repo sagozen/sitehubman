@@ -11,20 +11,20 @@ const ACTIONS = [
 
 export function QuickActionGrid({ onActionPress }: { onActionPress: (id: string) => void }) {
   return (
-    <View style={styles.grid}>
+    <View style={styles.actionStrip}>
       {ACTIONS.map((action) => (
         <Pressable
           key={action.id}
-          style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+          style={({ pressed }) => [styles.actionBtn, pressed && styles.pressed]}
           onPress={() => {
             HapticTap.light();
             onActionPress(action.id);
           }}
         >
-          <View style={styles.iconWrap}>
-            <Image source={action.image} style={styles.iconImage} resizeMode="contain" />
+          <View style={styles.actionImageWrap}>
+            <Image source={action.image} style={styles.actionImage} resizeMode="contain" />
           </View>
-          <AppText style={styles.label}>{action.label}</AppText>
+          <AppText style={styles.actionLabel}>{action.label}</AppText>
         </Pressable>
       ))}
     </View>
@@ -32,46 +32,47 @@ export function QuickActionGrid({ onActionPress }: { onActionPress: (id: string)
 }
 
 const styles = StyleSheet.create({
-  grid: {
+  actionStrip: {
     flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 24,
-  },
-  card: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 6,
-  },
-  cardPressed: {
-    transform: [{ scale: 0.94 }],
-    opacity: 0.9,
-  },
-  iconWrap: {
-    width: 64,
-    height: 64,
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 24,
+    overflow: 'hidden',
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(60, 60, 67, 0.03)',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 12,
+    shadowOpacity: 0.02,
+    shadowRadius: 10,
     elevation: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(60, 60, 67, 0.04)',
-    overflow: 'hidden',
   },
-  iconImage: {
-    width: 60,
-    height: 60,
+  actionBtn: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 4,
   },
-  label: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#111827',
+  pressed: {
+    opacity: 0.75,
+    transform: [{ scale: 0.96 }],
+  },
+  actionImageWrap: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
+  actionImage: {
+    width: '100%',
+    height: '100%',
+  },
+  actionLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#1C1C1E',
     textAlign: 'center',
+    fontFamily: 'Inter_800ExtraBold',
+    letterSpacing: -0.2,
   },
 });
+
