@@ -57,7 +57,7 @@ export function CustomerHeroCard({ user }: any) {
             onPress={() => router.push(appRoutes.customer.notifications as any)}
           >
             <BellBoldDuotone size={22} color="#111827" />
-            {unreadCount > 0 ? <View style={styles.unreadDot} /> : null}
+            <View style={styles.unreadDot} />
           </Pressable>
           <Pressable onPress={() => router.push(appRoutes.customer.profile as any)}>
             <Image source={{ uri: avatarUrl }} style={styles.avatar} resizeMode="cover" />
@@ -184,8 +184,8 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   unreadDot: {
     position: 'absolute',
-    top: 10,
-    right: 10,
+    top: 8,
+    right: 8,
     width: 8,
     height: 8,
     borderRadius: 4,
