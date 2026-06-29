@@ -15,7 +15,8 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import { HapticTap } from '@/src/utils/haptics';
+import { MotionScale } from '@/src/utils/motion';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -133,7 +134,7 @@ export function GuestDesignScreen() {
 
   const handleSave = useCallback(async () => {
     if (!infoComplete) return;
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    HapticTap.light();
     setSaving(true);
     try {
       const draft = {
@@ -162,7 +163,7 @@ export function GuestDesignScreen() {
         currency: 'KHR',
         paymentMethod: paymentMethod ?? undefined,
       });
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      HapticTap.success();
       router.back();
     } finally {
       setSaving(false);
@@ -188,7 +189,14 @@ export function GuestDesignScreen() {
       >
         {/* ── Premium Apple-Editorial Header ── */}
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={10}>
+          <Pressable
+            onPress={() => {
+              HapticTap.light();
+              router.back();
+            }}
+            style={styles.backBtn}
+            hitSlop={10}
+          >
             <AppIcon name="ChevronLeft" size={22} color={INK2} />
           </Pressable>
           <AppText style={styles.headerTitle}>Studio Design</AppText>
@@ -248,7 +256,7 @@ export function GuestDesignScreen() {
                 {(['virtual', 'physical'] as const).map((t) => (
                   <Pressable
                     key={t}
-                    onPress={() => { setCardType(t); void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+                    onPress={() => { setCardType(t); HapticTap.light(); }}
                     style={[styles.segBtn, cardType === t && styles.segBtnActive] as ViewStyle[]}
                   >
                     <AppText style={[styles.segBtnT, cardType === t && styles.segBtnTActive] as TextStyle[]}>
@@ -266,7 +274,7 @@ export function GuestDesignScreen() {
                 {paymentMethods.map((pm) => (
                   <Pressable
                     key={pm.id}
-                    onPress={() => { setPaymentMethod(pm.id); void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+                    onPress={() => { setPaymentMethod(pm.id); HapticTap.light(); }}
                     style={[styles.payPill, paymentMethod === pm.id && styles.payPillActive] as ViewStyle[]}
                   >
                     <AppText style={[styles.payPillT, paymentMethod === pm.id && styles.payPillTActive] as TextStyle[]}>
@@ -372,6 +380,7 @@ const styles = StyleSheet.create({
   footer: { paddingHorizontal: 20, paddingTop: 12, backgroundColor: BG, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.04)' } as ViewStyle,
   saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 52, borderRadius: 999, backgroundColor: '#111827' } as ViewStyle,
   saveBtnOff: { backgroundColor: '#C4CFDE', shadowOpacity: 0 } as ViewStyle,
-  saveBtnPressed: { opacity: 0.9, transform: [{ scale: 0.96 }] } as ViewStyle,
+  saveBtnPressed: { opacity: 0.9, transform: [{ scale: MotionScale.pressed }] } as ViewStyle,
   saveBtnT: { fontSize: 14, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.2, fontFamily: 'Inter_800ExtraBold' } as TextStyle,
 });
+

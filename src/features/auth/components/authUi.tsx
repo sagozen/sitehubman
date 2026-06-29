@@ -18,6 +18,7 @@ import { AppText } from '@/src/components/AppText';
 import { AppIcon } from '@/src/components/AppIcon';
 import { LinearGradient } from 'expo-linear-gradient';
 import { HapticTap } from '@/src/utils/haptics';
+import { MotionScale } from '@/src/utils/motion';
 
 const BRAND = '#007AFF';
 const INK = '#111827';
@@ -363,7 +364,14 @@ export function AuthFooterLink({
   return (
     <View style={s.footerRow}>
       <AppText style={s.footerPrompt}>{prompt}</AppText>
-      <Pressable onPress={onPress} disabled={disabled} hitSlop={8}>
+      <Pressable
+        onPress={() => {
+          HapticTap.light();
+          onPress();
+        }}
+        disabled={disabled}
+        hitSlop={8}
+      >
         <AppText style={s.footerAction}>{action}</AppText>
       </Pressable>
     </View>
@@ -415,7 +423,7 @@ const s = StyleSheet.create({
   textBtn: { height: 52, alignItems: 'center', justifyContent: 'center', borderRadius: 999, borderWidth: 1.5, borderColor: BORDER, backgroundColor: SURFACE },
   textBtnT: { fontSize: 15, fontWeight: '800', color: INK, fontFamily: 'Inter_700Bold' },
   btnOff: { opacity: 0.4 },
-  btnPressed: { opacity: 0.9, transform: [{ scale: 0.96 }] },
+  btnPressed: { opacity: 0.9, transform: [{ scale: MotionScale.pressed }] },
 
   divider: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   divLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(0,0,0,0.06)' },
@@ -431,3 +439,4 @@ const s = StyleSheet.create({
 
   sectionLabel: { fontSize: 12, fontWeight: '600', color: MUTED, letterSpacing: 0.3, textTransform: 'uppercase', marginLeft: 2, fontFamily: 'Inter_600SemiBold' },
 });
+

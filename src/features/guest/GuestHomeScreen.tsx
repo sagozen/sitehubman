@@ -22,6 +22,7 @@ import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { getCustomerInsights, type CustomerInsights } from '@/src/services/customerInsightsService';
 import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
 import type { Order } from '@/src/types/models';
+import { MotionScale } from '@/src/utils/motion';
 
 // ─── Brand ──────────────────────────────────────────────────────────────────
 const BRAND = '#2596BE';
@@ -64,7 +65,13 @@ function OrderRow({ order, onPress }: { order: Order; onPress: () => void }) {
   const amt = order.amount != null ? `$${order.amount.toFixed(0)}` : '—';
 
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [or.row, pressed && or.pressed]}>
+    <Pressable
+      onPress={() => {
+        HapticTap.light();
+        onPress();
+      }}
+      style={({ pressed }) => [or.row, pressed && or.pressed]}
+    >
       <View style={or.icon}>
         <AppIcon name="CreditCard" size={20} color={BRAND} />
       </View>
@@ -145,7 +152,10 @@ export function GuestHomeScreen() {
           {/* ── GUEST PROFILE HEADER ── */}
           <View style={s.profileHeader}>
             <Pressable
-              onPress={() => router.push('/profile')}
+              onPress={() => {
+                HapticTap.light();
+                router.push('/profile');
+              }}
               style={({ pressed }) => [s.profileAvatar, pressed && s.pressed]}
             >
               <AppText style={s.profileAvatarT}>{initial}</AppText>
@@ -164,13 +174,26 @@ export function GuestHomeScreen() {
             </View>
             <View style={s.headerActions}>
               <Pressable
-                onPress={() => isGuest ? requireAccount(undefined, { message: 'Sign in to receive card and profile notifications.' }) : router.push('/notifications')}
+                onPress={() => {
+                  HapticTap.light();
+                  if (isGuest) {
+                    requireAccount(undefined, { message: 'Sign in to receive card and profile notifications.' });
+                  } else {
+                    router.push('/notifications');
+                  }
+                }}
                 style={({ pressed }) => [s.headerIcon, pressed && s.pressed]}
               >
                 <AppIcon name="Bell" size={19} color={INK} />
                 {unreadCount > 0 ? <View style={s.unreadDot} /> : null}
               </Pressable>
-              <Pressable onPress={() => router.push(appRoutes.studio as Href)} style={({ pressed }) => [s.headerIcon, pressed && s.pressed]}>
+              <Pressable
+                onPress={() => {
+                  HapticTap.medium();
+                  router.push(appRoutes.studio as Href);
+                }}
+                style={({ pressed }) => [s.headerIcon, pressed && s.pressed]}
+              >
                 <AppIcon name="Sparkles" size={20} color={BRAND} />
               </Pressable>
             </View>
@@ -188,7 +211,10 @@ export function GuestHomeScreen() {
 
           {/* Primary action */}
           <Pressable
-            onPress={handleShare}
+            onPress={() => {
+              HapticTap.rigid();
+              handleShare();
+            }}
             style={({ pressed }) => [s.shareButton, pressed && s.pressed]}
           >
             <AppIcon name="Share" size={18} color="#FFFFFF" />
@@ -256,7 +282,12 @@ export function GuestHomeScreen() {
             <View style={s.section}>
               <View style={s.sectionHead}>
                 <AppText style={s.sectionTitle}>Recent Orders</AppText>
-                <Pressable onPress={() => router.push(appRoutes.guestTrackOrder as Href)}>
+                <Pressable
+                  onPress={() => {
+                    HapticTap.light();
+                    router.push(appRoutes.guestTrackOrder as Href);
+                  }}
+                >
                   <View style={s.viewAllRow}>
                     <AppText style={s.viewAll}>View All</AppText>
                     <AppIcon name="ChevronRight" size={13} color={BRAND} />
@@ -278,7 +309,14 @@ export function GuestHomeScreen() {
               {['Physical NFC cards', 'Digital products', 'Services'].map((item, i) => (
                 <Pressable
                   key={item}
-                  onPress={() => i === 0 ? router.push(appRoutes.guestDesign as Href) : requireAccount(undefined, { message: 'Sign in to unlock your NFC Global products.' })}
+                  onPress={() => {
+                    HapticTap.light();
+                    if (i === 0) {
+                      router.push(appRoutes.guestDesign as Href);
+                    } else {
+                      requireAccount(undefined, { message: 'Sign in to unlock your NFC Global products.' });
+                    }
+                  }}
                   style={({ pressed }) => [s.productRow, i === 2 && s.activityRowLast, pressed && s.pressed]}
                 >
                   <AppText style={s.productTitle}>{item}</AppText>
@@ -290,7 +328,10 @@ export function GuestHomeScreen() {
 
           {/* ── NFC DEMO LINK ── */}
           <Pressable
-            onPress={() => router.push(appRoutes.nfcDemo as Href)}
+            onPress={() => {
+              HapticTap.light();
+              router.push(appRoutes.nfcDemo as Href);
+            }}
             style={({ pressed }) => [s.demoLink, pressed && s.pressed]}
           >
             <AppIcon name="Nfc" size={16} color={MUTED} />
@@ -320,7 +361,7 @@ const s = StyleSheet.create({
   notifDot: { position: 'absolute', top: 7, right: 7, width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444', borderWidth: 1.5, borderColor: BG },
   avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: INK, alignItems: 'center', justifyContent: 'center', shadowColor: INK, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 10, elevation: 6 },
   avatarT: { fontSize: 17, fontWeight: '900', color: SURFACE, fontFamily: 'Inter_900Black' },
-  pressed: { opacity: 0.75, transform: [{ scale: 0.97 }] },
+  pressed: { opacity: 0.75, transform: [{ scale: MotionScale.pressed }] },
 
   profileHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 4 },
   profileAvatar: {
