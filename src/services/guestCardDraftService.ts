@@ -21,13 +21,21 @@ import { auth, db } from '@/src/services/firebaseClient';
 import { getDefaultSalesUid } from '@/src/services/defaultSalesService';
 import { getStoredGuestCardId } from '@/src/services/guestSessionService';
 import {
+  generateGuestId,
+  generateCardId,
+  generateGuestAccessKey,
+  generateProfileSlug,
+  generateOrderNumber,
+  resolveOwnerIdentity,
+} from '@/src/services/identityService';
+import {
   type GuestCardChoice,
   type GuestCardDraft,
   loadGuestCardDraft,
   loadGuestLastOrderId,
   saveGuestLastOrderId,
 } from '@/src/services/guestDraftService';
-import type { AppUser, CardDesign, PaymentStatus } from '@/src/types/models';
+import type { AppUser, CardDesign, OwnerType, PaymentStatus } from '@/src/types/models';
 import { createStaffNotification } from '@/src/services/notificationService';
 import { resolveOrderBranch } from '@/src/utils/branch';
 import { buildOrderPricingFields } from '@/src/utils/orderPricing';
@@ -37,9 +45,10 @@ export const CURRENT_CARD_ID_KEY = 'currentCardId';
 const CURRENT_GUEST_ACCESS_KEY = 'currentGuestAccessKey';
 const CURRENT_PUBLIC_SLUG_KEY = 'currentPublicSlug';
 
-const SLUG_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
-
 export type GuestDraftSyncState = 'local' | 'saving' | 'synced' | 'offline' | 'error';
+
+/** @deprecated Use `OwnerType` from `@/src/types/models` instead. */
+export type GuestCardOwnerType = OwnerType;
 
 export type GuestCardProfile = {
   fullName: string;
@@ -66,7 +75,7 @@ export type GuestCardDesign = {
   customImageUri?: string | null;
 };
 
-export type GuestCardOwnerType = 'guest' | 'customer';
+export type GuestCardOwnerType_DEPRECATED = OwnerType;
 
 export type GuestCloudCard = {
   cardId: string;
@@ -105,22 +114,27 @@ export type GuestCardOrderInput = {
   paymentReference?: string;
 };
 
+// ---------------------------------------------------------------------------
+// ID generation — delegated to identityService.ts
+// Local helpers kept for backward compat but now call centralized service.
+// ---------------------------------------------------------------------------
+
 function randomString(length: number): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
   let value = '';
   for (let i = 0; i < length; i += 1) {
-    value += SLUG_CHARS[Math.floor(Math.random() * SLUG_CHARS.length)];
+    value += chars[Math.floor(Math.random() * chars.length)];
   }
   return value;
 }
 
 function prefixedAutoId(prefix: 'GST' | 'CRD'): string {
-  const raw = doc(collection(db, firebaseCollections.cards)).id?.replace(/[^a-zA-Z0-9]/g, '') ?? '';
-  return `${prefix}_${raw.slice(0, 8) || randomString(8)}`;
+  if (prefix === 'GST') return generateGuestId();
+  return generateCardId();
 }
 
 function createCardId(): string {
-  const raw = doc(collection(db, firebaseCollections.cards)).id?.replace(/[^a-zA-Z0-9]/g, '') ?? randomString(8);
-  return `BC-NFC_${raw.slice(0, 8).toUpperCase()}`;
+  return generateCardId();
 }
 
 async function getStoredSession(): Promise<GuestDraftSession | null> {
@@ -250,7 +264,7 @@ function mapCardData(cardId: string, raw: Record<string, unknown>, session?: Gue
   const userId = typeof raw.userId === 'string' ? raw.userId : null;
   const guestId = String(raw.guestId ?? session?.guestId ?? '');
   const publicSlug = String(raw.publicSlug ?? session?.publicSlug ?? cardId);
-  const ownerType: GuestCardOwnerType =
+  const ownerType: OwnerType =
     raw.ownerType === 'customer' || raw.ownerType === 'user' ? 'customer' : 'guest';
   const ownerId =
     typeof raw.ownerId === 'string' && raw.ownerId.trim()
@@ -322,14 +336,11 @@ function mapCardData(cardId: string, raw: Record<string, unknown>, session?: Gue
 
 function cardOwnerFields(session: GuestDraftSession, uid?: string | null): {
   ownerId: string;
-  ownerType: GuestCardOwnerType;
+  ownerType: OwnerType;
   userId: string | null;
 } {
-  const customerId = uid?.trim();
-  if (customerId && !auth.currentUser?.isAnonymous) {
-    return { ownerId: customerId, ownerType: 'customer', userId: customerId };
-  }
-  return { ownerId: session.guestId, ownerType: 'guest', userId: null };
+  const identity = resolveOwnerIdentity(session.guestId, uid, auth.currentUser?.isAnonymous);
+  return { ownerId: identity.ownerId, ownerType: identity.ownerType, userId: identity.userId };
 }
 
 function guestSessionPayload(
@@ -369,9 +380,9 @@ export async function ensureGuestDraftSession(draft?: GuestCardDraft | null): Pr
   if (existing) return existing;
 
   const session: GuestDraftSession = {
-    guestId: prefixedAutoId('GST'),
-    cardId: createCardId(),
-    guestAccessKey: randomString(28),
+    guestId: generateGuestId(),
+    cardId: generateCardId(),
+    guestAccessKey: generateGuestAccessKey(),
     publicSlug: auth.currentUser ? await createUniquePublicSlug() : randomString(8),
     syncState: auth.currentUser ? 'synced' : 'local',
   };
@@ -389,6 +400,7 @@ export async function ensureGuestDraftSession(draft?: GuestCardDraft | null): Pr
   await Promise.all([
     upsertGuestSessionDocs(session, sessionOwnerUid, 'draft', {
       convertedToUserId: owner.userId,
+      status: 'active',
       createdAt: serverTimestamp(),
     }),
     setDoc(doc(db, firebaseCollections.cards, session.cardId), {

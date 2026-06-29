@@ -11,6 +11,12 @@ export type UserRole =
   | 'admin'
   | 'super_admin';
 
+/** Lifecycle status of a guest identity. */
+export type GuestStatus = 'active' | 'converted';
+
+/** Discriminator for entity ownership — guest is temporary, customer is permanent. */
+export type OwnerType = 'guest' | 'customer';
+
 export interface AppUser {
   id: string;
   email: string;
@@ -36,6 +42,30 @@ export interface AppUser {
   createdAt: string;
   updatedAt: string;
   isGuest?: boolean;
+}
+
+/**
+ * Guest identity — temporary visitor before account registration.
+ *
+ * Stored in Firestore `guests/{guestId}` and `guestSessions/{guestId}`.
+ * When a guest registers or signs in, their status changes to `converted`
+ * and all owned cards/orders are transferred to the new `userId`.
+ */
+export interface Guest {
+  guestId: string;
+  createdAt: string;
+  deviceId?: string;
+  status: GuestStatus;
+  /** The card ID associated with this guest session. */
+  cardId?: string;
+  /** Set when the guest converts to a customer. */
+  convertedToUserId?: string;
+  /** Timestamp of conversion. */
+  convertedAt?: string;
+  /** Firebase Auth UID that owns this session (anonymous or signed-in). */
+  sessionOwnerUid?: string;
+  /** Secret key for guest session verification. */
+  guestAccessKey?: string;
 }
 
 export interface Lead {

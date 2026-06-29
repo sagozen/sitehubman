@@ -1,5 +1,11 @@
-import { Redirect } from 'expo-router';
+/**
+ * /customer — Customer home dashboard.
+ *
+ * This is the default landing route for authenticated customers.
+ * Renders the premium CustomerAccountScreen directly instead of redirecting.
+ */
+import { CustomerAccountScreen } from '@/src/features/customer/CustomerAccountScreen';
 
-export default function CustomerIndexRedirect() {
-  return <Redirect href="/(tabs)" />;
+export default function CustomerIndex() {
+  return <CustomerAccountScreen />;
 }
