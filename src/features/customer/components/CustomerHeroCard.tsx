@@ -1,7 +1,7 @@
 import { View, StyleSheet, Dimensions, Pressable, Image, type TextStyle, type ViewStyle } from 'react-native';
 import { AppText } from '@/src/components/AppText';
 import { AppIcon } from '@/src/components/AppIcon';
-import { FlippableNfcCard } from '@/src/components/FlippableNfcCard';
+import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
 import { router } from 'expo-router';
 import { appRoutes } from '@/src/constants/navigation';
 import { HapticTap } from '@/src/utils/haptics';
@@ -87,7 +87,7 @@ export function CustomerHeroCard({ user }: any) {
 
       {/* ── CARD WRAPPER (GUEST STYLE ASPECT RATIO & SHADOW) ── */}
       <View style={styles.cardWrap}>
-        <FlippableNfcCard
+        <NfcGlobalCardFace
           fullName={name}
           title={title}
           company={company}

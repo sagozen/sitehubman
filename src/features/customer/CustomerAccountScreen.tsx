@@ -40,7 +40,7 @@ export function CustomerAccountScreen() {
   const handleAction = useCallback((id: string) => {
     switch(id) {
       case 'create':
-        router.push(appRoutes.newOrder as any);
+        router.push(appRoutes.guestDesign as any);
         break;
       case 'share':
         handleShare();

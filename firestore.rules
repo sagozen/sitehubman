@@ -574,7 +574,7 @@ service cloud.firestore {
         isAdmin()
         || isFinance()
         || (isSalesOrAgent() && resource.data.assignedSalesman == request.auth.uid)
-        || (isCustomer() && resource.data.createdBy == request.auth.uid)
+        || (isCustomer() && (resource.data.createdBy == request.auth.uid || resource.data.ownerId == request.auth.uid))
         || (isPrinter() && sameBranch(resource.data) && isProductionReadyOrder(resource.data))
         || (isQaInspector() && sameBranch(resource.data))
         || (isShipping() && sameBranch(resource.data))

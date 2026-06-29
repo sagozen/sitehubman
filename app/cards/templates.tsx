@@ -9,6 +9,7 @@ import { cardDesignOptions } from '@/src/constants/options';
 import { useAuth } from '@/src/hooks/useAuth';
 import { Card2BoldDuotone, CopyBoldDuotone, BoxBoldDuotone, StarsBoldDuotone } from '@solar-icons/react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { HapticTap } from '@/src/utils/haptics';
 
 const CATEGORIES = ['All', 'Premium', 'Classic', 'Special'];
 
@@ -57,11 +58,17 @@ export default function CustomerTemplatesRoute() {
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       {/* Editorial Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={12}>
+        <Pressable
+          onPress={() => {
+            HapticTap.light();
+            router.back();
+          }}
+          style={styles.backBtn}
+          hitSlop={12}
+        >
           <AppIcon name="ChevronLeft" size={22} color="#111827" />
         </Pressable>
         <View style={styles.headerCopy}>
-          <AppText style={styles.title}>NFC Templates</AppText>
           <AppText style={styles.subtitle}>Choose your physical canvas & setup your bio page</AppText>
         </View>
         <Card2BoldDuotone size={28} color="#007AFF" />

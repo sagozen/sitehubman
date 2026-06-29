@@ -669,53 +669,54 @@ export function subscribeCustomerOrders(
   ];
   // Also match the legacy createdBy field — sales-rep-created orders sometimes
   // set only this, and we want the customer to see them.
-  const collected: Order[] = [];
-  const seenIds = new Set<string>();
+  const queryResults = new Map<string, Order[]>();
 
-  const collect = (snap: { docs: { id: string; data: () => Record<string, unknown> }[] }) => {
-    for (const d of snap.docs) {
-      if (seenIds.has(d.id)) continue;
-      seenIds.add(d.id);
-      collected.push(mapOrder(d.id, d.data()));
+  const emit = () => {
+    const merged = new Map<string, Order>();
+    for (const list of queryResults.values()) {
+      for (const order of list) {
+        merged.set(order.id, order);
+      }
     }
-    callback(
-      collected
-        .slice()
-        .sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt)),
-    );
+    const sorted = Array.from(merged.values()).sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt));
+    callback(sorted);
   };
 
   const onSnapError = (error: Error) => {
     if (onError) onError(error);
   };
 
-  const unsubs = constraints.map((c) =>
+  const unsubs: Array<() => void> = [];
+
+  // Setup first listener (ownerId)
+  unsubs.push(
     onSnapshot(
-      query(collection(db, firebaseCollections.orders), c, orderBy('createdAt', 'desc'), limit(20)),
-      collect,
-      onSnapError,
-    ),
+      query(collection(db, firebaseCollections.orders), where('ownerId', '==', userId), orderBy('createdAt', 'desc'), limit(20)),
+      (snap) => {
+        const list = snap.docs.map((d) => mapOrder(d.id, d.data()));
+        queryResults.set('ownerId', list);
+        emit();
+      },
+      onSnapError
+    )
   );
 
-  // Optional secondary listener by createdBy — only adds, doesn't replace.
-  if (userId) {
-    unsubs.push(
-      onSnapshot(
-        query(
-          collection(db, firebaseCollections.orders),
-          where('createdBy', '==', userId),
-          orderBy('createdAt', 'desc'),
-          limit(20),
-        ),
-        collect,
-        onSnapError,
-      ),
-    );
-  }
+  // Setup second listener (createdBy)
+  unsubs.push(
+    onSnapshot(
+      query(collection(db, firebaseCollections.orders), where('createdBy', '==', userId), orderBy('createdAt', 'desc'), limit(20)),
+      (snap) => {
+        const list = snap.docs.map((d) => mapOrder(d.id, d.data()));
+        queryResults.set('createdBy', list);
+        emit();
+      },
+      onSnapError
+    )
+  );
 
   return () => {
     for (const u of unsubs) {
-      try { u(); } catch { /* unsubscribe errors are best-effort */ }
+      try { u(); } catch { /* ignore */ }
     }
   };
 }
