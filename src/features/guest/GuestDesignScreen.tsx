@@ -38,11 +38,11 @@ import { syncGuestCardDraft } from '@/src/services/guestCardDraftService';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
 
 // ─── Tokens ──────────────────────────────────────────────────────────────────
-const BRAND = '#2596BE';
+const BRAND = '#007AFF';
 const INK = '#0A0A0F';
 const INK2 = '#1C1C1E';
 const MUTED = '#8E8E93';
-const BG = '#F5F5F7';
+const BG = '#FFFFFF';
 const SURFACE = '#FFFFFF';
 
 // ─── Info field row ───────────────────────────────────────────────────────────
@@ -312,18 +312,18 @@ const styles = StyleSheet.create({
   flex: { flex: 1 } as ViewStyle,
   loadingCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: BG } as ViewStyle,
 
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingVertical: 16, backgroundColor: BG } as ViewStyle,
-  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6, elevation: 2 } as ViewStyle,
-  headerTitle: { flex: 1, fontSize: 17, fontWeight: '800', color: INK, letterSpacing: -0.4 } as TextStyle,
+  header: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 } as ViewStyle,
+  backBtn: { width: 42, height: 42, borderRadius: 21, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 6, elevation: 2 } as ViewStyle,
+  headerTitle: { flex: 1, fontSize: 17, fontWeight: '800', color: INK, letterSpacing: -0.4, fontFamily: 'Inter_800ExtraBold' } as TextStyle,
   pricePill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: INK } as ViewStyle,
-  priceT: { fontSize: 12, fontWeight: '800', color: BRAND } as TextStyle,
+  priceT: { fontSize: 12, fontWeight: '900', color: BRAND, fontFamily: 'Inter_900Black' } as TextStyle,
 
   scroll: { paddingBottom: 40 } as ViewStyle,
 
   heroBanner: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 28, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.03)' } as ViewStyle,
   heroCopy: { gap: 6, marginBottom: 24 } as ViewStyle,
-  heroTitle: { fontSize: 32, fontWeight: '900', color: INK, letterSpacing: -0.8 } as TextStyle,
-  heroSub: { fontSize: 14, fontWeight: '600', color: MUTED, lineHeight: 20 } as TextStyle,
+  heroTitle: { fontSize: 32, fontWeight: '900', color: INK, letterSpacing: -0.8, fontFamily: 'Inter_900Black' } as TextStyle,
+  heroSub: { fontSize: 14, fontWeight: '600', color: MUTED, lineHeight: 20, fontFamily: 'Inter_600SemiBold' } as TextStyle,
 
   // Premium depth card preview stage
   previewStage: { alignItems: 'center', position: 'relative', paddingVertical: 12 } as ViewStyle,
@@ -350,28 +350,28 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   liveRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 20 } as ViewStyle,
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: BRAND } as ViewStyle,
-  previewHint: { fontSize: 11, fontWeight: '800', color: MUTED, textTransform: 'uppercase', letterSpacing: 0.5 } as TextStyle,
+  previewHint: { fontSize: 11, fontWeight: '800', color: MUTED, textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: 'Inter_800ExtraBold' } as TextStyle,
 
   sectionsContainer: { paddingHorizontal: 20, paddingTop: 32, gap: 32 } as ViewStyle,
   section: { gap: 12 } as ViewStyle,
-  sectionTitle: { fontSize: 20, fontWeight: '800', color: INK, letterSpacing: -0.4 } as TextStyle,
-  card: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(0,0,0,0.03)', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 10 } as ViewStyle,
+  sectionTitle: { fontSize: 20, fontWeight: '800', color: INK, letterSpacing: -0.4, fontFamily: 'Inter_800ExtraBold' } as TextStyle,
+  card: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.04)', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 10 } as ViewStyle,
 
   segmentRow: { flexDirection: 'column', gap: 10 } as ViewStyle,
-  segBtn: { width: '100%', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 16, backgroundColor: SURFACE, borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)' } as ViewStyle,
+  segBtn: { width: '100%', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 24, backgroundColor: SURFACE, borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.04)' } as ViewStyle,
   segBtnActive: { backgroundColor: INK, borderColor: INK } as ViewStyle,
-  segBtnT: { fontSize: 14, fontWeight: '700', color: MUTED } as TextStyle,
+  segBtnT: { fontSize: 14, fontWeight: '700', color: MUTED, fontFamily: 'Inter_700Bold' } as TextStyle,
   segBtnTActive: { color: '#FFFFFF' } as TextStyle,
 
   payScroll: { gap: 8, paddingRight: 4 } as ViewStyle,
-  payPill: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: 999, backgroundColor: SURFACE, borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)' } as ViewStyle,
+  payPill: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: 999, backgroundColor: SURFACE, borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.04)' } as ViewStyle,
   payPillActive: { backgroundColor: INK, borderColor: INK } as ViewStyle,
-  payPillT: { fontSize: 13, fontWeight: '750' as any, color: INK } as TextStyle,
+  payPillT: { fontSize: 13, fontWeight: '800', color: INK, fontFamily: 'Inter_800ExtraBold' } as TextStyle,
   payPillTActive: { color: '#FFFFFF' } as TextStyle,
 
   footer: { paddingHorizontal: 20, paddingTop: 12, backgroundColor: BG, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.04)' } as ViewStyle,
-  saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 52, borderRadius: 16, backgroundColor: INK } as ViewStyle,
+  saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 52, borderRadius: 999, backgroundColor: '#111827' } as ViewStyle,
   saveBtnOff: { backgroundColor: '#C4CFDE', shadowOpacity: 0 } as ViewStyle,
-  saveBtnPressed: { opacity: 0.92, transform: [{ scale: 0.98 }] } as ViewStyle,
-  saveBtnT: { fontSize: 14, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.2 } as TextStyle,
+  saveBtnPressed: { opacity: 0.9, transform: [{ scale: 0.96 }] } as ViewStyle,
+  saveBtnT: { fontSize: 14, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.2, fontFamily: 'Inter_800ExtraBold' } as TextStyle,
 });

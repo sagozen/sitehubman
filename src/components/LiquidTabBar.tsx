@@ -357,6 +357,11 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
   const reduceTransparency = useReduceTransparency();
   const tabRoutes = state.routes;
   const activeRoute = tabRoutes[state.index];
+
+  const [tabLayouts, setTabLayouts] = useState<Record<number, { x: number; w: number }>>({});
+  const animCenterX = useRef(new Animated.Value(0)).current;
+  const capsuleWidth = 52;
+  const capsuleHeight = 40;
   const activeOptions = descriptors?.[activeRoute?.key]?.options ?? {};
   const isLegacyConnectionsRoute = activeRoute?.name === 'attendance';
   const shouldHide =
@@ -445,6 +450,20 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
     : appRoutes.newOrder;
 
   const items: NavItem[] = visibleRoutes.map((route: any) => ({ type: 'route', route }) as RouteItem);
+  const activeIndex = items.findIndex((item) => item.route.name === activeRoute?.name);
+
+  useEffect(() => {
+    const layout = tabLayouts[activeIndex];
+    if (layout) {
+      const targetCenterX = layout.x + layout.w / 2 - capsuleWidth / 2;
+      Animated.spring(animCenterX, {
+        toValue: targetCenterX,
+        useNativeDriver: true,
+        tension: 130,
+        friction: 8,
+      }).start();
+    }
+  }, [activeIndex, tabLayouts]);
 
   if (shouldHide) return null;
 
@@ -486,7 +505,21 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
           fallbackBackground={colors.surface}
           style={styles.bar}
         >
-          {items.map((item) => {
+          {/* Sliding capsule background */}
+          {activeIndex !== -1 && tabLayouts[activeIndex] ? (
+            <Animated.View
+              style={[
+                styles.slidingPill,
+                {
+                  width: capsuleWidth,
+                  height: capsuleHeight,
+                  transform: [{ translateX: animCenterX }],
+                  backgroundColor: isDark ? 'rgba(10,132,255,0.15)' : 'rgba(0,122,255,0.08)',
+                },
+              ]}
+            />
+          ) : null}
+          {items.map((item, index) => {
             const route = item.route;
             const isActive = activeRoute?.name === route.name;
             const label = routeLabel(route, descriptors);
@@ -496,6 +529,10 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
             return (
               <Pressable
                 key={route.key}
+                onLayout={(e) => {
+                  const { x, width: w } = e.nativeEvent.layout;
+                  setTabLayouts((prev) => ({ ...prev, [index]: { x, w } }));
+                }}
                 onPress={() => {
                   HapticTap.selection();
                   const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
@@ -513,18 +550,6 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
                     </View>
                   ) : (
                     <>
-                  {isActive ? (
-                    <View
-                      style={[
-                        styles.glassPill,
-                        {
-                          backgroundColor: isDark ? 'rgba(10,132,255,0.16)' : 'rgba(0,122,255,0.10)',
-                          borderColor: 'transparent',
-                        },
-                      ]}
-                    >
-                    </View>
-                  ) : null}
                   <TabIcon
                     routeName={route.name}
                     active={isActive}
@@ -692,6 +717,12 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     overflow: 'hidden',
+  },
+  slidingPill: {
+    position: 'absolute',
+    top: 18,
+    borderRadius: 20,
+    zIndex: 1,
   },
   badge: {
     position: 'absolute',
