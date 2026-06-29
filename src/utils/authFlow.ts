@@ -19,15 +19,16 @@ export function normalizeRole(role: unknown): UserRole {
 
 export function getDashboardRoute(user: AppUser | null): Href {
   if (!user) return '/(auth)/login';
-  if (user.role === 'super_admin') return '/admin/dashboard';
-  if (user.role === 'sales') return '/sales/dashboard';
+  const role = normalizeRole(user.role);
+  if (role === 'super_admin') return '/admin/dashboard';
+  if (role === 'sales') return '/sales/dashboard';
   return '/(tabs)';
 }
 
 export function canAccessRole(user: AppUser | null, allowedRoles?: UserRole[]) {
   if (!allowedRoles || allowedRoles.length === 0) return Boolean(user);
   if (!user) return false;
-  return allowedRoles.includes(user.role);
+  return allowedRoles.includes(normalizeRole(user.role));
 }
 
 export function isGuestUser(user: AppUser | null) {
