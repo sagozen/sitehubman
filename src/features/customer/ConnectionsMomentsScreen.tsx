@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
   type ListRenderItem,
@@ -7,7 +7,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
@@ -87,6 +87,8 @@ export function ConnectionsMomentsScreen() {
   const [activeMoment, setActiveMoment] = useState<TapMoment | null>(null);
   const [activeSlugUrl, setActiveSlugUrl] = useState<string | null>(null);
 
+  const { momentId } = useLocalSearchParams<{ momentId?: string }>();
+
   const profile = data?.profiles?.[0];
   const publicUrl = profile?.slug ? buildSlugProfileUrl(profile.slug) : null;
   const seedAnalytics = useMemo(() => buildSeedAnalytics(), []);
@@ -102,6 +104,18 @@ export function ConnectionsMomentsScreen() {
     }
     return 'https://sitehub.app';
   }, [publicUrl]);
+
+  useEffect(() => {
+    if (momentId) {
+      const match = SEED_MOMENTS.find((m) => m.id === momentId);
+      if (match) {
+        const slugUrl = getSeedSlugUrl(match.id, profileHost);
+        setActiveMoment(match);
+        setActiveSlugUrl(slugUrl);
+      }
+    }
+  }, [momentId, profileHost]);
+
 
   /**
    * Apply date-range + source filter first (cheap), then sort (O(n log n)).

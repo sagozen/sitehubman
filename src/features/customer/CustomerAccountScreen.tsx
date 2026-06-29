@@ -74,6 +74,10 @@ export function CustomerAccountScreen() {
     }
   }, []);
 
+  const handleActivityPress = useCallback((id: string) => {
+    router.navigate({ pathname: '/connections', params: { momentId: id } } as any);
+  }, []);
+
   return (
     <View style={styles.root}>
       <IosScrollView
@@ -105,7 +109,7 @@ export function CustomerAccountScreen() {
         />
 
         {/* 5. Recent Activity */}
-        <RecentActivityTimeline />
+        <RecentActivityTimeline onActivityPress={handleActivityPress} />
 
         {/* 6. Modules Carousel */}
         <CustomerModuleCarousel onModulePress={handleModulePress} />
