@@ -1,6 +1,8 @@
 import { View, StyleSheet, Pressable } from 'react-native';
 import { AppText } from '@/src/components/AppText';
 import { UserBoldDuotone, Card2BoldDuotone, ShareBoldDuotone } from '@solar-icons/react-native';
+import { HapticTap } from '@/src/utils/haptics';
+import { MotionScale } from '@/src/utils/motion';
 
 const TASKS = [
   { id: 'profile', label: 'Finish Profile', status: '85%', icon: UserBoldDuotone, color: '#3B82F6' },
@@ -17,7 +19,10 @@ export function ContinueWorkingTasks({ onTaskPress }: { onTaskPress?: (id: strin
           <Pressable
             key={task.id}
             style={({ pressed }) => [styles.taskCard, pressed && styles.cardPressed]}
-            onPress={() => onTaskPress?.(task.id)}
+            onPress={() => {
+              HapticTap.light();
+              onTaskPress?.(task.id);
+            }}
           >
             <View style={[styles.iconWrap, { backgroundColor: `${task.color}15` }]}>
               <task.icon size={20} color={task.color} />
@@ -63,7 +68,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   cardPressed: {
-    transform: [{ scale: 0.98 }],
+    transform: [{ scale: MotionScale.pressed }],
     opacity: 0.9,
   },
   iconWrap: {
@@ -84,3 +89,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
+

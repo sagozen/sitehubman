@@ -8,6 +8,7 @@ import {
   Linking,
   Image,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { IosScrollView } from '@/src/components/IosScrollView';
@@ -207,29 +208,34 @@ export default function SalesDashboardScreen() {
 
 function SalesOverviewCard({ referralCode, stats }: { referralCode: string, stats: any }) {
   return (
-    <View style={s.statCard}>
+    <LinearGradient
+      colors={['#0F294A', '#1E3E66']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={s.statCard}
+    >
       <View style={s.refCodeRow}>
-        <AppText style={s.refCodeLabel}>Referral Code</AppText>
-        <View style={s.refCodePill}>
-          <AppText style={s.refCodeValue}>{referralCode}</AppText>
+        <AppText style={[s.refCodeLabel, { color: '#FFFFFF' }]}>Referral Code</AppText>
+        <View style={[s.refCodePill, { backgroundColor: 'rgba(255, 255, 255, 0.15)' }]}>
+          <AppText style={[s.refCodeValue, { color: '#BAE6FD' }]}>{referralCode}</AppText>
         </View>
       </View>
-      <View style={s.statMetricsBox}>
+      <View style={[s.statMetricsBox, { backgroundColor: 'rgba(255, 255, 255, 0.08)' }]}>
         <View style={s.statCol}>
-          <AppText style={s.statLabel}>{"Today's Orders"}</AppText>
+          <AppText style={[s.statLabel, { color: 'rgba(255, 255, 255, 0.6)' }]}>{"Today's Orders"}</AppText>
           <View style={s.statValRow}>
-            <AppText style={s.statValue}>{stats.todayOrders}</AppText>
+            <AppText style={[s.statValue, { color: '#FFFFFF' }]}>{stats.todayOrders}</AppText>
           </View>
         </View>
-        <View style={s.statDivider} />
+        <View style={[s.statDivider, { backgroundColor: 'rgba(255, 255, 255, 0.15)' }]} />
         <View style={s.statCol}>
-          <AppText style={s.statLabel}>{"Today's Revenue"}</AppText>
+          <AppText style={[s.statLabel, { color: 'rgba(255, 255, 255, 0.6)' }]}>{"Today's Revenue"}</AppText>
           <View style={s.statValRow}>
-            <AppText style={s.statValue}>${stats.todayRevenue.toFixed(2)}</AppText>
+            <AppText style={[s.statValue, { color: '#FFFFFF' }]}>${stats.todayRevenue.toFixed(2)}</AppText>
           </View>
         </View>
       </View>
-    </View>
+    </LinearGradient>
   );
 }
 

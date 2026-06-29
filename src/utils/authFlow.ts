@@ -20,11 +20,10 @@ export function normalizeRole(role: unknown): UserRole {
 }
 
 export function getDashboardRoute(user: AppUser | null): Href {
-  if (!user) return '/(auth)/login';
+  if (!user) return '/auth/login';
   const role = normalizeRole(user.role);
-  if (role === 'super_admin') return '/admin/dashboard';
-  if (role === 'sales') return '/sales/dashboard';
-  if (role === 'customer') return '/customer';
+  if (role === 'super_admin') return '/admin' as any;
+  if (role === 'sales') return '/sales';
   return '/(tabs)';
 }
 

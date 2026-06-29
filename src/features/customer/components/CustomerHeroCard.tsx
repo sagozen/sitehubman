@@ -4,6 +4,8 @@ import { AppIcon } from '@/src/components/AppIcon';
 import { FlippableNfcCard } from '@/src/components/FlippableNfcCard';
 import { router } from 'expo-router';
 import { appRoutes } from '@/src/constants/navigation';
+import { HapticTap } from '@/src/utils/haptics';
+import { MotionScale } from '@/src/utils/motion';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - 32;
@@ -34,7 +36,10 @@ export function CustomerHeroCard({ user }: any) {
       {/* ── PROFILE HEADER (GUEST STYLE) ── */}
       <View style={styles.profileHeader}>
         <Pressable
-          onPress={() => router.push('/profile')}
+          onPress={() => {
+            HapticTap.light();
+            router.push('/profile');
+          }}
           style={({ pressed }) => [styles.profileAvatar, pressed && styles.pressed]}
         >
           {avatarUrl ? (
@@ -59,14 +64,20 @@ export function CustomerHeroCard({ user }: any) {
 
         <View style={styles.headerActions}>
           <Pressable
-            onPress={() => router.push(appRoutes.customer.notifications as any)}
+            onPress={() => {
+              HapticTap.light();
+              router.push(appRoutes.customer.notifications as any);
+            }}
             style={({ pressed }) => [styles.headerIcon, pressed && styles.pressed]}
           >
             <AppIcon name="Bell" size={19} color={INK} />
             <View style={styles.unreadDot} />
           </Pressable>
           <Pressable 
-            onPress={() => router.push('/cards/design')} 
+            onPress={() => {
+              HapticTap.medium();
+              router.push('/cards/design');
+            }} 
             style={({ pressed }) => [styles.headerIcon, pressed && styles.pressed]}
           >
             <AppIcon name="Sparkles" size={20} color={BRAND} />
@@ -177,7 +188,7 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   pressed: { 
     opacity: 0.75, 
-    transform: [{ scale: 0.97 }] 
+    transform: [{ scale: MotionScale.pressed }] 
   } as ViewStyle,
   cardWrap: {
     borderRadius: 28,
