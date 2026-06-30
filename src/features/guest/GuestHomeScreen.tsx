@@ -365,13 +365,16 @@ export function GuestHomeScreen() {
                 router.push('/profile');
               }}
               style={({ pressed }) => [
-                styles.profileAvatar,
                 pressed && styles.pressed,
-                isHovering && styles.hovered,
-                floatAnim,
               ]}
             >
-              <AppText style={styles.profileAvatarT}>{initial}</AppText>
+              <Animated.View style={[
+                styles.profileAvatar,
+                isHovering && styles.hovered,
+                floatAnim,
+              ]}>
+                <AppText style={styles.profileAvatarT}>{initial}</AppText>
+              </Animated.View>
             </Pressable>
             <View style={styles.profileCopy}>
               <AppText variant="caption" weight="medium" color={MUTED}>
@@ -422,13 +425,16 @@ export function GuestHomeScreen() {
                   router.push(appRoutes.studio as Href);
                 }}
                 style={({ pressed }) => [
-                  styles.headerIcon,
                   pressed && styles.pressed,
-                  isHovering && styles.hovered,
-                  pulseAnim,
                 ]}
               >
-                <AppIcon name="Sparkles" size={20} color={BRAND_VARIANTS.primary} weight="medium" />
+                <Animated.View style={[
+                  styles.headerIcon,
+                  isHovering && styles.hovered,
+                  pulseAnim,
+                ]}>
+                  <AppIcon name="Sparkles" size={20} color={BRAND_VARIANTS.primary} weight="medium" />
+                </Animated.View>
               </Pressable>
             </View>
           </View>
