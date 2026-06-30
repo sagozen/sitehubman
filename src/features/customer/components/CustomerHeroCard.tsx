@@ -182,7 +182,7 @@ export function CustomerHeroCard({ user }: any) {
               <Image source={{ uri: avatarUrl }} style={styles.profileAvatarImg} resizeMode="cover" />
             ) : (
               <View style={styles.avatarFallback}>
-                <AppText style={styles.profileAvatarT}>{initial}</AppText>
+                <AppIcon name="User" size={20} color="#8E8E93" />
               </View>
             )}
           </Animated.View>
@@ -265,8 +265,8 @@ export function CustomerHeroCard({ user }: any) {
 const styles = StyleSheet.create({
   container: {
     paddingTop: 12,
-    paddingBottom: 20,
-    gap: 16,
+    paddingBottom: 2,
+    gap: 8,
     alignItems: 'center',
   } as ViewStyle,
   profileHeader: {
@@ -276,10 +276,10 @@ const styles = StyleSheet.create({
     paddingTop: 8
   } as ViewStyle,
   profileAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: INK,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: '#E4E6EB',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: INK,
+    backgroundColor: '#E4E6EB',
   } as ViewStyle,
   profileAvatarT: {
     fontSize: 28,

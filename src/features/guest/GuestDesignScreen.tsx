@@ -1,12 +1,8 @@
-// ─── Guest Design Screen - Optimized for Performance & UX ─────────────────────
-// Optimized for Gen Y/Millennial appeal with Apple-inspired design principles
-// Performance targets: <16ms frame time, <800ms save operations, <10ms input latency
-
 import { IosScrollView } from '@/src/components/IosScrollView';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -20,10 +16,12 @@ import { router } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HapticTap } from '@/src/utils/haptics';
 import { MotionScale } from '@/src/utils/motion';
-import { usePerformanceMonitor, measureRender } from '@/src/utils/performanceMonitor';
+import { usePerformanceMonitor } from '@/src/utils/performanceMonitor';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
+import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import {
   formatFooterDualPrice,
   getEcardPriceUsd,
@@ -41,58 +39,56 @@ import {
 } from '@/src/services/guestDraftService';
 import { syncGuestCardDraft } from '@/src/services/guestCardDraftService';
 import { useDebounceCallback } from '@/src/hooks/useDebounceCallback';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 
-// ─── Optimized Tokens (WCAG AA Compliant) ─────────────────────────────────────
-const BRAND = '#007AFF';
-const INK = '#0A0A0F';
-const INK2 = '#1C1C1E';
-// FIXED: Improved contrast for muted text (WCAG AA: 4.6:1 on white background)
-const MUTED = '#6E6E73';
-const BG = '#FFFFFF';
-const SURFACE = '#FFFFFF';
+// ─── Gen Z Bento Neon Tokens ──────────────────────────────────────────────────
+const BRAND = '#9D4EDD';     // Cyber Neon Purple
+const BRAND_CYAN = '#00F0FF'; // Cyber Neon Cyan
+const INK = '#FFFFFF';       // High Contrast White
+const INK2 = '#9CA3AF';      // Cool Gray
+const MUTED = '#6B7280';     // Muted Gray
+const BG = '#030305';        // Void Black
+const SURFACE = 'rgba(255, 255, 255, 0.05)'; // Deep Glass
+const BORDER = 'rgba(255, 255, 255, 0.08)';  // Subtle Glass Edge
 
-// ─── Performance Optimized Field Row ──────────────────────────────────────────
+// ─── Performance Optimized Glass Field ──────────────────────────────────────
 function FieldRow({
   icon,
   value,
   onChange,
   placeholder,
-  last,
   ...inputProps
 }: {
   icon: AppIconName;
   value: string;
   onChange: (t: string) => void;
   placeholder: string;
-  last?: boolean;
 } & Pick<React.ComponentProps<typeof TextInput>, 'keyboardType' | 'autoCapitalize'>) {
   const ref = useRef<TextInput>(null);
 
-  // PERFORMANCE: Debounced input handler to reduce re-renders (300ms delay)
   const debouncedOnChange = useDebounceCallback((text: string) => {
     onChange(text);
   }, 300);
 
   return (
     <Pressable
-      onPress={() => ref.current?.focus()}
-      // ACCESSIBILITY: Extended hit area for ≥48dp touch targets
+      onPress={() => { HapticTap.light(); ref.current?.focus(); }}
       hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-      android_ripple={{
-        color: 'rgba(255,255,255,0.3)',
-        borderless: true
-      }}
-      style={[fi.row, last && fi.rowLast] as ViewStyle[]}
+      style={({ pressed }) => [
+        fi.row,
+        pressed && fi.rowPressed
+      ] as ViewStyle[]}
     >
-      <AppIcon name={icon} size={18} color={INK} />
+      <BlurView intensity={20} style={StyleSheet.absoluteFillObject} tint="dark" />
+      <AppIcon name={icon} size={20} color={BRAND_CYAN} />
       <TextInput
         ref={ref}
         style={fi.input}
         value={value}
-        onChangeText={debouncedOnChange} // ← OPTIMIZED: Debounced input
+        onChangeText={debouncedOnChange}
         placeholder={placeholder}
-        placeholderTextColor="#B8C0CC"
+        placeholderTextColor={MUTED}
+        accessibilityLabel={placeholder}
         {...inputProps}
       />
     </Pressable>
@@ -103,33 +99,36 @@ const fi = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 13,
-    paddingHorizontal: 18,
-    minHeight: 62,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(17,17,17,0.06)',
-    backgroundColor: SURFACE
+    gap: 14,
+    paddingHorizontal: 20,
+    minHeight: 64,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: BORDER,
+    backgroundColor: SURFACE,
+    overflow: 'hidden'
   } as ViewStyle,
-  rowLast: { borderBottomWidth: 0 } as ViewStyle,
+  rowPressed: {
+    transform: [{ scale: MotionScale.pressed }],
+    borderColor: 'rgba(0, 240, 255, 0.3)'
+  } as ViewStyle,
   input: {
     flex: 1,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
     color: INK,
-    padding: 0
+    padding: 0,
+    fontFamily: 'Inter_800ExtraBold'
   } as TextStyle,
 });
 
-// ─── Main Screen with Performance Monitoring ─────────────────────────────────
+// ─── Main Screen ─────────────────────────────────────────────────────────────
 export function GuestDesignScreen() {
   const { width: sw } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  const { measure } = usePerformanceMonitor();
 
-  // PERFORMANCE: Initialize performance monitoring
-  const { measure, measureRender } = usePerformanceMonitor();
-
-  // Info fields
   const [name, setName]       = useState('');
   const [jobTitle, setJobTitle] = useState('');
   const [company, setCompany] = useState('');
@@ -137,19 +136,16 @@ export function GuestDesignScreen() {
   const [phone, setPhone]     = useState(user?.phone ?? '');
   const [telegram, setTelegram] = useState('');
 
-  // Card style
   const [cardType, setCardType]   = useState<'virtual' | 'physical'>('virtual');
   const [styleIdx, setStyleIdx]   = useState(0);
   const [product, setProduct]     = useState<ProductType>('pvc_card');
   const [cardDesign, setCardDesign] = useState<CardDesign>('classic_black');
 
-  // Payment
   const [paymentMethod, setPaymentMethod] = useState<CambodiaPaymentMethodId | null>(null);
 
-  // State
   const [saving, setSaving] = useState(false);
   const [loadingDraft, setLoadingDraft] = useState(true);
-  const [saveError, setSaveError] = useState<string | null>(null); // ← ADDED: Error state
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const cardWidth = Math.min(sw - 48, 340);
   const cardHeight = cardWidth / 1.586;
@@ -157,7 +153,6 @@ export function GuestDesignScreen() {
   const priceUsd = cardType === 'virtual' ? getEcardPriceUsd() : getPhysicalPriceUsd(product);
   const infoComplete = name.trim().length > 0 && (phone.trim() || email.trim());
 
-  // Load saved draft with performance measurement
   useEffect(() => {
     void measure('Load Guest Card Draft', async () => {
       await loadGuestCardDraft().then((d) => {
@@ -177,18 +172,15 @@ export function GuestDesignScreen() {
     });
   }, [user?.email, user?.phone, measure]);
 
-  // PERFORMANCE: Optimized save handler with parallel execution and error handling
   const handleSave = useCallback(async () => {
     if (!infoComplete) return;
 
-    // PERFORMANCE: Measure save operation
     await measure('Save Guest Card Design', async () => {
       HapticTap.light();
       setSaving(true);
-      setSaveError(null); // Clear previous errors
+      setSaveError(null);
 
       try {
-        // PREPARE DATA ONCE
         const draft = {
           displayName: name.trim(),
           jobTitle: jobTitle.trim(),
@@ -205,7 +197,6 @@ export function GuestDesignScreen() {
         };
         const savedAt = new Date().toISOString();
 
-        // PERFORMANCE: RUN ALL API CALLS IN PARALLEL (SAVES 400-600MS)
         await Promise.all([
           saveGuestCardDraft(draft),
           syncGuestCardDraft({ ...draft, savedAt }),
@@ -223,9 +214,8 @@ export function GuestDesignScreen() {
         HapticTap.success();
         router.back();
       } catch (error) {
-        // ERROR HANDLING: Show user-friendly error message
         console.error('Save failed:', error);
-        setSaveError('Failed to save. Please check your connection and try again.');
+        setSaveError('Failed to save. Check your connection.');
         HapticTap.error();
       } finally {
         setSaving(false);
@@ -236,7 +226,7 @@ export function GuestDesignScreen() {
   if (loadingDraft) {
     return (
       <View style={styles.loadingCenter}>
-        <ActivityIndicator color={BRAND} size="large" />
+        <ActivityIndicator color={BRAND_CYAN} size="large" />
       </View>
     );
   }
@@ -250,72 +240,66 @@ export function GuestDesignScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={insets.top}
       >
-        {/* ── Premium Apple-Editorial Header ── */}
+        <LinearGradient
+          colors={['rgba(157,78,221,0.15)', 'rgba(0,240,255,0.05)', BG]}
+          locations={[0, 0.4, 1]}
+          style={StyleSheet.absoluteFillObject}
+        />
+
+        {/* ── Header ── */}
         <View style={styles.header}>
           <Pressable
-            onPress={() => {
-              HapticTap.light();
-              router.back();
-            }}
-            style={styles.backBtn}
-            // ACCESSIBILITY: Extended hit area
+            onPress={() => { HapticTap.light(); router.back(); }}
+            style={({ pressed }) => [styles.backBtn, pressed && styles.pressed]}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            android_ripple={{
-              color: 'rgba(255,255,255,0.3)',
-              borderless: true
-            }}
           >
-            <AppIcon name="ChevronLeft" size={22} color={INK2} />
+            <BlurView intensity={30} style={StyleSheet.absoluteFillObject} tint="dark" />
+            <AppIcon name="ChevronLeft" size={22} color={INK} />
           </Pressable>
-          <AppText style={styles.headerTitle}>Studio Design</AppText>
+          <AppText style={styles.headerTitle}>STUDIO</AppText>
           <View style={styles.pricePill}>
+            <LinearGradient
+              colors={[BRAND, BRAND_CYAN]}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFillObject}
+            />
             <AppText style={styles.priceT}>{formatFooterDualPrice(priceUsd)}</AppText>
           </View>
         </View>
 
         <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-          {/* Edge-to-Edge Premium Hero Section with Glass Overlay */}
-          <LinearGradient
-            colors={['rgba(37,150,190,0.06)', 'rgba(255,255,255,0)']}
-            style={styles.heroBanner}
-          >
-            <View style={styles.heroCopy}>
-              <AppText style={styles.heroTitle}>Customize Identity</AppText>
-              <AppText style={styles.heroSub}>Choose style options and fill profile credentials</AppText>
+          
+          {/* ── Gen Z Neon Card Stage ── */}
+          <View style={styles.previewStage}>
+            <View style={styles.glowBackdrop} />
+            <View style={styles.previewWrap}>
+              <NfcGlobalCardFace
+                fullName={name || 'Your Name'}
+                title={jobTitle || 'Verified Member'}
+                company={company || 'NFC Global'}
+                email={email || 'hello@nfcglobal.co'}
+                phone={phone || undefined}
+                width={cardWidth}
+                height={cardHeight}
+              />
             </View>
-
-            {/* Premium Card Stage with Depth Projection */}
-            <View style={styles.previewStage}>
-              <View style={styles.cardShadowBack} />
-              <View style={styles.previewWrap}>
-                <NfcGlobalCardFace
-                  fullName={name || 'Your Full Name'}
-                  title={jobTitle || 'Verified NFC Member'}
-                  company={company || 'NFC Global'}
-                  email={email || 'member@nfcglobal.co'}
-                  phone={phone || undefined}
-                  width={cardWidth}
-                  height={cardHeight}
-                />
-              </View>
-              <View style={styles.liveRow}>
-                <View style={styles.liveDot} />
-                <AppText style={styles.previewHint}>Live Production Preview</AppText>
-              </View>
+            <View style={styles.liveRow}>
+              <View style={styles.liveDot} />
+              <AppText style={styles.previewHint}>LIVE PREVIEW</AppText>
             </View>
-          </LinearGradient>
+          </View>
 
-          {/* Sections with Soft Visual Grouping and comfortable whitespace */}
+          {/* ── Bento Form Grid ── */}
           <View style={styles.sectionsContainer}>
-            {/* Identity Group */}
+            
             <View style={styles.section}>
-              <AppText style={styles.sectionTitle}>Profile details</AppText>
-              <View style={styles.card}>
+              <AppText style={styles.sectionTitle}>IDENTITY</AppText>
+              <View style={styles.bentoGrid}>
                 <FieldRow
                   icon="User"
                   value={name}
                   onChange={setName}
-                  placeholder="Full name *"
+                  placeholder="Full Name *"
                   autoCapitalize="words"
                 />
                 <FieldRow
@@ -332,76 +316,66 @@ export function GuestDesignScreen() {
                   placeholder="Email *"
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  last
                 />
               </View>
             </View>
 
-            {/* Delivery / Choice Group */}
             <View style={styles.section}>
-              <AppText style={styles.sectionTitle}>Product format</AppText>
-              <View style={styles.segmentRow}>
+              <AppText style={styles.sectionTitle}>FORMAT</AppText>
+              <View style={styles.bentoGridHorizontal}>
                 {(['virtual', 'physical'] as const).map((t) => (
                   <Pressable
                     key={t}
                     onPress={() => { setCardType(t); HapticTap.light(); }}
-                    style={[styles.segBtn, cardType === t && styles.segBtnActive] as ViewStyle[]}
-                    // ACCESSIBILITY: Extended hit area
-                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                    android_ripple={{
-                      color: 'rgba(255,255,255,0.3)',
-                      borderless: true
-                    }}
+                    style={({ pressed }) => [
+                      styles.segBtn,
+                      cardType === t && styles.segBtnActive,
+                      pressed && styles.pressed
+                    ]}
                   >
-                    <AppText style={[styles.segBtnT, cardType === t && styles.segBtnTActive] as TextStyle[]}>
-                      {t === 'virtual' ? 'E-Card (Digital Only)' : 'Physical Card (Metal/Wood/PVC)'}
+                    <BlurView intensity={cardType === t ? 50 : 20} style={StyleSheet.absoluteFillObject} tint="dark" />
+                    <AppText style={[styles.segBtnT, cardType === t && styles.segBtnTActive]}>
+                      {t === 'virtual' ? 'E-CARD' : 'PHYSICAL'}
                     </AppText>
                   </Pressable>
                 ))}
               </View>
             </View>
 
-            {/* Payment Method Group */}
             <View style={styles.section}>
-              <AppText style={styles.sectionTitle}>Checkout options</AppText>
+              <AppText style={styles.sectionTitle}>CHECKOUT</AppText>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.payScroll}>
                 {paymentMethods.map((pm) => (
                   <Pressable
                     key={pm.id}
                     onPress={() => { setPaymentMethod(pm.id); HapticTap.light(); }}
-                    style={[styles.payPill, paymentMethod === pm.id && styles.payPillActive] as ViewStyle[]}
-                    // ACCESSIBILITY: Extended hit area
-                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                    android_ripple={{
-                      color: 'rgba(255,255,255,0.3)',
-                      borderless: true
-                    }}
+                    style={({ pressed }) => [
+                      styles.payPill,
+                      paymentMethod === pm.id && styles.payPillActive,
+                      pressed && styles.pressed
+                    ]}
                   >
-                    <AppText style={[styles.payPillT, paymentMethod === pm.id && styles.payPillTActive] as TextStyle[]}>
-                      {pm.labelEn.replace('Pay with ', '')}
+                    <BlurView intensity={paymentMethod === pm.id ? 50 : 20} style={StyleSheet.absoluteFillObject} tint="dark" />
+                    <AppText style={[styles.payPillT, paymentMethod === pm.id && styles.payPillTActive]}>
+                      {pm.labelEn.replace('Pay with ', '').toUpperCase()}
                     </AppText>
                   </Pressable>
                 ))}
               </ScrollView>
             </View>
+
           </View>
         </IosScrollView>
 
-        {/* ── Premium Fixed Footer ── */}
-        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }] as ViewStyle[]}>
-          {/* ERROR STATE: Show save error if present */}
+        {/* ── Immersive Neon Footer ── */}
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+          <BlurView intensity={40} style={StyleSheet.absoluteFillObject} tint="dark" />
+          
           {saveError && (
             <View style={styles.errorBanner}>
-              <AppText variant="caption" weight="medium" color={INK}>
-                {saveError}
-              </AppText>
-              <Pressable
-                onPress={() => setSaveError(null)}
-                style={styles.errorButton}
-              >
-                <AppText variant="caption" weight="medium" color={BRAND}>
-                  Dismiss
-                </AppText>
+              <AppText style={styles.errorText}>{saveError}</AppText>
+              <Pressable onPress={() => setSaveError(null)}>
+                <AppText style={styles.errorDismiss}>DISMISS</AppText>
               </Pressable>
             </View>
           )}
@@ -412,25 +386,24 @@ export function GuestDesignScreen() {
             style={({ pressed }) => [
               styles.saveBtn,
               (!infoComplete || saving) && styles.saveBtnOff,
-              pressed && infoComplete && !saving && styles.saveBtnPressed,
-            ] as ViewStyle[]}
-            accessibilityRole="button"
-            testID="guest-design-save"
-            // ACCESSIBILITY: Extended hit area
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            android_ripple={{
-              color: 'rgba(0,0,0,0.2)',
-              borderless: false
-            }}
+              pressed && infoComplete && !saving && styles.pressed,
+            ]}
           >
-            {saving
-              ? <ActivityIndicator color="#FFFFFF" size="small" />
-              : <>
-                  <AppIcon name="Check" size={19} color="#FFFFFF" />
-                  <AppText style={styles.saveBtnT}>
-                    {cardType === 'physical' ? 'Order Premium Card' : 'Activate E-Card'}
-                  </AppText>
-                </>}
+            {(!infoComplete || saving) ? null : (
+              <LinearGradient
+                colors={[BRAND, BRAND_CYAN]}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                style={StyleSheet.absoluteFillObject}
+              />
+            )}
+            
+            {saving ? (
+              <ActivityIndicator color={INK} size="small" />
+            ) : (
+              <AppText style={styles.saveBtnT}>
+                {cardType === 'physical' ? 'ORDER METAL CARD' : 'ACTIVATE DIGITAL CARD'}
+              </AppText>
+            )}
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -442,86 +415,66 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG } as ViewStyle,
   flex: { flex: 1 } as ViewStyle,
   loadingCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: BG } as ViewStyle,
+  pressed: { transform: [{ scale: MotionScale.pressed }] } as ViewStyle,
 
   header: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 } as ViewStyle,
-  backBtn: { width: 42, height: 42, borderRadius: 21, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 6, elevation: 2 } as ViewStyle,
-  headerTitle: { flex: 1, fontSize: 17, fontWeight: '800', color: INK, letterSpacing: -0.4, fontFamily: 'Inter_800ExtraBold' } as TextStyle,
-  pricePill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: INK } as ViewStyle,
-  priceT: { fontSize: 12, fontWeight: '900', color: BRAND, fontFamily: 'Inter_900Black' } as TextStyle,
+  backBtn: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: BORDER } as ViewStyle,
+  headerTitle: { flex: 1, fontSize: 20, fontWeight: '900', color: INK, letterSpacing: 2, fontFamily: 'Inter_900Black', textAlign: 'center' } as TextStyle,
+  pricePill: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, overflow: 'hidden' } as ViewStyle,
+  priceT: { fontSize: 13, fontWeight: '900', color: INK, fontFamily: 'Inter_900Black' } as TextStyle,
 
-  scroll: { paddingBottom: 40 } as ViewStyle,
+  scroll: { paddingBottom: 60, paddingTop: 10 } as ViewStyle,
 
-  heroBanner: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 28, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.03)' } as ViewStyle,
-  heroCopy: { gap: 6, marginBottom: 24 } as ViewStyle,
-  heroTitle: { fontSize: 32, fontWeight: '900', color: INK, letterSpacing: -0.8, fontFamily: 'Inter_900Black' } as TextStyle,
-  heroSub: { fontSize: 14, fontWeight: '600', color: MUTED, lineHeight: 20, fontFamily: 'Inter_600SemiBold' } as TextStyle,
-
-  // Premium depth card preview stage
-  previewStage: { alignItems: 'center', position: 'relative', paddingVertical: 12 } as ViewStyle,
-  cardShadowBack: {
+  previewStage: { alignItems: 'center', position: 'relative', paddingVertical: 24, paddingHorizontal: 20 } as ViewStyle,
+  glowBackdrop: {
     position: 'absolute',
-    bottom: 24,
-    width: '75%',
-    height: 18,
-    backgroundColor: '#000000',
-    opacity: 0.06,
-    borderRadius: 99,
-    transform: [{ scaleX: 1.1 }],
+    width: '80%',
+    height: '60%',
+    backgroundColor: BRAND_CYAN,
+    opacity: 0.15,
+    borderRadius: 999,
+    top: '20%',
+    filter: 'blur(40px)',
   } as ViewStyle,
   previewWrap: {
     borderRadius: 24,
     overflow: 'hidden',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 18 },
-    shadowOpacity: 0.12,
-    shadowRadius: 28,
-    elevation: 8,
+    shadowColor: BRAND,
+    shadowOffset: { width: 0, height: 24 },
+    shadowOpacity: 0.3,
+    shadowRadius: 32,
+    elevation: 16,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.04)',
+    borderColor: 'rgba(255,255,255,0.2)',
   } as ViewStyle,
-  liveRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 20 } as ViewStyle,
-  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: BRAND } as ViewStyle,
-  previewHint: { fontSize: 11, fontWeight: '800', color: MUTED, textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: 'Inter_800ExtraBold' } as TextStyle,
+  liveRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 24, backgroundColor: 'rgba(0,0,0,0.4)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 99 } as ViewStyle,
+  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: BRAND_CYAN, shadowColor: BRAND_CYAN, shadowOpacity: 1, shadowRadius: 8, shadowOffset: { width: 0, height: 0 } } as ViewStyle,
+  previewHint: { fontSize: 11, fontWeight: '900', color: BRAND_CYAN, letterSpacing: 1.5, fontFamily: 'Inter_900Black' } as TextStyle,
 
-  sectionsContainer: { paddingHorizontal: 20, paddingTop: 32, gap: 32 } as ViewStyle,
-  section: { gap: 12 } as ViewStyle,
-  sectionTitle: { fontSize: 20, fontWeight: '800', color: INK, letterSpacing: -0.4, fontFamily: 'Inter_800ExtraBold' } as TextStyle,
-  card: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.04)', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 10 } as ViewStyle,
+  sectionsContainer: { paddingHorizontal: 20, paddingTop: 10, gap: 40 } as ViewStyle,
+  section: { gap: 16 } as ViewStyle,
+  sectionTitle: { fontSize: 14, fontWeight: '900', color: INK2, letterSpacing: 3, fontFamily: 'Inter_900Black' } as TextStyle,
+  
+  bentoGrid: { gap: 12 } as ViewStyle,
+  bentoGridHorizontal: { flexDirection: 'row', gap: 12 } as ViewStyle,
 
-  segmentRow: { flexDirection: 'column', gap: 10 } as ViewStyle,
-  segBtn: { width: '100%', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 24, backgroundColor: SURFACE, borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.04)' } as ViewStyle,
-  segBtnActive: { backgroundColor: INK, borderColor: INK } as ViewStyle,
-  segBtnT: { fontSize: 14, fontWeight: '700', color: MUTED, fontFamily: 'Inter_700Bold' } as TextStyle,
-  segBtnTActive: { color: '#FFFFFF' } as TextStyle,
+  segBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 18, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: BORDER } as ViewStyle,
+  segBtnActive: { borderColor: BRAND_CYAN } as ViewStyle,
+  segBtnT: { fontSize: 14, fontWeight: '900', color: MUTED, fontFamily: 'Inter_900Black', letterSpacing: 1 } as TextStyle,
+  segBtnTActive: { color: BRAND_CYAN } as TextStyle,
 
-  payScroll: { gap: 8, paddingRight: 4 } as ViewStyle,
-  payPill: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: 999, backgroundColor: SURFACE, borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.04)' } as ViewStyle,
-  payPillActive: { backgroundColor: INK, borderColor: INK } as ViewStyle,
-  payPillT: { fontSize: 13, fontWeight: '800', color: INK, fontFamily: 'Inter_800ExtraBold' } as TextStyle,
-  payPillTActive: { color: '#FFFFFF' } as TextStyle,
+  payScroll: { gap: 12, paddingRight: 20 } as ViewStyle,
+  payPill: { paddingHorizontal: 24, paddingVertical: 16, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: BORDER } as ViewStyle,
+  payPillActive: { borderColor: BRAND } as ViewStyle,
+  payPillT: { fontSize: 13, fontWeight: '900', color: MUTED, fontFamily: 'Inter_900Black', letterSpacing: 1 } as TextStyle,
+  payPillTActive: { color: BRAND } as TextStyle,
 
-  footer: { paddingHorizontal: 20, paddingTop: 12, backgroundColor: BG, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.04)' } as ViewStyle,
-  saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 52, borderRadius: 999, backgroundColor: '#111827' } as ViewStyle,
-  saveBtnOff: { backgroundColor: '#C4CFDE', shadowOpacity: 0 } as ViewStyle,
-  saveBtnPressed: { opacity: 0.9, transform: [{ scale: MotionScale.pressed }] } as ViewStyle,
-  saveBtnT: { fontSize: 14, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.2, fontFamily: 'Inter_800ExtraBold' } as TextStyle,
+  footer: { paddingHorizontal: 20, paddingTop: 16, borderTopWidth: 1, borderTopColor: BORDER, overflow: 'hidden' } as ViewStyle,
+  saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 60, borderRadius: 20, overflow: 'hidden', backgroundColor: SURFACE, borderWidth: 1, borderColor: BORDER } as ViewStyle,
+  saveBtnOff: { opacity: 0.5 } as ViewStyle,
+  saveBtnT: { fontSize: 15, fontWeight: '900', color: INK, letterSpacing: 1.5, fontFamily: 'Inter_900Black' } as TextStyle,
 
-  // ERROR STATES
-  errorBanner: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FFEBEE',
-    borderRadius: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: '#F44336',
-    marginHorizontal: 20,
-    marginBottom: 16,
-  } as ViewStyle,
-  errorButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  } as ViewStyle,
+  errorBanner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.3)', marginBottom: 16 } as ViewStyle,
+  errorText: { color: '#FCA5A5', fontSize: 13, fontWeight: '800', fontFamily: 'Inter_800ExtraBold' } as TextStyle,
+  errorDismiss: { color: '#EF4444', fontSize: 13, fontWeight: '900', fontFamily: 'Inter_900Black', letterSpacing: 1 } as TextStyle,
 });
