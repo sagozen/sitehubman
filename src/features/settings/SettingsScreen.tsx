@@ -21,11 +21,9 @@ import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { UiPreferences } from '@/src/types/models';
 import { getRoleLabel, getRoleScopeSummary } from '@/src/utils/roleCapabilities';
 
-// ─── tokens ──────────────────────────────────────────────────────────────────
+import { useMemo } from 'react';
+
 const BRAND = '#2596BE';
-const INK = '#0A0A0F';
-const MUTED = '#8E8E93';
-const BG = '#FFFFFF';
 
 type SavingKey = 'language' | 'colorMode' | 'profileTheme' | 'typographyColor' | 'reset' | 'signOut' | null;
 type Message = { type: 'success' | 'error'; text: string } | null;
@@ -53,6 +51,7 @@ export function SettingsScreen() {
   const isGuest = useIsGuest();
   const { requireAccount } = useRequireAccount();
   const { preferences, colors, resolvedColorMode, updatePreferences, resetPreferences, isReady } = useAppTheme();
+  const styles = useStyles(colors);
   const ui = useSettingsColors(colors);
   const [savingKey, setSavingKey] = useState<SavingKey>(null);
   const [message, setMessage] = useState<Message>(null);
@@ -129,7 +128,7 @@ export function SettingsScreen() {
   const initial = (user?.displayName?.trim() || 'S')[0].toUpperCase();
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: ui.background }]} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
         <View style={styles.pageHeader}>
@@ -173,11 +172,11 @@ export function SettingsScreen() {
         <View style={styles.section}>
           <AppText style={styles.sectionTitle}>Essentials</AppText>
           <View style={styles.list}>
-            <SettingsRow icon="CreditCard" title="Card studio" value="Design" onPress={() => router.push(appRoutes.studio as any)} />
-            <SettingsRow icon="Users" title="Network" value="People" onPress={() => router.push(appRoutes.customerConnections)} />
-            <SettingsRow icon="BarChart" title="Analysis" value="Signals" onPress={() => router.push(isGuest ? appRoutes.guestAnalytics : appRoutes.customerAnalysis)} />
-            <SettingsRow icon="Package" title="Orders" value="Track" onPress={() => router.push(isGuest ? appRoutes.guestTrackOrder : appRoutes.customer.orders)} />
-            <SettingsRow icon="Sparkles" title="Marketing Showcase" value="Premium" onPress={() => router.push('/promotional-preview')} last />
+            <SettingsRow styles={styles} colors={colors} icon="CreditCard" title="Card studio" value="Design" onPress={() => router.push(appRoutes.studio as any)} />
+            <SettingsRow styles={styles} colors={colors} icon="Users" title="Network" value="People" onPress={() => router.push(appRoutes.customerConnections)} />
+            <SettingsRow styles={styles} colors={colors} icon="BarChart" title="Analysis" value="Signals" onPress={() => router.push(isGuest ? appRoutes.guestAnalytics : appRoutes.customerAnalysis)} />
+            <SettingsRow styles={styles} colors={colors} icon="Package" title="Orders" value="Track" onPress={() => router.push(isGuest ? appRoutes.guestTrackOrder : appRoutes.customer.orders)} />
+            <SettingsRow styles={styles} colors={colors} icon="Sparkles" title="Marketing Showcase" value="Premium" onPress={() => router.push('/promotional-preview')} last />
           </View>
         </View>
 
@@ -198,8 +197,8 @@ export function SettingsScreen() {
               onChange={(value) => void savePreference('colorMode', { colorMode: value }, 'Appearance')}
             />
           </View>
-          <SettingsRow icon="Settings" title="Language" value={languageLabel} onPress={() => router.push('/language-picker')} />
-          <SettingsRow icon="Sparkles" title="Profile theme" value={profileThemeLabel} onPress={() => router.push('/theme-picker')} />
+          <SettingsRow styles={styles} colors={colors} icon="Settings" title="Language" value={languageLabel} onPress={() => router.push('/language-picker')} />
+          <SettingsRow styles={styles} colors={colors} icon="Sparkles" title="Profile theme" value={profileThemeLabel} onPress={() => router.push('/theme-picker')} />
           <View style={styles.selectWrap}>
             <AppSelect
               label="Text color accent"
@@ -220,11 +219,11 @@ export function SettingsScreen() {
         <View style={styles.section}>
           <AppText style={styles.sectionTitle}>Account</AppText>
           <View style={styles.list}>
-            <SettingsRow icon="ShieldCheck" title="Access" value={getRoleScopeSummary(user?.role)} />
-            <SettingsRow icon="FileText" title="Privacy policy" onPress={() => router.push('/privacy-policy')} />
-            <SettingsRow icon="FileText" title="Terms of service" onPress={() => router.push('/terms-of-service')} />
-            <SettingsRow icon="RefreshCw" title="Reset settings" value={isSaving('reset') ? '…' : undefined} onPress={handleReset} disabled={isBusy} />
-            <SettingsRow icon="LogOut" title="Sign out" value={isSaving('signOut') ? '…' : undefined} onPress={() => void performSignOut()} disabled={isBusy} destructive last />
+            <SettingsRow styles={styles} colors={colors} icon="ShieldCheck" title="Access" value={getRoleScopeSummary(user?.role)} />
+            <SettingsRow styles={styles} colors={colors} icon="FileText" title="Privacy policy" onPress={() => router.push('/privacy-policy')} />
+            <SettingsRow styles={styles} colors={colors} icon="FileText" title="Terms of service" onPress={() => router.push('/terms-of-service')} />
+            <SettingsRow styles={styles} colors={colors} icon="RefreshCw" title="Reset settings" value={isSaving('reset') ? '…' : undefined} onPress={handleReset} disabled={isBusy} />
+            <SettingsRow styles={styles} colors={colors} icon="LogOut" title="Sign out" value={isSaving('signOut') ? '…' : undefined} onPress={() => void performSignOut()} disabled={isBusy} destructive last />
           </View>
         </View>
 
@@ -253,6 +252,8 @@ function SettingsRow({
   disabled?: boolean;
   destructive?: boolean;
   last?: boolean;
+  styles: any;
+  colors: any;
 }) {
   return (
     <Pressable
@@ -260,76 +261,80 @@ function SettingsRow({
       disabled={disabled || !onPress}
       style={({ pressed }) => [styles.row, !last && styles.rowBorder, pressed && onPress && styles.rowPressed, disabled && styles.rowDisabled]}
     >
-      <AppIcon name={icon} size={22} color={destructive ? '#FF3B30' : title === 'Card studio' ? BRAND : INK} />
+      <AppIcon name={icon} size={22} color={destructive ? '#FF3B30' : title === 'Card studio' ? BRAND : colors.textPrimary} />
       <AppText style={[styles.rowTitle, destructive && styles.rowTitleDanger]}>{title}</AppText>
       {value ? <AppText style={styles.rowValue} numberOfLines={1}>{value}</AppText> : null}
-      {onPress ? <AppIcon name="ChevronRight" size={15} color={MUTED} /> : null}
+      {onPress ? <AppIcon name="ChevronRight" size={15} color={colors.textMuted} /> : null}
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  scroll: { paddingHorizontal: 24, paddingTop: 14, paddingBottom: 120, gap: 24 },
+function useStyles(colors: ReturnType<typeof useAppTheme>['colors']) {
+  return useMemo(() => StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.background },
+    scroll: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 120, gap: 24 },
 
-  pageHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
-  pageTitleWrap: { flex: 1, gap: 3 },
-  pageTitle: { fontSize: 42, lineHeight: 45, fontWeight: '900', color: INK, letterSpacing: 0, fontFamily: 'Inter_900Black' },
-  pageSub: { fontSize: 15, fontWeight: '700', color: MUTED, fontFamily: 'Inter_700Bold' },
+    pageHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
+    pageTitleWrap: { flex: 1, gap: 3 },
+    pageTitle: { fontSize: 38, lineHeight: 45, fontWeight: '900', color: colors.textPrimary, letterSpacing: -0.5 },
+    pageSub: { fontSize: 15, fontWeight: '600', color: colors.textMuted },
 
-  accountCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    backgroundColor: INK,
-    borderRadius: 28,
-    padding: 20,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-  avatar: { width: 62, height: 62, borderRadius: 31, backgroundColor: BRAND, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontSize: 24, fontWeight: '900', color: '#FFFFFF' },
-  accountCopy: { flex: 1, minWidth: 0, gap: 4 },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 0 },
-  accountName: { flexShrink: 1, fontSize: 22, fontWeight: '900', color: '#FFFFFF' },
-  accountEmail: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.58)' },
-  accountRole: { fontSize: 11, fontWeight: '900', color: BRAND },
+    accountCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+      backgroundColor: colors.surface,
+      borderRadius: 24,
+      padding: 20,
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.08,
+      shadowRadius: 24,
+      elevation: 8,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    avatar: { width: 62, height: 62, borderRadius: 31, backgroundColor: BRAND, alignItems: 'center', justifyContent: 'center' },
+    avatarText: { fontSize: 24, fontWeight: '900', color: '#FFFFFF' },
+    accountCopy: { flex: 1, minWidth: 0, gap: 4 },
+    nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 0 },
+    accountName: { flexShrink: 1, fontSize: 22, fontWeight: '800', color: colors.textPrimary },
+    accountEmail: { fontSize: 12, fontWeight: '700', color: colors.textMuted },
+    accountRole: { fontSize: 11, fontWeight: '800', color: BRAND },
 
-  section: { gap: 14 },
-  sectionTitle: { fontSize: 22, fontWeight: '900', color: INK },
-  list: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 28,
-    overflow: 'hidden',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.05,
-    shadowRadius: 20,
-    elevation: 3,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(0,0,0,0.05)'
-  },
-  row: { minHeight: 62, flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 18 },
-  rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(17,17,17,0.06)' },
-  rowPressed: { opacity: 0.72 },
-  rowDisabled: { opacity: 0.4 },
-  rowTitle: { flex: 1, fontSize: 16, fontWeight: '800', color: INK },
-  rowTitleDanger: { color: '#FF3B30' },
-  rowValue: { maxWidth: 132, fontSize: 12, fontWeight: '800', color: MUTED },
+    section: { gap: 10 },
+    sectionTitle: { fontSize: 13, fontWeight: '800', color: colors.textMuted, letterSpacing: 0.6, textTransform: 'uppercase' },
+    list: {
+      backgroundColor: colors.surface,
+      borderRadius: 24,
+      overflow: 'hidden',
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.05,
+      shadowRadius: 20,
+      elevation: 3,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    row: { minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20 },
+    rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+    rowPressed: { opacity: 0.72 },
+    rowDisabled: { opacity: 0.4 },
+    rowTitle: { flex: 1, fontSize: 16, fontWeight: '600', color: colors.textPrimary },
+    rowTitleDanger: { color: '#FF3B30' },
+    rowValue: { maxWidth: 132, fontSize: 14, fontWeight: '600', color: colors.textMuted },
 
-  appearanceBlock: { padding: 18, gap: 14 },
-  appearanceHead: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  appearanceCopy: { flex: 1, gap: 2 },
-  appearanceTitle: { fontSize: 15, fontWeight: '700', color: INK, fontFamily: 'Inter_700Bold' },
-  appearanceSub: { fontSize: 12, fontWeight: '500', color: MUTED, fontFamily: 'Inter_500Medium' },
+    appearanceBlock: { padding: 20, gap: 14 },
+    appearanceHead: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    appearanceCopy: { flex: 1, gap: 2 },
+    appearanceTitle: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
+    appearanceSub: { fontSize: 13, fontWeight: '500', color: colors.textMuted },
 
-  selectWrap: { paddingHorizontal: 18, paddingVertical: 14, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(0,0,0,0.05)' },
+    selectWrap: { paddingHorizontal: 20, paddingVertical: 14, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
 
-  swatch: { width: 18, height: 18, borderRadius: 9 },
+    swatch: { width: 18, height: 18, borderRadius: 9 },
 
-  versionWrap: { alignItems: 'center', paddingVertical: 8 },
-  versionText: { fontSize: 11, fontWeight: '500', color: '#C7C7CC', fontFamily: 'Inter_500Medium' },
-});
+    versionWrap: { alignItems: 'center', paddingVertical: 8 },
+    versionText: { fontSize: 11, fontWeight: '500', color: colors.textMuted },
+  }), [colors]);
+}
