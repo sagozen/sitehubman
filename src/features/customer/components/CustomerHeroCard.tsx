@@ -170,19 +170,22 @@ export function CustomerHeroCard({ user }: any) {
           onPressOut={handlePressOut}
           onPress={handlePress}
           style={({ pressed }) => [
-            styles.profileAvatar,
             pressed && styles.pressed,
-            isHovering && styles.hovered,
-            floatAnim,
           ]}
         >
-          {avatarUrl ? (
-            <Image source={{ uri: avatarUrl }} style={styles.profileAvatarImg} resizeMode="cover" />
-          ) : (
-            <View style={styles.avatarFallback}>
-              <AppText style={styles.profileAvatarT}>{initial}</AppText>
-            </View>
-          )}
+          <Animated.View style={[
+            styles.profileAvatar,
+            isHovering && styles.hovered,
+            floatAnim,
+          ]}>
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.profileAvatarImg} resizeMode="cover" />
+            ) : (
+              <View style={styles.avatarFallback}>
+                <AppText style={styles.profileAvatarT}>{initial}</AppText>
+              </View>
+            )}
+          </Animated.View>
         </Pressable>
 
         <View style={styles.profileCopy}>
@@ -225,13 +228,16 @@ export function CustomerHeroCard({ user }: any) {
               router.push('/cards/design');
             }}
             style={({ pressed }) => [
-              styles.headerIcon,
               pressed && styles.pressed,
-              isHovering && styles.hovered,
-              pulseAnim,
             ]}
           >
-            <AppIcon name="Sparkles" size={20} color={BRAND} weight="medium" />
+            <Animated.View style={[
+              styles.headerIcon,
+              isHovering && styles.hovered,
+              pulseAnim,
+            ]}>
+              <AppIcon name="Sparkles" size={20} color={BRAND} weight="medium" />
+            </Animated.View>
           </Pressable>
         </View>
       </View>
