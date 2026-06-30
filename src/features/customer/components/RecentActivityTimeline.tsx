@@ -66,7 +66,7 @@ export function RecentActivityTimeline({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 32,
+    marginBottom: 16,
   } as ViewStyle,
   sectionTitle: {
     fontSize: 20,
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    paddingBottom: 24,
+    paddingBottom: 16,
     paddingLeft: 12,
   } as ViewStyle,
   contentLast: {

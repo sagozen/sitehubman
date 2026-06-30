@@ -221,6 +221,7 @@ export const iosDesign = {
     sidebar: 64,
     gutter: 8,
     gutter2: 16,
+    comfort: 18,
   },
   radius: {
     xs: 4,
@@ -251,6 +252,7 @@ export const iosDesign = {
     hero: 36,
     feature: 40,
     marketing: 48,
+    tiny: 10,
   },
   avatarSize: {
     xs: 24,
@@ -264,6 +266,7 @@ export const iosDesign = {
     largeProfile: 80,
     hero: 96,
     banner: 120,
+    logo: 120,
   },
   controlHeight: {
     xs: 28,
@@ -305,6 +308,8 @@ export const iosDesign = {
     springGentle: { damping: 15, stiffness: 120 },
     springDefault: { damping: 20, stiffness: 150 },
     springBold: { damping: 25, stiffness: 180 },
+    // Press scales
+    softPressScale: 0.95,
   },
 } as const;
 

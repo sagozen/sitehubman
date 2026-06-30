@@ -18,6 +18,9 @@ import { isPaymentVerified } from '@/src/services/paymentVerificationService';
 import { formatOrderTotal } from '@/src/utils/orderPricing';
 import { needsSalesApproval } from '@/src/utils/orderProduction';
 import type { Order } from '@/src/types/models';
+import { StatusBadge } from '@/src/components/StatusBadge';
+import { FAB } from '@/src/components/FAB';
+import { QuickActionModal } from '@/src/components/QuickActionModal';
 
 // ─── Tokens (Light Theme Pro) ───────────────────────────────────────────────
 const BG = '#F8FAFC';
@@ -54,6 +57,7 @@ export default function SalesOrdersScreen() {
 
   const [filter, setFilter] = useState<FilterType>('all');
   const [search, setSearch] = useState('');
+  const [fabOpen, setFabOpen] = useState(false);
   const [page, setPage] = useState(1);
 
   useEffect(() => { refresh(); }, [refresh]);
@@ -253,11 +257,7 @@ export default function SalesOrdersScreen() {
 
                       {/* Status badge & Price */}
                       <View style={{ alignItems: 'flex-end', gap: 6 }}>
-                        <View style={[s.badge, { backgroundColor: styling.bg, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }]}>
-                          <AppText style={{ fontSize: 9, fontWeight: '900', color: styling.text, letterSpacing: 0.2 }}>
-                            {styling.label.toUpperCase()}
-                          </AppText>
-                        </View>
+                        <StatusBadge status={sKey} label={styling.label} />
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
                           <AppText style={{ fontSize: 13, fontWeight: '900', color: INK }}>
                             {formatOrderTotal(o)}
@@ -300,7 +300,8 @@ export default function SalesOrdersScreen() {
         </IosScrollView>
       </SafeAreaView>
 
-
+      <FAB onPress={() => setFabOpen(true)} />
+      <QuickActionModal visible={fabOpen} onClose={() => setFabOpen(false)} />
     </View>
   );
 }

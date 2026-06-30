@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     opacity: 0.95
   } as ViewStyle,
   cardContainer: {
-    marginVertical: 20,
+    marginVertical: 4,
     width: '100%',
     maxWidth: CARD_WIDTH,
   } as ViewStyle,
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0,0,0,0.03)',
   } as ViewStyle,
   interactiveHint: {
-    marginTop: 12,
+    marginTop: 6,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,

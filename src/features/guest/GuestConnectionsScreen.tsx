@@ -1,4 +1,5 @@
 import { IosScrollView } from '@/src/components/IosScrollView';
+import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,6 +9,8 @@ import { appRoutes } from '@/src/constants/navigation';
 import { useGuestActionStats } from '@/src/hooks/useGuestActionStats';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
+import { FAB } from '@/src/components/FAB';
+import { QuickActionModal } from '@/src/components/QuickActionModal';
 
 const BRAND = '#2596BE';
 const INK = '#1C1C1E';
@@ -77,6 +80,7 @@ export function GuestConnectionsScreen() {
   const isGuest = useIsGuest();
   const { requireAccount } = useRequireAccount();
   const { openPreview } = useGuestActionStats();
+  const [fabOpen, setFabOpen] = useState(false);
 
   function handleAction(action: (typeof ACTIONS)[0]) {
     if (action.locked) {
@@ -162,6 +166,8 @@ export function GuestConnectionsScreen() {
         </View>
 
       </IosScrollView>
+      <FAB onPress={() => setFabOpen(true)} />
+      <QuickActionModal visible={fabOpen} onClose={() => setFabOpen(false)} />
     </SafeAreaView>
   );
 }

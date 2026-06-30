@@ -19,7 +19,7 @@ export function CustomerModuleCarousel({ onModulePress }: { onModulePress?: (id:
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         decelerationRate="fast"
-        snapToInterval={140 + 12} // Card width + gap
+        snapToInterval={110 + 12} // Card width + gap
       >
         {MODULES.map((mod) => (
           <Pressable
@@ -46,7 +46,7 @@ export function CustomerModuleCarousel({ onModulePress }: { onModulePress?: (id:
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 40,
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 20,
@@ -60,43 +60,41 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   card: {
-    width: 140, // full size box
-    height: 120, // full size box
+    width: 110,
+    height: 124,
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
+    borderRadius: 20,
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.04,
     shadowRadius: 12,
-    elevation: 2,
+    elevation: 3,
     borderWidth: 1,
-    borderColor: 'rgba(60, 60, 67, 0.03)',
-    overflow: 'hidden',
-    justifyContent: 'flex-end',
-    padding: 16,
-    position: 'relative',
+    borderColor: 'rgba(60, 60, 67, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
   },
   cardPressed: {
-    transform: [{ scale: 0.96 }],
-    opacity: 0.9,
+    transform: [{ scale: 0.95 }],
+    opacity: 0.85,
   },
   imageWrap: {
-    position: 'absolute',
-    left: -32, // see half on left (shifted further)!
-    top: 12,
-    width: 85,
-    height: 85,
+    width: 60,
+    height: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
   },
   image: {
     width: '100%',
     height: '100%',
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '800',
-    fontFamily: 'Inter_800ExtraBold',
-    letterSpacing: -0.4,
+    letterSpacing: -0.2,
     color: '#111827',
-    textAlign: 'left',
+    textAlign: 'center',
   },
 });

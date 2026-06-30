@@ -2,6 +2,7 @@ import { PropsWithChildren } from 'react';
 import { StyleProp, StyleSheet, Text, TextProps, TextStyle } from 'react-native';
 import { usePreferences } from '@/src/hooks/usePreferences';
 import { iosTypography } from '@/src/design-system/ios';
+import { memo } from 'react';
 
 type TextVariant = keyof typeof iosTypography;
 type TextTone = 'primary' | 'muted' | 'inverse';
@@ -72,7 +73,7 @@ function sanitizeTextStyle(style: TextStyle | undefined) {
   return layoutAndSemanticStyle;
 }
 
-export function AppText({
+const AppTextRaw = ({
   children,
   variant,
   tone = 'primary',
@@ -80,7 +81,7 @@ export function AppText({
   weight,
   style,
   ...rest
-}: PropsWithChildren<AppTextProps>) {
+}: PropsWithChildren<AppTextProps>) => {
   const { colors } = usePreferences();
   const flattenedStyle = StyleSheet.flatten(style);
   const resolvedVariant = variant ?? inferVariantFromStyle(flattenedStyle);
@@ -107,7 +108,7 @@ export function AppText({
       {children}
     </Text>
   );
-}
+};
 
 const styles = StyleSheet.create({
   base: {
@@ -116,6 +117,10 @@ const styles = StyleSheet.create({
   },
 });
 
+// MEMOIZE: Prevent unnecessary re-renders when props are unchanged
+export const AppText = memo(AppTextRaw);
+
+// Export specialized components (these will be memoized through AppText)
 export function Display(props: Omit<AppTextProps, 'variant'>) {
   return <AppText {...props} variant="display" />;
 }

@@ -15,6 +15,7 @@ import { ThemeStatusBar } from '@/src/components/ThemeStatusBar';
 import { AuthProvider } from '@/src/providers/AuthProvider';
 import { GuestGateProvider } from '@/src/providers/GuestGateProvider';
 import { PreferencesProvider } from '@/src/providers/PreferencesProvider';
+import { ThemeProvider } from '@/src/providers/ThemeProvider';
 import { analytics } from '@/src/utils/analytics';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
@@ -31,6 +32,8 @@ function RootLayout() {
   return (
 
     <ErrorBoundary>
+
+    <ThemeProvider>
 
     <AuthProvider>
 
@@ -138,6 +141,8 @@ function RootLayout() {
       </PreferencesProvider>
 
     </AuthProvider>
+
+    </ThemeProvider>
 
     </ErrorBoundary>
 

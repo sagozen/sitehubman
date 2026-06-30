@@ -395,6 +395,10 @@ export function GuestHomeScreen() {
   }
 
   function handleAction(a: any) {
+    if (isGuest && (a.label === 'Network' || a.label === 'Insights' || a.label === 'Studio')) {
+      requireAccount(undefined, { message: `Sign in to unlock ${a.label}.` });
+      return;
+    }
     if (a.action === 'share') {
       handleShare();
       return;
@@ -597,7 +601,6 @@ export function GuestHomeScreen() {
                       styles.actionButton,
                       pressed && styles.actionPressed,
                       isHovering && styles.actionHovered,
-                      { transform: [{ scale: index % 2 === 0 ? 1.02 : 1 }] },
                     ]}
                     // FIXED: Added hitSlop for all action buttons
                     hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}

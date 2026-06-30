@@ -228,13 +228,7 @@ export function ConnectionsMomentsScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
-      <IosScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={BRAND} />
-        }
-      >
+      <View style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 16 }}>
         <MomentsSearchAndFilter
           query={searchQuery}
           onChangeQuery={setSearchQuery}
@@ -244,7 +238,7 @@ export function ConnectionsMomentsScreen() {
         />
 
         {showFilters ? (
-          <View style={styles.filterTray}>
+          <View style={[styles.filterTray, { marginTop: 16, marginBottom: 0 }]}>
             <View style={styles.filterRow}>
               <AppText style={[styles.filterLabel, { color: isDark ? 'rgba(235,235,245,0.4)' : MUTED }]}>
                 Timeframe
@@ -311,10 +305,12 @@ export function ConnectionsMomentsScreen() {
             </View>
           </View>
         ) : null}
+      </View>
 
+      <View style={{ flex: 1, paddingHorizontal: 20 }}>
         {/* Moments timeline - virtualized FlatList of header + moment rows */}
         {hasMoments ? (
-          <View style={[cb.chatCard, { backgroundColor: colors.surface }]}>
+          <View style={[cb.chatCard, { backgroundColor: colors.surface, flex: 1 }]}>
             <View style={cb.chatHeader}>
               <View style={cb.chatHeaderDot} />
               <AppText style={[cb.chatHeaderText, { color: isDark ? 'rgba(235,235,245,0.55)' : MUTED }]}>
@@ -326,65 +322,78 @@ export function ConnectionsMomentsScreen() {
               keyExtractor={keyExtractor}
               renderItem={renderTimelineItem}
               ItemSeparatorComponent={itemSeparator}
-              scrollEnabled={false}
+              scrollEnabled={true}
               initialNumToRender={10}
               maxToRenderPerBatch={10}
               windowSize={7}
               removeClippedSubviews
-              contentContainerStyle={styles.timelineList}
+              contentContainerStyle={{ paddingBottom: 140 }}
+              showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={BRAND} />
+              }
             />
           </View>
         ) : null}
 
         {/* Filtered-empty state (filter excludes everything). */}
         {!hasMoments && SEED_MOMENTS.length > 0 ? (
-          <View style={styles.emptyState}>
-            <View style={styles.emptyIcon}>
-              <AppIcon name="Calendar" size={36} color={BRAND} />
+          <IosScrollView
+            contentContainerStyle={{ paddingBottom: 140 }}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={BRAND} />}
+          >
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIcon}>
+                <AppIcon name="Calendar" size={36} color={BRAND} />
+              </View>
+              <AppText style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+                No moments match your filters
+              </AppText>
+              <AppText style={[styles.emptyBody, { color: MUTED }]}>
+                {`Try widening the date range or switching the source to \u201CAll sources\u201D.`}
+              </AppText>
+              <Pressable
+                onPress={() => {
+                  HapticTap.selection();
+                  setDateRange('all');
+                  setSourceFilter('all');
+                }}
+                style={({ pressed }) => [styles.emptyCta, pressed && styles.pressed]}
+              >
+                <AppIcon name="RefreshCw" size={16} color="#FFFFFF" />
+                <AppText style={styles.emptyCtaText}>Reset filters</AppText>
+              </Pressable>
             </View>
-            <AppText style={[styles.emptyTitle, { color: colors.textPrimary }]}>
-              No moments match your filters
-            </AppText>
-            <AppText style={[styles.emptyBody, { color: MUTED }]}>
-              {`Try widening the date range or switching the source to \u201CAll sources\u201D.`}
-            </AppText>
-            <Pressable
-              onPress={() => {
-                HapticTap.selection();
-                setDateRange('all');
-                setSourceFilter('all');
-              }}
-              style={({ pressed }) => [styles.emptyCta, pressed && styles.pressed]}
-            >
-              <AppIcon name="RefreshCw" size={16} color="#FFFFFF" />
-              <AppText style={styles.emptyCtaText}>Reset filters</AppText>
-            </Pressable>
-          </View>
+          </IosScrollView>
         ) : null}
 
         {/* Empty state (no moments at all). */}
         {!hasMoments && SEED_MOMENTS.length === 0 ? (
-          <View style={styles.emptyState}>
-            <View style={styles.emptyIcon}>
-              <AppIcon name="Nfc" size={48} color={BRAND} />
+          <IosScrollView
+            contentContainerStyle={{ paddingBottom: 140 }}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={BRAND} />}
+          >
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIcon}>
+                <AppIcon name="Nfc" size={48} color={BRAND} />
+              </View>
+              <AppText style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+                Your first moment is waiting
+              </AppText>
+              <AppText style={[styles.emptyBody, { color: MUTED }]}>
+                {`Tap your card on someone\u2019s phone or have them scan your QR. Every connection will land here as a memory you can revisit.`}
+              </AppText>
+              <Pressable
+                onPress={handleShareDemo}
+                style={({ pressed }) => [styles.emptyCta, pressed && styles.pressed]}
+              >
+                <AppIcon name="ScanLine" size={18} color="#FFFFFF" />
+                <AppText style={styles.emptyCtaText}>See how it feels</AppText>
+              </Pressable>
             </View>
-            <AppText style={[styles.emptyTitle, { color: colors.textPrimary }]}>
-              Your first moment is waiting
-            </AppText>
-            <AppText style={[styles.emptyBody, { color: MUTED }]}>
-              {`Tap your card on someone\u2019s phone or have them scan your QR. Every connection will land here as a memory you can revisit.`}
-            </AppText>
-            <Pressable
-              onPress={handleShareDemo}
-              style={({ pressed }) => [styles.emptyCta, pressed && styles.pressed]}
-            >
-              <AppIcon name="ScanLine" size={18} color="#FFFFFF" />
-              <AppText style={styles.emptyCtaText}>See how it feels</AppText>
-            </Pressable>
-          </View>
+          </IosScrollView>
         ) : null}
-
-      </IosScrollView>
+      </View>
 
       {/* Confetti on follow-up done - lazy mounted only when active */}
       {celebratingFollowUp ? (
@@ -486,17 +495,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingTop: 4,
+    paddingTop: 12,
+    paddingBottom: 4,
   },
   headerCopy: { flex: 1, gap: 2 },
-  eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
-  title: { fontSize: 26, lineHeight: 30, fontWeight: '900', letterSpacing: -0.3 },
-  subtitle: { fontSize: 14, lineHeight: 19, fontWeight: '500', maxWidth: 320 },
+  eyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.2, textTransform: 'uppercase', color: '#007AFF' },
+  title: { fontSize: 28, lineHeight: 32, fontWeight: '900', letterSpacing: -0.4, color: '#111827' },
+  subtitle: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: '#6E6E73', maxWidth: 320 },
   scanButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: 'rgba(0,122,255,0.12)',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,122,255,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },

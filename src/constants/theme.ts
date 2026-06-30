@@ -52,10 +52,16 @@ export const theme = {
     info: premiumPalette.systemBlue,
     pending: iosPalette.light.iconInactive,
   },
-  spacing: iosDesign.spacing,
+  spacing: {
+    ...iosDesign.spacing,
+    comfort: 18,
+  },
   radius: iosDesign.radius,
   iconSize: iosDesign.iconSize,
-  avatarSize: iosDesign.avatarSize,
+  avatarSize: {
+    ...iosDesign.avatarSize,
+    logo: 120,
+  },
   controlHeight: iosDesign.controlHeight,
   shadows: {
     card: iosDesign.shadows.card satisfies ViewStyle,

@@ -5,7 +5,7 @@
  * "create another card" CTA, Settings-list of account rows, sign out.
  */
 import { IosScrollView } from '@/src/components/IosScrollView';
-import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, ActivityIndicator, Image, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -346,6 +346,7 @@ export function CustomerProfileScreen() {
                   ]}
                   accessibilityRole={row.onPress ? 'button' : 'text'}
                   accessibilityLabel={`${row.label}: ${row.value}`}
+                  accessibilityHint={row.onPress ? `Double tap to edit ${row.label.toLowerCase()}` : `Shows ${row.label.toLowerCase()}`}
                   // FIXED: Added hitSlop and Android ripple for reliable touch
                   hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                   android_ripple={{

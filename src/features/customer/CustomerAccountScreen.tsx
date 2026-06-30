@@ -2,7 +2,7 @@
  * CustomerAccountScreen — Premium Apple-inspired Home Screen.
  * Prioritizes the Digital NFC Card, Quick Actions, and borderless insights.
  */
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { View, StyleSheet, Alert, Share } from 'react-native';
 import { router } from 'expo-router';
 import { IosScrollView } from '@/src/components/IosScrollView';
@@ -13,15 +13,17 @@ import { appRoutes } from '@/src/constants/navigation';
 // Premium Components
 import { CustomerHeroCard } from './components/CustomerHeroCard';
 import { QuickActionGrid } from './components/QuickActionGrid';
-import { ContinueWorkingTasks } from './components/ContinueWorkingTasks';
 import { RecentActivityTimeline } from './components/RecentActivityTimeline';
 import { CustomerModuleCarousel } from './components/CustomerModuleCarousel';
+import { FAB } from '@/src/components/FAB';
+import { QuickActionModal } from '@/src/components/QuickActionModal';
 
 export function CustomerAccountScreen() {
   const { user } = useAuth();
   
   // Real data (mixes with fake fallbacks in the components if missing)
   const { headlineOrder } = useCustomerOrders(user?.id, user?.email);
+  const [fabOpen, setFabOpen] = useState(false);
 
   const handleShare = useCallback(async () => {
     try {
@@ -95,18 +97,7 @@ export function CustomerAccountScreen() {
         {/* 2. Quick Actions */}
         <QuickActionGrid onActionPress={handleAction} />
 
-        {/* 3. Tasks (Continue Working) */}
-        <ContinueWorkingTasks 
-          onTaskPress={(id) => {
-            if (id === 'profile') {
-              router.push(appRoutes.editBio as any);
-            } else if (id === 'order') {
-              router.push(appRoutes.customer.templates as any);
-            } else if (id === 'share') {
-              router.push(appRoutes.customerConnections as any);
-            }
-          }}
-        />
+
 
         {/* 5. Recent Activity */}
         <RecentActivityTimeline onActivityPress={handleActivityPress} />
@@ -115,6 +106,8 @@ export function CustomerAccountScreen() {
         <CustomerModuleCarousel onModulePress={handleModulePress} />
 
       </IosScrollView>
+      <FAB onPress={() => setFabOpen(true)} />
+      <QuickActionModal visible={fabOpen} onClose={() => setFabOpen(false)} />
     </View>
   );
 }
@@ -125,10 +118,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   scrollContent: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingTop: 10,
-    paddingBottom: 120, // Space for Liquid Dock
-    gap: 24,
+    paddingBottom: 100, // Reduced space slightly for Liquid Dock
+    gap: 16, // Reduced from 24
   },
 });
 

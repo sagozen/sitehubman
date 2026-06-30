@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Pressable,
@@ -29,6 +29,8 @@ import { useOrders } from '@/src/hooks/useOrders';
 import { appRoutes } from '@/src/constants/navigation';
 import { formatOrderTotal } from '@/src/utils/orderPricing';
 import type { Order } from '@/src/types/models';
+import { FAB } from '@/src/components/FAB';
+import { QuickActionModal } from '@/src/components/QuickActionModal';
 
 // ─── Tokens ─────────────────────────────────────────────────────────────────
 const BACKGROUND = '#FFFFFF';
@@ -45,6 +47,7 @@ export default function SalesDashboardScreen() {
   const { orders, refresh } = useOrders('sales', user?.id ?? '');
 
   useEffect(() => { refresh(); }, [refresh]);
+  const [fabOpen, setFabOpen] = useState(false);
 
   const firstName = (user?.displayName ?? 'Sales').split(' ')[0] || 'Sales';
   const referralCode = user?.email
@@ -200,6 +203,8 @@ export default function SalesDashboardScreen() {
           <View style={{ height: 40 }} />
         </IosScrollView>
       </SafeAreaView>
+      <FAB onPress={() => setFabOpen(true)} />
+      <QuickActionModal visible={fabOpen} onClose={() => setFabOpen(false)} />
     </View>
   );
 }

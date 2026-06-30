@@ -3,6 +3,7 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import { View, StyleSheet } from 'react-native';
 import { usePreferences } from '@/src/hooks/usePreferences';
 import * as Solar from '@solar-icons/react-native';
+import { memo } from 'react';
 
 export type AppIconName = string;
 
@@ -177,14 +178,14 @@ interface AppIconProps extends Omit<ComponentProps<typeof Feather>, 'size' | 'co
   color?: string;
 }
 
-export function AppIcon({
+const AppIconRaw = ({
   name,
   variant,
   usage,
   size,
   color,
   ...rest
-}: AppIconProps) {
+}: AppIconProps) => {
   const { colors } = usePreferences();
   const resolvedColor = color ?? colors.textPrimary;
   
@@ -292,4 +293,7 @@ export function AppIcon({
       {...rest}
     />
   );
-}
+};
+
+// MEMOIZE: Prevent unnecessary re-renders when props are unchanged
+export const AppIcon = memo(AppIconRaw);

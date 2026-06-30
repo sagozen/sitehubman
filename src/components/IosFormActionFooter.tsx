@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   secondary: {
-    minHeight: iosDesign.controlHeight.primary,
+    minHeight: iosDesign.controlHeight.lg,
     borderRadius: iosDesign.radius.lg,
     paddingHorizontal: iosDesign.spacing.md,
     flexDirection: 'row',
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   },
   primary: {
     flex: 1,
-    minHeight: iosDesign.controlHeight.primary,
+    minHeight: iosDesign.controlHeight.lg,
     borderRadius: iosDesign.radius.lg,
     paddingHorizontal: iosDesign.spacing.md,
     flexDirection: 'row',
