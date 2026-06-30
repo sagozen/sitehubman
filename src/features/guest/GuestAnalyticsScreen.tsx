@@ -8,6 +8,7 @@ import { AppText } from '@/src/components/AppText';
 import { AppButton } from '@/src/components/AppButton';
 import { CommentLoader } from '@/src/components/CommentLoader';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
+import { EmptyState } from '@/src/components/EmptyState';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
@@ -101,14 +102,12 @@ export function GuestAnalyticsScreen() {
             <AppText style={styles.loadingText}>Loading your data...</AppText>
           </View>
         ) : !insights ? (
-          <View style={styles.emptyWrap}>
-            <AppIcon name="TrendingUp" size={48} color="#D1D5DB" />
-            <AppText style={styles.emptyTitle}>No data yet</AppText>
-            <AppText style={styles.emptySub}>
-              Create your e-card or place an order to start seeing activity here.
-            </AppText>
-            <AppButton label="Design your card" onPress={() => router.push(appRoutes.guestDesign)} />
-          </View>
+          <EmptyState
+            title="No data yet"
+            description="Create your e-card or place an order to start seeing activity here."
+            icon={<AppIcon name="TrendingUp" size={48} color="#D1D5DB" />}
+            action={<AppButton label="Design your card" onPress={() => router.push(appRoutes.guestDesign)} />}
+          />
         ) : (
           <>
             {/* Stats grid */}

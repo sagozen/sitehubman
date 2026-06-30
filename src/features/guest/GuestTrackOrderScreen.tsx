@@ -7,6 +7,7 @@ import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { AppButton } from '@/src/components/AppButton';
 import { CommentLoader } from '@/src/components/CommentLoader';
+import { EmptyState } from '@/src/components/EmptyState';
 import { OrderTimeline } from '@/src/components/OrderTimeline';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
 import { productTypeOptions } from '@/src/constants/options';
@@ -155,14 +156,12 @@ export function GuestTrackOrderScreen() {
             <AppText style={styles.loadingText}>Loading order...</AppText>
           </View>
         ) : !order ? (
-          <View style={styles.emptyCard}>
-            <AppIcon name="Package" size={48} color="#D1D5DB" />
-            <AppText style={styles.emptyTitle}>No orders yet</AppText>
-            <AppText style={styles.emptySub}>
-              Place an order from Design your card, then return here to follow production and delivery.
-            </AppText>
-            <AppButton label="Design your card" onPress={() => router.push(appRoutes.guestDesign)} />
-          </View>
+          <EmptyState
+            title="No orders yet"
+            description="Place an order from Design your card, then return here to follow production and delivery."
+            icon={<AppIcon name="Package" size={48} color="#D1D5DB" />}
+            action={<AppButton label="Design your card" onPress={() => router.push(appRoutes.guestDesign)} />}
+          />
         ) : (
           <>
             {/* Card preview */}

@@ -15,12 +15,17 @@ import { ThemeStatusBar } from '@/src/components/ThemeStatusBar';
 import { AuthProvider } from '@/src/providers/AuthProvider';
 import { GuestGateProvider } from '@/src/providers/GuestGateProvider';
 import { PreferencesProvider } from '@/src/providers/PreferencesProvider';
+import { analytics } from '@/src/utils/analytics';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 function RootLayout() {
   useEffect(() => {
     void SplashScreen.hideAsync().catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    analytics.initialize();
   }, []);
 
   return (
