@@ -264,7 +264,7 @@ export function CustomerProfileScreen() {
             <AppText style={styles.newCardTitle}>Create another card</AppText>
             <AppText style={styles.newCardSub}>Work, side project, event, creator profile…</AppText>
           </View>
-          <AppIcon name="ChevronRight" size={16} color={MUTED} />
+          <AppIcon name="ChevronRight" size={16} color={colors.textMuted} />
         </Pressable>
 
         {/* ── Account section (Apple Settings list) ── */}
@@ -302,7 +302,7 @@ export function CustomerProfileScreen() {
                     <AppText style={styles.rowLabel}>{row.label}</AppText>
                     <AppText style={styles.rowValue} numberOfLines={1}>{row.value}</AppText>
                   </View>
-                  <AppIcon name="ChevronRight" size={13} color={MUTED} />
+                  <AppIcon name="ChevronRight" size={13} color={colors.textMuted} />
                 </Pressable>
               );
             })}
