@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "biocloud",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
@@ -15,7 +15,10 @@
       "infoPlist": {
         "NSCameraUsageDescription": "SiteHub needs camera access to scan QR codes on NFC cards.",
         "NFCReaderUsageDescription": "SiteHub uses NFC to encode and verify customer NFC cards.",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "SiteHub uses location to provide relevant local services and events.",
+        "NSPhotoLibraryAddUsageDescription": "SiteHub needs photo library access to save NFC card designs and profile pictures.",
+        "NSPhotoLibraryUsageDescription": "SiteHub accesses your photo library to import images for your profile and cards."
       },
       "entitlements": {
         "com.apple.developer.nfc.readersession.formats": [
@@ -28,8 +31,15 @@
       "package": "com.biocloud.nativeapp",
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.NFC"
-      ]
+        "android.permission.NFC",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      }
     },
     "web": {
       "bundler": "metro",
@@ -38,8 +48,10 @@
       "name": "NFC Global",
       "shortName": "NFC Global",
       "themeColor": "#0B1220",
-      "backgroundColor": "#EEF0F5",
-      "display": "standalone"
+      "backgroundColor": "#FFFFFF",
+      "display": "standalone",
+      "navigationColor": "#0B1220",
+      "navigationBarColor": "#0B1220"
     },
     "plugins": [
       "expo-router",
@@ -64,7 +76,8 @@
           "project": "sitehubman"
         }
       ],
-      "react-native-compressor"
+      "react-native-compressor",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true
