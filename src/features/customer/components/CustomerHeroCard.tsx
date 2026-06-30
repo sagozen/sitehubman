@@ -258,22 +258,15 @@ export function CustomerHeroCard({ user }: any) {
         </Animated.View>
       </View>
 
-      {/* Subtle interactive element */}
-      <View style={styles.interactiveHint}>
-        <AppText variant="caption" weight="medium" color={MUTED}>
-          Tap to view your profile
-        </AppText>
-        <AppIcon name="ChevronRight" size={14} color={MUTED} weight="medium" />
-      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 20,
-    paddingBottom: 28,
-    gap: 20,
+    paddingTop: 12,
+    paddingBottom: 20,
+    gap: 16,
     alignItems: 'center',
   } as ViewStyle,
   profileHeader: {

@@ -129,7 +129,7 @@ export function SettingsScreen() {
   const initial = (user?.displayName?.trim() || 'S')[0].toUpperCase();
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: ui.background }]} edges={['top', 'left', 'right']}>
       <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
         <View style={styles.pageHeader}>
@@ -269,7 +269,7 @@ function SettingsRow({
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: BG },
+  safe: { flex: 1 },
   scroll: { paddingHorizontal: 24, paddingTop: 14, paddingBottom: 120, gap: 24 },
 
   pageHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
@@ -277,7 +277,19 @@ const styles = StyleSheet.create({
   pageTitle: { fontSize: 42, lineHeight: 45, fontWeight: '900', color: INK, letterSpacing: 0, fontFamily: 'Inter_900Black' },
   pageSub: { fontSize: 15, fontWeight: '700', color: MUTED, fontFamily: 'Inter_700Bold' },
 
-  accountCard: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: INK, borderRadius: 24, padding: 18 },
+  accountCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    backgroundColor: INK,
+    borderRadius: 28,
+    padding: 20,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 8,
+  },
   avatar: { width: 62, height: 62, borderRadius: 31, backgroundColor: BRAND, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: 24, fontWeight: '900', color: '#FFFFFF' },
   accountCopy: { flex: 1, minWidth: 0, gap: 4 },
@@ -288,7 +300,18 @@ const styles = StyleSheet.create({
 
   section: { gap: 14 },
   sectionTitle: { fontSize: 22, fontWeight: '900', color: INK },
-  list: { backgroundColor: '#FFFFFF', borderRadius: 24, overflow: 'hidden' },
+  list: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 28,
+    overflow: 'hidden',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.05,
+    shadowRadius: 20,
+    elevation: 3,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0,0,0,0.05)'
+  },
   row: { minHeight: 62, flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 18 },
   rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(17,17,17,0.06)' },
   rowPressed: { opacity: 0.72 },
