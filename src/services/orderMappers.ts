@@ -2,7 +2,7 @@ import { Timestamp } from 'firebase/firestore';
 import type { Order } from '@/src/types/models';
 
 export function toIso(value: unknown): string {
-  if (value instanceof Timestamp) return value.toDate().toISOString();
+  if (value instanceof Timestamp) return (value as any).toDate().toISOString();
   if (value instanceof Date) return value.toISOString();
   if (typeof value === 'string') return value;
   return new Date().toISOString();

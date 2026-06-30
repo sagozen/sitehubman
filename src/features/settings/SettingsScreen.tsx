@@ -21,7 +21,6 @@ import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { UiPreferences } from '@/src/types/models';
 import { getRoleLabel, getRoleScopeSummary } from '@/src/utils/roleCapabilities';
 
-import { useMemo } from 'react';
 
 const BRAND = '#2596BE';
 
@@ -244,6 +243,8 @@ function SettingsRow({
   disabled,
   destructive,
   last,
+  styles,
+  colors,
 }: {
   icon: React.ComponentProps<typeof AppIcon>['name'];
   title: string;

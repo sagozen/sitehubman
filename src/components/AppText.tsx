@@ -1,8 +1,9 @@
 import { PropsWithChildren } from 'react';
 import { StyleProp, StyleSheet, Text, TextProps, TextStyle } from 'react-native';
-import { TextVariant, theme } from '@/src/constants/theme';
 import { usePreferences } from '@/src/hooks/usePreferences';
+import { iosTypography } from '@/src/design-system/ios';
 
+type TextVariant = keyof typeof iosTypography;
 type TextTone = 'primary' | 'muted' | 'inverse';
 type TextWeight = 'regular' | 'medium' | 'semibold' | 'bold' | 'extrabold' | 'black';
 
@@ -16,27 +17,27 @@ interface AppTextProps extends TextProps {
 
 const weightStyles: Record<TextWeight, TextStyle> = {
   regular: {
-    fontFamily: theme.typography.fontFamilyRegular,
+    fontFamily: iosTypography.body.fontFamily,
     fontWeight: '400',
   },
   medium: {
-    fontFamily: theme.typography.fontFamilyMedium,
+    fontFamily: iosTypography.caption.fontFamily,
     fontWeight: '500',
   },
   semibold: {
-    fontFamily: theme.typography.fontFamilySemiBold,
+    fontFamily: iosTypography.subhead.fontFamily,
     fontWeight: '600',
   },
   bold: {
-    fontFamily: theme.typography.fontFamilyBold,
+    fontFamily: iosTypography.headline.fontFamily,
     fontWeight: '700',
   },
   extrabold: {
-    fontFamily: theme.typography.fontFamilyExtraBold ?? theme.typography.fontFamilyBold,
+    fontFamily: iosTypography.title2.fontFamily,
     fontWeight: '800',
   },
   black: {
-    fontFamily: theme.typography.fontFamilyBlack ?? theme.typography.fontFamilyBold,
+    fontFamily: iosTypography.title1.fontFamily,
     fontWeight: '900',
   },
 };
@@ -44,10 +45,16 @@ const weightStyles: Record<TextWeight, TextStyle> = {
 function inferVariantFromStyle(style: TextStyle | undefined): TextVariant {
   const size = typeof style?.fontSize === 'number' ? style.fontSize : undefined;
   if (!size) return 'body';
-  if (size >= 32) return 'display';
-  if (size >= 24) return 'h1';
-  if (size >= 18) return 'h2';
-  if (size <= 13) return 'caption';
+  if (size >= 34) return 'display';
+  if (size >= 28) return 'h1';
+  if (size >= 22) return 'h2';
+  if (size >= 18) return 'h3';
+  if (size >= 16) return 'h4';
+  if (size <= 12) return 'caption';
+  if (size <= 15) return 'caption2';
+  if (size <= 17) return 'footnote';
+  if (size <= 18) return 'subhead';
+  if (size <= 22) return 'body';
   return 'body';
 }
 
@@ -90,7 +97,7 @@ export function AppText({
     <Text
       style={[
         styles.base,
-        theme.typography.variants[resolvedVariant],
+        iosTypography[resolvedVariant],
         toneStyles[resolvedTone],
         safeStyle,
         weight && weightStyles[weight],
@@ -121,10 +128,54 @@ export function H2(props: Omit<AppTextProps, 'variant'>) {
   return <AppText {...props} variant="h2" />;
 }
 
+export function H3(props: Omit<AppTextProps, 'variant'>) {
+  return <AppText {...props} variant="h3" />;
+}
+
+export function H4(props: Omit<AppTextProps, 'variant'>) {
+  return <AppText {...props} variant="h4" />;
+}
+
 export function Body(props: Omit<AppTextProps, 'variant'>) {
   return <AppText {...props} variant="body" />;
 }
 
+export function BodySmall(props: Omit<AppTextProps, 'variant'>) {
+  return <AppText {...props} variant="bodySmall" />;
+}
+
+export function Callout(props: Omit<AppTextProps, 'variant'>) {
+  return <AppText {...props} variant="callout" />;
+}
+
 export function Caption(props: Omit<AppTextProps, 'variant'>) {
   return <AppText {...props} variant="caption" />;
+}
+
+export function Caption2(props: Omit<AppTextProps, 'variant'>) {
+  return <AppText {...props} variant="caption2" />;
+}
+
+export function Footnote(props: Omit<AppTextProps, 'variant'>) {
+  return <AppText {...props} variant="footnote" />;
+}
+
+export function Subhead(props: Omit<AppTextProps, 'variant'>) {
+  return <AppText {...props} variant="subhead" />;
+}
+
+export function Headline(props: Omit<AppTextProps, 'variant'>) {
+  return <AppText {...props} variant="headline" />;
+}
+
+export function Title1(props: Omit<AppTextProps, 'variant'>) {
+  return <AppText {...props} variant="title1" />;
+}
+
+export function Title2(props: Omit<AppTextProps, 'variant'>) {
+  return <AppText {...props} variant="title2" />;
+}
+
+export function Title3(props: Omit<AppTextProps, 'variant'>) {
+  return <AppText {...props} variant="title3" />;
 }

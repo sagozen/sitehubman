@@ -72,7 +72,7 @@ function isTimestampLike(value: unknown): value is { toDate: () => Date } {
 }
 
 function toIso(value: unknown): string {
-  if (value instanceof Timestamp) return value.toDate().toISOString();
+  if (value instanceof Timestamp) return (value as any).toDate().toISOString();
   if (isTimestampLike(value)) return value.toDate().toISOString();
   if (value instanceof Date) return value.toISOString();
   if (typeof value === 'string') return value;

@@ -801,7 +801,7 @@ export async function findOrderForPrintLookup(input: string): Promise<Order | nu
         query(collection(db, firebaseCollections.orders), where(field, '==', raw))
       );
       const orders = snapshot.docs.map((d) => mapOrder(d.id, d.data()));
-      const firstPrintable = sortNewestFirst(orders).find((order) => (order.cardStatus ?? 'active') !== 'closed');
+      const firstPrintable = sortNewestFirst<Order>(orders).find((order) => (order.cardStatus ?? 'active') !== 'closed');
       if (firstPrintable) return firstPrintable;
     } catch (error) {
       if (isFirestorePermissionDenied(error)) continue;

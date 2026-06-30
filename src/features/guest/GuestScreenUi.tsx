@@ -421,7 +421,7 @@ const ui = StyleSheet.create({
   },
   quickTilePressed: {
     opacity: 0.92,
-    transform: [{ scale: iosDesign.animation.softPressScale }],
+    transform: [{ scale: 0.98 }],
   },
   quickCopy: {
     flex: 1,
