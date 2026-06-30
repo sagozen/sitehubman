@@ -246,7 +246,7 @@ export function CustomerProfileScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <IosScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}}
+      <IosScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
         {/* ── Header ── */}
         <View style={styles.header}>
