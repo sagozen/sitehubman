@@ -15,7 +15,7 @@ export const GUEST_FLOW_ORDER: CustomerFlowId[] = [
   'connections',
 ];
 
-export const GUEST_PRIMARY_FLOW_IDS: CustomerFlowId[] = ['order', 'preview', 'track', 'nfc'];
+export const GUEST_PRIMARY_FLOW_IDS: CustomerFlowId[] = ['drafts', 'preview', 'order', 'nfc'];
 
 export const GUEST_PRIMARY_FLOWS = GUEST_PRIMARY_FLOW_IDS.map((id) => CUSTOMER_FLOWS[id]);
 

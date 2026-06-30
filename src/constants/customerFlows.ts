@@ -14,7 +14,8 @@ export type CustomerFlowId =
   | 'track'
   | 'nfc'
   | 'connections'
-  | 'orders';
+  | 'orders'
+  | 'drafts';
 
 export type CustomerFlowDefinition = {
   id: CustomerFlowId;
@@ -42,6 +43,7 @@ export const CUSTOMER_FLOW_ORDER: CustomerFlowId[] = [
   'nfc',
   'connections',
   'orders',
+  'drafts',
 ];
 
 export const CUSTOMER_FLOWS: Record<CustomerFlowId, CustomerFlowDefinition> = {
