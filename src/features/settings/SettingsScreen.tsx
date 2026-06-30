@@ -161,7 +161,6 @@ export function SettingsScreen() {
           <View style={styles.accountCopy}>
             <View style={styles.nameRow}>
               <AppText style={styles.accountName} numberOfLines={1}>{user?.displayName ?? 'Guest User'}</AppText>
-              {!isGuest ? <AppIcon name="BadgeCheck" size={18} color={BRAND} /> : null}
             </View>
             <AppText style={styles.accountEmail} numberOfLines={1}>{user?.email ?? 'Not signed in'}</AppText>
             <AppText style={styles.accountRole}>{roleLabel}</AppText>
@@ -184,7 +183,6 @@ export function SettingsScreen() {
           <View style={styles.list}>
           <View style={styles.appearanceBlock}>
             <View style={styles.appearanceHead}>
-              <AppIcon name="Eye" size={22} color={BRAND} />
               <View style={styles.appearanceCopy}>
                 <AppText style={styles.appearanceTitle}>Display mode</AppText>
                 <AppText style={styles.appearanceSub}>Currently: {appearanceLabel}</AppText>
@@ -246,7 +244,7 @@ function SettingsRow({
   styles,
   colors,
 }: {
-  icon: React.ComponentProps<typeof AppIcon>['name'];
+  icon?: React.ComponentProps<typeof AppIcon>['name'];
   title: string;
   value?: string;
   onPress?: () => void;
@@ -262,7 +260,6 @@ function SettingsRow({
       disabled={disabled || !onPress}
       style={({ pressed }) => [styles.row, !last && styles.rowBorder, pressed && onPress && styles.rowPressed, disabled && styles.rowDisabled]}
     >
-      <AppIcon name={icon} size={22} color={destructive ? '#FF3B30' : title === 'Card studio' ? BRAND : colors.textPrimary} />
       <AppText style={[styles.rowTitle, destructive && styles.rowTitleDanger]}>{title}</AppText>
       {value ? <AppText style={styles.rowValue} numberOfLines={1}>{value}</AppText> : null}
       {onPress ? <AppIcon name="ChevronRight" size={15} color={colors.textMuted} /> : null}

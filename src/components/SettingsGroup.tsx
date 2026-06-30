@@ -106,17 +106,7 @@ export function SettingsRow({
 
   const renderContent = (pressed = false) => (
     <>
-      {icon ? (
-        <View
-          style={[
-            styles.iconWrap,
-            compact && styles.iconWrapCompact,
-            { backgroundColor: pressed ? colors.textPrimary : iconBg },
-          ]}
-        >
-          <AppIcon name={icon} size={compact ? 16 : 18} color={pressed ? colors.textInverse : accent} />
-        </View>
-      ) : null}
+
       <View style={styles.copy}>
         <AppText variant="body" weight="medium" style={{ color: titleColor }}>
           {title}
@@ -150,7 +140,7 @@ export function SettingsRow({
               styles.separator,
               {
                 backgroundColor: colors.border,
-                marginLeft: icon ? (compact ? SEPARATOR_INSET_COMPACT : SEPARATOR_INSET) : theme.spacing.md,
+                marginLeft: theme.spacing.md,
               },
             ]}
           />
@@ -182,7 +172,7 @@ export function SettingsRow({
                 styles.separator,
                 {
                   backgroundColor: colors.border,
-                  marginLeft: icon ? (compact ? SEPARATOR_INSET_COMPACT : SEPARATOR_INSET) : theme.spacing.md,
+                  marginLeft: theme.spacing.md,
                 },
               ]}
             />
