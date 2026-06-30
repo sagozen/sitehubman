@@ -234,36 +234,39 @@ function OrderRow({ order, onPress }: { order: Order; onPress: () => void }) {
         onPress();
       }}
       style={({ pressed }) => [
-        styles.orderRow,
         pressed && styles.orderPressed,
-        { transform: [{ scale }] },
       ]}
     >
-      <View style={styles.orderIcon}>
-        <AppIcon name="CreditCard" size={20} color={BRAND_VARIANTS.primary} weight="medium" />
-      </View>
-      <View style={styles.orderInfo}>
-        <AppText variant="body" weight="semibold" color={INK2}>
-          {order.customerName || 'NFC Card'}
-        </AppText>
-        <AppText variant="caption" color={MUTED}>
-          {order.quantity ?? 1}× {order.cardDesign?.replace(/_/g, ' ')}
-        </AppText>
-      </View>
-      <View style={styles.orderMeta}>
-        <View style={[styles.orderBadge, { backgroundColor: `${st.color}15` }]}>
-          <AppText variant="caption" weight="medium" color={st.color}>
-            {st.label}
+      <Animated.View style={[
+        styles.orderRow,
+        { transform: [{ scale }] },
+      ]}>
+        <View style={styles.orderIcon}>
+          <AppIcon name="CreditCard" size={20} color={BRAND_VARIANTS.primary} weight="medium" />
+        </View>
+        <View style={styles.orderInfo}>
+          <AppText variant="body" weight="semibold" color={INK2}>
+            {order.customerName || 'NFC Card'}
+          </AppText>
+          <AppText variant="caption" color={MUTED}>
+            {order.quantity ?? 1}× {order.cardDesign?.replace(/_/g, ' ')}
           </AppText>
         </View>
-        <AppText variant="bodySmall" weight="bold" color={INK2}>
-          {amt}
-        </AppText>
-        <AppText variant="caption" color={MUTED}>
-          {date}
-        </AppText>
-      </View>
-      <AppIcon name="ChevronRight" size={15} color={MUTED} weight="medium" />
+        <View style={styles.orderMeta}>
+          <View style={[styles.orderBadge, { backgroundColor: `${st.color}15` }]}>
+            <AppText variant="caption" weight="medium" color={st.color}>
+              {st.label}
+            </AppText>
+          </View>
+          <AppText variant="bodySmall" weight="bold" color={INK2}>
+            {amt}
+          </AppText>
+          <AppText variant="caption" color={MUTED}>
+            {date}
+          </AppText>
+        </View>
+        <AppIcon name="ChevronRight" size={15} color={MUTED} weight="medium" />
+      </Animated.View>
     </Pressable>
   );
 }
