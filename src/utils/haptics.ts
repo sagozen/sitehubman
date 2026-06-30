@@ -375,5 +375,32 @@ export const {
   thoughtfulPause,
 } = Haptics;
 
+// Backward compatibility exports
+export const HapticTap = Haptics;
+
+export const HapticPattern = {
+  /** Card flip (front -> back or back -> front). */
+  flip() {
+    HapticTap.medium();
+  },
+  /** Tap-to-share success celebration. */
+  tapSuccess() {
+    HapticTap.success();
+    setTimeout(() => HapticTap.light(), 90);
+    setTimeout(() => HapticTap.soft(), 180);
+  },
+  /** New connection received. */
+  newConnection() {
+    HapticTap.soft();
+    setTimeout(() => HapticTap.medium(), 70);
+    setTimeout(() => HapticTap.success(), 160);
+  },
+  /** Follow-up reminder dismissed. */
+  followUpDone() {
+    HapticTap.light();
+    setTimeout(() => HapticTap.success(), 110);
+  },
+};
+
 // Default export for convenience
 export default Haptics;
