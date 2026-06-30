@@ -76,8 +76,7 @@
           "project": "sitehubman"
         }
       ],
-      "react-native-compressor",
-      "expo-sharing"
+      "react-native-compressor"
     ],
     "experiments": {
       "typedRoutes": true
