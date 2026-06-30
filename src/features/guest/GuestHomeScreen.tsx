@@ -21,8 +21,8 @@ import { useNotifications } from '@/src/hooks/useNotifications';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { getCustomerInsights, type CustomerInsights } from '@/src/services/customerInsightsService';
 import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
+import { useBioPage } from '@/src/hooks/useBioPage';
 import type { Order } from '@/src/types/models';
-import { MotionScale } from '@/src/utils/motion';
 import { Animated, Easing } from 'react-native';
 
 // ─── Brand ──────────────────────────────────────────────────────────────────
