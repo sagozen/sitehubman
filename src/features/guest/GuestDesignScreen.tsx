@@ -21,7 +21,6 @@ import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import {
   formatFooterDualPrice,
   getEcardPriceUsd,
@@ -49,6 +48,7 @@ const INK2 = '#9CA3AF';      // Cool Gray
 const MUTED = '#6B7280';     // Muted Gray
 const BG = '#030305';        // Void Black
 const SURFACE = 'rgba(255, 255, 255, 0.05)'; // Deep Glass
+const SURFACE_ACTIVE = 'rgba(255, 255, 255, 0.15)'; // Active Glass
 const BORDER = 'rgba(255, 255, 255, 0.08)';  // Subtle Glass Edge
 
 // ─── Performance Optimized Glass Field ──────────────────────────────────────
@@ -79,12 +79,11 @@ function FieldRow({
         pressed && fi.rowPressed
       ] as ViewStyle[]}
     >
-      <BlurView intensity={20} style={StyleSheet.absoluteFillObject} tint="dark" />
       <AppIcon name={icon} size={20} color={BRAND_CYAN} />
       <TextInput
         ref={ref}
         style={fi.input}
-        value={value}
+        defaultValue={value}
         onChangeText={debouncedOnChange}
         placeholder={placeholder}
         placeholderTextColor={MUTED}
@@ -253,7 +252,6 @@ export function GuestDesignScreen() {
             style={({ pressed }) => [styles.backBtn, pressed && styles.pressed]}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
-            <BlurView intensity={30} style={StyleSheet.absoluteFillObject} tint="dark" />
             <AppIcon name="ChevronLeft" size={22} color={INK} />
           </Pressable>
           <AppText style={styles.headerTitle}>STUDIO</AppText>
@@ -329,11 +327,10 @@ export function GuestDesignScreen() {
                     onPress={() => { setCardType(t); HapticTap.light(); }}
                     style={({ pressed }) => [
                       styles.segBtn,
-                      cardType === t && styles.segBtnActive,
+                      { backgroundColor: cardType === t ? SURFACE_ACTIVE : SURFACE },
                       pressed && styles.pressed
                     ]}
                   >
-                    <BlurView intensity={cardType === t ? 50 : 20} style={StyleSheet.absoluteFillObject} tint="dark" />
                     <AppText style={[styles.segBtnT, cardType === t && styles.segBtnTActive]}>
                       {t === 'virtual' ? 'E-CARD' : 'PHYSICAL'}
                     </AppText>
@@ -351,11 +348,10 @@ export function GuestDesignScreen() {
                     onPress={() => { setPaymentMethod(pm.id); HapticTap.light(); }}
                     style={({ pressed }) => [
                       styles.payPill,
-                      paymentMethod === pm.id && styles.payPillActive,
+                      { backgroundColor: paymentMethod === pm.id ? SURFACE_ACTIVE : SURFACE },
                       pressed && styles.pressed
                     ]}
                   >
-                    <BlurView intensity={paymentMethod === pm.id ? 50 : 20} style={StyleSheet.absoluteFillObject} tint="dark" />
                     <AppText style={[styles.payPillT, paymentMethod === pm.id && styles.payPillTActive]}>
                       {pm.labelEn.replace('Pay with ', '').toUpperCase()}
                     </AppText>
@@ -369,7 +365,6 @@ export function GuestDesignScreen() {
 
         {/* ── Immersive Neon Footer ── */}
         <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-          <BlurView intensity={40} style={StyleSheet.absoluteFillObject} tint="dark" />
           
           {saveError && (
             <View style={styles.errorBanner}>
@@ -418,7 +413,7 @@ const styles = StyleSheet.create({
   pressed: { transform: [{ scale: MotionScale.pressed }] } as ViewStyle,
 
   header: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 } as ViewStyle,
-  backBtn: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: BORDER } as ViewStyle,
+  backBtn: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: BORDER, backgroundColor: SURFACE } as ViewStyle,
   headerTitle: { flex: 1, fontSize: 20, fontWeight: '900', color: INK, letterSpacing: 2, fontFamily: 'Inter_900Black', textAlign: 'center' } as TextStyle,
   pricePill: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, overflow: 'hidden' } as ViewStyle,
   priceT: { fontSize: 13, fontWeight: '900', color: INK, fontFamily: 'Inter_900Black' } as TextStyle,
@@ -469,7 +464,7 @@ const styles = StyleSheet.create({
   payPillT: { fontSize: 13, fontWeight: '900', color: MUTED, fontFamily: 'Inter_900Black', letterSpacing: 1 } as TextStyle,
   payPillTActive: { color: BRAND } as TextStyle,
 
-  footer: { paddingHorizontal: 20, paddingTop: 16, borderTopWidth: 1, borderTopColor: BORDER, overflow: 'hidden' } as ViewStyle,
+  footer: { paddingHorizontal: 20, paddingTop: 16, borderTopWidth: 1, borderTopColor: BORDER, overflow: 'hidden', backgroundColor: 'rgba(3, 3, 5, 0.85)' } as ViewStyle,
   saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 60, borderRadius: 20, overflow: 'hidden', backgroundColor: SURFACE, borderWidth: 1, borderColor: BORDER } as ViewStyle,
   saveBtnOff: { opacity: 0.5 } as ViewStyle,
   saveBtnT: { fontSize: 15, fontWeight: '900', color: INK, letterSpacing: 1.5, fontFamily: 'Inter_900Black' } as TextStyle,

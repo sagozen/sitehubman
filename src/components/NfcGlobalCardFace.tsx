@@ -6,7 +6,14 @@ import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { HolographicShimmer } from '@/src/components/HolographicShimmer';
 
-const CARD_GRADIENT = ['#111111', '#202124', '#2596BE'] as const;
+const CARD_GRADIENTS = [
+  ['#111111', '#202124', '#2596BE'], // Default classic blue
+  ['#0F2027', '#203A43', '#2C5364'], // Matte teal-gray
+  ['#8A2387', '#E94057', '#F27121'], // Cyber Sunset (Instagram vibe)
+  ['#000000', '#434343', '#111111'], // Pure dark carbon
+  ['#BF953F', '#FCF6BA', '#B38728'], // Premium Gold
+  ['#D3CBB8', '#6D604E', '#1D1A16'], // Earth sand
+] as const;
 
 type NfcGlobalCardFaceProps = {
   fullName?: string;
@@ -24,6 +31,7 @@ type NfcGlobalCardFaceProps = {
   /** Toggle the moving holographic shimmer overlay. Defaults to true. */
   shimmer?: boolean;
   style?: StyleProp<ViewStyle>;
+  gradientIndex?: number;
 };
 
 export function NfcGlobalCardFace({
@@ -40,6 +48,7 @@ export function NfcGlobalCardFace({
   backgroundImageUri,
   shimmer = true,
   style,
+  gradientIndex = 0,
 }: NfcGlobalCardFaceProps) {
   const displayName = fullName.trim() || 'Your Name';
   const roleLine = [title.trim(), company.trim()].filter(Boolean).join(' / ');
@@ -49,14 +58,16 @@ export function NfcGlobalCardFace({
   const cardSizeStyle = width ? { width, height: height ?? width / 1.586 } : undefined;
   const qrSize = compact ? 26 : 36;
 
+  const gradientColors = CARD_GRADIENTS[gradientIndex % CARD_GRADIENTS.length];
+
   return (
     <View style={[styles.card, compact && styles.cardCompact, cardSizeStyle, style]}>
-      <LinearGradient colors={CARD_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={gradientColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
       {backgroundImageUri?.trim() ? (
         <>
           <Image source={{ uri: backgroundImageUri.trim() }} style={StyleSheet.absoluteFill} resizeMode="cover" />
           <LinearGradient
-            colors={['rgba(24,127,196,0.52)', 'rgba(37,150,190,0.64)', 'rgba(0,0,0,0.34)']}
+            colors={['rgba(24,127,196,0.32)', 'rgba(37,150,190,0.44)', 'rgba(0,0,0,0.54)']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={StyleSheet.absoluteFill}

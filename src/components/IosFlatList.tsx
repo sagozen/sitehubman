@@ -41,9 +41,14 @@ function IosFlatListInner<ItemT>(
       showsHorizontalScrollIndicator={
         isHorizontal ? (showsHorizontalScrollIndicator ?? false) : showsHorizontalScrollIndicator
       }
-      contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
       overScrollMode={Platform.OS === 'android' ? (overScrollMode ?? 'always') : overScrollMode}
+      contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
       contentContainerStyle={mergedContentStyle}
+      removeClippedSubviews={true}
+      scrollEventThrottle={16}
+      maxToRenderPerBatch={10}
+      windowSize={10}
+      initialNumToRender={10}
       {...rest}
     />
   );

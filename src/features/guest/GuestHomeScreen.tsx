@@ -14,6 +14,7 @@ import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { SocialProofStats } from '@/src/components/SocialProofStats';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
+import { LinearGradient } from 'expo-linear-gradient';
 import { appRoutes } from '@/src/constants/navigation';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
@@ -90,28 +91,9 @@ const usePulseAnimation = () => {
 };
 
 // ─── Fixed Gradient Background (Eliminates Layout Thrashing) ─────────────────
-// Replaced setInterval state updates with Animated.Value + useNativeDriver
-const useGradientBackground = () => {
-  const gradientPosition = useRef(new Animated.Value(0)).current;
+// Replaced dynamic non-native linear-gradient animation with static expo-linear-gradient
+// which is hardware-accelerated and has zero JS thread cost.
 
-  useEffect(() => {
-    Animated.loop(
-      Animated.timing(gradientPosition, {
-        toValue: 100,
-        duration: 12000, // Slower, more elegant cycle
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }),
-    ).start();
-  }, []);
-
-  return {
-    backgroundImage: `linear-gradient(90deg, rgba(37,150,190,0.03) 0%, rgba(37,150,190,0.08) ${gradientPosition.interpolate({
-      inputRange: [0, 100],
-      outputRange: ['0%', '100%']})}%, rgba(37,150,190,0.03) 100%)`,
-    backgroundSize: '200% 100%',
-  };
-};
 
 // ─── Fixed Press Animation for Better Responsiveness ───────────────────────
 const usePressAnimation = () => {
@@ -145,9 +127,9 @@ const SkeletonLoader = () => (
     <View style={styles.skeletonAvatar} />
     {/* Text skeletons */}
     <View style={styles.skeletonText}>
-      <View style={styles.skeletonLine} style={{ width: '60%' }} />
-      <View style={styles.skeletonLine} style={{ width: '80%' }} />
-      <View style={styles.skeletonLine} style={{ width: '50%' }} />
+      <View style={[styles.skeletonLine, { width: '60%' }]} />
+      <View style={[styles.skeletonLine, { width: '80%' }]} />
+      <View style={[styles.skeletonLine, { width: '50%' }]} />
     </View>
     {/* Card skeleton */}
     <View style={styles.skeletonCard} />
@@ -157,11 +139,11 @@ const SkeletonLoader = () => (
 // ─── Error State Component ─────────────────────────────────────────────────
 const ErrorBanner = ({ message, onRetry }: { message: string; onRetry: () => void }) => (
   <View style={styles.errorBanner}>
-    <AppText variant="caption" weight="medium" color={INK}>
+    <AppText variant="caption" weight="medium"  style={{ color: INK }}>
       {message}
     </AppText>
     <Pressable onPress={onRetry} style={styles.errorButton}>
-      <AppText variant="caption" weight="medium" color={BRAND}>
+      <AppText variant="caption" weight="medium"  style={{ color: BRAND }}>
         Try Again
       </AppText>
     </Pressable>
@@ -287,45 +269,45 @@ function OrderRow({ order, onPress }: { order: Order; onPress: () => void }) {
         { transform: [{ scale }] },
       ]}>
         <View style={styles.orderIcon}>
-          <AppIcon name="CreditCard" size={20} color={BRAND_VARIANTS.primary} weight="medium" />
+          <AppIcon name="CreditCard" size={20} color={BRAND_VARIANTS.primary}   />
         </View>
         <View style={styles.orderInfo}>
-          <AppText variant="body" weight="semibold" color={INK2}>
+          <AppText variant="body" weight="semibold"  style={{ color: INK2 }}>
             {order.customerName || 'NFC Card'}
           </AppText>
-          <AppText variant="caption" color={MUTED}>
+          <AppText variant="caption"  style={{ color: MUTED }}>
             {order.quantity ?? 1}× {order.cardDesign?.replace(/_/g, ' ')}
           </AppText>
         </View>
         <View style={styles.orderMeta}>
           <View style={[styles.orderBadge, { backgroundColor: `${st.color}15` }]}>
-            <AppText variant="caption" weight="medium" color={st.color}>
+            <AppText variant="caption" weight="medium"  style={{ color: st.color }}>
               {st.label}
             </AppText>
           </View>
-          <AppText variant="bodySmall" weight="bold" color={INK2}>
+          <AppText variant="bodySmall" weight="bold"  style={{ color: INK2 }}>
             {amt}
           </AppText>
-          <AppText variant="caption" color={MUTED}>
+          <AppText variant="caption"  style={{ color: MUTED }}>
             {date}
           </AppText>
         </View>
-        <AppIcon name="ChevronRight" size={15} color={MUTED} weight="medium" />
+        <AppIcon name="ChevronRight" size={15} color={MUTED}   />
       </Animated.View>
     </Pressable>
   );
 }
 
 // ─── Enhanced Stats Card ───────────────────────────────────────────────────
-function StatCard({ label, value, icon, color }: { label: string; value: string; icon: AppIconName; color: string }) {
+function StatCard({ label, value, icon, color, style }: { label: string; value: string; icon: AppIconName; color: string; style?: any }) {
   return (
-    <View style={styles.statCard}>
-      <AppIcon name={icon} size={24} color={color} weight="medium" />
-      <View style={styles.statContent}>
-        <AppText variant="title2" weight="bold" color={INK}>
+    <View style={[styles.statCard, style]}>
+      <AppIcon name={icon} size={24} color={color}   />
+      <View style={{ alignItems: 'center', marginTop: 4 }}>
+        <AppText variant="title2" weight="bold"  style={{ color: INK }}>
           {value}
         </AppText>
-        <AppText variant="caption" color={MUTED}>
+        <AppText variant="caption"  style={{ color: MUTED }}>
           {label}
         </AppText>
       </View>
@@ -353,7 +335,6 @@ export function GuestHomeScreen() {
   // Enhanced animations
   const floatAnim = useFloatAnimation(0);
   const pulseAnim = usePulseAnimation();
-  const gradientBg = useGradientBackground();
 
   useEffect(() => {
     if (user?.id && !isGuest) {
@@ -417,8 +398,13 @@ export function GuestHomeScreen() {
           showsVerticalScrollIndicator={false}
           contentInset={{ bottom: 20 }}
         >
-          {/* Enhanced Gradient Background (Fixed: no layout thrashing) */}
-          <Animated.View style={[styles.gradientContainer, gradientBg]} />
+          {/* Hardware-accelerated Linear Gradient Background */}
+          <LinearGradient
+            colors={['rgba(37,150,190,0.02)', 'rgba(37,150,190,0.06)', 'rgba(37,150,190,0.02)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.gradientContainer}
+          />
 
           {/* Conditional rendering: Loading, Error, or Content */}
           {isLoading ? (
@@ -465,16 +451,16 @@ export function GuestHomeScreen() {
                   </Animated.View>
                 </Pressable>
                 <View style={styles.profileCopy}>
-                  <AppText variant="caption" weight="medium" color={MUTED}>
+                  <AppText variant="caption" weight="medium"  style={{ color: MUTED }}>
                     {greeting(user?.displayName)}
                   </AppText>
                   <View style={styles.profileNameRow}>
-                    <AppText variant="title2" weight="bold" color={INK} numberOfLines={1}>
+                    <AppText variant="title2" weight="bold"  numberOfLines={1} style={{ color: INK }}>
                       {heroName || user?.displayName || 'Your Name'}
                     </AppText>
-                    <AppIcon name="BadgeCheck" size={18} color={BRAND_VARIANTS.primary} weight="medium" />
+                    <AppIcon name="BadgeCheck" size={18} color={BRAND_VARIANTS.primary}   />
                   </View>
-                  <AppText variant="caption" weight="medium" color={MUTED} numberOfLines={1}>
+                  <AppText variant="caption" weight="medium"  numberOfLines={1} style={{ color: MUTED }}>
                     {[heroTitle || 'Digital identity', cardProfile?.company || 'NFC Global'].filter(Boolean).join(' / ')}
                   </AppText>
                 </View>
@@ -505,7 +491,7 @@ export function GuestHomeScreen() {
                       borderless: true
                     }}
                   >
-                    <AppIcon name="Bell" size={19} color={INK} weight="medium" />
+                    <AppIcon name="Bell" size={19} color={INK}   />
                     {unreadCount > 0 ? <View style={styles.unreadDot} /> : null}
                   </Pressable>
                   <Pressable
@@ -533,7 +519,7 @@ export function GuestHomeScreen() {
                       isHovering && styles.hovered,
                       pulseAnim,
                     ]}>
-                      <AppIcon name="Sparkles" size={20} color={BRAND_VARIANTS.primary} weight="medium" />
+                      <AppIcon name="Sparkles" size={20} color={BRAND_VARIANTS.primary}   />
                     </Animated.View>
                   </Pressable>
                 </View>
@@ -577,8 +563,8 @@ export function GuestHomeScreen() {
                   borderless: false
                 }}
               >
-                <AppIcon name="Share" size={18} color="#FFFFFF" weight="bold" />
-                <AppText variant="body" weight="bold" color="#FFFFFF">
+                <AppIcon name="Share" size={18} color="#FFFFFF"   />
+                <AppText variant="body" weight="bold"  style={{ color: "#FFFFFF" }}>
                   Share profile
                 </AppText>
               </Pressable>
@@ -609,7 +595,7 @@ export function GuestHomeScreen() {
                     <View style={styles.actionImageContainer}>
                       <Image source={a.image} style={styles.actionImage} resizeMode="contain" />
                     </View>
-                    <AppText variant="bodySmall" weight="semibold" color={INK}>
+                    <AppText variant="bodySmall" weight="semibold"  style={{ color: INK }}>
                       {a.label}
                     </AppText>
                   </Pressable>
@@ -619,7 +605,7 @@ export function GuestHomeScreen() {
               {/* ── RECENT ACTIVITY — Enhanced Visual Design ────────────────────── */}
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <AppText variant="title3" weight="bold" color={INK}>
+                  <AppText variant="title3" weight="bold"  style={{ color: INK }}>
                     Recent Activity
                   </AppText>
                 </View>
@@ -630,10 +616,10 @@ export function GuestHomeScreen() {
                     ['Card scanned', isGuest ? 'Preview' : 'Live'],
                   ].map(([title, meta], i) => (
                     <View key={title} style={[styles.activityRow, i === 2 && styles.activityRowLast]}>
-                      <AppText variant="body" weight="semibold" color={INK}>
+                      <AppText variant="body" weight="semibold"  style={{ color: INK }}>
                         {title}
                       </AppText>
-                      <AppText variant="caption" color={MUTED}>
+                      <AppText variant="caption"  style={{ color: MUTED }}>
                         {meta}
                       </AppText>
                     </View>
@@ -666,7 +652,7 @@ export function GuestHomeScreen() {
               {!isGuest && recentOrders.length > 0 ? (
                 <View style={styles.ordersSection}>
                   <View style={styles.sectionHeader}>
-                    <AppText variant="title3" weight="bold" color={INK}>
+                    <AppText variant="title3" weight="bold"  style={{ color: INK }}>
                       Recent Orders
                     </AppText>
                     <Pressable
@@ -686,10 +672,10 @@ export function GuestHomeScreen() {
                       // FIXED: Added hitSlop
                       hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                     >
-                      <AppText variant="body" color={BRAND_VARIANTS.primary} weight="medium">
+                      <AppText variant="body"  weight="medium" style={{ color: BRAND_VARIANTS.primary }}>
                         View All
                       </AppText>
-                      <AppIcon name="ChevronRight" size={13} color={BRAND_VARIANTS.primary} weight="medium" />
+                      <AppIcon name="ChevronRight" size={13} color={BRAND_VARIANTS.primary}   />
                     </Pressable>
                   </View>
                   <View style={styles.ordersCard}>
@@ -703,7 +689,7 @@ export function GuestHomeScreen() {
               {/* ── PRODUCTS — Enhanced Discovery ──────────────────────────────── */}
               <View style={styles.productsSection}>
                 <View style={styles.sectionHeader}>
-                  <AppText variant="title3" weight="bold" color={INK}>
+                  <AppText variant="title3" weight="bold"  style={{ color: INK }}>
                     Explore Features
                   </AppText>
                 </View>
@@ -769,11 +755,11 @@ export function GuestHomeScreen() {
                       // FIXED: Added hitSlop for product items
                       hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                     >
-                      <AppIcon name={item.icon} size={20} color={item.color} weight="bold" />
-                      <AppText variant="body" weight="semibold" color={INK}>
+                      <AppIcon name={item.icon} size={20} color={item.color}   />
+                      <AppText variant="body" weight="semibold"  style={{ color: INK }}>
                         {item.label}
                       </AppText>
-                      <AppIcon name="ChevronRight" size={15} color={MUTED} weight="medium" />
+                      <AppIcon name="ChevronRight" size={15} color={MUTED}   />
                     </Pressable>
                   ))}
                 </View>
@@ -802,11 +788,11 @@ export function GuestHomeScreen() {
                   borderless: true
                 }}
               >
-                <AppIcon name="Nfc" size={16} color={MUTED} weight="medium" />
-                <AppText variant="body" color={MUTED} weight="medium">
+                <AppIcon name="Nfc" size={16} color={MUTED}   />
+                <AppText variant="body"  weight="medium" style={{ color: MUTED }}>
                   Try NFC demo on this device
                 </AppText>
-                <AppIcon name="ChevronRight" size={14} color={MUTED} weight="medium" />
+                <AppIcon name="ChevronRight" size={14} color={MUTED}   />
               </Pressable>
 
             </>
@@ -970,11 +956,6 @@ const styles = StyleSheet.create({
 
   // Gradient Background
   gradientContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
     ...StyleSheet.absoluteFillObject,
   },
 

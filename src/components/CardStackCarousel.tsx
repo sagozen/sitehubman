@@ -52,6 +52,7 @@ export interface CarouselCard {
   profileUrl?: string;
   cardId?: string;
   isPrimary?: boolean;
+  gradientIndex?: number;
 }
 
 export interface CardStackCarouselProps {
@@ -130,6 +131,7 @@ export function CardStackCarousel({
               website={item.card.website}
               profileUrl={item.card.profileUrl}
               cardId={item.card.cardId}
+              gradientIndex={item.card.gradientIndex}
             />
           </Pressable>
           {item.card.isPrimary ? (

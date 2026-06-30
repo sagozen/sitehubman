@@ -23,6 +23,7 @@ type FlippableNfcCardProps = {
   height?: number;
   compact?: boolean;
   style?: StyleProp<ViewStyle>;
+  gradientIndex?: number;
 };
 
 export function FlippableNfcCard(props: FlippableNfcCardProps) {
@@ -91,6 +92,7 @@ export function FlippableNfcCard(props: FlippableNfcCardProps) {
           width={props.width}
           height={props.height}
           compact={props.compact}
+          gradientIndex={props.gradientIndex}
         />
       </Animated.View>
 

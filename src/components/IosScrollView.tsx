@@ -78,7 +78,8 @@ export const IosScrollView = forwardRef<ScrollView, ScrollViewProps>(function Io
       }
       contentContainerStyle={mergedContentStyle}
       keyboardShouldPersistTaps={keyboardShouldPersistTaps}
-      removeClippedSubviews={Platform.OS === 'android'}
+      removeClippedSubviews={true}
+      scrollEventThrottle={16}
       {...rest}
     />
   );
