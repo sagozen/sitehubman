@@ -20,7 +20,7 @@ import { usePreferences } from '@/src/hooks/usePreferences';
 import { uploadProfilePhoto } from '@/src/services/profilePhotoService';
 import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
 import { SEED_CARDS } from '@/src/data/seedCards';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { CarouselCard } from '@/src/components/CardStackCarousel';
 
 const BRAND = '#007AFF';
