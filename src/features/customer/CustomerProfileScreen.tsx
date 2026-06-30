@@ -23,13 +23,9 @@ import { SEED_CARDS } from '@/src/data/seedCards';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { CarouselCard } from '@/src/components/CardStackCarousel';
 
+import { useAppTheme } from '@/src/hooks/useAppTheme';
+
 const BRAND = '#007AFF';
-const INK = '#000000';
-const MUTED = '#8E8E93';
-const MUTED2 = '#6E6E73';
-const BG = '#F2F2F7';
-const SURFACE = '#FFFFFF';
-const HAIRLINE = 'rgba(60,60,67,0.18)';
 
 type AccountRow = {
   icon: AppIconName;
@@ -42,6 +38,8 @@ type AccountRow = {
 
 export function CustomerProfileScreen() {
   const { user, signOutUser } = useAuth();
+  const { colors } = useAppTheme();
+  const styles = useStyles(colors);
   const { bioPage, saveBioPage } = useBioPage(user?.id ?? '');
   const { preferences, updatePreferences } = usePreferences();
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -327,130 +325,162 @@ export function CustomerProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: BG },
-  content: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 120, gap: 18 },
+function useStyles(colors: ReturnType<typeof useAppTheme>['colors']) {
+  return useMemo(() => StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.background },
+    content: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 120, gap: 24 },
 
-  // Quiet header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-  },
-  avatar: { width: 44, height: 44, borderRadius: 22, position: 'relative' },
-  avatarImage: { width: 44, height: 44, borderRadius: 22, backgroundColor: BRAND },
-  avatarFallback: { width: 44, height: 44, borderRadius: 22, backgroundColor: INK, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontSize: 17, fontWeight: '700', color: '#FFFFFF' },
-  avatarBadge: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: INK,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: BG,
-  },
-  headerCopy: { flex: 1, gap: 1, minWidth: 0 },
-  name: { fontSize: 18, fontWeight: '700', color: INK, letterSpacing: -0.2 },
-  slug: { fontSize: 12, fontWeight: '500', color: MUTED },
-  pressed: { opacity: 0.65 },
+    // Premium header
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+      padding: 20,
+      backgroundColor: colors.surface,
+      borderRadius: 24,
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.08,
+      shadowRadius: 24,
+      elevation: 8,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    avatar: { width: 64, height: 64, borderRadius: 32, position: 'relative' },
+    avatarImage: { width: 64, height: 64, borderRadius: 32, backgroundColor: BRAND },
+    avatarFallback: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.textPrimary, alignItems: 'center', justifyContent: 'center' },
+    avatarText: { fontSize: 24, fontWeight: '900', color: colors.background },
+    avatarBadge: {
+      position: 'absolute',
+      bottom: -2,
+      right: -2,
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      backgroundColor: colors.textPrimary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: colors.background,
+    },
+    headerCopy: { flex: 1, gap: 4, minWidth: 0 },
+    name: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5 },
+    slug: { fontSize: 13, fontWeight: '600', color: colors.textMuted },
+    pressed: { opacity: 0.7 },
 
-  // Section heads
-  section: { gap: 6 },
-  sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },
-  sectionTitle: { fontSize: 11, fontWeight: '700', color: MUTED, letterSpacing: 0.6 },
-  sectionMeta: { fontSize: 11, fontWeight: '600', color: MUTED },
+    // Section heads
+    section: { gap: 10 },
+    sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },
+    sectionTitle: { fontSize: 13, fontWeight: '800', color: colors.textMuted, letterSpacing: 0.6, textTransform: 'uppercase' },
+    sectionMeta: { fontSize: 12, fontWeight: '700', color: colors.textMuted },
 
-  // Carousel
-  carouselSection: { gap: 8 },
-  carouselWrapper: {
-    marginHorizontal: -16,
-  },
-  carouselHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 4,
-  },
-  carouselHintText: { flex: 1, fontSize: 11, fontWeight: '500', color: MUTED2 },
+    // Carousel
+    carouselSection: { gap: 12 },
+    carouselWrapper: {
+      marginHorizontal: -20,
+    },
+    carouselHint: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+    },
+    carouselHintText: { flex: 1, fontSize: 12, fontWeight: '500', color: colors.textMuted },
 
-  // Persistent create-card CTA
-  newCardCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    backgroundColor: SURFACE,
-  },
-  newCardIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-    backgroundColor: BRAND,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  newCardCopy: { flex: 1, gap: 1, minWidth: 0 },
-  newCardTitle: { fontSize: 15, fontWeight: '600', color: INK },
-  newCardSub: { fontSize: 11, fontWeight: '500', color: MUTED },
+    // Persistent create-card CTA
+    newCardCta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+      paddingVertical: 16,
+      paddingHorizontal: 20,
+      borderRadius: 20,
+      backgroundColor: colors.surface,
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.05,
+      shadowRadius: 16,
+      elevation: 4,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    newCardIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: BRAND,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    newCardCopy: { flex: 1, gap: 2, minWidth: 0 },
+    newCardTitle: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
+    newCardSub: { fontSize: 13, fontWeight: '500', color: colors.textMuted },
 
-  // Apple Settings-style list
-  list: {
-    backgroundColor: SURFACE,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 11,
-    paddingHorizontal: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: HAIRLINE,
-  },
-  rowLast: { borderBottomWidth: 0 },
-  rowIconTile: {
-    width: 30,
-    height: 30,
-    borderRadius: 7,
-    backgroundColor: `${BRAND}1A`,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rowAvatarTile: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: INK,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  rowAvatarImg: { width: 30, height: 30, borderRadius: 15 },
-  rowAvatarText: { fontSize: 13, fontWeight: '700', color: '#FFFFFF' },
-  rowCopy: { flex: 1, gap: 1, minWidth: 0 },
-  rowLabel: { fontSize: 11, fontWeight: '500', color: MUTED, textTransform: 'uppercase', letterSpacing: 0.4 },
-  rowValue: { fontSize: 15, fontWeight: '500', color: INK },
+    // Apple Settings-style list (Elevated)
+    list: {
+      backgroundColor: colors.surface,
+      borderRadius: 24,
+      overflow: 'hidden',
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.05,
+      shadowRadius: 20,
+      elevation: 3,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 14,
+      paddingVertical: 14,
+      paddingHorizontal: 20,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+      minHeight: 64,
+    },
+    rowLast: { borderBottomWidth: 0 },
+    rowIconTile: {
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      backgroundColor: `${BRAND}1A`,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    rowAvatarTile: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.textPrimary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
+    },
+    rowAvatarImg: { width: 32, height: 32, borderRadius: 16 },
+    rowAvatarText: { fontSize: 14, fontWeight: '800', color: colors.background },
+    rowCopy: { flex: 1, gap: 2, minWidth: 0 },
+    rowLabel: { fontSize: 12, fontWeight: '700', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
+    rowValue: { fontSize: 16, fontWeight: '600', color: colors.textPrimary },
 
-  // Sign out
-  signOut: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: SURFACE,
-  },
-  signOutT: { fontSize: 15, fontWeight: '600', color: '#FF3B30' },
-});
+    // Sign out
+    signOut: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      paddingVertical: 16,
+      borderRadius: 20,
+      backgroundColor: colors.surface,
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.05,
+      shadowRadius: 16,
+      elevation: 4,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    signOutT: { fontSize: 16, fontWeight: '700', color: '#FF3B30' },
+  }), [colors]);
+}
