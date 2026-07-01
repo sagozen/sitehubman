@@ -23,7 +23,7 @@ import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { useNotifications } from '@/src/hooks/useNotifications';
 import { useOrders } from '@/src/hooks/useOrders';
 import { getCustomerInsights, type CustomerInsights } from '@/src/services/customerInsightsService';
-import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
+import { loadCustomerCloudCard, loadGuestCloudCard } from '@/src/services/guestCardDraftService';
 import { useBioPage } from '@/src/hooks/useBioPage';
 import type { Order } from '@/src/types/models';
 import { FAB } from '@/src/components/FAB';
@@ -258,11 +258,10 @@ export function GuestHomeScreen() {
   // Enhanced animations
     
   useEffect(() => {
-    if (user?.id && !isGuest) {
-      setIsLoading(true);
-      setError(null);
+    setIsLoading(true);
+    setError(null);
 
-      // Load data with proper error handling
+    if (user?.id && !isGuest) {
       Promise.all([
         loadCustomerCloudCard(user.id),
         getCustomerInsights(user.id)
@@ -276,6 +275,15 @@ export function GuestHomeScreen() {
         console.error('GuestHomeScreen data load error:', err);
       })
       .finally(() => setIsLoading(false));
+    } else {
+      loadGuestCloudCard()
+        .then(card => {
+          setCloudCard(card);
+        })
+        .catch(err => {
+          console.error('GuestHomeScreen guest card load error:', err);
+        })
+        .finally(() => setIsLoading(false));
     }
   }, [user?.id, isGuest]);
 

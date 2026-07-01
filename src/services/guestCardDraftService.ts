@@ -473,16 +473,31 @@ export async function syncGuestCardDraft(draft: GuestCardDraft): Promise<GuestDr
   }
 }
 
+let cloudCardCache: { [key: string]: { data: GuestCloudCard | null; timestamp: number } } = {};
+const CACHE_TTL_MS = 30000; // 30 seconds cache
+
+export function clearCloudCardCache() {
+  cloudCardCache = {};
+}
+
 export async function loadGuestCloudCard(cardId?: string): Promise<GuestCloudCard | null> {
   const session = await getStoredSession();
   const resolvedCardId = cardId || session?.cardId;
   if (!resolvedCardId) return null;
 
+  const cacheKey = `guest_${resolvedCardId}`;
+  const now = Date.now();
+  if (cloudCardCache[cacheKey] && now - cloudCardCache[cacheKey].timestamp < CACHE_TTL_MS) {
+    return cloudCardCache[cacheKey].data;
+  }
+
   if (auth.currentUser) {
     try {
       const snap = await getDoc(doc(db, firebaseCollections.cards, resolvedCardId));
       if (snap.exists()) {
-        return mapCardData(snap.id, snap.data() as Record<string, unknown>, session ?? undefined);
+        const res = mapCardData(snap.id, snap.data() as Record<string, unknown>, session ?? undefined);
+        cloudCardCache[cacheKey] = { data: res, timestamp: now };
+        return res;
       }
     } catch {
       // Fall back to local draft below.
@@ -491,14 +506,23 @@ export async function loadGuestCloudCard(cardId?: string): Promise<GuestCloudCar
 
   const draft = await loadGuestCardDraft();
   if (!session || !draft) return null;
-  return fallbackCardFromDraft(session, draft);
+  const res = fallbackCardFromDraft(session, draft);
+  cloudCardCache[cacheKey] = { data: res, timestamp: now };
+  return res;
 }
 
 export async function loadCustomerCloudCard(userId: string): Promise<GuestCloudCard | null> {
+  const cacheKey = `customer_${userId}`;
+  const now = Date.now();
+  if (cloudCardCache[cacheKey] && now - cloudCardCache[cacheKey].timestamp < CACHE_TTL_MS) {
+    return cloudCardCache[cacheKey].data;
+  }
+
   const storedCardId = await getStoredGuestCardId();
   if (storedCardId) {
     const storedCard = await loadGuestCloudCard(storedCardId);
     if (storedCard && (!storedCard.userId || storedCard.userId === userId)) {
+      cloudCardCache[cacheKey] = { data: storedCard, timestamp: now };
       return storedCard;
     }
   }
@@ -510,7 +534,9 @@ export async function loadCustomerCloudCard(userId: string): Promise<GuestCloudC
       );
       if (!owned.empty) {
         const docSnap = owned.docs[0];
-        return mapCardData(docSnap.id, docSnap.data() as Record<string, unknown>);
+        const res = mapCardData(docSnap.id, docSnap.data() as Record<string, unknown>);
+        cloudCardCache[cacheKey] = { data: res, timestamp: now };
+        return res;
       }
     } catch {
       // Fall through to legacy userId lookup.
@@ -522,14 +548,18 @@ export async function loadCustomerCloudCard(userId: string): Promise<GuestCloudC
       );
       if (!owned.empty) {
         const docSnap = owned.docs[0];
-        return mapCardData(docSnap.id, docSnap.data() as Record<string, unknown>);
+        const res = mapCardData(docSnap.id, docSnap.data() as Record<string, unknown>);
+        cloudCardCache[cacheKey] = { data: res, timestamp: now };
+        return res;
       }
     } catch {
       // Fall through to draft/session lookup.
     }
   }
 
-  return loadGuestCloudCard();
+  const res = await loadGuestCloudCard();
+  cloudCardCache[cacheKey] = { data: res, timestamp: now };
+  return res;
 }
 
 async function upsertGuestCloudCardDocs(
@@ -577,6 +607,7 @@ async function upsertGuestCloudCardDocs(
       { merge: true }
     ),
   ]);
+  clearCloudCardCache();
 }
 
 async function loadGuestSessionCards(session: GuestDraftSession, selectedCardId?: string): Promise<GuestCloudCard[]> {
