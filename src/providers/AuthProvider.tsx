@@ -1,4 +1,4 @@
-import { PropsWithChildren, createContext, useCallback, useEffect, useRef, useState } from 'react';
+import { PropsWithChildren, createContext, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   getAuthErrorMessage,
   getUserProfile,
@@ -149,113 +149,124 @@ export function AuthProvider({ children }: PropsWithChildren) {
     };
   }, [applyGuestSession]);
 
-  const value: AuthContextValue = {
+  // FIX: Memoize all auth methods with useCallback so the context value
+  // doesn't change on every render. Previously these were inline object
+  // methods recreated every render, causing all useAuth() consumers to
+  // re-render — a major contributor to the infinite update depth error.
+
+  const signIn = useCallback(async (input: LoginInput) => {
+    setError(null);
+    setIsLoading(true);
+    isSigningOut.current = false;
+    managedUser.current = null;
+
+    try {
+      const profile = await signInWithEmail(input);
+      setUser(profile);
+      return profile;
+    } catch (err) {
+      const msg = getAuthErrorMessage(err);
+      setError(msg);
+      throw new Error(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const signUp = useCallback(async (input: RegisterInput) => {
+    setError(null);
+    setIsLoading(true);
+    isSigningOut.current = false;
+    managedUser.current = null;
+
+    try {
+      const profile = await signUpWithEmail(input);
+      setUser(profile);
+      return profile;
+    } catch (err) {
+      const msg = getAuthErrorMessage(err);
+      setError(msg);
+      throw new Error(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const signInAsGuest = useCallback(async () => {
+    setError(null);
+    setIsLoading(true);
+    isSigningOut.current = false;
+    managedUser.current = null;
+    try {
+      const profile = await signInAsAnonymousTrial();
+      managedUser.current = null;
+      setUser(profile);
+    } catch (err) {
+      if (isAnonymousAuthDisabledError(err)) {
+        try {
+          await signOutCurrentUser();
+        } catch {
+          // Best-effort cleanup before local preview guest.
+        }
+        applyGuestSession();
+        setError(getAuthErrorMessage(err));
+        return;
+      }
+      const msg = getAuthErrorMessage(err);
+      setError(msg);
+      throw new Error(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [applyGuestSession]);
+
+  const signOutUser = useCallback(async () => {
+    if (__DEV__) {
+      console.debug('[auth/provider] signOutUser start', { email: user?.email, role: user?.role });
+    }
+    isSigningOut.current = true;
+    managedUser.current = null;
+
+    setUser(null);
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      await signOutCurrentUser();
+      if (__DEV__) {
+        console.debug('[auth/provider] Firebase sign-out resolved');
+      }
+    } catch (err) {
+      if (__DEV__) {
+        console.warn('[auth/provider] Firebase sign-out failed after local clear', err);
+      }
+      // already cleared locally
+    } finally {
+      managedUser.current = null;
+      setUser(null);
+      setError(null);
+      setIsLoading(false);
+      if (__DEV__) {
+        console.debug('[auth/provider] signOutUser finalized');
+      }
+
+      setTimeout(() => {
+        isSigningOut.current = false;
+      }, 300);
+    }
+  }, [user?.email, user?.role]);
+
+  // FIX: useMemo the context value so it only creates a new object
+  // when user, isLoading, error, or the memoized callbacks change.
+  const value = useMemo<AuthContextValue>(() => ({
     user,
     isLoading,
     error,
-
-    async signIn(input: LoginInput) {
-      setError(null);
-      setIsLoading(true);
-      isSigningOut.current = false;
-      managedUser.current = null;
-
-      try {
-        const profile = await signInWithEmail(input);
-        setUser(profile);
-        return profile;
-      } catch (err) {
-        const msg = getAuthErrorMessage(err);
-        setError(msg);
-        throw new Error(msg);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-
-    async signUp(input: RegisterInput) {
-      setError(null);
-      setIsLoading(true);
-      isSigningOut.current = false;
-      managedUser.current = null;
-
-      try {
-        const profile = await signUpWithEmail(input);
-        setUser(profile);
-        return profile;
-      } catch (err) {
-        const msg = getAuthErrorMessage(err);
-        setError(msg);
-        throw new Error(msg);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-
-    async signInAsGuest() {
-      setError(null);
-      setIsLoading(true);
-      isSigningOut.current = false;
-      managedUser.current = null;
-      try {
-        const profile = await signInAsAnonymousTrial();
-        managedUser.current = null;
-        setUser(profile);
-      } catch (err) {
-        if (isAnonymousAuthDisabledError(err)) {
-          try {
-            await signOutCurrentUser();
-          } catch {
-            // Best-effort cleanup before local preview guest.
-          }
-          applyGuestSession();
-          setError(getAuthErrorMessage(err));
-          return;
-        }
-        const msg = getAuthErrorMessage(err);
-        setError(msg);
-        throw new Error(msg);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-
-    async signOutUser() {
-      if (__DEV__) {
-        console.debug('[auth/provider] signOutUser start', { email: user?.email, role: user?.role });
-      }
-      isSigningOut.current = true;
-      managedUser.current = null;
-
-      setUser(null);
-      setError(null);
-      setIsLoading(true);
-
-      try {
-        await signOutCurrentUser();
-        if (__DEV__) {
-          console.debug('[auth/provider] Firebase sign-out resolved');
-        }
-      } catch (err) {
-        if (__DEV__) {
-          console.warn('[auth/provider] Firebase sign-out failed after local clear', err);
-        }
-        // already cleared locally
-      } finally {
-        managedUser.current = null;
-        setUser(null);
-        setError(null);
-        setIsLoading(false);
-        if (__DEV__) {
-          console.debug('[auth/provider] signOutUser finalized');
-        }
-
-        setTimeout(() => {
-          isSigningOut.current = false;
-        }, 300);
-      }
-    },
-  };
+    signIn,
+    signUp,
+    signInAsGuest,
+    signOutUser,
+  }), [user, isLoading, error, signIn, signUp, signInAsGuest, signOutUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

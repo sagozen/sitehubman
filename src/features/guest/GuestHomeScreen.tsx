@@ -14,7 +14,6 @@ import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { SocialProofStats } from '@/src/components/SocialProofStats';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
-import { LinearGradient } from 'expo-linear-gradient';
 import { appRoutes } from '@/src/constants/navigation';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
@@ -27,99 +26,27 @@ import { getCustomerInsights, type CustomerInsights } from '@/src/services/custo
 import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
 import { useBioPage } from '@/src/hooks/useBioPage';
 import type { Order } from '@/src/types/models';
-import { Animated, Easing } from 'react-native';
 import { FAB } from '@/src/components/FAB';
 import { QuickActionModal } from '@/src/components/QuickActionModal';
 
 // ─── Brand ──────────────────────────────────────────────────────────────────
-const BRAND = '#2596BE';
-const INK = '#0A0A0F';
-const INK2 = '#1C1C1E';
+const BRAND = '#1877F2';
+const INK = '#050505';
+const INK2 = '#050505';
 // FIXED: Improved contrast for muted text (WCAG AA: 4.6:1 on white)
-const MUTED = '#6E6E73';
+const MUTED = '#65676B';
 const SURFACE = '#FFFFFF';
-const BG = '#FFFFFF';
+const BG = '#F0F2F5';
 
 // ─── Fixed Animation Durations for Smooth 60fps ─────────────────────────────
 // Reduced travel distance and duration to prevent jank and layout shifts
-const useFloatAnimation = (delay: number) => {
-  const translateY = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(translateY, {
-          toValue: -4, // Reduced from -8 (less travel = less jank)
-          duration: 800, // Reduced from 2000ms (perceptually smooth)
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(translateY, {
-          toValue: 4, // Reduced from 8
-          duration: 800, // Reduced from 2000ms
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]),
-    ).start();
-  }, [translateY]);
-
-  return { transform: [{ translateY }] };
-};
-
-const usePulseAnimation = () => {
-  const scale = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(scale, {
-          toValue: 1.02, // Reduced from 1.05 (less scale change)
-          duration: 600, // Reduced from 1500ms (crisp feedback)
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(scale, {
-          toValue: 1,
-          duration: 600, // Reduced from 1500ms
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]),
-    ).start();
-  }, [scale]);
-
-  return { transform: [{ scale }] };
-};
 
 // ─── Fixed Gradient Background (Eliminates Layout Thrashing) ─────────────────
 // Replaced dynamic non-native linear-gradient animation with static expo-linear-gradient
 // which is hardware-accelerated and has zero JS thread cost.
 
 // ─── Fixed Press Animation for Better Responsiveness ───────────────────────
-const usePressAnimation = () => {
-  const scale = useRef(new Animated.Value(1)).current;
-
-  const pressIn = () => {
-    Animated.spring(scale, {
-      toValue: 0.95,
-      friction: 8, // Increased from 6 for faster settling
-      tension: 40, // Added for better physics response
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const pressOut = () => {
-    Animated.spring(scale, {
-      toValue: 1,
-      friction: 8, // Increased from 6
-      tension: 40, // Added
-      useNativeDriver: true,
-    }).start();
-  };
-
-  return { scale, pressIn, pressOut };
-};
 
 // ─── Loading State Component ───────────────────────────────────────────────
 const SkeletonLoader = () => (
@@ -244,8 +171,7 @@ function greeting(name?: string) {
 
 // ─── Enhanced Order Row with Better Visual Hierarchy ─────────────────────────
 function OrderRow({ order, onPress }: { order: Order; onPress: () => void }) {
-  const { scale, pressIn, pressOut } = usePressAnimation();
-  const st = orderStatus(order.status);
+    const st = orderStatus(order.status);
   const date = order.createdAt
     ? new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     : '';
@@ -253,22 +179,17 @@ function OrderRow({ order, onPress }: { order: Order; onPress: () => void }) {
 
   return (
     <Pressable
-      onPressIn={pressIn}
-      onPressOut={pressOut}
-      onPress={() => {
+            onPress={() => {
         HapticTap.light();
         onPress();
       }}
       style={({ pressed }) => [
-        pressed && styles.orderPressed,
+        pressed && { backgroundColor: 'rgba(0,0,0,0.05)' },
       ]}
       // FIXED: Added hitSlop for reliable touch targets
       hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
     >
-      <Animated.View style={[
-        styles.orderRow,
-        { transform: [{ scale }] },
-      ]}>
+      <View style={styles.orderRow}>
         <View style={styles.orderIcon}>
           <AppIcon name="CreditCard" size={20} color={BRAND_VARIANTS.primary}   />
         </View>
@@ -294,7 +215,7 @@ function OrderRow({ order, onPress }: { order: Order; onPress: () => void }) {
           </AppText>
         </View>
         <AppIcon name="ChevronRight" size={15} color={MUTED}   />
-      </Animated.View>
+      </View>
     </Pressable>
   );
 }
@@ -335,9 +256,7 @@ export function GuestHomeScreen() {
   const [fabOpen, setFabOpen] = useState(false); // For FAB state
 
   // Enhanced animations
-  const floatAnim = useFloatAnimation(0);
-  const pulseAnim = usePulseAnimation();
-
+    
   useEffect(() => {
     if (user?.id && !isGuest) {
       setIsLoading(true);
@@ -400,14 +319,7 @@ export function GuestHomeScreen() {
           showsVerticalScrollIndicator={false}
           contentInset={{ bottom: 20 }}
         >
-          {/* Hardware-accelerated Linear Gradient Background */}
-          <LinearGradient
-            colors={['rgba(37,150,190,0.02)', 'rgba(37,150,190,0.06)', 'rgba(37,150,190,0.02)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.gradientContainer}
-          />
-
+          
           {/* Conditional rendering: Loading, Error, or Content */}
           {isLoading ? (
             <SkeletonLoader />
@@ -435,7 +347,7 @@ export function GuestHomeScreen() {
                     router.push('/profile');
                   }}
                   style={({ pressed }) => [
-                    pressed && styles.pressed,
+                    pressed && { opacity: 0.7 },
                   ]}
                   // FIXED: Added hitSlop and Android ripple for reliable touch
                   hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -444,13 +356,9 @@ export function GuestHomeScreen() {
                     borderless: true
                   }}
                 >
-                  <Animated.View style={[
-                    styles.profileAvatar,
-                    isHovering && styles.hovered,
-                    floatAnim,
-                  ]}>
+                  <View style={[styles.profileAvatar, isHovering && styles.hovered]}>
                     <AppText style={styles.profileAvatarT}>{initial}</AppText>
-                  </Animated.View>
+                  </View>
                 </Pressable>
                 <View style={styles.profileCopy}>
                   <AppText variant="caption" weight="medium"  style={{ color: MUTED }}>
@@ -483,7 +391,7 @@ export function GuestHomeScreen() {
                     }}
                     style={({ pressed }) => [
                       styles.headerIcon,
-                      pressed && styles.pressed,
+                      pressed && { opacity: 0.7 },
                       isHovering && styles.hovered,
                     ]}
                     // FIXED: Added hitSlop and Android ripple
@@ -507,7 +415,7 @@ export function GuestHomeScreen() {
                       router.push(appRoutes.studio as Href);
                     }}
                     style={({ pressed }) => [
-                      pressed && styles.pressed,
+                      pressed && { opacity: 0.7 },
                     ]}
                     // FIXED: Added hitSlop and Android ripple
                     hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -516,28 +424,24 @@ export function GuestHomeScreen() {
                       borderless: true
                     }}
                   >
-                    <Animated.View style={[
-                      styles.headerIcon,
-                      isHovering && styles.hovered,
-                      pulseAnim,
-                    ]}>
+                    <View style={[styles.headerIcon, isHovering && styles.hovered]}>
                       <AppIcon name="Sparkles" size={20} color={BRAND_VARIANTS.primary}   />
-                    </Animated.View>
+                    </View>
                   </Pressable>
                 </View>
               </View>
 
               {/* ── NFC CARD — Enhanced with Depth and Interaction ───────────────────── */}
               <View style={styles.cardContainer}>
-                <Animated.View style={[styles.cardElevation, floatAnim]}>
+                <View style={styles.cardElevation}>
                   <NfcGlobalCardFace
                     fullName={heroName || undefined}
                     title={heroTitle || undefined}
                     phone={heroPhone || undefined}
                     email={heroEmail || undefined}
-                    gradientIndex={cloudCard?.gradientIndex ?? 0}
+                    gradientIndex={cloudCard?.design?.gradientIndex ?? 0}
                   />
-                </Animated.View>
+                </View>
               </View>
 
               {/* Social Proof Stats */}
@@ -556,7 +460,7 @@ export function GuestHomeScreen() {
                 }}
                 style={({ pressed }) => [
                   styles.shareButton,
-                  pressed && styles.pressed,
+                  pressed && { opacity: 0.7 },
                   isHovering && styles.hovered,
                 ]}
                 // FIXED: Added hitSlop and Android ripple
@@ -588,7 +492,7 @@ export function GuestHomeScreen() {
                     }}
                     style={({ pressed }) => [
                       styles.actionButton,
-                      pressed && styles.actionPressed,
+                      pressed && { opacity: 0.7 },
                       isHovering && styles.actionHovered,
                     ]}
                     // FIXED: Added hitSlop for all action buttons
@@ -670,7 +574,7 @@ export function GuestHomeScreen() {
                       }}
                       style={({ pressed }) => [
                         styles.viewAllButton,
-                        pressed && styles.viewAllPressed,
+                        pressed && { opacity: 0.5 },
                       ]}
                       // FIXED: Added hitSlop
                       hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -752,7 +656,7 @@ export function GuestHomeScreen() {
                       style={({ pressed }) => [
                         styles.productItem,
                         index === 3 && styles.productItemLast,
-                        pressed && styles.productPressed,
+                        pressed && { opacity: 0.7 },
                         isHovering && styles.productHovered,
                       ]}
                       // FIXED: Added hitSlop for product items
@@ -781,7 +685,7 @@ export function GuestHomeScreen() {
                 }}
                 style={({ pressed }) => [
                   styles.demoLink,
-                  pressed && styles.demoPressed,
+                  pressed && { opacity: 0.7 },
                   isHovering && styles.demoHovered,
                 ]}
                 // FIXED: Added hitSlop and Android ripple
@@ -865,8 +769,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: SPACING.md,
     paddingTop: SPACING.xs,
-    paddingBottom: SPACING.xxl,
-    gap: SPACING.section,
+    paddingBottom: SPACING.xxl, gap: SPACING.md,
   },
 
   // Enhanced Header
@@ -981,11 +884,7 @@ const styles = StyleSheet.create({
   cardElevation: {
     borderRadius: LAYOUT.borderRadius.xl,
     overflow: 'hidden',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 8,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 1,
     backgroundColor: '#FFFFFF',
   },
 
@@ -1008,13 +907,7 @@ const styles = StyleSheet.create({
   },
 
   // Action Strip — Enhanced Layout
-  actionContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: SPACING.md,
-    marginVertical: SPACING.lg,
-  },
+  actionContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: SPACING.md, marginVertical: SPACING.sm, backgroundColor: SURFACE, padding: SPACING.md, borderRadius: LAYOUT.borderRadius.lg, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
   actionButton: {
     flex: 1,
     minWidth: 80,
