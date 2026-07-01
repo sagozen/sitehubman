@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Platform } from 'react-native';
 
 /**
@@ -7,7 +7,7 @@ import { Platform } from 'react-native';
  */
 export const usePerformanceMonitor = () => {
   const [metrics, setMetrics] = useState<Record<string, number>>({});
-  const [isMeasuring, setIsMeasuring] = useState(false);
+  const isMeasuringRef = useRef(false);
 
   /**
    * Measure time taken for a callback to execute
@@ -18,9 +18,9 @@ export const usePerformanceMonitor = () => {
     label: string,
     callback: () => Promise<T> | T
   ): Promise<T> => {
-    if (isMeasuring) return callback(); // Prevent nested measurements
+    if (isMeasuringRef.current) return callback(); // Prevent nested measurements
 
-    setIsMeasuring(true);
+    isMeasuringRef.current = true;
     const start = performance.now();
 
     try {
@@ -41,9 +41,9 @@ export const usePerformanceMonitor = () => {
 
       return result;
     } finally {
-      setIsMeasuring(false);
+      isMeasuringRef.current = false;
     }
-  }, [isMeasuring]);
+  }, []);
 
   /**
    * Measure render time of a component (use in useEffect)
@@ -87,7 +87,7 @@ export const usePerformanceMonitor = () => {
     measureRender,
     getMetrics,
     clearMetrics,
-    isMeasuring
+    isMeasuring: isMeasuringRef.current
   };
 };
 

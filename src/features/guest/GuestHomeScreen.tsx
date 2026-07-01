@@ -20,14 +20,16 @@ import { IosScrollView } from '@/src/components/IosScrollView';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
-import { useOrders } from '@/src/hooks/useOrders';
-import { useNotifications } from '@/src/hooks/useNotifications';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
+import { useNotifications } from '@/src/hooks/useNotifications';
+import { useOrders } from '@/src/hooks/useOrders';
 import { getCustomerInsights, type CustomerInsights } from '@/src/services/customerInsightsService';
 import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
 import { useBioPage } from '@/src/hooks/useBioPage';
 import type { Order } from '@/src/types/models';
 import { Animated, Easing } from 'react-native';
+import { FAB } from '@/src/components/FAB';
+import { QuickActionModal } from '@/src/components/QuickActionModal';
 
 // ─── Brand ──────────────────────────────────────────────────────────────────
 const BRAND = '#2596BE';
@@ -93,7 +95,6 @@ const usePulseAnimation = () => {
 // ─── Fixed Gradient Background (Eliminates Layout Thrashing) ─────────────────
 // Replaced dynamic non-native linear-gradient animation with static expo-linear-gradient
 // which is hardware-accelerated and has zero JS thread cost.
-
 
 // ─── Fixed Press Animation for Better Responsiveness ───────────────────────
 const usePressAnimation = () => {
@@ -331,6 +332,7 @@ export function GuestHomeScreen() {
   const [cloudCard, setCloudCard] = useState<Awaited<ReturnType<typeof loadCustomerCloudCard>>>(null);
   const [isHovering, setIsHovering] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // Added loading state
+  const [fabOpen, setFabOpen] = useState(false); // For FAB state
 
   // Enhanced animations
   const floatAnim = useFloatAnimation(0);
@@ -533,6 +535,7 @@ export function GuestHomeScreen() {
                     title={heroTitle || undefined}
                     phone={heroPhone || undefined}
                     email={heroEmail || undefined}
+                    gradientIndex={cloudCard?.gradientIndex ?? 0}
                   />
                 </Animated.View>
               </View>
@@ -799,6 +802,17 @@ export function GuestHomeScreen() {
           )}
         </IosScrollView>
       </SafeAreaView>
+      {/* FAB for primary action */}
+      <FAB onPress={() => {
+        HapticTap.medium();
+        if (isGuest) {
+          requireAccount(undefined, { message: 'Sign in to create your first card.' });
+        } else {
+          router.push(appRoutes.guestDesign as Href);
+        }
+        setFabOpen(true);
+      }} />
+      <QuickActionModal visible={fabOpen} onClose={() => setFabOpen(false)} />
     </View>
   );
 }

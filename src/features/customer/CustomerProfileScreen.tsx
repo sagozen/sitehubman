@@ -89,6 +89,7 @@ export function CustomerProfileScreen() {
       profileUrl: profileUrl || '',
       cardId: cloudCard?.cardId || 'BC-NFC_USER',
       backgroundImageUri: photoUrl,
+      gradientIndex: cloudCard?.gradientIndex ?? 0,
     };
 
     const otherCards = SEED_CARDS.filter(c => c.id !== 'card-primary');

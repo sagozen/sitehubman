@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 
 export function useGuestGate() {
@@ -46,7 +46,10 @@ export function useGuestGate() {
     return true;
   }, []);
 
-  return {
+  // FIX: Memoize the return value so consumers don't get a new object
+  // reference on every render. This prevents cascading re-renders when
+  // this value is passed as a context value.
+  return useMemo(() => ({
     isGuest,
     unlockVisible,
     unlockMessage,
@@ -56,5 +59,15 @@ export function useGuestGate() {
     showUnlock,
     requireAccount,
     consumePendingAction,
-  };
+  }), [
+    isGuest,
+    unlockVisible,
+    unlockMessage,
+    unlockTitle,
+    unlockIntent,
+    closeUnlock,
+    showUnlock,
+    requireAccount,
+    consumePendingAction,
+  ]);
 }

@@ -48,7 +48,9 @@
     "build:web": "cross-env NODE_OPTIONS=--max-old-space-size=16384 expo export --platform web",
     "preview:web": "npx expo serve dist",
     "restart:expo": "powershell -ExecutionPolicy Bypass -File scripts/restart-expo.ps1",
-    "run": "powershell -ExecutionPolicy Bypass -File scripts/run-sitehub.ps1"
+    "run": "powershell -ExecutionPolicy Bypass -File scripts/run-sitehub.ps1",
+    "metro:watch": "expo start --max-workers 2",
+    "metro:reset": "expo start -c"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.1",

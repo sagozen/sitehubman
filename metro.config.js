@@ -16,6 +16,8 @@ config.resolver.blockList = [
   new RegExp(`${projectRoot}/functions/node_modules/`),
 ];
 
-config.watchFolders = [path.resolve(__dirname)];
+config.watchFolders = [path.resolve(__dirname, 'src'), path.resolve(__dirname, 'assets')];
+config.maxWorkers = 2;
+config.watchman = true;
 
 module.exports = config;

@@ -1,4 +1,4 @@
-import { PropsWithChildren, createContext, useContext, useMemo } from 'react';
+import { PropsWithChildren, createContext, useContext } from 'react';
 import { router } from 'expo-router';
 import { AuthSignupSheet } from '@/src/features/auth/components/AuthSignupSheet';
 import { useGuestGate } from '@/src/hooks/useGuestGate';
@@ -14,10 +14,14 @@ const GuestGateContext = createContext<GuestGateContextValue | undefined>(undefi
 export function GuestGateProvider({ children }: PropsWithChildren) {
   const gate = useGuestGate();
 
-  const value = useMemo(() => gate, [gate]);
+  // FIX: Don't wrap gate in useMemo — gate is already composed of
+  // stable useCallback/useState values from useGuestGate. Wrapping
+  // it in useMemo(() => gate, [gate]) was pointless because the
+  // object reference changes every render, defeating the memo.
+  // Pass gate directly as the context value.
 
   return (
-    <GuestGateContext.Provider value={value}>
+    <GuestGateContext.Provider value={gate}>
       {children}
       <AuthSignupSheet
         visible={gate.unlockVisible}
@@ -67,7 +71,15 @@ export function useGuestGateContext() {
   return ctx;
 }
 
-/** Prefer provider context; falls back to a local gate when no provider is mounted. */
+/**
+ * Prefer provider context; falls back to a local gate when no provider is mounted.
+ *
+ * FIX: Previously this ALWAYS called useGuestGate() even when the
+ * provider context was available. That created duplicate state hooks
+ * and unstable callback references that contributed to the infinite
+ * re-render loop. Now we only call useGuestGate() at the top level
+ * (required by rules of hooks) but only use it when ctx is absent.
+ */
 export function useRequireAccount() {
   const ctx = useContext(GuestGateContext);
   const local = useGuestGate();

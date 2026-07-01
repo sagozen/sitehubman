@@ -33,6 +33,7 @@ export const SEED_CARDS: CarouselCard[] = [
     profileUrl: 'https://sitehub.app/pisey',
     cardId: 'BC-NFC_4F8A',
     isPrimary: true,
+    gradientIndex: 0, // Classic Blue
   },
   {
     id: 'card-business',
@@ -44,6 +45,7 @@ export const SEED_CARDS: CarouselCard[] = [
     website: 'mekonglabs.io',
     profileUrl: 'https://mekonglabs.io/pisey',
     cardId: 'BC-NFC_7C2D',
+    gradientIndex: 3, // Matte carbon/black
   },
   {
     id: 'card-creator',
@@ -55,6 +57,7 @@ export const SEED_CARDS: CarouselCard[] = [
     website: 'indie.kh',
     profileUrl: 'https://indie.kh/p',
     cardId: 'BC-NFC_9B11',
+    gradientIndex: 2, // Cyber Sunset Sunset Pink
   },
   {
     id: 'card-community',
@@ -66,6 +69,7 @@ export const SEED_CARDS: CarouselCard[] = [
     website: 'kirirom.tech/pisey',
     profileUrl: 'https://kirirom.tech/pisey',
     cardId: 'BC-NFC_2E5F',
+    gradientIndex: 4, // Premium Gold
   },
 ];
 

@@ -169,7 +169,7 @@ export function GuestDesignScreen() {
         }
       }).finally(() => setLoadingDraft(false));
     });
-  }, [user?.email, user?.phone, measure]);
+  }, [user?.email, user?.phone]);
 
   const handleSave = useCallback(async () => {
     if (!infoComplete) return;

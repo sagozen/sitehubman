@@ -1,19 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import {
   AuthFooterLink,
   AuthFormGroup,
-  AuthIconTextField,
+  AuthHeader,
   AuthLoginCard,
-  AuthLoginShell,
   AuthPrimaryButton,
+  AuthScreenShell,
   AuthTextButton,
   AuthTextField,
   AuthTrustFooter,
-  AuthWelcomeHeader,
 } from '@/src/features/auth/components/authUi';
 import { SocialAuthSection } from '@/src/features/auth/SocialAuthSection';
 import { authLoginTheme } from '@/src/features/auth/constants/authTheme';
@@ -25,12 +24,12 @@ import { getPostAuthDestination } from '@/src/utils/guestAuthRedirect';
 import { isGuestUser } from '@/src/utils/authFlow';
 
 export function LoginScreen() {
+  const { user, isLoading, signIn, signInAsGuest } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGuestLoading, setIsGuestLoading] = useState(false);
-  const { user, isLoading, signIn, signInAsGuest } = useAuth();
 
   useEffect(() => {
     if (!isLoading && user && !isGuestUser(user)) {
@@ -76,16 +75,28 @@ export function LoginScreen() {
   }
 
   return (
-    <AuthLoginShell>
+    <AuthScreenShell>
       <AuthLoginCard>
-        <AuthWelcomeHeader />
+        {/* Illustration */}
+        <View style={styles.illustrationWrap}>
+          <Image source={require('@/assets/images/3d_create_card_v2.png')} style={styles.illustration} resizeMode="contain" />
+        </View>
 
-        <SocialAuthSection disabled={busy} onSuccess={handleSocialSuccess} variant="login" />
+        {/* Header */}
+        <AuthHeader
+          title="Welcome back"
+          subtitle="Sign in to your account to continue"
+        />
 
+        {/* Social sign-in */}
+        <SocialAuthSection disabled={busy} onSuccess={handleSocialSuccess} />
+
+        {/* Or use email divider */}
         <View style={styles.emailHead}>
           <AppText style={styles.emailTitle}>Or use email</AppText>
         </View>
 
+        {/* Email and password fields */}
         <AuthFormGroup>
           <AuthTextField
             label="Email"
@@ -121,6 +132,7 @@ export function LoginScreen() {
           />
         </AuthFormGroup>
 
+        {/* Sign in button */}
         <AuthPrimaryButton
           label={isSubmitting ? 'Signing in...' : 'Sign in'}
           onPress={handleLogin}
@@ -129,6 +141,7 @@ export function LoginScreen() {
           variant="login"
         />
 
+        {/* Guest button */}
         <AuthTextButton
           label={isGuestLoading ? 'Loading...' : 'Preview as guest'}
           onPress={handleGuest}
@@ -137,6 +150,7 @@ export function LoginScreen() {
           variant="login"
         />
 
+        {/* Footer link to register */}
         <AuthFooterLink
           prompt="Don't have an account?"
           action="Create account"
@@ -145,13 +159,23 @@ export function LoginScreen() {
           variant="login"
         />
 
+        {/* Trust footer */}
         <AuthTrustFooter />
       </AuthLoginCard>
-    </AuthLoginShell>
+    </AuthScreenShell>
   );
 }
 
 const styles = StyleSheet.create({
+  illustrationWrap: {
+    alignItems: 'center',
+    marginBottom: 12,
+    marginTop: 6,
+  },
+  illustration: {
+    width: 100,
+    height: 100,
+  },
   emailHead: {
     marginTop: -2,
   },
@@ -159,9 +183,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '900',
     color: '#111111',
-  },
-  fields: {
-    gap: 12,
   },
   eyeBtn: {
     padding: 4,

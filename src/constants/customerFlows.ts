@@ -150,6 +150,19 @@ export const CUSTOMER_FLOWS: Record<CustomerFlowId, CustomerFlowDefinition> = {
     primary: false,
     metric: false,
   },
+  drafts: {
+    id: 'drafts',
+    storageKey: 'customer_flow_drafts',
+    label: 'Drafts',
+    subtitle: 'Unfinished designs',
+    realIcon: 'drafts',
+    fallbackIcon: 'Clipboard',
+    tint: '#8E8E93',
+    photo: actionPhotos.order, // Using order photo as placeholder - update when drafts image is available
+    route: '/drafts',
+    primary: false,
+    metric: false,
+  },
 };
 
 export function getCustomerFlow(id: CustomerFlowId): CustomerFlowDefinition {

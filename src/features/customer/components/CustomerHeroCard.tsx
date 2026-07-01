@@ -132,6 +132,7 @@ export function CustomerHeroCard({ user }: any) {
         website: profileUrl || '',
         profileUrl: profileUrl || `sitehubman.com/profile/${user?.id || 'demo'}`,
         backgroundImageUri: photoUrl,
+        gradientIndex: cloudCard?.gradientIndex ?? 0,
       };
     }
     return SEED_CARDS.find(c => c.id === activeCardId) || SEED_CARDS[0];
@@ -254,6 +255,7 @@ export function CustomerHeroCard({ user }: any) {
             backgroundImageUri={coverUrl}
             profileUrl={activeCard?.profileUrl}
             width={CARD_WIDTH}
+            gradientIndex={activeCard?.gradientIndex}
           />
         </Animated.View>
       </View>

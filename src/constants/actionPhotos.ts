@@ -6,6 +6,7 @@ const loaders = {
   order: () => require('@/assets/images/guest/guest-production.png') as ImageSourcePropType,
   connections: () => require('@/assets/images/connections/connections-nfc.png') as ImageSourcePropType,
   profile: () => require('@/assets/images/snap-tap-hero.png') as ImageSourcePropType,
+  drafts: () => require('@/assets/images/guest/guest-card-product.png') as ImageSourcePropType, // Placeholder
 } as const;
 
 /** Lazy getters — hero PNGs load only when a tile is rendered, not at module init. */
@@ -24,5 +25,8 @@ export const actionPhotos = {
   },
   get profile() {
     return loaders.profile();
+  },
+  get drafts() {
+    return loaders.drafts();
   },
 } as const;
