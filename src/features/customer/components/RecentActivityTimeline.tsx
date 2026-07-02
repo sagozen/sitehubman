@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { View, StyleSheet, Image, Pressable, type ViewStyle, type TextStyle, type ImageStyle } from 'react-native';
 import { AppText } from '@/src/components/AppText';
 import { HapticTap } from '@/src/utils/haptics';
@@ -18,7 +19,7 @@ const FAKE_ACTIVITY: TimelineItemProps[] = [
   { id: 'sm-04', avatar: 'https://i.pravatar.cc/150?img=44', title: 'Rithy Mean', subtitle: 'Opened profile link', time: '2 hours ago' },
 ];
 
-export function RecentActivityTimeline({
+export const RecentActivityTimeline = memo(function RecentActivityTimeline({
   activities = FAKE_ACTIVITY,
   onActivityPress,
 }: {
@@ -62,7 +63,7 @@ export function RecentActivityTimeline({
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

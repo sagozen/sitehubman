@@ -4,6 +4,7 @@ import {
   getCustomerConnectionsData,
   removeDeviceSession,
   saveChannelToggle,
+  subscribeToCustomerConnections,
 } from '@/src/services/customerConnectionsService';
 import type { AppUser } from '@/src/types/models';
 
@@ -32,9 +33,21 @@ export function useCustomerConnections(user: AppUser | null | undefined) {
   }, [user]);
 
   useEffect(() => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
-    void refresh();
-  }, [refresh]);
+    const { subscribe } = subscribeToCustomerConnections(user);
+    
+    const unsubscribe = subscribe((newData) => {
+      setData(newData);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   const pullRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -61,9 +74,10 @@ export function useCustomerConnections(user: AppUser | null | undefined) {
   );
 
   const revokeDevice = useCallback(async (sessionId: string) => {
+    if (!user?.id) return;
     const nextDevices = await removeDeviceSession(sessionId);
     setData((current) => (current ? { ...current, devices: nextDevices } : current));
-  }, []);
+  }, [user?.id]);
 
   return {
     data,

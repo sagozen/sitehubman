@@ -43,12 +43,15 @@ export function CustomerModuleCarousel({ onModulePress }: { onModulePress?: (id:
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     marginBottom: 20,
+    width: '100%',
+    alignItems: 'center',
   },
   sectionTitle: {
+// ...
+
     fontSize: 20,
     fontWeight: '800',
     color: '#111827',

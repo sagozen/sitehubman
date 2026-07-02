@@ -4,6 +4,7 @@ import {
   Linking,
   Modal,
   Pressable,
+  ScrollView,
   Share,
   StyleSheet,
   View,
@@ -23,14 +24,24 @@ import { AppText } from '@/src/components/AppText';
 import type { TapMoment, TapMomentSource } from '@/src/components/TapMomentCard';
 import { HapticTap, HapticPattern } from '@/src/utils/haptics';
 import { Easings } from '@/src/utils/motion';
+import { ConnectionTagPicker } from '@/src/components/ConnectionTagPicker';
+import { ContactExportSheet } from '@/src/components/ContactExportSheet';
+import {
+  ALL_TAGS,
+  type ConnectionTagId,
+  momentToContact,
+} from '@/src/services/connectionsIntelligenceService';
 
 export interface MomentDetailSheetProps {
   visible: boolean;
   moment: TapMoment | null;
   /** Pre-resolved slug URL (e.g. https://sitehub.app/sok-dara). Null = no URL yet. */
   slugUrl: string | null;
+  /** Current tags assigned to this moment. */
+  tags?: ConnectionTagId[];
   onClose: () => void;
   onFollowUp?: (moment: TapMoment) => void;
+  onToggleTag?: (momentId: string, tagId: ConnectionTagId) => void;
 }
 
 const SOURCE_GRADIENTS: Record<TapMomentSource, readonly [string, string, string]> = {
@@ -73,11 +84,15 @@ export function MomentDetailSheet({
   visible,
   moment,
   slugUrl,
+  tags = [],
   onClose,
   onFollowUp,
+  onToggleTag,
 }: MomentDetailSheetProps) {
   const enter = useSharedValue(0);
   const [opening, setOpening] = useState(false);
+  const [showTagPicker, setShowTagPicker] = useState(false);
+  const [showExport, setShowExport] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -225,6 +240,37 @@ export function MomentDetailSheet({
             )}
           </View>
 
+          {/* Tags row */}
+          <View style={styles.tagsRow}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tagsScroll}>
+              <Pressable
+                onPress={() => setShowTagPicker(true)}
+                style={styles.addTagChip}
+                accessibilityRole="button"
+                accessibilityLabel="Add tag"
+              >
+                <AppIcon name="Tag" size={12} color="#007AFF" />
+                <AppText style={styles.addTagText}>
+                  {tags.length === 0 ? 'Add tag' : 'Edit tags'}
+                </AppText>
+              </Pressable>
+              {tags.map((tagId) => {
+                const tag = ALL_TAGS.find((t) => t.id === tagId);
+                if (!tag) return null;
+                return (
+                  <Pressable
+                    key={tagId}
+                    onPress={() => setShowTagPicker(true)}
+                    style={[styles.tagChip, { backgroundColor: tag.color + '22', borderColor: tag.color + '55' }]}
+                  >
+                    <AppText style={styles.tagChipEmoji}>{tag.emoji}</AppText>
+                    <AppText style={[styles.tagChipLabel, { color: tag.color }]}>{tag.label}</AppText>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+
           {/* Action grid */}
           <View style={styles.actionsGrid}>
             <ActionButton
@@ -241,6 +287,18 @@ export function MomentDetailSheet({
               onPress={handleShareUrl}
             />
           </View>
+
+          {/* Export row */}
+          <Pressable
+            onPress={() => setShowExport(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Export contact"
+            style={({ pressed }) => [styles.exportButton, pressed && styles.exportPressed]}
+          >
+            <AppIcon name="UserPlus" size={16} color="#007AFF" />
+            <AppText style={styles.exportText}>Export contact</AppText>
+            <AppIcon name="ChevronRight" size={14} color="rgba(0,122,255,0.54)" />
+          </Pressable>
 
           {moment.needsFollowUp ? (
             <Pressable
@@ -262,6 +320,27 @@ export function MomentDetailSheet({
           >
             <AppText style={styles.closeText}>Close</AppText>
           </Pressable>
+
+          {/* Tag picker sub-modal */}
+          {moment && (
+            <ConnectionTagPicker
+              visible={showTagPicker}
+              momentId={moment.id}
+              currentTags={tags}
+              onToggle={(momentId, tagId) => onToggleTag?.(momentId, tagId)}
+              onClose={() => setShowTagPicker(false)}
+            />
+          )}
+
+          {/* Contact export sub-modal */}
+          {moment && (
+            <ContactExportSheet
+              visible={showExport}
+              contact={momentToContact(moment)}
+              profileUrl={slugUrl ?? undefined}
+              onClose={() => setShowExport(false)}
+            />
+          )}
         </Animated.View>
       </View>
     </Modal>
@@ -487,6 +566,63 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: 'rgba(0,0,0,0.42)',
+  },
+  tagsRow: {
+    marginHorizontal: -22,
+  },
+  tagsScroll: {
+    paddingHorizontal: 22,
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  addTagChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 99,
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,122,255,0.3)',
+    borderStyle: 'dashed',
+  },
+  addTagText: {
+    color: '#007AFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  tagChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 99,
+    borderWidth: 1,
+  },
+  tagChipEmoji: { fontSize: 12 },
+  tagChipLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  exportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0,122,255,0.07)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0,122,255,0.18)',
+  },
+  exportPressed: { opacity: 0.78, transform: [{ scale: 0.99 }] },
+  exportText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#007AFF',
   },
   actionsGrid: {
     flexDirection: 'row',

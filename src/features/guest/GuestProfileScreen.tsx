@@ -9,8 +9,7 @@ import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
-
-const BRAND = '#2596BE';
+import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 const LOCKED: { icon: AppIconName; label: string; sub: string }[] = [
   { icon: 'QrCode', label: 'Generate QR code', sub: 'Personal share link' },
@@ -23,6 +22,7 @@ export function GuestProfileScreen() {
   const { user, signOutUser } = useAuth();
   const isGuest = useIsGuest();
   const { requireAccount } = useRequireAccount();
+  const { colors } = useAppTheme();
 
   const initial = (user?.displayName?.trim() || 'G')[0].toUpperCase();
 
@@ -52,7 +52,7 @@ export function GuestProfileScreen() {
         {/* Guest wall */}
         {isGuest ? (
           <View style={styles.guestCard}>
-            <AppIcon name="ShieldCheck" size={32} color={BRAND} />
+            <AppIcon name="ShieldCheck" size={32} color={colors.accent} />
             <AppText style={styles.guestTitle}>Upgrade your identity</AppText>
             <AppText style={styles.guestSub}>
               Create an account to sync cards, get a real NFC chip, and build your permanent digital
@@ -112,21 +112,21 @@ export function GuestProfileScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFFFFF' },
   content: { padding: 20, gap: 20, paddingBottom: 120 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 20 },
   avatarWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: BRAND,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#2596BE',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: BRAND,
+    shadowColor: '#2596BE',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 6,
   },
-  avatarText: { fontSize: 22, fontWeight: '800', color: '#FFFFFF' },
+  avatarText: { fontSize: 30, fontWeight: '800', color: '#FFFFFF' },
   headerCopy: { flex: 1, gap: 5 },
   name: { fontSize: 22, fontWeight: '800', color: '#1C1C1E', letterSpacing: -0.4 },
   rolePill: {
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
-  roleText: { fontSize: 10, fontWeight: '800', color: BRAND, letterSpacing: 0.5 },
+  roleText: { fontSize: 10, fontWeight: '800', color: '#2596BE', letterSpacing: 0.5 },
   cardWrap: {
     borderRadius: 20,
     overflow: 'hidden',
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: 'center',
     gap: 12,
-    shadowColor: BRAND,
+    shadowColor: '#2596BE',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.10,
     shadowRadius: 20,

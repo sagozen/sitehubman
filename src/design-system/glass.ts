@@ -74,11 +74,5 @@ export function resolveBlurIntensity(level: keyof typeof glassTheme.blur | numbe
 }
 
 export function glassCardShadow(isDark: boolean): ViewStyle {
-  return {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: isDark ? 0.22 : 0.04,
-    shadowRadius: 20,
-    elevation: Platform.OS === 'android' ? 3 : 0,
-  };
+  return {};
 }

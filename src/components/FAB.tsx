@@ -1,20 +1,23 @@
 import React, { useRef } from 'react';
-import { Pressable, StyleSheet, Animated } from 'react-native';
+import { Pressable, StyleSheet, Animated, View, Platform } from 'react-native';
 import { AppIcon } from '@/src/components/AppIcon';
+import { AppText } from '@/src/components/AppText';
+import { usePreferences } from '@/src/hooks/usePreferences';
 
 interface FABProps {
   onPress: () => void;
   iconName?: string;
+  label?: string;
 }
 
-export function FAB({ onPress, iconName = 'Plus' }: FABProps) {
+export const FAB = React.memo(function FAB({ onPress, iconName = 'Plus', label }: FABProps) {
   const scale = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
     Animated.spring(scale, {
-      toValue: 0.9,
+      toValue: 0.94,
       useNativeDriver: true,
-      friction: 5,
+      friction: 6,
     }).start();
   };
 
@@ -22,9 +25,11 @@ export function FAB({ onPress, iconName = 'Plus' }: FABProps) {
     Animated.spring(scale, {
       toValue: 1,
       useNativeDriver: true,
-      friction: 5,
+      friction: 6,
     }).start();
   };
+
+  const resolvedIconName = (iconName === 'Plus' || iconName === '!' || iconName === 'Sparkles') ? 'Sparkles' : iconName;
 
   return (
     <Animated.View style={[styles.fabWrap, { transform: [{ scale }] }]}>
@@ -32,33 +37,29 @@ export function FAB({ onPress, iconName = 'Plus' }: FABProps) {
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        style={styles.fab}
-        hitSlop={8}
+        style={styles.pillContainer}
+        hitSlop={12}
       >
-        <AppIcon name={iconName as any} size={28} color="#FFFFFF" />
+        <AppIcon name={resolvedIconName as any} size={28} color="#0A84FF" />
       </Pressable>
     </Animated.View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   fabWrap: {
     position: 'absolute',
-    bottom: 100,
-    right: 20,
+    bottom: 96,
+    right: 18,
     zIndex: 999,
   },
-  fab: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#0A84FF',
+  pillContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#0A84FF',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 8,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
   },
 });

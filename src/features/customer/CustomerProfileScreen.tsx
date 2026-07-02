@@ -215,8 +215,8 @@ export function CustomerProfileScreen() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator style={{ color: BRAND }} size="large" />
-        <AppText variant="body" color={INK} marginTop={16}>
+        <ActivityIndicator color={BRAND} size="large" />
+        <AppText variant="body" style={{ color: INK, marginTop: 16 }}>
           Loading profile...
         </AppText>
       </View>
@@ -226,7 +226,7 @@ export function CustomerProfileScreen() {
   if (error) {
     return (
       <View style={styles.errorContainer}>
-        <AppText variant="body" color={INK} textAlign="center">
+        <AppText variant="body" style={{ color: INK, textAlign: 'center' }}>
           {error}
         </AppText>
         <Pressable
@@ -237,7 +237,7 @@ export function CustomerProfileScreen() {
           }}
           style={styles.retryButton}
         >
-          <AppText variant="body" color={BRAND} weight="bold">
+          <AppText variant="body" weight="bold" style={{ color: BRAND }}>
             Try Again
           </AppText>
         </Pressable>

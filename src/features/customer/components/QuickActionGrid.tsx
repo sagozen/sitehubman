@@ -30,7 +30,6 @@ export function QuickActionGrid({ onActionPress }: { onActionPress: (id: string)
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   actionStrip: {
     flexDirection: 'row',
@@ -45,9 +44,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
     shadowRadius: 12,
     elevation: 3,
-    marginTop: -8, // Pulls the bar up closer under the card interactive hint
+    marginTop: -8,
+    width: '100%',
+    alignSelf: 'center',
   },
   actionBtn: {
+// ...
+
     flex: 1,
     alignItems: 'center',
     gap: 4,

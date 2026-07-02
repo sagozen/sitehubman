@@ -15,6 +15,8 @@ export function normalizeRole(role: unknown): UserRole {
   if (role === 'sales' || role === 'sales_rep' || role === 'agent' || role === 'sales_agent') return 'sales';
   if (role === 'printer' || role === 'printer_operator') return 'printer';
   if (role === 'qa_inspector') return 'qa_inspector';
+  if (role === 'shipping') return 'shipping';
+  if (role === 'admin') return 'admin';
   if (role === 'customer' || role === 'user') return 'customer';
   return 'guest';
 }
@@ -22,8 +24,9 @@ export function normalizeRole(role: unknown): UserRole {
 export function getDashboardRoute(user: AppUser | null): Href {
   if (!user) return '/auth/login';
   const role = normalizeRole(user.role);
-  if (role === 'super_admin') return '/admin' as any;
+  if (role === 'super_admin' || role === 'admin') return '/admin' as any;
   if (role === 'sales') return '/sales';
+  if (role === 'printer' || role === 'qa_inspector' || role === 'shipping') return '/production' as any;
   return '/(tabs)';
 }
 

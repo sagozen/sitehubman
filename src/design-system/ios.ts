@@ -21,19 +21,21 @@ export const premiumPalette = {
   iconInactive: '#8E8E93',
   border: 'rgba(60,60,67,0.12)',
   divider: 'rgba(60,60,67,0.18)',
-  systemBlue: '#007AFF',
+  systemBlue: '#6A11CB',
   systemGreen: '#34C759',
   systemOrange: '#FF9500',
   systemRed: '#FF3B30',
-  accent: '#007AFF',
-  accentDark: '#0051D5',
-  accentSoft: 'rgba(0,122,255,0.1)',
+  systemPurple: '#A020F0', // added purple for guest UI
+  accent: '#6A11CB',
+  accentDark: '#4A0080',
+  accentSoft: 'rgba(106,17,203,0.1)',
   // Enhanced colors for better depth and sophistication
   elevated: '#FFFFFF',
   backgroundElevated: '#F8F9FA',
   separator: 'rgba(60,60,67,0.29)',
   label: '#6E6E73',
-  link: '#007AFF',
+  link: '#6A11CB',
+  charcoal: '#1C1C1E',
 } as const;
 
 export const iosPalette = {
@@ -55,6 +57,11 @@ export const iosPalette = {
     iconInactive: premiumPalette.iconInactive,
     charcoal: premiumPalette.charcoal,
     systemBlue: premiumPalette.systemBlue,
+    systemGreen: premiumPalette.systemGreen,
+    systemOrange: premiumPalette.systemOrange,
+    systemPurple: premiumPalette.systemPurple,
+    label: premiumPalette.label,
+    link: premiumPalette.link,
     // Enhanced elevations for depth
     elevation1: 'rgba(0,0,0,0.05)',
     elevation2: 'rgba(0,0,0,0.08)',
@@ -79,6 +86,11 @@ export const iosPalette = {
     iconInactive: '#8E8E93',
     charcoal: '#FFFFFF',
     systemBlue: '#0A84FF',
+    systemGreen: '#30D158',
+    systemOrange: '#FF9F0A',
+    systemPurple: '#BF5AF2',
+    label: '#8E8E93',
+    link: '#0A84FF',
     // Enhanced elevations for dark mode
     elevation1: 'rgba(255,255,255,0.05)',
     elevation2: 'rgba(255,255,255,0.08)',
@@ -237,6 +249,7 @@ export const iosDesign = {
     significant: 12,
     prominent: 16,
     dramatic: 20,
+    hero: 24,
   },
   iconSize: {
     xxxs: 12,
@@ -275,8 +288,11 @@ export const iosDesign = {
     lg: 40,
     xl: 44,
     xxl: 48,
+    xxxl: 48,
     search: 44,
     input: 44,
+    hero: 52,
+    default: 44,
   },
   hitTarget: 44,
   shadows: {
@@ -291,6 +307,7 @@ export const iosDesign = {
     elevated: createShadow({ color: '#000000', offset: { width: 0, height: 6 }, opacity: 0.12, radius: 16, elevation: 4 }),
     floating: createShadow({ color: '#000000', offset: { width: 0, height: 8 }, opacity: 0.16, radius: 20, elevation: 6 }),
     dialog: createShadow({ color: '#000000', offset: { width: 0, height: 10 }, opacity: 0.2, radius: 24, elevation: 8 }),
+    control: createShadow({ color: '#000000', offset: { width: 0, height: 2 }, opacity: 0.07, radius: 4, elevation: 2 }), // added control shadow
   } satisfies Record<string, ViewStyle>,
   animation: {
     // More refined animation curves and timing

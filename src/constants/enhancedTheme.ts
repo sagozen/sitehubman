@@ -35,7 +35,7 @@ export const DesignTokens = {
     rounded: 8,
     soft: 10,
     semiRound: 12,
-    rounded: 16,
+    roundedLg: 16,
     veryRound: 20,
     pill: 999,
   },

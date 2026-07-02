@@ -7,6 +7,8 @@ import {
   orderBy,
   query,
   where,
+  onSnapshot,
+  type Unsubscribe,
 } from 'firebase/firestore';
 import { firebaseCollections } from '@/src/constants/collections';
 import type {
@@ -373,5 +375,53 @@ export async function getCustomerConnectionsData(user: AppUser): Promise<Custome
     loginHistory: buildLoginHistory(user, firestoreUser, deviceLabel),
     trialEndsAt: firestoreUser?.trialEndsAt ?? user.trialEndsAt ?? null,
     hiddenChannels,
+  };
+}
+
+/**
+ * Subscribes to real-time updates for customer connections.
+ * Currently, this provides real-time updates for analytics via the tap_events collection.
+ */
+export function subscribeToCustomerConnections(
+  user: AppUser,
+): {
+  subscribe: (callback: (data: CustomerConnectionsData | null) => void) => Unsubscribe;
+} {
+  return {
+    subscribe: (callback) => {
+      let currentData: CustomerConnectionsData | null = null;
+
+      // 1. Initial Fetch
+      getCustomerConnectionsData(user).then((initialData) => {
+        currentData = initialData;
+        callback(currentData);
+      });
+
+      // 2. Real-time Listener for Analytics (via tap_events)
+      const q = query(
+        collection(db, firebaseCollections.tapEvents),
+        where('profileId', '==', user.id),
+        orderBy('createdAt', 'desc'),
+        limit(100),
+      );
+
+      return onSnapshot(q, async (snapshot) => {
+        if (!currentData) return;
+
+        // Recalculate analytics based on the new tap events snapshot
+        // This is a simplified approach for Phase 1
+        const tapEvents = snapshot.docs.map((d) => d.data());
+        
+        // We need to re-run the analytics calculation logic.
+        // Since fetchTapAnalytics is complex, we'll just re-fetch the whole analytics 
+        // for simplicity in this phase, or better, use the snapshot.
+        
+        // For now, let's just re-run the full fetch to ensure everything is correct.
+        // In a production app, we'd do this more surgically.
+        const updatedData = await getCustomerConnectionsData(user);
+        currentData = updatedData;
+        callback(currentData);
+      });
+    },
   };
 }

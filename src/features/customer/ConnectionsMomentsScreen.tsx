@@ -4,95 +4,58 @@ import {
   type ListRenderItem,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
+  TextInput,
   View,
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { IosScrollView } from '@/src/components/IosScrollView';
-import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
+import { AppAvatar } from '@/src/components/AppAvatar';
+import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import type { TapMoment, TapMomentSource } from '@/src/components/TapMomentCard';
-import { ChatBubbleMemo } from '@/src/components/ChatBubble';
+import type { TapMoment } from '@/src/components/TapMomentCard';
 import { ConfettiBurst } from '@/src/components/ConfettiBurst';
+import { FollowUpBanner } from '@/src/components/FollowUpBanner';
 import { LiveTapSuccess } from '@/src/components/LiveTapSuccess';
 import { MomentDetailSheet } from '@/src/components/MomentDetailSheet';
-import { SEED_MOMENTS, SEED_MOMENT_LABELS, SEED_SPECS, buildSeedAnalytics, getSeedSlugUrl } from '@/src/data/seedMoments';
-import { appRoutes } from '@/src/constants/navigation';
-import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
+import { SEED_MOMENTS, SEED_MOMENT_LABELS, getSeedSlugUrl } from '@/src/data/seedMoments';
 import { useCustomerConnections } from '@/src/hooks/useCustomerConnections';
-import { formatRelative } from '@/src/services/customerConnectionsService';
+import { useConnectionIntelligence } from '@/src/hooks/useConnectionIntelligence';
+import { ALL_TAGS, type ConnectionTagId } from '@/src/services/connectionsIntelligenceService';
 import { HapticTap } from '@/src/utils/haptics';
 import { usePreferences } from '@/src/hooks/usePreferences';
-import { MomentsSearchAndFilter } from './components/moments/MomentsSearchAndFilter';
 
 const BRAND = '#007AFF';
 const MUTED = '#6E6E73';
 
-/** Lookup SEED_SPECS by id for the outbound flag (not exposed via TapMoment). */
-const OUTBOUND_IDS: ReadonlySet<string> = new Set(
-  SEED_SPECS.filter((spec) => spec.outbound).map((spec) => spec.id),
-);
-
-type MomentBucket = {
-  label: string;
-  moments: TapMoment[];
-};
-
-type SortOrder = 'newest' | 'oldest';
-type DateRange = 'today' | 'week' | 'month' | 'quarter' | 'all';
-type SourceFilter = 'all' | TapMomentSource;
-
-const DATE_RANGES: { id: DateRange; label: string }[] = [
-  { id: 'today', label: 'Today' },
-  { id: 'week', label: 'This week' },
-  { id: 'month', label: 'This month' },
-  { id: 'quarter', label: '3 months' },
-  { id: 'all', label: 'All time' },
-];
-
-const SOURCE_FILTERS: { id: SourceFilter; label: string; icon: AppIconName | null }[] = [
-  { id: 'all', label: 'All sources', icon: null },
-  { id: 'nfc', label: 'NFC', icon: 'Nfc' as AppIconName },
-  { id: 'qr', label: 'QR', icon: 'QrCode' as AppIconName },
-  { id: 'view', label: 'Views', icon: 'Eye' as AppIconName },
-  { id: 'share', label: 'Share', icon: 'Share' as AppIconName },
-];
+function buildSlugUrl(slug: string) {
+  return `https://sitehub.app/${slug}`;
+}
 
 /**
- * ConnectionsMomentsScreen - the killer feature timeline view.
+ * ConnectionsMomentsScreen — Phase 2: Intelligence & Automation
  *
- * Replaces the old list-of-stats with a visual timeline of "moments" -
- * high-fidelity cards for every connection event. This is the single
- * biggest UX differentiator vs. HiHello / Popl / Linq / Mobilo / TapTap.
- *
- * Filter by date range (Today / This week / This month / 3 months / All)
- * and source (NFC / QR / Views / Share) is the primary navigation;
- * everything else (sort, follow-up, detail) supports the timeline.
- *
- * Data flows from existing `useCustomerConnections` hook so we don't
- * need to touch backend services.
+ * New in Phase 2:
+ *  1. FollowUpBanner — slides from top when a connection is overdue for follow-up
+ *  2. Tag filter bar — horizontal pill chips for Smart Search & Categorization
+ *  3. MomentDetailSheet extended — tag picker + contact export sheet
  */
-
 export function ConnectionsMomentsScreen() {
   const { data, refreshing, refresh } = useCustomerConnections(null);
   const { colors, isDark } = usePreferences();
+
   const [celebratingFollowUp, setCelebratingFollowUp] = useState<string | null>(null);
   const [celebratingTap, setCelebratingTap] = useState(false);
-  const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
-  const [dateRange, setDateRange] = useState<DateRange>('all');
-  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
+  const [activeTagFilter, setActiveTagFilter] = useState<ConnectionTagId | null>(null);
   const [activeMoment, setActiveMoment] = useState<TapMoment | null>(null);
   const [activeSlugUrl, setActiveSlugUrl] = useState<string | null>(null);
 
   const { momentId } = useLocalSearchParams<{ momentId?: string }>();
 
   const profile = data?.profiles?.[0];
-  const publicUrl = profile?.slug ? buildSlugProfileUrl(profile.slug) : null;
-  const seedAnalytics = useMemo(() => buildSeedAnalytics(), []);
-  const analytics = data?.analytics ?? seedAnalytics;
+  const publicUrl = profile?.slug ? buildSlugUrl(profile.slug) : null;
   const profileHost = useMemo(() => {
     if (publicUrl) {
       try {
@@ -105,6 +68,36 @@ export function ConnectionsMomentsScreen() {
     return 'https://sitehub.app';
   }, [publicUrl]);
 
+  // All seed moments (will be replaced by Firestore query in Phase 3)
+  const allMoments = useMemo(() => SEED_MOMENTS, []);
+
+  // ── Phase 2: intelligence hook ────────────────────────────────────────────
+  const {
+    nudges,
+    tagsMap,
+    toggleTagForMoment,
+    dismissNudge,
+  } = useConnectionIntelligence(allMoments);
+
+  const topNudge = nudges[0] ?? null;
+
+  // ── Filtering: text search + tag filter ──────────────────────────────────
+  const filteredMoments = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return allMoments.filter((m) => {
+      if (activeTagFilter) {
+        const tags = tagsMap[m.id] ?? [];
+        if (!tags.includes(activeTagFilter)) return false;
+      }
+      if (!q) return true;
+      return (
+        m.name.toLowerCase().includes(q) ||
+        (m.subtitle?.toLowerCase().includes(q) ?? false)
+      );
+    });
+  }, [allMoments, searchQuery, activeTagFilter, tagsMap]);
+
+  // ── Deep-link: open moment from notification ──────────────────────────────
   useEffect(() => {
     if (momentId) {
       const match = SEED_MOMENTS.find((m) => m.id === momentId);
@@ -116,56 +109,7 @@ export function ConnectionsMomentsScreen() {
     }
   }, [momentId, profileHost]);
 
-
-  /**
-   * Apply date-range + source filter first (cheap), then sort (O(n log n)).
-   * Keeping the filter pipeline simple makes the timeline feel instant
-   * even with hundreds of moments in memory.
-   */
-  const filteredMoments = useMemo(() => {
-    const now = Date.now();
-    const day = 24 * 60 * 60 * 1000;
-    const cutoff =
-      dateRange === 'today' ? now - day
-      : dateRange === 'week' ? now - 7 * day
-      : dateRange === 'month' ? now - 30 * day
-      : dateRange === 'quarter' ? now - 90 * day
-      : 0;
-    return SEED_MOMENTS.filter((moment) => {
-      if (sourceFilter !== 'all' && moment.source !== sourceFilter) return false;
-      if (cutoff > 0 && toMs(moment.occurredAt) < cutoff) return false;
-      if (searchQuery.trim().length > 0) {
-        const q = searchQuery.trim().toLowerCase();
-        const nameMatch = moment.name.toLowerCase().includes(q);
-        const subMatch = (moment.subtitle ?? '').toLowerCase().includes(q);
-        if (!nameMatch && !subMatch) return false;
-      }
-      return true;
-    });
-  }, [dateRange, sourceFilter, searchQuery]);
-
-  const sortedMoments = useMemo(() => {
-    const copy = filteredMoments.slice();
-    copy.sort((a, b) => {
-      const da = toMs(a.occurredAt);
-      const db = toMs(b.occurredAt);
-      return sortOrder === 'newest' ? db - da : da - db;
-    });
-    return copy;
-  }, [filteredMoments, sortOrder]);
-
-  const buckets = useMemo(() => buildMomentBuckets(sortedMoments), [sortedMoments]);
-  const timelineRows = useMemo(
-    () => buildTimelineRows(buckets, sortOrder === 'oldest'),
-    [buckets, sortOrder],
-  );
-  const hasMoments = timelineRows.length > 0;
-
-  const handleFollowUp = useCallback((moment: TapMoment) => {
-    setCelebratingFollowUp(moment.id);
-    setTimeout(() => setCelebratingFollowUp(null), 1400);
-  }, []);
-
+  // ── Handlers ─────────────────────────────────────────────────────────────
   const handleMomentPress = useCallback((moment: TapMoment) => {
     HapticTap.medium();
     const slugUrl = getSeedSlugUrl(moment.id, profileHost);
@@ -173,236 +117,219 @@ export function ConnectionsMomentsScreen() {
     setActiveSlugUrl(slugUrl);
   }, [profileHost]);
 
-  const renderTimelineItem: ListRenderItem<TimelineRow> = useCallback(
-    ({ item, index }) => {
-      if (item.kind === 'header') {
-        return (
-          <View style={cb.daySeparator}>
-            <View style={[cb.dayLine, { backgroundColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.07)' }]} />
-            <AppText style={[cb.dayLabel, { color: isDark ? 'rgba(235,235,245,0.55)' : MUTED }]}>
-              {item.label}
-            </AppText>
-            <View style={[cb.dayLine, { backgroundColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.07)' }]} />
-          </View>
-        );
-      }
-      const nextRow = timelineRows[index + 1];
-      const isLastInGroup = nextRow === undefined || nextRow.kind === 'header';
-      return (
-        <ChatBubbleMemo
-          moment={item.moment}
-          outbound={OUTBOUND_IDS.has(item.moment.id)}
-          relativeLabel={SEED_MOMENT_LABELS[item.moment.id]}
-          onPress={handleMomentPress}
-          onFollowUp={handleFollowUp}
-          isLastInGroup={isLastInGroup}
+  const handleFollowUp = useCallback((moment: TapMoment) => {
+    setCelebratingFollowUp(moment.id);
+    setTimeout(() => setCelebratingFollowUp(null), 1400);
+  }, []);
+
+  const handleNudgeAction = useCallback((nudgeMomentId: string) => {
+    const match = allMoments.find((m) => m.id === nudgeMomentId);
+    if (match) {
+      const slugUrl = getSeedSlugUrl(match.id, profileHost);
+      setActiveMoment(match);
+      setActiveSlugUrl(slugUrl);
+    }
+    void dismissNudge(nudgeMomentId);
+  }, [allMoments, profileHost, dismissNudge]);
+
+  const handleToggleTagFilter = useCallback((tagId: ConnectionTagId) => {
+    HapticTap.light();
+    setActiveTagFilter((prev) => (prev === tagId ? null : tagId));
+  }, []);
+
+  // ── Render helpers ────────────────────────────────────────────────────────
+  const renderStory = ({ item }: { item: TapMoment }) => (
+    <Pressable
+      onPress={() => handleMomentPress(item)}
+      style={styles.storyContainer}
+    >
+      <View style={[styles.storyRing, { borderColor: BRAND }]}>
+        <AppAvatar
+          name={item.name}
+          size={64}
+          style={styles.storyAvatar}
         />
-      );
-    },
-    [handleFollowUp, handleMomentPress, isDark, timelineRows],
+        <View style={styles.storyBadge}>
+          <AppIcon name="Add" size={10} color="#FFFFFF" />
+        </View>
+      </View>
+      <AppText style={[styles.storyName, { color: isDark ? '#FFFFFF' : '#000000' }]} numberOfLines={1}>
+        {item.name}
+      </AppText>
+    </Pressable>
   );
 
-  const keyExtractor = useCallback((item: TimelineRow) => item.key, []);
-  const itemSeparator = useCallback(() => <View style={styles.rowSeparator} />, []);
-
-  const setDateRangeStable = useCallback((range: DateRange) => {
-    setDateRange(range);
-  }, []);
-  const setSourceFilterStable = useCallback((src: SourceFilter) => {
-    setSourceFilter(src);
-  }, []);
-
-  const closeDetail = useCallback(() => {
-    setActiveMoment(null);
-    setActiveSlugUrl(null);
-  }, []);
-
-  const handleSortToggle = useCallback(() => {
-    HapticTap.selection();
-    setSortOrder((prev) => (prev === 'newest' ? 'oldest' : 'newest'));
-  }, []);
-
-  const handleShareDemo = useCallback(() => {
-    setCelebratingTap(true);
-  }, []);
+  const renderConversation: ListRenderItem<TapMoment> = useCallback(
+    ({ item }) => {
+      const timeLabel = SEED_MOMENT_LABELS[item.id] ?? '';
+      const momentTags = tagsMap[item.id] ?? [];
+      return (
+        <Pressable
+          onPress={() => handleMomentPress(item)}
+          style={({ pressed }) => [
+            styles.conversationRow,
+            pressed && styles.pressed,
+          ]}
+        >
+          <AppAvatar
+            name={item.name}
+            size={56}
+          />
+          <View style={styles.conversationInfo}>
+            <View style={styles.conversationHeader}>
+              <AppText style={[styles.conversationName, { color: isDark ? '#FFFFFF' : '#000000' }]} numberOfLines={1}>
+                {item.name}
+              </AppText>
+              <AppText style={styles.conversationTime}>{timeLabel}</AppText>
+            </View>
+            <View style={styles.conversationSubtitleRow}>
+              <AppText style={[styles.conversationSubtitle, { color: MUTED }]} numberOfLines={1}>
+                {item.subtitle || 'Connected'}
+              </AppText>
+              {item.needsFollowUp && (
+                <View style={styles.followUpBadge}>
+                  <AppText style={styles.followUpText}>Follow up</AppText>
+                </View>
+              )}
+              {/* Show first tag pill inline */}
+              {momentTags.length > 0 && (() => {
+                const tag = ALL_TAGS.find((t) => t.id === momentTags[0]);
+                if (!tag) return null;
+                return (
+                  <View style={[styles.inlineTagPill, { backgroundColor: tag.color + '22' }]}>
+                    <AppText style={[styles.inlineTagText, { color: tag.color }]}>
+                      {tag.emoji} {tag.label}
+                    </AppText>
+                  </View>
+                );
+              })()}
+            </View>
+          </View>
+        </Pressable>
+      );
+    },
+    [handleMomentPress, isDark, tagsMap],
+  );
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
-      <View style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 16 }}>
-        <MomentsSearchAndFilter
-          query={searchQuery}
-          onChangeQuery={setSearchQuery}
-          onToggleFilter={() => setShowFilters(!showFilters)}
-          onToggleSort={handleSortToggle}
-          filterActive={showFilters || dateRange !== 'all' || sourceFilter !== 'all'}
+
+      {/* Phase 2: Intelligent follow-up banner */}
+      <FollowUpBanner
+        nudge={topNudge}
+        totalCount={nudges.length}
+        onDismiss={(id) => void dismissNudge(id)}
+        onAction={handleNudgeAction}
+      />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <AppText style={[styles.headerTitle, { color: isDark ? '#FFFFFF' : '#000000' }]}>
+          Chats
+        </AppText>
+        <Pressable style={styles.headerIcon}>
+          <AppIcon name="Camera" size={24} color={BRAND} />
+        </Pressable>
+      </View>
+
+      {/* Stories bar */}
+      <View style={styles.storiesContainer}>
+        <FlatList
+          horizontal
+          data={allMoments.slice(0, 10)}
+          renderItem={renderStory}
+          keyExtractor={(item) => `story-${item.id}`}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.storiesList}
         />
-
-        {showFilters ? (
-          <View style={[styles.filterTray, { marginTop: 16, marginBottom: 0 }]}>
-            <View style={styles.filterRow}>
-              <AppText style={[styles.filterLabel, { color: isDark ? 'rgba(235,235,245,0.4)' : MUTED }]}>
-                Timeframe
-              </AppText>
-              <View style={styles.chipRow}>
-                {DATE_RANGES.map((range) => {
-                  const active = dateRange === range.id;
-                  return (
-                    <Pressable
-                      key={range.id}
-                      onPress={() => setDateRangeStable(range.id)}
-                      style={({ pressed }) => [
-                        styles.chip,
-                        active && styles.chipActive,
-                        pressed && styles.chipPressed,
-                      ]}
-                    >
-                      <AppText style={[styles.chipText, active && styles.chipTextActive]}>
-                        {range.label}
-                      </AppText>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
-
-            <View style={styles.filterRow}>
-              <AppText style={[styles.filterLabel, { color: isDark ? 'rgba(235,235,245,0.4)' : MUTED }]}>
-                Source
-              </AppText>
-              <View style={styles.chipRow}>
-                {SOURCE_FILTERS.map((filter) => {
-                  const active = sourceFilter === filter.id;
-                  return (
-                    <Pressable
-                      key={filter.id}
-                      onPress={() => setSourceFilterStable(filter.id)}
-                      style={({ pressed }) => [
-                        styles.chip,
-                        active && styles.chipActive,
-                        pressed && styles.chipPressed,
-                      ]}
-                    >
-                      {filter.icon ? (
-                        <AppIcon
-                          name={filter.icon}
-                          size={14}
-                          color={active ? '#FFFFFF' : BRAND}
-                        />
-                      ) : null}
-                      <AppText
-                        style={[
-                          styles.chipText,
-                          active && styles.chipTextActive,
-                          filter.icon ? styles.chipTextWithIcon : undefined,
-                        ]}
-                      >
-                        {filter.label}
-                      </AppText>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
-          </View>
-        ) : null}
       </View>
 
-      <View style={{ flex: 1, paddingHorizontal: 20 }}>
-        {/* Moments timeline - virtualized FlatList of header + moment rows */}
-        {hasMoments ? (
-          <View style={[cb.chatCard, { backgroundColor: colors.surface, flex: 1 }]}>
-            <View style={cb.chatHeader}>
-              <View style={cb.chatHeaderDot} />
-              <AppText style={[cb.chatHeaderText, { color: isDark ? 'rgba(235,235,245,0.55)' : MUTED }]}>
-                Live · {sortedMoments.length} moment{sortedMoments.length === 1 ? '' : 's'}
-              </AppText>
-            </View>
-            <FlatList
-              data={timelineRows}
-              keyExtractor={keyExtractor}
-              renderItem={renderTimelineItem}
-              ItemSeparatorComponent={itemSeparator}
-              scrollEnabled={true}
-              initialNumToRender={10}
-              maxToRenderPerBatch={10}
-              windowSize={7}
-              removeClippedSubviews
-              contentContainerStyle={{ paddingBottom: 140 }}
-              showsVerticalScrollIndicator={false}
-              refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={BRAND} />
-              }
-            />
-          </View>
-        ) : null}
-
-        {/* Filtered-empty state (filter excludes everything). */}
-        {!hasMoments && SEED_MOMENTS.length > 0 ? (
-          <IosScrollView
-            contentContainerStyle={{ paddingBottom: 140 }}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={BRAND} />}
-          >
-            <View style={styles.emptyState}>
-              <View style={styles.emptyIcon}>
-                <AppIcon name="Calendar" size={36} color={BRAND} />
-              </View>
-              <AppText style={[styles.emptyTitle, { color: colors.textPrimary }]}>
-                No moments match your filters
-              </AppText>
-              <AppText style={[styles.emptyBody, { color: MUTED }]}>
-                {`Try widening the date range or switching the source to \u201CAll sources\u201D.`}
-              </AppText>
-              <Pressable
-                onPress={() => {
-                  HapticTap.selection();
-                  setDateRange('all');
-                  setSourceFilter('all');
-                }}
-                style={({ pressed }) => [styles.emptyCta, pressed && styles.pressed]}
-              >
-                <AppIcon name="RefreshCw" size={16} color="#FFFFFF" />
-                <AppText style={styles.emptyCtaText}>Reset filters</AppText>
-              </Pressable>
-            </View>
-          </IosScrollView>
-        ) : null}
-
-        {/* Empty state (no moments at all). */}
-        {!hasMoments && SEED_MOMENTS.length === 0 ? (
-          <IosScrollView
-            contentContainerStyle={{ paddingBottom: 140 }}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={BRAND} />}
-          >
-            <View style={styles.emptyState}>
-              <View style={styles.emptyIcon}>
-                <AppIcon name="Nfc" size={48} color={BRAND} />
-              </View>
-              <AppText style={[styles.emptyTitle, { color: colors.textPrimary }]}>
-                Your first moment is waiting
-              </AppText>
-              <AppText style={[styles.emptyBody, { color: MUTED }]}>
-                {`Tap your card on someone\u2019s phone or have them scan your QR. Every connection will land here as a memory you can revisit.`}
-              </AppText>
-              <Pressable
-                onPress={handleShareDemo}
-                style={({ pressed }) => [styles.emptyCta, pressed && styles.pressed]}
-              >
-                <AppIcon name="ScanLine" size={18} color="#FFFFFF" />
-                <AppText style={styles.emptyCtaText}>See how it feels</AppText>
-              </Pressable>
-            </View>
-          </IosScrollView>
-        ) : null}
+      {/* Search bar */}
+      <View style={styles.searchContainer}>
+        <View style={[styles.searchBar, { backgroundColor: isDark ? '#2C2C2E' : '#F0F0F2' }]}>
+          <AppIcon name="Search" size={18} color={MUTED} />
+          <TextInput
+            placeholder="Search"
+            placeholderTextColor={MUTED}
+            style={[styles.searchInput, { color: isDark ? '#FFFFFF' : '#000000' }]}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery.length > 0 && (
+            <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
+              <AppIcon name="X" size={16} color={MUTED} />
+            </Pressable>
+          )}
+        </View>
       </View>
 
-      {/* Confetti on follow-up done - lazy mounted only when active */}
+      {/* Phase 2: Tag filter bar */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.tagFilterList}
+        style={styles.tagFilterBar}
+        bounces={false}
+      >
+        <Pressable
+          onPress={() => setActiveTagFilter(null)}
+          style={[styles.tagFilterChip, !activeTagFilter && styles.tagFilterChipActive]}
+        >
+          <AppText style={[styles.tagFilterText, !activeTagFilter && styles.tagFilterTextActive]}>
+            All
+          </AppText>
+        </Pressable>
+        {ALL_TAGS.map((tag) => {
+          const active = activeTagFilter === tag.id;
+          return (
+            <Pressable
+              key={tag.id}
+              onPress={() => handleToggleTagFilter(tag.id)}
+              style={[
+                styles.tagFilterChip,
+                active && { backgroundColor: tag.color, borderColor: tag.color },
+              ]}
+            >
+              <AppText style={styles.tagFilterEmoji}>{tag.emoji}</AppText>
+              <AppText style={[styles.tagFilterText, active && styles.tagFilterTextActive]}>
+                {tag.label}
+              </AppText>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
+      {/* Conversations list */}
+      <FlatList
+        data={filteredMoments}
+        keyExtractor={(item) => item.id}
+        renderItem={renderConversation}
+        contentContainerStyle={styles.conversationsList}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={BRAND} />
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <AppText style={styles.emptyIcon}>🔍</AppText>
+            <AppText style={[styles.emptyTitle, { color: MUTED }]}>No connections found</AppText>
+            <AppText style={[styles.emptySubtitle, { color: MUTED }]}>
+              {activeTagFilter
+                ? 'No one tagged yet. Tap a connection and add a tag first.'
+                : 'Try a different search term.'}
+            </AppText>
+          </View>
+        }
+      />
+
+      {/* Confetti */}
       {celebratingFollowUp ? (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
           <ConfettiBurst count={18} origin={{ x: 0.5, y: 0.55 }} durationMs={1100} />
         </View>
       ) : null}
 
-      {/* Full-screen tap success - lazy mounted only when active */}
+      {/* Live tap success overlay */}
       {celebratingTap ? (
         <LiveTapSuccess
           visible={celebratingTap}
@@ -415,340 +342,202 @@ export function ConnectionsMomentsScreen() {
       {/* Moment detail bottom sheet */}
       <MomentDetailSheet
         visible={activeMoment !== null}
-        moment={activeMoment}
-        slugUrl={activeSlugUrl}
-        onClose={closeDetail}
+        moment={activeMoment!}
+        slugUrl={activeSlugUrl ?? ''}
+        tags={activeMoment ? (tagsMap[activeMoment.id] ?? []) : []}
+        onToggleTag={toggleTagForMoment}
+        onClose={() => {
+          setActiveMoment(null);
+          setActiveSlugUrl(null);
+        }}
         onFollowUp={handleFollowUp}
       />
     </SafeAreaView>
   );
 }
 
-/**
- * Bucket the seed tap moments into Today / Yesterday / This week / Earlier.
- *
- * Once a Firestore `tap_events` collection is available, swap this for a
- * direct query - the shape of TapMoment stays the same.
- */
-function buildMomentBuckets(moments: TapMoment[]): MomentBucket[] {
-  if (moments.length === 0) return [];
-
-  const now = Date.now();
-  const day = 24 * 60 * 60 * 1000;
-
-  const today: TapMoment[] = [];
-  const yesterday: TapMoment[] = [];
-  const week: TapMoment[] = [];
-  const earlier: TapMoment[] = [];
-
-  for (const moment of moments) {
-    const age = (now - toMs(moment.occurredAt)) / day;
-    if (age < 1) today.push(moment);
-    else if (age < 2) yesterday.push(moment);
-    else if (age < 7) week.push(moment);
-    else earlier.push(moment);
-  }
-
-  const buckets: MomentBucket[] = [];
-  if (today.length) buckets.push({ label: 'Today', moments: today });
-  if (yesterday.length) buckets.push({ label: 'Yesterday', moments: yesterday });
-  if (week.length) buckets.push({ label: 'This week', moments: week });
-  if (earlier.length) buckets.push({ label: 'Earlier', moments: earlier });
-  return buckets;
-}
-
-/**
- * Flattened timeline row - either a sticky-style header or a moment card.
- * Flattening lets us push the whole thing through one virtualized FlatList
- * so off-screen items don't cost a single render.
- */
-type TimelineRow =
-  | { kind: 'header'; key: string; label: string; count: number }
-  | { kind: 'moment'; key: string; moment: TapMoment };
-
-function buildTimelineRows(
-  buckets: MomentBucket[],
-  reversed: boolean,
-): TimelineRow[] {
-  const ordered = reversed ? buckets.slice().reverse() : buckets;
-  const rows: TimelineRow[] = [];
-  for (const bucket of ordered) {
-    if (bucket.moments.length === 0) continue;
-    rows.push({ kind: 'header', key: `h-${bucket.label}`, label: bucket.label, count: bucket.moments.length });
-    for (const moment of bucket.moments) {
-      rows.push({ kind: 'moment', key: `m-${moment.id}`, moment });
-    }
-  }
-  return rows;
-}
-
-function toMs(input: Date | number | string): number {
-  if (input instanceof Date) return input.getTime();
-  if (typeof input === 'number') return input;
-  return new Date(input).getTime();
-}
-
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { paddingHorizontal: 20, paddingTop: 10, gap: 16, paddingBottom: 140 },
+
+  // Header
   header: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 12,
-    paddingTop: 12,
-    paddingBottom: 4,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
   },
-  headerCopy: { flex: 1, gap: 2 },
-  eyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.2, textTransform: 'uppercase', color: '#007AFF' },
-  title: { fontSize: 28, lineHeight: 32, fontWeight: '900', letterSpacing: -0.4, color: '#111827' },
-  subtitle: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: '#6E6E73', maxWidth: 320 },
-  scanButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,122,255,0.08)',
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+  },
+  headerIcon: { padding: 8 },
+
+  // Stories
+  storiesContainer: { paddingVertical: 10 },
+  storiesList: {
+    paddingHorizontal: 20,
+    gap: 16,
+  },
+  storyContainer: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  storyRing: {
+    padding: 3,
+    borderRadius: 40,
+    borderWidth: 2,
+  },
+  storyAvatar: { borderRadius: 30 },
+  storyBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: BRAND,
+    borderRadius: 10,
+    width: 20,
+    height: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
-  pressed: { opacity: 0.78, transform: [{ scale: 0.97 }] },
-  statsStrip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 4,
-    paddingVertical: 4,
-  },
-  statBlock: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 2,
-  },
-  statNumber: {
-    fontSize: 18,
-    lineHeight: 22,
-    fontWeight: '900',
-    letterSpacing: -0.2,
-  },
-  statNumberSm: {
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  statLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-  },
-  statDivider: {
-    width: StyleSheet.hairlineWidth,
-    height: 24,
-  },
-  timelineList: {
-    gap: 12,
-  },
-  bucketHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingTop: 12,
-  },
-  bucketLabel: {
-    fontSize: 13,
-    fontWeight: '900',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  },
-  bucketLine: {
-    flex: 1,
-    height: StyleSheet.hairlineWidth,
-  },
-  bucketCount: {
+  storyName: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '600',
   },
-  momentSpacing: {
-    // Outer View wraps the card so FlatList separators render between rows.
+
+  // Search
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
   },
-  rowSeparator: {
-    height: 2,
-  },
-  filterTray: {
-    gap: 16,
-    marginBottom: 20,
-    paddingHorizontal: 16,
-  },
-  filterRow: {
-    gap: 8,
-  },
-  filterLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 1.1,
-    textTransform: 'uppercase',
-    paddingHorizontal: 4,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    paddingHorizontal: 4,
-  },
-  chip: {
+  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    marginLeft: 4,
+  },
+
+  // Tag filter bar
+  tagFilterBar: { flexGrow: 0, marginBottom: 4 },
+  tagFilterList: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    gap: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  tagFilterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
     paddingHorizontal: 12,
     paddingVertical: 7,
-    borderRadius: 999,
-    backgroundColor: 'rgba(0,122,255,0.10)',
+    borderRadius: 99,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
   },
-  chipActive: {
-    backgroundColor: '#0A0C12',
+  tagFilterChipActive: {
+    backgroundColor: BRAND,
+    borderColor: BRAND,
   },
-  chipPressed: {
-    opacity: 0.78,
-    transform: [{ scale: 0.96 }],
-  },
-  chipText: {
-    color: BRAND,
+  tagFilterEmoji: { fontSize: 12 },
+  tagFilterText: {
     fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.2,
-  },
-  chipTextWithIcon: {
-    marginLeft: 2,
-  },
-  chipTextActive: {
-    color: '#FFFFFF',
-  },
-  sortStripWrap: {
-    paddingHorizontal: 4,
-  },
-  sortStrip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0,122,255,0.08)',
-  },
-  sortLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  sortLabel: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: BRAND,
-    letterSpacing: 0.2,
-  },
-  sortMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  sortCount: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: 'rgba(0,0,0,0.42)',
-  },
-  emptyState: {
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 40,
-    paddingHorizontal: 24,
-  },
-  emptyIcon: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: 'rgba(0,122,255,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-  emptyTitle: {
-    fontSize: 22,
-    fontWeight: '900',
-    letterSpacing: -0.2,
-    textAlign: 'center',
-  },
-  emptyBody: {
-    fontSize: 14,
-    lineHeight: 21,
     fontWeight: '600',
-    textAlign: 'center',
-    maxWidth: 320,
-  },
-  emptyCta: {
-    marginTop: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    minHeight: 48,
-    paddingHorizontal: 24,
-    borderRadius: 14,
-    backgroundColor: '#0A0C12',
-  },
-  emptyCtaText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '900',
-  },
-});
-
-// Chat card styles - separate object so the chat surface stays self-contained.
-const cb = StyleSheet.create({
-  chatCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(60,60,67,0.14)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.05,
-    shadowRadius: 14,
-    elevation: 2,
-  },
-  chatHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 6,
-  },
-  chatHeaderDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#34C759',
-  },
-  chatHeaderText: {
-    fontSize: 11,
-    fontWeight: '800',
     color: MUTED,
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
   },
-  daySeparator: {
+  tagFilterTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+  },
+
+  // Conversation list
+  conversationsList: {
+    paddingHorizontal: 20,
+    paddingBottom: 100,
+  },
+  conversationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingVertical: 12,
+    gap: 12,
   },
-  dayLine: {
+  pressed: { opacity: 0.7 },
+  conversationInfo: {
     flex: 1,
-    height: StyleSheet.hairlineWidth,
+    gap: 2,
   },
-  dayLabel: {
+  conversationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  conversationName: {
+    fontSize: 17,
+    fontWeight: '700',
+    flex: 1,
+  },
+  conversationTime: {
+    fontSize: 13,
+    color: MUTED,
+  },
+  conversationSubtitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'nowrap',
+  },
+  conversationSubtitle: {
+    fontSize: 14,
+    flex: 1,
+  },
+  followUpBadge: {
+    backgroundColor: 'rgba(0,122,255,0.1)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  followUpText: {
     fontSize: 10,
     fontWeight: '800',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    color: BRAND,
+  },
+  inlineTagPill: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  inlineTagText: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
+
+  // Empty state
+  emptyState: {
+    alignItems: 'center',
+    paddingTop: 60,
+    gap: 8,
+  },
+  emptyIcon: { fontSize: 36 },
+  emptyTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    textAlign: 'center',
+    paddingHorizontal: 40,
+    lineHeight: 18,
   },
 });

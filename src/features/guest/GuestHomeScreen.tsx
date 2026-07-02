@@ -6,7 +6,9 @@ import {
   Image,
   ViewStyle,
   TextStyle,
+  useWindowDimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { HapticTap } from '@/src/utils/haptics';
 import { type Href, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -240,6 +242,7 @@ function StatCard({ label, value, icon, color, style }: { label: string; value: 
 // ─── Main screen ───────────────────────────────────────────────────────────
 export function GuestHomeScreen() {
   useAppTheme();
+  const { width: screenWidth } = useWindowDimensions();
   const { user } = useAuth();
   const isGuest = useIsGuest();
   const { requireAccount } = useRequireAccount();
@@ -254,6 +257,8 @@ export function GuestHomeScreen() {
   const [isHovering, setIsHovering] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // Added loading state
   const [fabOpen, setFabOpen] = useState(false); // For FAB state
+
+  const cardWidth = screenWidth - 48;
 
   // Enhanced animations
     
@@ -320,6 +325,30 @@ export function GuestHomeScreen() {
 
   return (
     <View style={styles.root}>
+      {/* Glassmorphic Cyber Backdrop Glows */}
+      <LinearGradient
+        colors={['rgba(37, 150, 190, 0.14)', 'transparent']}
+        style={{
+          position: 'absolute',
+          top: -80,
+          left: -100,
+          width: 320,
+          height: 320,
+          borderRadius: 160,
+        }}
+      />
+      <LinearGradient
+        colors={['rgba(168, 85, 247, 0.12)', 'transparent']}
+        style={{
+          position: 'absolute',
+          top: 260,
+          right: -80,
+          width: 340,
+          height: 340,
+          borderRadius: 170,
+        }}
+      />
+
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
         <IosScrollView
           style={styles.scroll}
@@ -448,6 +477,7 @@ export function GuestHomeScreen() {
                     phone={heroPhone || undefined}
                     email={heroEmail || undefined}
                     gradientIndex={cloudCard?.design?.gradientIndex ?? 0}
+                    width={cardWidth}
                   />
                 </View>
               </View>
@@ -657,24 +687,24 @@ export function GuestHomeScreen() {
                       key={item.label}
                       onPressIn={() => {
                         HapticTap.light();
-                        setIsHovering(true);
                       }}
-                      onPressOut={() => setIsHovering(false)}
-                      onPress={item.onPress}
+                      onPress={() => {
+                        HapticTap.light();
+                        item.onPress();
+                      }}
                       style={({ pressed }) => [
                         styles.productItem,
                         index === 3 && styles.productItemLast,
-                        pressed && { opacity: 0.7 },
-                        isHovering && styles.productHovered,
+                        pressed && { opacity: 0.7, transform: [{ scale: 0.96 }] },
                       ]}
-                      // FIXED: Added hitSlop for product items
                       hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                     >
-                      <AppIcon name={item.icon} size={20} color={item.color}   />
-                      <AppText variant="body" weight="semibold"  style={{ color: INK }}>
+                      <View style={{ width: 44, height: 44, borderRadius: LAYOUT.borderRadius.md, backgroundColor: `${item.color}15`, alignItems: 'center', justifyContent: 'center', marginBottom: SPACING.xs }}>
+                        <AppIcon name={item.icon} size={22} color={item.color} />
+                      </View>
+                      <AppText variant="bodySmall" weight="bold" style={{ color: INK, textAlign: 'center' }}>
                         {item.label}
                       </AppText>
-                      <AppIcon name="ChevronRight" size={15} color={MUTED}   />
                     </Pressable>
                   ))}
                 </View>
@@ -777,7 +807,11 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: SPACING.md,
     paddingTop: SPACING.xs,
-    paddingBottom: SPACING.xxl, gap: SPACING.md,
+    paddingBottom: SPACING.xxl,
+    gap: SPACING.md,
+    maxWidth: 640,
+    width: '100%',
+    alignSelf: 'center',
   },
 
   // Enhanced Header
@@ -888,6 +922,8 @@ const styles = StyleSheet.create({
   cardContainer: {
     marginVertical: SPACING.lg,
     alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
   },
   cardElevation: {
     borderRadius: LAYOUT.borderRadius.xl,
@@ -915,22 +951,28 @@ const styles = StyleSheet.create({
   },
 
   // Action Strip — Enhanced Layout
-  actionContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: SPACING.md, marginVertical: SPACING.sm, backgroundColor: SURFACE, padding: SPACING.md, borderRadius: LAYOUT.borderRadius.lg, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
+  actionContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: SPACING.md,
+    marginVertical: SPACING.sm,
+    backgroundColor: 'rgba(255, 255, 255, 0.65)',
+    padding: SPACING.lg,
+    borderRadius: LAYOUT.borderRadius.xl,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
+  },
   actionButton: {
     flex: 1,
-    minWidth: 80,
+    minWidth: 100,
     aspectRatio: 1,
-    borderRadius: LAYOUT.borderRadius.lg,
-    backgroundColor: SURFACE,
+    borderRadius: LAYOUT.borderRadius.xl,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(0,0,0,0.05)',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
+    borderWidth: 1.2,
+    borderColor: 'rgba(255, 255, 255, 0.7)',
   },
   actionPressed: {
     opacity: 0.9,
@@ -1059,21 +1101,17 @@ const styles = StyleSheet.create({
   },
   productItem: {
     flex: 1,
-    minWidth: 100,
+    minWidth: 130,
     aspectRatio: 1.2,
-    borderRadius: LAYOUT.borderRadius.lg,
-    backgroundColor: SURFACE,
-    flexDirection: 'row',
+    borderRadius: LAYOUT.borderRadius.xl,
+    backgroundColor: 'rgba(255, 255, 255, 0.75)',
+    flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingHorizontal: SPACING.sm,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(0,0,0,0.05)',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
+    justifyContent: 'center',
+    padding: SPACING.md,
+    gap: SPACING.sm,
+    borderWidth: 1.2,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
   },
   productItemLast: {
     marginRight: 0,

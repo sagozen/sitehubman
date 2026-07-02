@@ -139,7 +139,7 @@ export function TapMomentCard({
     );
     glow.value = withDelay(
       delay + 120,
-      withTiming(1, { duration: MotionDuration.hero, easing: Easings.standard }),
+      withTiming(1, { duration: MotionDuration.epic, easing: Easings.standard }),
     );
   }, [delay, entry, glow, index]);
 

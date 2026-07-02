@@ -1,4 +1,4 @@
-import { View, StyleSheet, Dimensions, Pressable, Image, type TextStyle, type ViewStyle } from 'react-native';
+import { View, StyleSheet, Pressable, Image, useWindowDimensions, type TextStyle, type ViewStyle } from 'react-native';
 import { AppText } from '@/src/components/AppText';
 import { AppIcon } from '@/src/components/AppIcon';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
@@ -13,9 +13,6 @@ import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import { loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
 import React, { useState, useEffect, useMemo } from 'react';
 import { Animated, Easing } from 'react-native';
-
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = width - 48;
 
 const BRAND = '#2596BE';
 const INK = '#0A0A0F';
@@ -96,11 +93,14 @@ const usePressAnimation = () => {
 };
 
 export function CustomerHeroCard({ user }: any) {
+  const { width: screenWidth } = useWindowDimensions();
   const { preferences, colors } = usePreferences();
   const { bioPage } = useBioPage(user?.id ?? '');
   const [cloudCard, setCloudCard] = useState<any>(null);
   const [isPressed, setIsPressed] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+
+  const cardWidth = screenWidth - 48;
 
   // Enhanced animations
   const floatAnim = useFloatAnimation(0);
@@ -142,7 +142,7 @@ export function CustomerHeroCard({ user }: any) {
   const title = activeCard?.title || cardTitle;
 
   const avatarUrl = photoUrl || user?.photoURL || user?.telegramPhotoUrl || '';
-  const coverUrl = activeCard?.backgroundImageUri || 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&q=80&w=1000';
+  const coverUrl = (activeCard as any)?.backgroundImageUri || 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&q=80&w=1000';
 
   const initial = (name.trim() || 'C')[0].toUpperCase();
 
@@ -180,7 +180,7 @@ export function CustomerHeroCard({ user }: any) {
             floatAnim,
           ]}>
             {avatarUrl ? (
-              <Image source={{ uri: avatarUrl }} style={styles.profileAvatarImg} resizeMode="cover" />
+              <Image source={{ uri: avatarUrl }} style={styles.profileAvatarImg as any} resizeMode="cover" />
             ) : (
               <View style={styles.avatarFallback}>
                 <AppIcon name="User" size={20} color="#8E8E93" />
@@ -197,7 +197,7 @@ export function CustomerHeroCard({ user }: any) {
             <AppText variant="title2" weight="bold" color={INK} numberOfLines={1}>
               {name}
             </AppText>
-            <AppIcon name="BadgeCheck" size={18} color={BRAND} weight="medium" />
+            <AppIcon name="BadgeCheck" size={18} color={BRAND} />
           </View>
           <AppText variant="caption" weight="medium" color={MUTED} numberOfLines={1}>
             {title}
@@ -218,7 +218,7 @@ export function CustomerHeroCard({ user }: any) {
               isHovering && styles.hovered,
             ]}
           >
-            <AppIcon name="Bell" size={19} color={INK} weight="medium" />
+            <AppIcon name="Bell" size={19} color={INK} />
             <View style={styles.unreadDot} />
           </Pressable>
           <Pressable
@@ -237,7 +237,7 @@ export function CustomerHeroCard({ user }: any) {
               isHovering && styles.hovered,
               pulseAnim,
             ]}>
-              <AppIcon name="Sparkles" size={20} color={BRAND} weight="medium" />
+              <AppIcon name="Sparkles" size={20} color={BRAND} />
             </Animated.View>
           </Pressable>
         </View>
@@ -254,7 +254,7 @@ export function CustomerHeroCard({ user }: any) {
             website={activeCard?.website}
             backgroundImageUri={coverUrl}
             profileUrl={activeCard?.profileUrl}
-            width={CARD_WIDTH}
+            width={cardWidth}
             gradientIndex={activeCard?.gradientIndex}
           />
         </Animated.View>
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8
-  } as ViewState,
+  } as ViewStyle,
   headerIcon: {
     width: 44,
     height: 44,
@@ -371,7 +371,8 @@ const styles = StyleSheet.create({
   cardContainer: {
     marginVertical: 4,
     width: '100%',
-    maxWidth: CARD_WIDTH,
+    alignItems: 'center',
+    justifyContent: 'center',
   } as ViewStyle,
   cardElevation: {
     borderRadius: 20,

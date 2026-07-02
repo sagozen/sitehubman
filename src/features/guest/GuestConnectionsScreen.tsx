@@ -1,220 +1,332 @@
-import { IosScrollView } from '@/src/components/IosScrollView';
-import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  FlatList,
+  type ListRenderItem,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
+import { AppAvatar } from '@/src/components/AppAvatar';
+import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { appRoutes } from '@/src/constants/navigation';
+import type { TapMoment } from '@/src/components/TapMomentCard';
+import { ConfettiBurst } from '@/src/components/ConfettiBurst';
+import { LiveTapSuccess } from '@/src/components/LiveTapSuccess';
+import { MomentDetailSheet } from '@/src/components/MomentDetailSheet';
+import { SEED_MOMENTS, SEED_MOMENT_LABELS, getSeedSlugUrl } from '@/src/data/seedMoments';
 import { useGuestActionStats } from '@/src/hooks/useGuestActionStats';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
-import { FAB } from '@/src/components/FAB';
-import { QuickActionModal } from '@/src/components/QuickActionModal';
 
-const BRAND = '#2596BE';
-const INK = '#1C1C1E';
-const MUTED = '#8E8E93';
-const BG = '#F5F5F7';
-const SURFACE = '#FFFFFF';
+const BRAND = '#007AFF';
+const MUTED = '#6E6E73';
 
-const ACTIONS: {
-  icon: AppIconName;
-  label: string;
-  driven: string;   // what this does for the user
-  sub: string;
-  color: string;
-  route?: string;
-  locked?: boolean;
-}[] = [
-  {
-    icon: 'Eye',
-    label: 'Preview Bio',
-    driven: 'See your live public profile',
-    sub: 'What people see when they tap',
-    color: '#007AFF',
-  },
-  {
-    icon: 'QrCode',
-    label: 'Share QR',
-    driven: 'Share your card instantly',
-    sub: 'Works without NFC',
-    color: BRAND,
-    route: appRoutes.qrGenerator,     // ← fixed: was '/nfc-demo'
-  },
-  {
-    icon: 'ScanLine',
-    label: 'Scan NFC',
-    driven: 'Read any NFC business card',
-    sub: 'Meet someone, see their profile',
-    color: '#0284C7',
-    route: appRoutes.scan,
-  },
-  {
-    icon: 'CreditCard',
-    label: 'Design Card',
-    driven: 'Create your NFC card',
-    sub: 'Virtual or physical',
-    color: '#34C759',
-    route: appRoutes.guestDesign,
-  },
-  {
-    icon: 'Package',
-    label: 'Track Order',
-    driven: 'Check production status',
-    sub: 'Print · encode · ship',
-    color: '#FF9500',
-    route: appRoutes.guestTrackOrder,
-  },
-  {
-    icon: 'Users',
-    label: 'Lead Capture',
-    driven: 'See who viewed your card',
-    sub: 'Taps, QR scans, contacts',
-    color: '#AF52DE',
-    locked: true,
-  },
+const GUEST_ACTIONS = [
+  { icon: 'QrCode', label: 'Share QR', route: '/qr-generator' },
+  { icon: 'ScanLine', label: 'Scan NFC', route: '/scan' },
+  { icon: 'CreditCard', label: 'Design', route: '/guest-design' },
+  { icon: 'Package', label: 'Track', route: '/guest-track-order' },
 ];
 
 export function GuestConnectionsScreen() {
   const isGuest = useIsGuest();
   const { requireAccount } = useRequireAccount();
   const { openPreview } = useGuestActionStats();
-  const [fabOpen, setFabOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeMoment, setActiveMoment] = useState<TapMoment | null>(null);
+  const [activeSlugUrl, setActiveSlugUrl] = useState<string | null>(null);
+  const [celebratingTap, setCelebratingTap] = useState(false);
 
-  function handleAction(action: (typeof ACTIONS)[0]) {
-    if (action.locked) {
-      requireAccount(undefined, { message: `Sign in to unlock ${action.label.toLowerCase()}.` });
-      return;
-    }
+  // For demo purposes, we use SEED_MOMENTS as our "connections"
+  const allMoments = useMemo(() => SEED_MOMENTS, []);
+
+  const filteredMoments = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return allMoments;
+    return allMoments.filter((m) => 
+      m.name.toLowerCase().includes(q) || 
+      (m.subtitle?.toLowerCase().includes(q) ?? false)
+    );
+  }, [allMoments, searchQuery]);
+
+  const handleMomentPress = useCallback((moment: TapMoment) => {
+    const slugUrl = getSeedSlugUrl(moment.id, 'https://sitehub.app');
+    setActiveMoment(moment);
+    setActiveSlugUrl(slugUrl);
+  }, []);
+
+  const handleAction = (action: any) => {
     if (action.label === 'Preview Bio') {
       openPreview();
       return;
     }
     if (action.route) router.push(action.route as any);
-  }
+  };
+
+  const renderStory = ({ item, index }: { item: TapMoment; index: number }) => (
+    <Pressable 
+      onPress={() => handleMomentPress(item)}
+      style={styles.storyContainer}
+    >
+      <View style={[styles.storyRing, { borderColor: BRAND }]}>
+        <AppAvatar 
+          name={item.name} 
+          size={64} 
+          isOnline={index % 3 === 0}
+          style={styles.storyAvatar}
+        />
+      </View>
+      <AppText style={styles.storyName} numberOfLines={1}>
+        {item.name}
+      </AppText>
+    </Pressable>
+  );
+
+  const renderConversation: ListRenderItem<TapMoment> = useCallback(
+    ({ item, index }) => {
+      const timeLabel = SEED_MOMENT_LABELS[item.id] ?? '';
+      return (
+        <Pressable
+          onPress={() => handleMomentPress(item)}
+          style={({ pressed }) => [
+            styles.conversationRow,
+            pressed && styles.pressed,
+          ]}
+        >
+          <AppAvatar 
+            name={item.name} 
+            size={56} 
+            isOnline={index % 2 === 0}
+          />
+          <View style={styles.conversationInfo}>
+            <View style={styles.conversationHeader}>
+              <AppText style={styles.conversationName} numberOfLines={1}>
+                {item.name}
+              </AppText>
+              <AppText style={styles.conversationTime}>{timeLabel}</AppText>
+            </View>
+            <View style={styles.conversationSubtitleRow}>
+              <AppText style={styles.conversationSubtitle} numberOfLines={1}>
+                {item.subtitle || 'Connected'}
+              </AppText>
+            </View>
+          </View>
+        </Pressable>
+      );
+    },
+    [handleMomentPress],
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <IosScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <View style={styles.header}>
+        <AppText style={styles.headerTitle}>Discover</AppText>
+        <Pressable style={styles.headerIcon}>
+          <AppIcon name="Users" size={24} color={BRAND} />
+        </Pressable>
+      </View>
 
-        <View style={styles.header}>
-          <View>
-            <AppText style={styles.title}>Connections</AppText>
-            <AppText style={styles.subtitle}>People around your card</AppText>
-          </View>
-          <View style={styles.nfcBadge}>
-            <AppIcon name="Users" size={22} color={BRAND} />
-          </View>
+      <View style={styles.storiesContainer}>
+        <FlatList
+          horizontal
+          data={allMoments.slice(0, 10)}
+          renderItem={renderStory}
+          keyExtractor={(item) => `story-${item.id}`}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.storiesList}
+        />
+      </View>
+
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBar}>
+          <AppIcon name="Search" size={18} color={MUTED} />
+          <TextInput
+            placeholder="Search connections..."
+            placeholderTextColor={MUTED}
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
         </View>
+      </View>
 
-        {isGuest ? (
-          <View style={styles.guestBanner}>
-            <View style={styles.bannerInner}>
-              <View style={styles.bannerCopy}>
-                <AppText style={styles.bannerTitle}>Your network starts when the card goes live.</AppText>
-                <AppText style={styles.bannerSub}>Sign in to keep every view, tap, and saved contact.</AppText>
-              </View>
-              <Pressable
-                onPress={() => requireAccount(undefined, { message: 'Sign in to unlock your full NFC hub.' })}
-                style={styles.bannerCta}
-              >
-                <AppText style={styles.bannerCtaT}>Sign in</AppText>
-              </Pressable>
-            </View>
-          </View>
-        ) : null}
+      <View style={styles.actionStrip}>
+        {GUEST_ACTIONS.map((action) => (
+          <Pressable
+            key={action.label}
+            onPress={() => handleAction(action)}
+            style={({ pressed }) => [styles.actionBtn, pressed && styles.pressed]}
+          >
+            <AppIcon name={action.icon as any} size={24} color={BRAND} />
+            <AppText style={styles.actionLabel}>{action.label}</AppText>
+          </Pressable>
+        ))}
+        <Pressable
+          onPress={() => requireAccount(undefined, { message: 'Sign in to see your history.' })}
+          style={styles.actionBtn}
+        >
+          <AppIcon name="Lock" size={24} color={MUTED} />
+          <AppText style={[styles.actionLabel, { color: MUTED }]}>History</AppText>
+        </Pressable>
+      </View>
 
-        <View style={styles.peopleList}>
-          {[
-            ['Maya Chen', 'Viewed your profile', '2m'],
-            ['Jordan Lee', 'Saved your card', 'Today'],
-            ['Alex Morgan', 'Scanned at an event', 'Fri'],
-          ].map(([name, detail, time], index) => (
-            <View key={name} style={[styles.personRow, index === 2 && styles.personRowLast]}>
-              <View style={styles.personAvatar}>
-                <AppText style={styles.personInitial}>{name[0]}</AppText>
-              </View>
-              <View style={styles.personCopy}>
-                <AppText style={styles.personName}>{name}</AppText>
-                <AppText style={styles.personDetail}>{detail}</AppText>
-              </View>
-              <AppText style={styles.personTime}>{time}</AppText>
-            </View>
-          ))}
-        </View>
+      <FlatList
+        data={filteredMoments}
+        keyExtractor={(item) => item.id}
+        renderItem={renderConversation}
+        contentContainerStyle={styles.conversationsList}
+        showsVerticalScrollIndicator={false}
+      />
 
-        <View style={styles.actionStrip}>
-          {ACTIONS.slice(0, 4).map((action) => (
-            <Pressable
-              key={action.label}
-              onPress={() => handleAction(action)}
-              style={({ pressed }) => [styles.actionBtn, pressed && styles.pressed]}
-              accessibilityRole="button"
-              accessibilityLabel={action.label}
-            >
-              <AppIcon
-                name={action.icon}
-                size={24}
-                color={action.locked ? '#C7C7CC' : INK}
-              />
-              <AppText style={[styles.actionLabel, action.locked && styles.cellLabelLocked]}>
-                {action.label.replace('Preview Bio', 'Profile').replace('Share QR', 'QR').replace('Scan NFC', 'Scan').replace('Design Card', 'Card')}
-              </AppText>
-            </Pressable>
-          ))}
-        </View>
-
-      </IosScrollView>
-      <FAB onPress={() => setFabOpen(true)} />
-      <QuickActionModal visible={fabOpen} onClose={() => setFabOpen(false)} />
+      <MomentDetailSheet
+        visible={activeMoment !== null}
+        moment={activeMoment!}
+        slugUrl={activeSlugUrl ?? ''}
+        onClose={() => {
+          setActiveMoment(null);
+          setActiveSlugUrl(null);
+        }}
+        onFollowUp={() => {}}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: BG },
-  content: { padding: 24, gap: 24, paddingBottom: 120 },
-
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontSize: 36, fontWeight: '900', color: INK, letterSpacing: -0.4 },
-  subtitle: { fontSize: 15, fontWeight: '600', color: MUTED, marginTop: 4 },
-  nfcBadge: { width: 48, height: 48, borderRadius: 24, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center' },
-
-  guestBanner: {
-    borderRadius: 24,
-    overflow: 'hidden',
-    backgroundColor: SURFACE,
+  safe: { flex: 1, backgroundColor: '#FFF' },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
   },
-  bannerInner: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 18 },
-  bannerCopy: { flex: 1, gap: 2 },
-  bannerTitle: { fontSize: 16, fontWeight: '800', color: INK, letterSpacing: -0.2 },
-  bannerSub: { fontSize: 12, fontWeight: '600', color: MUTED, lineHeight: 17 },
-  bannerCta: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: INK },
-  bannerCtaT: { fontSize: 12, fontWeight: '800', color: '#FFFFFF' },
-
-  peopleList: { backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden' },
-  personRow: {
-    minHeight: 78,
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+  },
+  headerIcon: {
+    padding: 4,
+  },
+  storiesContainer: {
+    paddingVertical: 8,
+  },
+  storiesList: {
+    paddingHorizontal: 20,
+    gap: 16,
+  },
+  storyContainer: {
+    alignItems: 'center',
+    gap: 6,
+  },
+  storyRing: {
+    padding: 3,
+    borderRadius: 40,
+    borderWidth: 2,
+  },
+  storyAvatar: {
+    borderRadius: 30,
+  },
+  storyBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: BRAND,
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  storyName: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    paddingHorizontal: 18,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(17,17,17,0.06)',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 22,
+    backgroundColor: '#F0F0F2',
+    gap: 10,
   },
-  personRowLast: { borderBottomWidth: 0 },
-  personAvatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#111111', alignItems: 'center', justifyContent: 'center' },
-  personInitial: { fontSize: 18, fontWeight: '900', color: '#FFFFFF' },
-  personCopy: { flex: 1, gap: 3 },
-  personName: { fontSize: 17, fontWeight: '800', color: INK, letterSpacing: -0.2 },
-  personDetail: { fontSize: 13, fontWeight: '600', color: MUTED },
-  personTime: { fontSize: 12, fontWeight: '700', color: MUTED },
-
-  actionStrip: { flexDirection: 'row', backgroundColor: SURFACE, borderRadius: 24, overflow: 'hidden' },
-  actionBtn: { flex: 1, alignItems: 'center', gap: 7, paddingVertical: 16 },
-  actionLabel: { fontSize: 11, fontWeight: '800', color: INK, textAlign: 'center' },
-
-  pressed: { opacity: 0.78, transform: [{ scale: 0.97 }] },
-  cellLabelLocked: { color: '#C7C7CC' },
+  searchInput: {
+    flex: 1,
+    fontSize: 17,
+  },
+  conversationsList: {
+    paddingHorizontal: 20,
+    paddingBottom: 100,
+  },
+  conversationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    gap: 14,
+  },
+  pressed: {
+    opacity: 0.6,
+  },
+  conversationInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  conversationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  conversationName: {
+    fontSize: 17,
+    fontWeight: '700',
+    flex: 1,
+  },
+  conversationTime: {
+    fontSize: 14,
+    color: MUTED,
+  },
+  conversationSubtitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  conversationSubtitle: {
+    fontSize: 15,
+    flex: 1,
+    opacity: 0.8,
+  },
+  actionStrip: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#EEE',
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    justifyContent: 'space-around',
+  },
+  actionBtn: {
+    alignItems: 'center',
+    gap: 4,
+    padding: 8,
+  },
+  actionLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
 });

@@ -24,7 +24,7 @@ import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { uploadProfilePhoto } from '@/src/services/profilePhotoService';
 import type { BioPage } from '@/src/types/models';
 import { LinearGradient } from 'expo-linear-gradient';
-import { StarsBoldDuotone, CopyBoldDuotone, SparklesBoldDuotone, AddCircleBoldDuotone } from '@solar-icons/react-native';
+import { StarsBoldDuotone, CopyBoldDuotone, AddCircleBoldDuotone } from '@solar-icons/react-native';
 
 const BRAND = '#007AFF';
 const INK = '#0A0A0F';
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
 
   // Avatar styles inside phone
   avatarWrap: { position: 'relative' } as ViewStyle,
-  avatar: { width: 80, height: 80, borderRadius: 40, borderWidth: 3, borderColor: SURFACE, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 4 } as ViewStyle,
+  avatar: { width: 80, height: 80, borderRadius: 40, borderWidth: 3, borderColor: SURFACE, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 4 } as any,
   avatarFallback: { backgroundColor: BRAND, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
   avatarInitial: { fontSize: 32, fontWeight: '900', color: '#FFFFFF' } as TextStyle,
   avatarBadge: { position: 'absolute', bottom: 0, right: 0, width: 26, height: 26, borderRadius: 13, backgroundColor: INK2, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#7C3AED' } as ViewStyle,

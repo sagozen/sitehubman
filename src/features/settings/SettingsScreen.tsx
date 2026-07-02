@@ -1,15 +1,12 @@
-import React, { useMemo, useState } from 'react';
-import { View, StyleSheet, Pressable, TextInput, Alert, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, Pressable, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { AppText } from '@/src/components/AppText';
-import { AppIcon } from '@/src/components/AppIcon';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { appRoutes } from '@/src/constants/navigation';
-import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
-import { getRoleLabel } from '@/src/utils/roleCapabilities';
 import { HapticTap } from '@/src/utils/haptics';
 
 const FB_BG = '#F0F2F5';
@@ -22,8 +19,6 @@ const FB_BLUE = '#1877F2';
 export function SettingsScreen() {
   const { signOutUser, user } = useAuth();
   const isGuest = useIsGuest();
-  const roleLabel = getRoleLabel(user?.role);
-  const [search, setSearch] = useState('');
 
   const initial = (user?.displayName?.trim() || 'S')[0].toUpperCase();
 
@@ -41,10 +36,6 @@ export function SettingsScreen() {
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
         <AppText style={styles.headerTitle}>Menu</AppText>
-        <View style={styles.headerActions}>
-          <View style={styles.circleBtn}><AppIcon name="Settings" size={20} color={FB_TEXT} /></View>
-          <View style={styles.circleBtn}><AppIcon name="Search" size={20} color={FB_TEXT} /></View>
-        </View>
       </View>
 
       <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -59,7 +50,6 @@ export function SettingsScreen() {
               <AppText style={styles.profileName}>{user?.displayName ?? 'Guest User'}</AppText>
               <AppText style={styles.profileSub}>See your profile</AppText>
             </View>
-            <AppIcon name="ChevronDown" size={20} color={FB_MUTED} />
           </View>
         </View>
 
@@ -134,7 +124,6 @@ function FbRow({ title, subtitle, onPress, last }: { title: string; subtitle?: s
         <AppText style={styles.rowTitle}>{title}</AppText>
         {subtitle && <AppText style={styles.rowSub}>{subtitle}</AppText>}
       </View>
-      <AppIcon name="ChevronRight" size={20} color={FB_MUTED} />
     </Pressable>
   );
 }
@@ -150,8 +139,6 @@ const styles = StyleSheet.create({
     backgroundColor: FB_BG,
   },
   headerTitle: { fontSize: 24, fontWeight: '700', color: FB_TEXT },
-  headerActions: { flexDirection: 'row', gap: 12 },
-  circleBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#E4E6EB', alignItems: 'center', justifyContent: 'center' },
   scroll: { paddingHorizontal: 16, paddingBottom: 60, gap: 16, paddingTop: 8 },
 
   profileCard: {

@@ -577,10 +577,13 @@ export interface BioPage {
   theme: BioTheme;
   views?: number;
   taps?: number;
+  coverImage?: string;
+  avatar?: string;
+  headline?: string;
   updatedAt: string;
 }
 
-export type ProfileTheme = 'aqua' | 'mono';
+export type ProfileTheme = 'aqua' | 'mono' | 'system' | 'gaming' | 'productivity';
 
 export type TypographyColorKey =
   | 'deep_teal'
@@ -592,7 +595,14 @@ export type TypographyColorKey =
   | 'rose'
   | 'amber'
   | 'charcoal'
-  | 'midnight';
+  | 'midnight'
+  | 'sky_blue'
+  | 'sunflower'
+  | 'rose_pink'
+  | 'mint_green'
+  | 'lavender'
+  | 'coral'
+  | 'emerald';
 
 export interface UiPreferences {
   language: string;
@@ -601,6 +611,7 @@ export interface UiPreferences {
   colorMode: 'light' | 'dark' | 'system';
   typographyColor: TypographyColorKey;
   primaryCardId?: string;
+  cardDraft?: any;
 }
 
 // Notifications

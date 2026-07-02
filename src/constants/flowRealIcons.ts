@@ -17,7 +17,8 @@ export type FlowRealIconId =
   | 'track'
   | 'nfc'
   | 'connections'
-  | 'orders';
+  | 'orders'
+  | 'drafts';
 
 const BRAND_IMAGES: Partial<Record<FlowRealIconId, ImageSourcePropType>> = {
   telegram: require('@/assets/images/auth/telegram.png') as ImageSourcePropType,

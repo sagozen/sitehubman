@@ -14,6 +14,8 @@ interface AppTextProps extends TextProps {
   muted?: boolean;
   weight?: TextWeight;
   style?: StyleProp<TextStyle>;
+  /** Optional text color override */
+  color?: string;
 }
 
 const weightStyles: Record<TextWeight, TextStyle> = {
@@ -80,6 +82,7 @@ const AppTextRaw = ({
   muted = false,
   weight,
   style,
+  color,
   ...rest
 }: PropsWithChildren<AppTextProps>) => {
   const { colors } = usePreferences();
@@ -102,6 +105,7 @@ const AppTextRaw = ({
         toneStyles[resolvedTone],
         safeStyle,
         weight && weightStyles[weight],
+        color && { color },
       ]}
       {...rest}
     >

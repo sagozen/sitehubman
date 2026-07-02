@@ -37,7 +37,7 @@
         "android.permission.WRITE_EXTERNAL_STORAGE"
       ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/snap-tap-app-icon.png",
         "backgroundColor": "#FFFFFF"
       }
     },
@@ -92,7 +92,8 @@
       "router": {},
       "eas": {
         "projectId": "cb54673a-8b20-4939-9332-6e9f312521a5"
-      }
+      },
+      "cloudinaryApiKey": "795664656796712"
     },
     "owner": "theanthean8888"
   }

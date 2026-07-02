@@ -23,6 +23,9 @@ export interface ResolvedAppColors {
   border: string;
   separator: string;
   systemBlue: string;
+  systemGreen: string;
+  systemOrange: string;
+  systemPurple: string;
   typographyColor: string;
   // Enhanced color properties for better visual hierarchy
   elevation1: string;
@@ -50,6 +53,9 @@ interface ProfilePalette {
     separator: string;
     surfaceGlass: string;
     systemBlue: string;
+    systemGreen: string;
+    systemOrange: string;
+    systemPurple: string;
     elevation1: string;
     elevation2: string;
     elevation3: string;
@@ -69,6 +75,9 @@ interface ProfilePalette {
     separator: string;
     surfaceGlass: string;
     systemBlue: string;
+    systemGreen: string;
+    systemOrange: string;
+    systemPurple: string;
     elevation1: string;
     elevation2: string;
     elevation3: string;
@@ -91,6 +100,9 @@ function modeTokens(mode: typeof iosPalette.light | typeof iosPalette.dark) {
     separator: mode.separator,
     surfaceGlass: mode.surfaceGlass,
     systemBlue: mode.systemBlue,
+    systemGreen: mode.systemGreen,
+    systemOrange: mode.systemOrange,
+    systemPurple: mode.systemPurple,
     elevation1: mode.elevation1,
     elevation2: mode.elevation2,
     elevation3: mode.elevation3,
@@ -118,6 +130,9 @@ const profilePalettes: Record<ProfileTheme, ProfilePalette> = {
       separator: iosPalette.light.separator,
       surfaceGlass: 'rgba(255,255,255,0.82)',
       systemBlue: iosPalette.light.systemBlue,
+      systemGreen: iosPalette.light.systemGreen,
+      systemOrange: iosPalette.light.systemOrange,
+      systemPurple: iosPalette.light.systemPurple,
       elevation1: iosPalette.light.elevation1,
       elevation2: iosPalette.light.elevation2,
       elevation3: iosPalette.light.elevation3,
@@ -144,6 +159,9 @@ const profilePalettes: Record<ProfileTheme, ProfilePalette> = {
       separator: 'rgba(60,60,67,0.29)',
       surfaceGlass: iosPalette.light.surfaceGlass,
       systemBlue: iosPalette.light.systemBlue,
+      systemGreen: iosPalette.light.systemGreen,
+      systemOrange: iosPalette.light.systemOrange,
+      systemPurple: iosPalette.light.systemPurple,
       elevation1: 'rgba(0,0,0,0.05)',
       elevation2: 'rgba(0,0,0,0.08)',
       elevation3: 'rgba(0,0,0,0.11)',
@@ -163,6 +181,9 @@ const profilePalettes: Record<ProfileTheme, ProfilePalette> = {
       separator: 'rgba(84,84,88,0.65)',
       surfaceGlass: iosPalette.dark.surfaceGlass,
       systemBlue: iosPalette.dark.systemBlue,
+      systemGreen: iosPalette.dark.systemGreen,
+      systemOrange: iosPalette.dark.systemOrange,
+      systemPurple: iosPalette.dark.systemPurple,
       elevation1: 'rgba(255,255,255,0.05)',
       elevation2: 'rgba(255,255,255,0.08)',
       elevation3: 'rgba(255,255,255,0.11)',
@@ -171,7 +192,6 @@ const profilePalettes: Record<ProfileTheme, ProfilePalette> = {
       link: '#5AC8FA',
     },
   },
-  // Enhanced profile themes for more visual variety
   system: {
     primary: iosPalette.light.systemBlue,
     primaryDark: '#0051D5',
@@ -189,6 +209,9 @@ const profilePalettes: Record<ProfileTheme, ProfilePalette> = {
       separator: iosPalette.light.separator,
       surfaceGlass: 'rgba(255,255,255,0.82)',
       systemBlue: iosPalette.light.systemBlue,
+      systemGreen: iosPalette.light.systemGreen,
+      systemOrange: iosPalette.light.systemOrange,
+      systemPurple: iosPalette.light.systemPurple,
       elevation1: iosPalette.light.elevation1,
       elevation2: iosPalette.light.elevation2,
       elevation3: iosPalette.light.elevation3,
@@ -215,6 +238,9 @@ const profilePalettes: Record<ProfileTheme, ProfilePalette> = {
       separator: 'rgba(60,60,67,0.18)',
       surfaceGlass: 'rgba(255,255,255,0.82)',
       systemBlue: '#FF2D55',
+      systemGreen: iosPalette.light.systemGreen,
+      systemOrange: iosPalette.light.systemOrange,
+      systemPurple: iosPalette.light.systemPurple,
       elevation1: 'rgba(255,45,85,0.05)',
       elevation2: 'rgba(255,45,85,0.08)',
       elevation3: 'rgba(255,45,85,0.11)',
@@ -234,6 +260,9 @@ const profilePalettes: Record<ProfileTheme, ProfilePalette> = {
       separator: 'rgba(84,84,88,0.65)',
       surfaceGlass: 'rgba(28,28,30,0.92)',
       systemBlue: '#FF2D55',
+      systemGreen: iosPalette.dark.systemGreen,
+      systemOrange: iosPalette.dark.systemOrange,
+      systemPurple: iosPalette.dark.systemPurple,
       elevation1: 'rgba(255,45,85,0.05)',
       elevation2: 'rgba(255,45,85,0.08)',
       elevation3: 'rgba(255,45,85,0.11)',
@@ -259,6 +288,9 @@ const profilePalettes: Record<ProfileTheme, ProfilePalette> = {
       separator: 'rgba(60,60,67,0.18)',
       surfaceGlass: 'rgba(255,255,255,0.82)',
       systemBlue: '#34C759',
+      systemGreen: iosPalette.light.systemGreen,
+      systemOrange: iosPalette.light.systemOrange,
+      systemPurple: iosPalette.light.systemPurple,
       elevation1: 'rgba(52,199,89,0.05)',
       elevation2: 'rgba(52,199,89,0.08)',
       elevation3: 'rgba(52,199,89,0.11)',
@@ -278,6 +310,9 @@ const profilePalettes: Record<ProfileTheme, ProfilePalette> = {
       separator: 'rgba(84,84,88,0.65)',
       surfaceGlass: 'rgba(28,28,30,0.92)',
       systemBlue: '#34C759',
+      systemGreen: iosPalette.dark.systemGreen,
+      systemOrange: iosPalette.dark.systemOrange,
+      systemPurple: iosPalette.dark.systemPurple,
       elevation1: 'rgba(52,199,89,0.05)',
       elevation2: 'rgba(52,199,89,0.08)',
       elevation3: 'rgba(52,199,89,0.11)',
@@ -299,12 +334,13 @@ export const typographyColorMap: Record<TypographyColorKey, { label: string; col
   amber: { label: 'Amber', color: '#92400E' },
   charcoal: { label: 'Charcoal', color: '#1F2937' },
   midnight: { label: 'Midnight', color: '#0B1220' },
-  // Enhanced typography options for more personality
-  sky_blue: { label: 'Sky Blue', color: '#5AC8FA' },
-  sunflower: { label: 'Sunflower', color: '#FFC107' },
+  sky_blue: { label: 'Sky Blue', color: '#38BDF8' },
+  sunflower: { label: 'Sunflower', color: '#FCD34D' },
   rose_pink: { label: 'Rose Pink', color: '#FF6B9D' },
   mint_green: { label: 'Mint Green', color: '#4ECDC4' },
   lavender: { label: 'Lavender', color: '#9D8DFF' },
+  coral: { label: 'Coral', color: '#FF7F50' },
+  emerald: { label: 'Emerald', color: '#50C878' },
 };
 
 export function getTypographyColor(key?: TypographyColorKey, isDark = false): string {
@@ -402,6 +438,9 @@ export function resolveAppColors(
     border: mode.border,
     separator: mode.separator,
     systemBlue: mode.systemBlue,
+    systemGreen: mode.systemGreen,
+    systemOrange: mode.systemOrange,
+    systemPurple: mode.systemPurple,
     typographyColor,
     elevation1: mode.elevation1,
     elevation2: mode.elevation2,

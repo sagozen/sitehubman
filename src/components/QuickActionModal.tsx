@@ -14,6 +14,8 @@ const ACTIONS: { label: string; icon: AppIconName; route: string; color: string 
   { label: 'Design Card', icon: 'CreditCard', route: '/guest-design', color: '#0A84FF' },
   { label: 'New Order', icon: 'ShoppingCart', route: '/new-order', color: '#34C759' },
   { label: 'Track Order', icon: 'Truck', route: '/guest-track-order', color: '#FF9500' },
+  { label: 'Resume Bio Draft', icon: 'User', route: '/edit-bio', color: '#8E44AD' },
+  { label: 'Resume Card Draft', icon: 'Folder', route: '/drafts', color: '#E67E22' },
 ];
 
 export function QuickActionModal({ visible, onClose }: QuickActionModalProps) {

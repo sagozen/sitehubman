@@ -43,25 +43,5 @@ export function createShadow({
   radius = 4,
   elevation = 2,
 }: ShadowOptions = {}): ViewStyle {
-  return Platform.select({
-    web: {
-      boxShadow: `${offset.width}px ${offset.height}px ${radius}px ${hexToRgba(color, opacity)}`,
-    },
-    ios: {
-      shadowColor: color,
-      shadowOffset: offset,
-      shadowOpacity: opacity,
-      shadowRadius: radius,
-    },
-    android: {
-      elevation,
-    },
-    default: {
-      shadowColor: color,
-      shadowOffset: offset,
-      shadowOpacity: opacity,
-      shadowRadius: radius,
-      elevation,
-    },
-  }) as ViewStyle;
+  return {};
 }
