@@ -11,6 +11,9 @@ import { theme } from '@/src/constants/theme';
 import { useNotifications } from '@/src/hooks/useNotifications';
 import { usePreferences } from '@/src/hooks/usePreferences';
 import type { AppNotification } from '@/src/types/models';
+import { pageThemes } from '@/src/constants/pageThemes';
+
+const _THEME = pageThemes.home;
 
 type StaffNotificationRole = 'sales' | 'printer';
 
@@ -39,7 +42,7 @@ export function StaffNotificationsScreen({
   const accent = role === 'printer' ? '#007AFF' : '#FF9500';
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: _THEME.canvas }]} edges={['top', 'left', 'right']}>
       <View style={styles.hero}>
         <View style={styles.heroTop}>
           <Pressable
@@ -69,9 +72,9 @@ export function StaffNotificationsScreen({
 
       <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {error ? (
-          <View style={[styles.errorBanner, { borderColor: colors.border, backgroundColor: colors.surface }]}>
-            <AppIcon name="Info" size={16} color={colors.textMuted} />
-            <AppText style={[styles.errorText, { color: colors.textMuted }]}>{error}</AppText>
+          <View style={[styles.errorBanner, { borderColor: _THEME.border, backgroundColor: _THEME.surface }]}>
+            <AppIcon name="Info" size={16} color={_THEME.muted} />
+            <AppText style={[styles.errorText, { color: _THEME.muted }]}>{error}</AppText>
           </View>
         ) : null}
 
@@ -96,8 +99,8 @@ export function StaffNotificationsScreen({
                 style={({ pressed }) => [
                   styles.row,
                   {
-                    backgroundColor: notification.isRead ? colors.surface : '#FFFFFF',
-                    borderColor: notification.isRead ? colors.border : 'rgba(0,122,255,0.18)',
+                    backgroundColor: notification.isRead ? _THEME.surface : _THEME.surfaceRaised,
+                    borderColor: notification.isRead ? _THEME.border : 'rgba(255,255,255,0.14)',
                     opacity: pressed ? 0.88 : 1,
                   },
                 ]}
@@ -107,15 +110,15 @@ export function StaffNotificationsScreen({
                 </View>
                 <View style={styles.rowBody}>
                   <View style={styles.rowTop}>
-                    <AppText style={[styles.rowTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+                    <AppText style={[styles.rowTitle, { color: _THEME.text }]} numberOfLines={1}>
                       {notification.title}
                     </AppText>
-                    <AppText style={[styles.rowDate, { color: colors.textMuted }]}>
+                    <AppText style={[styles.rowDate, { color: _THEME.muted }]}>
                       {formatDate(notification.createdAt)}
                     </AppText>
                   </View>
                   {notification.message ? (
-                    <AppText style={[styles.message, { color: colors.textMuted }]} numberOfLines={2}>
+                    <AppText style={[styles.message, { color: _THEME.muted }]} numberOfLines={2}>
                       {notification.message}
                     </AppText>
                   ) : null}

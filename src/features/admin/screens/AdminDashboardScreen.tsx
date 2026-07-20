@@ -75,7 +75,7 @@ export default function AdminDashboardScreen() {
   const displayName = user?.displayName?.trim() || 'Super Admin';
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: '#F5F7FA' }]} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: '#000000' }]} edges={['top', 'left', 'right']}>
       <View style={styles.topBar}>
         <View style={styles.topCopy}>
           <AppText variant="caption" tone="muted" weight="medium" style={{ color: '#6E6E73' }}>

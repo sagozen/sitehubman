@@ -18,6 +18,9 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { useBioPage } from '@/src/hooks/useBioPage';
 import { useOrders } from '@/src/hooks/useOrders';
 import { getRoleLabel, getRoleScopeSummary } from '@/src/utils/roleCapabilities';
+import { pageThemes } from '@/src/constants/pageThemes';
+
+const _THEME = pageThemes.home;
 
 function formatDate(value?: string) {
   if (!value) return 'Not recorded';
@@ -200,7 +203,7 @@ export function SalesProfileScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#F5F5F7',
+    backgroundColor: _THEME.canvas,
   },
   scroll: {
     paddingTop: theme.spacing.sm,
@@ -227,12 +230,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#111827',
+    color: _THEME.text,
   },
   subtitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#6B7280',
+    color: _THEME.muted,
   },
   stateCard: {
     marginHorizontal: theme.spacing.md,
@@ -240,8 +243,9 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.md,
     paddingHorizontal: theme.spacing.md,
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    ...theme.shadows.control,
+    backgroundColor: _THEME.surface,
+    borderWidth: 1,
+    borderColor: _THEME.border,
   },
   errorText: {
     color: theme.colors.danger,

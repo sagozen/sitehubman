@@ -25,14 +25,16 @@ import { uploadProfilePhoto } from '@/src/services/profilePhotoService';
 import type { BioPage } from '@/src/types/models';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StarsBoldDuotone, CopyBoldDuotone, AddCircleBoldDuotone } from '@solar-icons/react-native';
+import { pageThemes } from '@/src/constants/pageThemes';
 
+const _THEME = pageThemes.profile;
 const BRAND = '#007AFF';
-const INK = '#0A0A0F';
-const INK2 = '#1C1C1E';
-const MUTED = '#8E8E93';
-const BG = '#F5F5F7';
-const SURFACE = '#FFFFFF';
-const BORDER = 'rgba(60,60,67,0.08)';
+const INK = _THEME.text;
+const INK2 = _THEME.text;
+const MUTED = _THEME.muted;
+const BG = _THEME.canvas;
+const SURFACE = _THEME.surface;
+const BORDER = _THEME.border;
 
 type CustomLinkDraft = BioPage['customLinks'][number];
 
@@ -81,7 +83,7 @@ function FieldRow({
 const fr = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', minHeight: 56, gap: 12, paddingHorizontal: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: BORDER } as ViewStyle,
   rowLast: { borderBottomWidth: 0 } as ViewStyle,
-  iconBox: { width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(0,122,255,0.08)', alignItems: 'center', justifyContent: 'center' } as ViewStyle,
+  iconBox: { width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(0,122,255,0.12)', alignItems: 'center', justifyContent: 'center' } as ViewStyle,
   labelCol: { width: 90 } as ViewStyle,
   label: { fontSize: 14, fontWeight: '700', color: INK2 } as TextStyle,
   input: { flex: 1, fontSize: 14, fontWeight: '600', color: INK, paddingVertical: 0, textAlign: 'right' } as TextStyle,
@@ -91,7 +93,7 @@ function Group({ children }: { children: React.ReactNode }) {
   return <View style={grp.card}>{children}</View>;
 }
 const grp = StyleSheet.create({
-  card: { backgroundColor: SURFACE, borderRadius: 24, borderWidth: 1, borderColor: BORDER, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 12, elevation: 2 } as ViewStyle,
+  card: { backgroundColor: SURFACE, borderRadius: 24, borderWidth: 1, borderColor: BORDER, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 2 } as ViewStyle,
 });
 
 function SectionLabel({ text }: { text: string }) {
@@ -444,7 +446,7 @@ const styles = StyleSheet.create({
 
   header: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16, backgroundColor: BG } as ViewStyle,
   navRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } as ViewStyle,
-  headerBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2 } as ViewStyle,
+  headerBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: BORDER } as ViewStyle,
   navSaveBtn: { minHeight: 36, justifyContent: 'center', paddingHorizontal: 4 } as ViewStyle,
   navSaveText: { fontSize: 17, fontWeight: '800', color: '#007AFF' } as TextStyle,
   largeTitle: { marginTop: 8, fontSize: 32, fontWeight: '900', color: INK, letterSpacing: -0.6 } as TextStyle,
@@ -487,27 +489,27 @@ const styles = StyleSheet.create({
   previewActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, width: '100%', justifyContent: 'center' } as ViewStyle,
   photoBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, backgroundColor: 'rgba(0,122,255,0.08)' } as ViewStyle,
   photoBtnT: { fontSize: 13, fontWeight: '800', color: BRAND } as TextStyle,
-  previewLink: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, backgroundColor: '#F3F4F6', borderWidth: 1, borderColor: 'rgba(0,0,0,0.03)' } as ViewStyle,
+  previewLink: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, backgroundColor: SURFACE, borderWidth: 1, borderColor: BORDER } as ViewStyle,
   previewLinkTextBtn: { fontSize: 13, fontWeight: '800', color: INK2 } as TextStyle,
 
   chipSection: { gap: 10 } as ViewStyle,
   chipHeader: { fontSize: 11, fontWeight: '800', color: MUTED, letterSpacing: 0.8 } as TextStyle,
   chipScroll: { gap: 8 } as ViewStyle,
-  chipBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: SURFACE, borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)' } as ViewStyle,
+  chipBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: SURFACE, borderWidth: 1, borderColor: BORDER } as ViewStyle,
   chipText: { fontSize: 12, fontWeight: '800', color: INK2 } as TextStyle,
 
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 } as ViewStyle,
-  addLinkBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: 'rgba(0,122,255,0.08)' } as ViewStyle,
+  addLinkBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: 'rgba(0,122,255,0.12)' } as ViewStyle,
   addLinkText: { fontSize: 12, fontWeight: '800', color: BRAND } as TextStyle,
 
   customLinkBlock: { padding: 16, gap: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: BORDER } as ViewStyle,
   customLinkBlockLast: { borderBottomWidth: 0 } as ViewStyle,
   customLinkTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } as ViewStyle,
   customLinkTitle: { fontSize: 13, fontWeight: '800', color: INK2 } as TextStyle,
-  customLinkInput: { minHeight: 44, borderRadius: 12, backgroundColor: '#F3F4F6', paddingHorizontal: 14, fontSize: 14, fontWeight: '600', color: INK } as TextStyle,
+  customLinkInput: { minHeight: 44, borderRadius: 12, backgroundColor: SURFACE, borderWidth: 1, borderColor: BORDER, paddingHorizontal: 14, fontSize: 14, fontWeight: '600', color: INK } as TextStyle,
 
   emptyLinkCard: { minHeight: 76, borderRadius: 24, backgroundColor: SURFACE, borderWidth: 1, borderColor: BORDER, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 } as ViewStyle,
   emptyLinkCopy: { flex: 1, gap: 2 } as ViewStyle,
-  emptyLinkTitle: { fontSize: 15, fontWeight: '800', color: INK2, letterSpacing: -0.2 } as TextStyle,
+  emptyLinkTitle: { fontSize: 15, fontWeight: '800', color: INK, letterSpacing: -0.2 } as TextStyle,
   emptyLinkSub: { fontSize: 12, fontWeight: '600', color: MUTED, lineHeight: 17 } as TextStyle,
 });

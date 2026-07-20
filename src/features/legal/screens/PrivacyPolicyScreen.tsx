@@ -10,7 +10,7 @@ export default function PrivacyPolicyScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <AppIcon name="ArrowLeft" size={24} color="#2563eb" />
+          <AppIcon name="ArrowLeft" size={24} color="#9A9AA0" />
         </TouchableOpacity>
         <AppText style={styles.headerTitle}>Privacy Policy</AppText>
         <View style={styles.placeholder} />
@@ -18,7 +18,7 @@ export default function PrivacyPolicyScreen() {
 
       <IosScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         <View style={styles.iconContainer}>
-          <AppIcon name="ShieldCheck" size={24} color="#2563eb" />
+          <AppIcon name="ShieldCheck" size={24} color="#FFFFFF" />
         </View>
 
         <AppText style={styles.title}>Privacy Policy</AppText>
@@ -106,24 +106,26 @@ export default function PrivacyPolicyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f7f7fa',
+    backgroundColor: '#000000',
   },
   header: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#111114',
     paddingVertical: 12,
     paddingHorizontal: 16,
     paddingTop: 50,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.09)',
   },
   backButton: {
     padding: 8,
     borderRadius: 18,
-    backgroundColor: '#eff6ff',
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   headerTitle: {
-    color: '#111827',
+    color: '#F5F5F7',
     fontSize: 18,
     fontWeight: '700',
   },
@@ -143,13 +145,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#1f2937',
+    color: '#F5F5F7',
     textAlign: 'center',
     marginBottom: 8,
   },
   lastUpdated: {
     fontSize: 14,
-    color: '#6b7280',
+    color: '#9A9AA0',
     textAlign: 'center',
     marginBottom: 32,
   },
@@ -159,28 +161,25 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1f2937',
+    color: '#F5F5F7',
     marginBottom: 12,
   },
   sectionText: {
     fontSize: 14,
-    color: '#4b5563',
-    lineHeight: 20,
+    color: '#9A9AA0',
+    lineHeight: 22,
   },
   footer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#111114',
     borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.09)',
     padding: 16,
     marginTop: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.04,
-    shadowRadius: 18,
-    elevation: 2,
   },
   footerText: {
     fontSize: 12,
-    color: '#6b7280',
+    color: '#9A9AA0',
     textAlign: 'center',
     fontStyle: 'italic',
   },
