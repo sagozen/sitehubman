@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="JobHub Pro – Cambodia's #1 Job Portal. Find your dream career with top employers across all industries."/>
+  <title>JobHub Pro – Find Your Dream Job in Cambodia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="container topbar-inner">
+      <div class="topbar-left">
+        <span>&#128222; 1800-800-800 (Free)</span>
+        <span>&#9993; support@jobhubpro.com.kh</span>
+      </div>
+      <div class="topbar-right">
+        <a href="#" class="topbar-link">For Employers</a>
+        <span class="topbar-divider">|</span>
+        <a href="#" class="topbar-link">KH</a>
+        <span class="topbar-divider">|</span>
+        <a href="#" class="topbar-link">EN</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVBAR -->
+  <header class="navbar" id="navbar">
+    <div class="container navbar-inner">
+      <a href="#" class="logo" aria-label="JobHub Pro Home">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+          <rect width="36" height="36" rx="8" fill="#0057A8"/>
+          <path d="M10 24V14a2 2 0 012-2h4v-2a2 2 0 012-2h4a2 2 0 012 2v2h4a2 2 0 012 2v10" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+          <rect x="14" y="20" width="8" height="4" rx="1" fill="#fff"/>
+        </svg>
+        <div class="logo-text">
+          <span class="logo-main">JobHub</span><span class="logo-accent">Pro</span>
+        </div>
+      </a>
+
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="#" class="nav-link active">Home</a>
+        <div class="nav-dropdown">
+          <a href="#" class="nav-link">Find Jobs &#9660;</a>
+          <div class="dropdown-menu">
+            <a href="#jobs" class="dropdown-item">Browse All Jobs</a>
+            <a href="#" class="dropdown-item">Remote Jobs</a>
+            <a href="#" class="dropdown-item">Part-time Jobs</a>
+            <a href="#" class="dropdown-item">Internships</a>
+            <a href="#" class="dropdown-item">Executive Roles</a>
+          </div>
+        </div>
+        <div class="nav-dropdown">
+          <a href="#" class="nav-link">Companies &#9660;</a>
+          <div class="dropdown-menu">
+            <a href="#companies" class="dropdown-item">Top Employers</a>
+            <a href="#" class="dropdown-item">MNC Companies</a>
+            <a href="#" class="dropdown-item">Startups</a>
+            <a href="#" class="dropdown-item">Government</a>
+          </div>
+        </div>
+        <a href="#" class="nav-link">Career Tips</a>
+        <a href="#" class="nav-link">Salary Guide</a>
+      </nav>
+
+      <div class="nav-auth">
+        <a href="#" class="btn btn-outline" id="loginBtn">Log In</a>
+        <a href="#" class="btn btn-primary" id="signupBtn">Post a Job</a>
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+      <a href="#" class="mobile-link">Home</a>
+      <a href="#jobs" class="mobile-link">Find Jobs</a>
+      <a href="#companies" class="mobile-link">Companies</a>
+      <a href="#" class="mobile-link">Career Tips</a>
+      <a href="#" class="mobile-link">Salary Guide</a>
+      <div class="mobile-auth">
+        <a href="#" class="btn btn-outline w-full">Log In</a>
+        <a href="#" class="btn btn-primary w-full">Post a Job</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <div class="hero-bg">
+      <div class="hero-shape hero-shape-1"></div>
+      <div class="hero-shape hero-shape-2"></div>
+    </div>
+    <div class="container hero-inner">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          Cambodia's #1 Job Platform &mdash; 50,000+ Active Jobs
+        </div>
+        <h1 class="hero-title">
+          Find Your Dream Job<br/>
+          <span class="hero-highlight">Start Your Career</span><br/>
+          Journey Today
+        </h1>
+        <p class="hero-subtitle">Connect with top employers across Cambodia &amp; Southeast Asia. Thousands of new jobs added every day.</p>
+
+        <div class="search-box">
+          <div class="search-field">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <circle cx="9" cy="9" r="6" stroke="#64748B" stroke-width="1.8"/>
+              <path d="M13.5 13.5L17 17" stroke="#64748B" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <input id="searchKeyword" type="text" placeholder="Job title, keyword or company" class="search-input"/>
+          </div>
+          <div class="search-divider"></div>
+          <div class="search-field">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M10 2C7.24 2 5 4.24 5 7c0 3.75 5 11 5 11s5-7.25 5-11c0-2.76-2.24-5-5-5z" stroke="#64748B" stroke-width="1.8"/>
+              <circle cx="10" cy="7" r="2" stroke="#64748B" stroke-width="1.8"/>
+            </svg>
+            <input id="searchLocation" type="text" placeholder="City or province" class="search-input"/>
+          </div>
+          <button class="btn btn-primary btn-search" id="searchBtn">Search Jobs</button>
+        </div>
+
+        <div class="popular-searches">
+          <span class="popular-label">Popular:</span>
+          <a href="#" class="popular-tag" data-keyword="Software Engineer">Software Engineer</a>
+          <a href="#" class="popular-tag" data-keyword="Marketing">Marketing</a>
+          <a href="#" class="popular-tag" data-keyword="Finance">Finance</a>
+          <a href="#" class="popular-tag" data-keyword="Healthcare">Healthcare</a>
+          <a href="#" class="popular-tag" data-keyword="Teacher">Teacher</a>
+        </div>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat-card"><div class="stat-number" data-target="50000">0</div><div class="stat-label">Active Jobs</div></div>
+        <div class="stat-card"><div class="stat-number" data-target="12000">0</div><div class="stat-label">Companies</div></div>
+        <div class="stat-card"><div class="stat-number" data-target="2800000">0</div><div class="stat-label">Job Seekers</div></div>
+        <div class="stat-card"><div class="stat-number" data-target="98">0</div><div class="stat-label">% Success Rate</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUSTED -->
+  <section class="trusted">
+    <div class="container">
+      <p class="trusted-label">Trusted by leading companies in Cambodia</p>
+      <div class="trusted-logos">
+        <div class="trusted-logo-item"><span class="company-logo-text" style="color:#E4002B">Acleda</span></div>
+        <div class="trusted-logo-item"><span class="company-logo-text" style="color:#0057A8">Metfone</span></div>
+        <div class="trusted-logo-item"><span class="company-logo-text" style="color:#FF6200">Smart</span></div>
+        <div class="trusted-logo-item"><span class="company-logo-text" style="color:#2D5BA3">AEON</span></div>
+        <div class="trusted-logo-item"><span class="company-logo-text" style="color:#003087">ANZ Royal</span></div>
+        <div class="trusted-logo-item"><span class="company-logo-text" style="color:#CC0000">Canadia Bank</span></div>
+        <div class="trusted-logo-item"><span class="company-logo-text" style="color:#1A237E">Wing</span></div>
+        <div class="trusted-logo-item"><span class="company-logo-text" style="color:#2196F3">TrueMoney</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORIES -->
+  <section class="categories" id="categories">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Browse By Category</div>
+        <h2 class="section-title">Explore Top Job Categories</h2>
+        <p class="section-subtitle">Find opportunities across all major industries in Cambodia and Southeast Asia</p>
+      </div>
+      <div class="categories-grid" id="categoriesGrid"></div>
+      <div class="section-cta"><a href="#" class="btn btn-outline-primary">View All Categories</a></div>
+    </div>
+  </section>
+
+  <!-- JOBS -->
+  <section class="jobs-section" id="jobs">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Latest Opportunities</div>
+        <h2 class="section-title">Featured Jobs</h2>
+        <p class="section-subtitle">Hand-picked roles from top employers &mdash; updated daily</p>
+      </div>
+      <div class="filter-tabs" role="tablist">
+        <button class="filter-tab active" data-filter="all" role="tab" aria-selected="true">All Jobs</button>
+        <button class="filter-tab" data-filter="fulltime" role="tab">Full-time</button>
+        <button class="filter-tab" data-filter="parttime" role="tab">Part-time</button>
+        <button class="filter-tab" data-filter="remote" role="tab">Remote</button>
+        <button class="filter-tab" data-filter="internship" role="tab">Internship</button>
+      </div>
+      <div class="jobs-grid" id="jobsGrid"></div>
+      <div class="section-cta"><a href="#" class="btn btn-primary btn-lg">Browse All 50,000+ Jobs</a></div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-it-works">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Simple Process</div>
+        <h2 class="section-title">How JobHub Pro Works</h2>
+        <p class="section-subtitle">Get hired in 3 easy steps</p>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">01</div>
+          <div class="step-icon-wrap" style="background:#EFF6FF">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 8a4 4 0 100 8 4 4 0 000-8zM8 26c0-4.42 3.58-8 8-8s8 3.58 8 8" stroke="#0057A8" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <h3 class="step-title">Create Your Profile</h3>
+          <p class="step-desc">Build your professional profile in minutes. Upload your CV and let employers find you.</p>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-card">
+          <div class="step-number">02</div>
+          <div class="step-icon-wrap" style="background:#EFF6FF">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="15" cy="15" r="9" stroke="#0057A8" stroke-width="2"/><path d="M22 22L28 28" stroke="#0057A8" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <h3 class="step-title">Search &amp; Apply</h3>
+          <p class="step-desc">Browse thousands of jobs. Filter by location, salary, industry and apply with one click.</p>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-card">
+          <div class="step-number">03</div>
+          <div class="step-icon-wrap" style="background:#F0FDF4">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M8 16l6 6 10-10" stroke="#16A34A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h3 class="step-title">Get Hired</h3>
+          <p class="step-desc">Receive interview invitations directly. Track your applications and land your dream job.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPANIES -->
+  <section class="companies-section" id="companies">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Top Employers</div>
+        <h2 class="section-title">Companies Hiring Now</h2>
+        <p class="section-subtitle">Join thousands of professionals working at Cambodia's best companies</p>
+      </div>
+      <div class="companies-grid" id="companiesGrid"></div>
+      <div class="section-cta"><a href="#" class="btn btn-outline-primary">Explore All Companies</a></div>
+    </div>
+  </section>
+
+  <!-- SALARY BANNER -->
+  <section class="salary-banner">
+    <div class="container salary-banner-inner">
+      <div class="salary-banner-content">
+        <div class="salary-banner-tag">2026 Report</div>
+        <h2 class="salary-banner-title">Cambodia Salary Guide 2026</h2>
+        <p class="salary-banner-desc">Discover market-rate salaries for your role. Compare across 200+ job titles and 15 industries.</p>
+        <a href="#" class="btn btn-white btn-lg">Download Free Guide</a>
+      </div>
+      <div class="salary-chart-preview">
+        <div class="chart-row"><span class="chart-lbl">IT &amp; Tech</span><div class="chart-bar-wrap"><div class="chart-bar" style="--w:85%"><span>$2,200</span></div></div></div>
+        <div class="chart-row"><span class="chart-lbl">Finance</span><div class="chart-bar-wrap"><div class="chart-bar" style="--w:72%"><span>$1,800</span></div></div></div>
+        <div class="chart-row"><span class="chart-lbl">Marketing</span><div class="chart-bar-wrap"><div class="chart-bar" style="--w:60%"><span>$1,500</span></div></div></div>
+        <div class="chart-row"><span class="chart-lbl">Operations</span><div class="chart-bar-wrap"><div class="chart-bar" style="--w:50%"><span>$1,200</span></div></div></div>
+        <div class="chart-row"><span class="chart-lbl">Education</span><div class="chart-bar-wrap"><div class="chart-bar" style="--w:40%"><span>$1,000</span></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="testimonials" id="testimonials">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Success Stories</div>
+        <h2 class="section-title">What Our Users Say</h2>
+        <p class="section-subtitle">Real people who found their dream jobs through JobHub Pro</p>
+      </div>
+      <div class="testimonials-grid" id="testimonialsGrid"></div>
+    </div>
+  </section>
+
+  <!-- APP BANNER -->
+  <section class="app-banner">
+    <div class="container app-banner-inner">
+      <div class="app-banner-content">
+        <h2 class="app-banner-title">Job Hunt On the Go</h2>
+        <p class="app-banner-desc">Download the JobHub Pro app. Get instant job alerts, apply with one tap, and track your applications anytime.</p>
+        <div class="app-store-btns">
+          <a href="#" class="app-store-btn">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            <div><div class="app-btn-sub">Download on the</div><div class="app-btn-main">App Store</div></div>
+          </a>
+          <a href="#" class="app-store-btn">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M3.18 23.76c.22.12.48.14.72.06l11.34-6.5-2.43-2.43-9.63 8.87zM.44 1.01C.17 1.3 0 1.7 0 2.16v19.68c0 .46.17.86.44 1.15l.06.06 11.02-11.02v-.26L.5.95.44 1.01zM20.12 9.07l-2.36-1.35-2.7 2.7 2.7 2.7 2.37-1.36c.68-.39.68-1.31-.01-1.69zM3.18.24l11.34 6.5-2.43 2.43L2.46.3c.24-.08.5-.06.72.06z"/></svg>
+            <div><div class="app-btn-sub">Get it on</div><div class="app-btn-main">Google Play</div></div>
+          </a>
+        </div>
+      </div>
+      <div class="phone-mockup">
+        <div class="phone-screen">
+          <div class="phone-notch"></div>
+          <div class="phone-ui">
+            <div class="phone-greeting">Good Morning, Dara &#128075;</div>
+            <div class="phone-sub">3 new jobs match your profile</div>
+            <div class="phone-job"><div class="pjob-logo" style="background:#0057A8">MF</div><div class="pjob-info"><div class="pjob-title">Software Engineer</div><div class="pjob-co">Metfone</div></div><div class="pjob-badge">New</div></div>
+            <div class="phone-job"><div class="pjob-logo" style="background:#E4002B">AC</div><div class="pjob-info"><div class="pjob-title">Loan Officer</div><div class="pjob-co">Acleda Bank</div></div><div class="pjob-badge">Hot</div></div>
+            <div class="phone-job"><div class="pjob-logo" style="background:#FF6200">SM</div><div class="pjob-info"><div class="pjob-title">Brand Manager</div><div class="pjob-co">Smart Axiata</div></div><div class="pjob-badge">Featured</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEWSLETTER -->
+  <section class="newsletter">
+    <div class="container newsletter-inner">
+      <div class="newsletter-content">
+        <div>
+          <h2 class="newsletter-title">Get Job Alerts in Your Inbox</h2>
+          <p class="newsletter-desc">Subscribe and receive personalized job matches every week &mdash; free.</p>
+        </div>
+      </div>
+      <form class="newsletter-form" id="newsletterForm" novalidate>
+        <input type="email" id="newsletterEmail" class="newsletter-input" placeholder="Enter your email address" required/>
+        <button type="submit" class="btn btn-white">Subscribe Free</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-col footer-brand">
+          <a href="#" class="logo footer-logo">
+            <svg width="32" height="32" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="8" fill="#0057A8"/><path d="M10 24V14a2 2 0 012-2h4v-2a2 2 0 012-2h4a2 2 0 012 2v2h4a2 2 0 012 2v10" stroke="#fff" stroke-width="2" stroke-linecap="round"/><rect x="14" y="20" width="8" height="4" rx="1" fill="#fff"/></svg>
+            <div class="logo-text"><span class="logo-main" style="color:#fff">JobHub</span><span class="logo-accent">Pro</span></div>
+          </a>
+          <p class="footer-brand-desc">Cambodia's leading job platform connecting talent with top employers since 2015. Trusted by 2.8 million job seekers.</p>
+          <div class="footer-socials">
+            <a href="#" class="social-btn" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
+            <a href="#" class="social-btn" aria-label="LinkedIn"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg></a>
+            <a href="#" class="social-btn" aria-label="Telegram"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg></a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h3 class="footer-heading">For Job Seekers</h3>
+          <ul class="footer-links">
+            <li><a href="#">Browse Jobs</a></li>
+            <li><a href="#">Remote Jobs</a></li>
+            <li><a href="#">Salary Guide</a></li>
+            <li><a href="#">Career Tips</a></li>
+            <li><a href="#">Resume Builder</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3 class="footer-heading">For Employers</h3>
+          <ul class="footer-links">
+            <li><a href="#">Post a Job</a></li>
+            <li><a href="#">Search Candidates</a></li>
+            <li><a href="#">Pricing Plans</a></li>
+            <li><a href="#">Employer Branding</a></li>
+            <li><a href="#">Contact Sales</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3 class="footer-heading">Company</h3>
+          <ul class="footer-links">
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Press &amp; Media</a></li>
+            <li><a href="#">Careers at JobHub</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Contact Us</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3 class="footer-heading">Contact</h3>
+          <ul class="footer-contact-list">
+            <li>support@jobhubpro.com.kh</li>
+            <li>1800-800-800</li>
+            <li>No. 96, Preah Norodom Blvd, Phnom Penh, Cambodia</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="footer-copy">&copy; 2026 JobHub Pro Co., Ltd. All rights reserved.</p>
+        <div class="footer-legal">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+          <a href="#">Sitemap</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <button class="back-to-top" id="backToTop" aria-label="Back to top">&#8679;</button>
+
+  <!-- LOGIN MODAL -->
+  <div class="modal-overlay" id="loginModal" role="dialog" aria-modal="true">
+    <div class="modal">
+      <button class="modal-close" id="closeLoginModal" aria-label="Close">&times;</button>
+      <h2 class="modal-title" id="loginModalTitle">Sign In to JobHub Pro</h2>
+      <p class="modal-subtitle">Access thousands of jobs and track your applications</p>
+      <form class="modal-form" id="loginForm" novalidate>
+        <div class="form-group">
+          <label for="loginEmail" class="form-label">Email Address <span class="required">*</span></label>
+          <input type="email" id="loginEmail" class="form-input" placeholder="your@email.com" required autocomplete="email"/>
+          <div class="form-error" id="loginEmailError" aria-live="polite"></div>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword" class="form-label">Password <span class="required">*</span></label>
+          <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required autocomplete="current-password"/>
+          <div class="form-error" id="loginPasswordError" aria-live="polite"></div>
+        </div>
+        <button type="submit" class="btn btn-primary w-full btn-lg">Sign In</button>
+        <p class="modal-footer-text">Don't have an account? <a href="#" class="modal-link">Sign up free</a></p>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1766 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NFC Salesman Dashboard</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-grad-1: #dbeafe;
+      --bg-grad-2: #dcfce7;
+      --bg-grad-3: #e0e7ff;
+      --bg-base-1: #f8fafc;
+      --bg-base-2: #eef2f7;
+      --text-primary: #020617;
+      --text-muted: #64748b;
+      --glass-bg: rgba(255,255,255,.78);
+      --glass-border: rgba(255,255,255,.9);
+      --chip-bg: #f1f5f9;
+    }
+    [data-theme="dark"] {
+      --bg-grad-1: #0b1220;
+      --bg-grad-2: #0a1a14;
+      --bg-grad-3: #0a1024;
+      --bg-base-1: #0a0f1c;
+      --bg-base-2: #0a0f1c;
+      --text-primary: #f1f5f9;
+      --text-muted: #94a3b8;
+      --glass-bg: rgba(15,23,42,.7);
+      --glass-border: rgba(255,255,255,.08);
+      --chip-bg: #1e293b;
+    }
+
+    html, body {
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text-primary);
+      transition: background .3s ease, color .3s ease;
+    }
+    body {
+      background:
+        radial-gradient(circle at top left, var(--bg-grad-1) 0, transparent 30%),
+        radial-gradient(circle at top right, var(--bg-grad-2) 0, transparent 34%),
+        radial-gradient(circle at bottom, var(--bg-grad-3) 0, transparent 38%),
+        linear-gradient(180deg, var(--bg-base-1), var(--bg-base-2));
+      min-height: 100vh;
+    }
+
+    .glass {
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 20px 55px rgba(15,23,42,.08);
+    }
+    [data-theme="dark"] .glass { box-shadow: 0 20px 55px rgba(0,0,0,.5); }
+
+    .page { display: none; animation: fade .3s ease; }
+    .page.active { display: block; }
+
+    .quick-btn {
+      transition: .25s ease;
+      color: var(--text-muted);
+      position: relative;
+    }
+    .quick-btn:hover { transform: translateY(-2px); }
+    .quick-btn.active {
+      background: #0f172a;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 16px 35px rgba(15,23,42,.22);
+    }
+    [data-theme="dark"] .quick-btn.active {
+      background: #2563eb;
+      box-shadow: 0 16px 35px rgba(37,99,235,.4);
+    }
+
+    .filter-btn {
+      color: var(--text-muted);
+      transition: .2s ease;
+    }
+    .filter-btn.active {
+      background: #2563eb;
+      color: white;
+      box-shadow: 0 10px 24px rgba(37,99,235,.25);
+    }
+
+    .card-hover { transition: .25s ease; }
+    .card-hover:hover { transform: translateY(-3px) scale(1.005); }
+
+    .btn { transition: .2s ease; }
+    .btn:active { transform: scale(.96); }
+
+    .input {
+      width: 100%;
+      background: var(--chip-bg);
+      border: 1px solid transparent;
+      color: var(--text-primary);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 14px;
+      outline: none;
+      transition: .2s ease;
+    }
+    .input:focus { border-color: #2563eb; background: transparent; }
+    .input::placeholder { color: var(--text-muted); }
+
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 999px;
+      font-size: 11px; font-weight: 800;
+    }
+
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 80;
+      background: rgba(15,23,42,.55); backdrop-filter: blur(8px);
+      display: none; align-items: flex-end; justify-content: center;
+      animation: fade .2s ease;
+    }
+    .modal-backdrop.show { display: flex; }
+    @media (min-width: 640px) {
+      .modal-backdrop { align-items: center; }
+    }
+    .modal {
+      width: 100%; max-width: 480px;
+      max-height: 88vh; overflow-y: auto;
+      border-radius: 28px 28px 0 0;
+      animation: slideUp .3s cubic-bezier(.2,.9,.2,1);
+    }
+    @media (min-width: 640px) { .modal { border-radius: 28px; } }
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .toast-stack {
+      position: fixed; top: 16px; right: 16px; z-index: 90;
+      display: flex; flex-direction: column; gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      min-width: 240px; max-width: 320px;
+      padding: 12px 14px; border-radius: 16px;
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 700; font-size: 13px;
+      box-shadow: 0 16px 40px rgba(15,23,42,.18);
+      animation: toastIn .35s cubic-bezier(.2,.9,.2,1);
+    }
+    @keyframes toastIn {
+      from { transform: translateX(120%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .toast.success { background: #10b981; color: white; }
+    .toast.error { background: #ef4444; color: white; }
+    .toast.info { background: #2563eb; color: white; }
+    .toast.warning { background: #f59e0b; color: white; }
+
+    .fab {
+      position: fixed; bottom: 24px; right: 24px; z-index: 50;
+      width: 56px; height: 56px; border-radius: 50%;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      color: white; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 18px 40px rgba(37,99,235,.45);
+      transition: .25s ease; cursor: pointer;
+    }
+    .fab:hover { transform: translateY(-3px) rotate(8deg); }
+
+    .skeleton {
+      background: linear-gradient(90deg, var(--chip-bg) 25%, transparent 37%, var(--chip-bg) 63%);
+      background-size: 400% 100%;
+      animation: shimmer 1.4s ease infinite;
+      border-radius: 12px;
+    }
+    @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+
+    .progress-bar { background: var(--chip-bg); }
+
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .seg-btn { color: var(--text-muted); transition: .2s ease; }
+    .seg-btn.active {
+      background: #0f172a; color: white;
+    }
+    [data-theme="dark"] .seg-btn.active { background: #2563eb; }
+
+    .switch {
+      width: 44px; height: 24px; border-radius: 999px;
+      background: var(--chip-bg); position: relative;
+      transition: .2s ease; cursor: pointer;
+    }
+    .switch::after {
+      content: ''; position: absolute; top: 2px; left: 2px;
+      width: 20px; height: 20px; border-radius: 50%; background: white;
+      transition: .25s ease;
+    }
+    .switch.on { background: #2563eb; }
+    .switch.on::after { left: 22px; }
+
+    .pulse-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #10b981;
+      box-shadow: 0 0 0 0 rgba(16,185,129,.7);
+      animation: pulse 1.6s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(16,185,129,.7); }
+      70% { box-shadow: 0 0 0 10px rgba(16,185,129,0); }
+      100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+    }
+
+    .scroll-hide::-webkit-scrollbar { display: none; }
+    .scroll-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Mini chart bar */
+    .chart-bar {
+      transition: .4s cubic-bezier(.2,.9,.2,1);
+      transform-origin: bottom;
+    }
+
+    /* Hover lift for cards */
+    .lift { transition: transform .25s ease, box-shadow .25s ease; }
+    .lift:hover { transform: translateY(-2px); }
+
+    /* Status pill colors */
+    .status-pending { background: #fef3c7; color: #b45309; }
+    .status-approved { background: #dbeafe; color: #1d4ed8; }
+    .status-printing { background: #ede9fe; color: #6d28d9; }
+    .status-delivered { background: #d1fae5; color: #047857; }
+    .status-cancelled { background: #fee2e2; color: #b91c1c; }
+    [data-theme="dark"] .status-pending { background: #422006; color: #fcd34d; }
+    [data-theme="dark"] .status-approved { background: #1e3a8a; color: #93c5fd; }
+    [data-theme="dark"] .status-printing { background: #4c1d95; color: #c4b5fd; }
+    [data-theme="dark"] .status-delivered { background: #064e3b; color: #6ee7b7; }
+    [data-theme="dark"] .status-cancelled { background: #7f1d1d; color: #fca5a5; }
+
+    .avatar-grad {
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      color: white; font-weight: 900;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+
+    .qr {
+      width: 140px; height: 140px;
+      background:
+        repeating-linear-gradient(0deg, #0f172a 0 6px, transparent 6px 12px),
+        repeating-linear-gradient(90deg, #0f172a 0 6px, transparent 6px 12px),
+        white;
+      border-radius: 14px;
+      position: relative;
+      display: grid; place-items: center;
+    }
+    .qr::after {
+      content: ''; width: 30px; height: 30px;
+      background: white; border: 6px solid #0f172a;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen p-5 text-slate-950">
+  <main class="max-w-[460px] mx-auto space-y-5 pb-28">
+
+    <!-- Header -->
+    <header class="flex items-center justify-between pt-2">
+      <div class="flex items-center gap-3">
+        <div id="avatar" class="w-11 h-11 rounded-full avatar-grad text-sm">SM</div>
+        <div>
+          <p class="text-xs font-black text-blue-600 tracking-wide">NFC GLOBAL SALES</p>
+          <h1 id="pageTitle" class="text-2xl font-black tracking-tight">Dashboard</h1>
+          <p id="liveClock" class="text-[11px] text-slate-500 font-bold"></p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="openModal('notifications')" class="relative w-11 h-11 rounded-full glass flex items-center justify-center btn">
+          <i data-lucide="bell" class="w-5 h-5"></i>
+          <span id="notifBadge" class="hidden absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center">0</span>
+        </button>
+        <button onclick="openModal('settings')" class="w-11 h-11 rounded-full glass flex items-center justify-center btn">
+          <i data-lucide="settings" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Revenue Card -->
+    <section class="glass rounded-[30px] p-6 card-hover relative overflow-hidden">
+      <div class="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-blue-200/40 blur-2xl"></div>
+      <div class="absolute -left-6 -bottom-6 w-32 h-32 rounded-full bg-emerald-200/40 blur-2xl"></div>
+
+      <div class="flex items-center justify-between mb-4 relative">
+        <p class="text-sm text-slate-500 font-bold">Today Revenue</p>
+        <span class="text-xs px-3 py-1 rounded-full bg-black text-white font-black flex items-center gap-2">
+          <span class="pulse-dot"></span> Live
+        </span>
+      </div>
+
+      <h2 id="todayRevenue" class="text-5xl font-black tracking-tight relative">$1,240</h2>
+      <div class="flex items-center gap-2 mt-3 text-emerald-600 text-sm font-black relative">
+        <i data-lucide="trending-up" class="w-4 h-4"></i>
+        <span id="revenueTrend">+12%</span>
+        <span class="text-slate-500 font-bold">vs yesterday</span>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3 mt-5 relative">
+        <div class="rounded-2xl bg-white/60 p-3">
+          <p class="text-[10px] uppercase tracking-wide text-slate-500 font-black">Orders</p>
+          <p id="statOrders" class="text-lg font-black mt-1">12</p>
+        </div>
+        <div class="rounded-2xl bg-white/60 p-3">
+          <p class="text-[10px] uppercase tracking-wide text-slate-500 font-black">Conversion</p>
+          <p id="statConv" class="text-lg font-black mt-1">68%</p>
+        </div>
+        <div class="rounded-2xl bg-white/60 p-3">
+          <p class="text-[10px] uppercase tracking-wide text-slate-500 font-black">Commission</p>
+          <p id="statComm" class="text-lg font-black mt-1">$86</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Referral Code -->
+    <section class="glass rounded-[30px] p-5 card-hover">
+      <div class="flex justify-between items-start">
+        <div>
+          <p class="text-sm text-slate-500 font-black">My Salesman Code</p>
+          <h3 id="refCode" class="text-2xl font-black mt-1 tracking-tight">SALE-THEAN25</h3>
+          <p class="text-sm text-emerald-600 font-black mt-1">Customer gets 25% off first order</p>
+        </div>
+
+        <button onclick="openReferralQR()" class="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center btn">
+          <i data-lucide="qr-code" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3 mt-4">
+        <button onclick="copyRefCode()" class="rounded-full bg-slate-950 text-white py-3 text-sm font-black flex items-center justify-center gap-2 btn">
+          <i data-lucide="copy" class="w-4 h-4"></i>
+          Copy
+        </button>
+        <button onclick="shareRefCode()" class="rounded-full bg-blue-600 text-white py-3 text-sm font-black flex items-center justify-center gap-2 btn">
+          <i data-lucide="share-2" class="w-4 h-4"></i>
+          Share
+        </button>
+        <button onclick="openModal('referrals')" class="rounded-full bg-blue-100 text-blue-700 py-3 text-sm font-black flex items-center justify-center gap-2 btn">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          Referrals
+        </button>
+      </div>
+    </section>
+
+    <!-- Quick Tabs -->
+    <div class="grid grid-cols-5 gap-2">
+      <button onclick="showPage('home','Dashboard', this)" data-tab="home" class="quick-btn glass rounded-2xl p-3 flex flex-col items-center gap-2 text-[11px] font-black">
+        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+        Home
+      </button>
+      <button onclick="showPage('orders','Orders', this)" data-tab="orders" class="quick-btn active glass rounded-2xl p-3 flex flex-col items-center gap-2 text-[11px] font-black">
+        <i data-lucide="receipt" class="w-5 h-5"></i>
+        Orders
+      </button>
+      <button onclick="showPage('customers','Customers', this)" data-tab="customers" class="quick-btn glass rounded-2xl p-3 flex flex-col items-center gap-2 text-[11px] font-black">
+        <i data-lucide="user-round" class="w-5 h-5"></i>
+        Customers
+      </button>
+      <button onclick="showPage('printer','Printer', this)" data-tab="printer" class="quick-btn glass rounded-2xl p-3 flex flex-col items-center gap-2 text-[11px] font-black">
+        <i data-lucide="printer" class="w-5 h-5"></i>
+        Printer
+      </button>
+      <button onclick="showPage('report','Report', this)" data-tab="report" class="quick-btn glass rounded-2xl p-3 flex flex-col items-center gap-2 text-[11px] font-black">
+        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+        Report
+      </button>
+    </div>
+
+    <!-- ============= HOME PAGE ============= -->
+    <section id="home" class="page space-y-4">
+      <!-- Goals -->
+      <section class="glass rounded-[28px] p-5">
+        <div class="flex justify-between items-center">
+          <h3 class="font-black text-lg">Monthly Goal</h3>
+          <span id="goalPct" class="pill bg-blue-100 text-blue-700">62%</span>
+        </div>
+        <div class="mt-4 progress-bar h-3 rounded-full overflow-hidden">
+          <div id="goalBar" class="h-3 rounded-full bg-gradient-to-r from-blue-600 to-violet-600" style="width:62%"></div>
+        </div>
+        <div class="flex justify-between mt-2 text-xs font-bold text-slate-500">
+          <span>$11,580 of $18,500</span>
+          <span>22 days left</span>
+        </div>
+      </section>
+
+      <!-- Weekly Sales Chart -->
+      <section class="glass rounded-[28px] p-5">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="font-black text-lg">Weekly Sales</h3>
+            <p class="text-xs text-slate-500 font-bold">Last 7 days</p>
+          </div>
+          <div class="pill bg-emerald-100 text-emerald-700">
+            <i data-lucide="trending-up" class="w-3 h-3"></i> +18%
+          </div>
+        </div>
+        <div id="weeklyChart" class="flex items-end justify-between gap-2 h-40 mt-3"></div>
+        <div id="weeklyLabels" class="flex justify-between mt-2 text-[10px] text-slate-500 font-bold"></div>
+      </section>
+
+      <!-- Top Customers -->
+      <section>
+        <div class="flex items-center justify-between px-1 mb-2">
+          <h3 class="font-black text-lg">Top Customers</h3>
+          <button onclick="showPage('customers','Customers', document.querySelector('[data-tab=&quot;customers&quot;]'))" class="text-sm font-black text-blue-600">View All</button>
+        </div>
+        <div id="topCustomers" class="grid grid-cols-3 gap-3"></div>
+      </section>
+
+      <!-- Activity Feed -->
+      <section class="glass rounded-[28px] p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-black text-lg">Activity</h3>
+          <span class="pill bg-slate-100 text-slate-700">Today</span>
+        </div>
+        <div id="activityFeed" class="space-y-3"></div>
+      </section>
+
+      <!-- Achievements -->
+      <section class="glass rounded-[28px] p-5">
+        <h3 class="font-black text-lg mb-3">Achievements</h3>
+        <div class="grid grid-cols-3 gap-3">
+          <div class="rounded-2xl bg-amber-100 p-3 text-center lift">
+            <i data-lucide="trophy" class="w-7 h-7 text-amber-600 mx-auto"></i>
+            <p class="text-xs font-black mt-2">Top Seller</p>
+            <p class="text-[10px] text-slate-500 font-bold">This Month</p>
+          </div>
+          <div class="rounded-2xl bg-blue-100 p-3 text-center lift">
+            <i data-lucide="zap" class="w-7 h-7 text-blue-600 mx-auto"></i>
+            <p class="text-xs font-black mt-2">Fast Closer</p>
+            <p class="text-[10px] text-slate-500 font-bold">20 deals</p>
+          </div>
+          <div class="rounded-2xl bg-emerald-100 p-3 text-center lift opacity-50">
+            <i data-lucide="rocket" class="w-7 h-7 text-emerald-600 mx-auto"></i>
+            <p class="text-xs font-black mt-2">$20K Club</p>
+            <p class="text-[10px] text-slate-500 font-bold">92% to go</p>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- ============= ORDERS PAGE ============= -->
+    <section id="orders" class="page active space-y-4">
+
+      <!-- Filter + Search -->
+      <div class="glass rounded-[24px] p-3 space-y-3">
+        <div class="bg-slate-100 rounded-2xl px-4 py-3 flex items-center gap-2">
+          <i data-lucide="search" class="w-5 h-5 text-slate-400"></i>
+          <input id="orderSearch" oninput="renderOrders()" type="text" placeholder="Search order, customer..." class="bg-transparent w-full outline-none text-sm font-bold" />
+        </div>
+        <div class="flex gap-2 overflow-x-auto scroll-hide pb-1">
+          <button onclick="filterOrders('all', this)" class="filter-btn active shrink-0 rounded-full px-4 py-2 text-xs font-black">All</button>
+          <button onclick="filterOrders('pending', this)" class="filter-btn shrink-0 rounded-full px-4 py-2 text-xs font-black">Pending</button>
+          <button onclick="filterOrders('approved', this)" class="filter-btn shrink-0 rounded-full px-4 py-2 text-xs font-black">Approved</button>
+          <button onclick="filterOrders('printing', this)" class="filter-btn shrink-0 rounded-full px-4 py-2 text-xs font-black">Printing</button>
+          <button onclick="filterOrders('delivered', this)" class="filter-btn shrink-0 rounded-full px-4 py-2 text-xs font-black">Delivered</button>
+          <button onclick="filterOrders('cancelled', this)" class="filter-btn shrink-0 rounded-full px-4 py-2 text-xs font-black">Cancelled</button>
+        </div>
+      </div>
+
+      <!-- Process Pipeline -->
+      <div class="grid grid-cols-3 gap-3">
+        <div onclick="filterOrders('pending', document.querySelectorAll('.filter-btn')[1])" class="rounded-2xl p-4 bg-blue-600 text-white cursor-pointer btn lift">
+          <i data-lucide="wallet-cards" class="w-6 h-6"></i>
+          <h3 class="text-2xl font-black mt-2" id="pipePending">18</h3>
+          <p class="text-[10px] uppercase tracking-wide text-white/80 font-black">New</p>
+        </div>
+        <div onclick="filterOrders('printing', document.querySelectorAll('.filter-btn')[3])" class="rounded-2xl p-4 bg-slate-950 text-white cursor-pointer btn lift">
+          <i data-lucide="factory" class="w-6 h-6"></i>
+          <h3 class="text-2xl font-black mt-2" id="pipePrinting">32</h3>
+          <p class="text-[10px] uppercase tracking-wide text-white/70 font-black">Printing</p>
+        </div>
+        <div onclick="filterOrders('delivered', document.querySelectorAll('.filter-btn')[4])" class="rounded-2xl p-4 bg-emerald-500 text-white cursor-pointer btn lift">
+          <i data-lucide="badge-check" class="w-6 h-6"></i>
+          <h3 class="text-2xl font-black mt-2" id="pipeDelivered">126</h3>
+          <p class="text-[10px] uppercase tracking-wide text-white/80 font-black">Done</p>
+        </div>
+      </div>
+
+      <!-- Orders List -->
+      <div class="flex items-center justify-between px-1">
+        <h3 class="font-black text-lg">Order List</h3>
+        <div class="flex items-center gap-2">
+          <span id="ordersCount" class="pill bg-slate-100 text-slate-700">0</span>
+          <button onclick="openOrderForm()" class="pill bg-blue-600 text-white">
+            <i data-lucide="plus" class="w-3 h-3"></i> New
+          </button>
+        </div>
+      </div>
+      <div id="ordersList" class="space-y-3"></div>
+      <div id="ordersEmpty" class="hidden glass rounded-[28px] p-10 text-center">
+        <i data-lucide="inbox" class="w-12 h-12 text-slate-300 mx-auto"></i>
+        <p class="text-sm font-black mt-3 text-slate-500">No orders yet</p>
+      </div>
+    </section>
+
+    <!-- ============= CUSTOMERS PAGE ============= -->
+    <section id="customers" class="page space-y-4">
+
+      <div class="glass rounded-[28px] p-4">
+        <h3 class="font-black text-lg px-1 mb-3">Customer Search</h3>
+        <div class="bg-slate-100 rounded-2xl px-4 py-3 flex items-center gap-2">
+          <i data-lucide="search" class="w-5 h-5 text-slate-400"></i>
+          <input id="customerSearch" oninput="renderCustomers()" type="text" placeholder="Search name, phone, order ID" class="bg-transparent w-full outline-none text-sm font-bold" />
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between px-1">
+        <h3 class="font-black text-lg">All Customers</h3>
+        <span id="customersCount" class="pill bg-slate-100 text-slate-700">0</span>
+      </div>
+
+      <div id="customersList" class="space-y-3"></div>
+      <div id="customersEmpty" class="hidden glass rounded-[28px] p-10 text-center">
+        <i data-lucide="user-search" class="w-12 h-12 text-slate-300 mx-auto"></i>
+        <p class="text-sm font-black mt-3 text-slate-500">No customers found</p>
+      </div>
+    </section>
+
+    <!-- ============= PRINTER PAGE ============= -->
+    <section id="printer" class="page space-y-4">
+
+      <div class="glass rounded-[28px] p-5">
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="font-black text-lg">Printer Queue</h3>
+            <p class="text-sm text-slate-500 mt-1">Jobs approved by sales</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="pulse-dot"></span>
+            <span class="text-xs font-black text-emerald-600">Online</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Batch -->
+      <div class="rounded-[30px] p-5 bg-slate-950 text-white shadow-xl card-hover relative overflow-hidden">
+        <div class="absolute -right-8 -bottom-8 w-40 h-40 rounded-full bg-blue-600/20 blur-3xl"></div>
+        <div class="relative">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-white/60 text-sm font-black">Batch NFC-1024</p>
+              <h3 class="text-2xl font-black mt-1">12 Cards Ready</h3>
+              <p class="text-white/75 text-sm mt-1">Waiting printer to start production</p>
+            </div>
+            <i data-lucide="factory" class="w-10 h-10 text-white/40"></i>
+          </div>
+          <div class="grid grid-cols-2 gap-3 mt-5">
+            <button onclick="startBatch()" class="bg-white text-slate-950 rounded-full py-3 text-sm font-black btn">Start Batch</button>
+            <button onclick="openModal('batchDetails')" class="bg-white/10 text-white rounded-full py-3 text-sm font-black btn">Details</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Jobs -->
+      <div id="printerJobs" class="space-y-3"></div>
+
+      <!-- Performance -->
+      <div class="glass rounded-[28px] p-5">
+        <p class="font-black text-lg">Printer Performance</p>
+        <div class="grid grid-cols-4 gap-3 mt-4 text-center">
+          <div>
+            <h4 id="perfPrinted" class="font-black text-2xl">0</h4>
+            <p class="text-[10px] text-slate-500 font-black uppercase">Printed</p>
+          </div>
+          <div>
+            <h4 id="perfNfc" class="font-black text-2xl">0</h4>
+            <p class="text-[10px] text-slate-500 font-black uppercase">NFC</p>
+          </div>
+          <div>
+            <h4 id="perfQa" class="font-black text-2xl">0</h4>
+            <p class="text-[10px] text-slate-500 font-black uppercase">QA</p>
+          </div>
+          <div>
+            <h4 id="perfFail" class="font-black text-2xl">0</h4>
+            <p class="text-[10px] text-slate-500 font-black uppercase">Failed</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============= REPORT PAGE ============= -->
+    <section id="report" class="page space-y-4">
+
+      <!-- Period Switcher -->
+      <div class="glass rounded-full p-1 grid grid-cols-3 gap-1">
+        <button onclick="setReportPeriod('day', this)" class="seg-btn active rounded-full py-2 text-xs font-black">Day</button>
+        <button onclick="setReportPeriod('week', this)" class="seg-btn rounded-full py-2 text-xs font-black">Week</button>
+        <button onclick="setReportPeriod('month', this)" class="seg-btn rounded-full py-2 text-xs font-black">Month</button>
+      </div>
+
+      <!-- Top KPI -->
+      <section class="glass rounded-[28px] p-6 relative overflow-hidden">
+        <div class="absolute -right-8 -top-8 w-40 h-40 rounded-full bg-emerald-200/30 blur-3xl"></div>
+        <div class="relative">
+          <p class="text-sm text-slate-500 font-bold">Total Sales</p>
+          <h2 id="reportTotal" class="text-5xl font-black tracking-tight mt-2">$18,430</h2>
+          <p id="reportGrowth" class="text-emerald-600 text-sm font-black mt-2 flex items-center gap-1">
+            <i data-lucide="trending-up" class="w-4 h-4"></i> +24% growth
+          </p>
+        </div>
+      </section>
+
+      <!-- Stat Grid -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="glass rounded-[24px] p-5 lift">
+          <div class="flex items-center gap-2 text-slate-500">
+            <i data-lucide="receipt" class="w-4 h-4"></i>
+            <p class="text-xs font-black uppercase">Orders</p>
+          </div>
+          <h3 id="repOrders" class="text-3xl font-black mt-2">284</h3>
+        </div>
+        <div class="glass rounded-[24px] p-5 lift">
+          <div class="flex items-center gap-2 text-slate-500">
+            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+            <p class="text-xs font-black uppercase">Approved</p>
+          </div>
+          <h3 id="repApproved" class="text-3xl font-black mt-2">219</h3>
+        </div>
+        <div class="glass rounded-[24px] p-5 lift">
+          <div class="flex items-center gap-2 text-slate-500">
+            <i data-lucide="users" class="w-4 h-4"></i>
+            <p class="text-xs font-black uppercase">Referral</p>
+          </div>
+          <h3 id="repReferral" class="text-3xl font-black mt-2">47</h3>
+        </div>
+        <div class="glass rounded-[24px] p-5 lift">
+          <div class="flex items-center gap-2 text-slate-500">
+            <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+            <p class="text-xs font-black uppercase">Commission</p>
+          </div>
+          <h3 id="repComm" class="text-3xl font-black mt-2">$376</h3>
+        </div>
+      </div>
+
+      <!-- Promo Breakdown -->
+      <div class="glass rounded-[28px] p-5">
+        <h3 class="font-black text-lg">Promo Breakdown</h3>
+        <div class="space-y-4 mt-4">
+          <div>
+            <div class="flex justify-between text-sm font-black">
+              <span>Code Used</span>
+              <span id="bdCode">47 orders</span>
+            </div>
+            <div class="h-2 bg-slate-100 rounded-full mt-2 overflow-hidden">
+              <div id="bdCodeBar" class="h-2 bg-blue-600 rounded-full" style="width:68%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm font-black">
+              <span>Total Discount</span>
+              <span id="bdDisc">$235</span>
+            </div>
+            <div class="h-2 bg-slate-100 rounded-full mt-2 overflow-hidden">
+              <div id="bdDiscBar" class="h-2 bg-emerald-500 rounded-full" style="width:42%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm font-black">
+              <span>Delivered</span>
+              <span id="bdDel">126 orders</span>
+            </div>
+            <div class="h-2 bg-slate-100 rounded-full mt-2 overflow-hidden">
+              <div id="bdDelBar" class="h-2 bg-slate-950 rounded-full" style="width:76%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Performing -->
+      <div class="glass rounded-[28px] p-5">
+        <h3 class="font-black text-lg mb-3">Top Card Types</h3>
+        <div id="topCards" class="space-y-3"></div>
+      </div>
+
+      <!-- Export -->
+      <button onclick="exportCSV()" class="w-full glass rounded-[28px] p-4 flex items-center justify-center gap-2 font-black text-blue-600 btn">
+        <i data-lucide="download" class="w-5 h-5"></i>
+        Export Report (CSV)
+      </button>
+    </section>
+
+  </main>
+
+  <!-- Floating Action Button -->
+  <button onclick="openOrderForm()" class="fab" title="New Order">
+    <i data-lucide="plus" class="w-6 h-6"></i>
+  </button>
+
+  <!-- Toast Stack -->
+  <div id="toastStack" class="toast-stack"></div>
+
+  <!-- Modal Backdrop -->
+  <div id="modal" class="modal-backdrop" onclick="if(event.target===this) closeModal()">
+    <div class="modal glass p-6">
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    //  DATABASE LAYER (localStorage as DB)
+    // ============================================================
+    const DB_KEY = 'nfc_salesman_db_v1';
+    const defaultDB = {
+      version: 1,
+      salesman: {
+        id: 'sm_001',
+        name: 'Sok Thean',
+        code: 'SALE-THEAN25',
+        discount: 25,
+        commissionRate: 7,
+        monthlyGoal: 18500,
+        theme: 'light'
+      },
+      orders: [
+        { id: 'o_1001', customerId: 'c_001', customer: 'Sok Dara', phone: '+855 12 345 678', card: 'Premium NFC Card', amount: 89, discount: 22.25, code: 'SALE-THEAN25', status: 'pending', batch: 'NFC-1025', progress: 0, createdAt: Date.now()-3600e3, payment: 'ABA' },
+        { id: 'o_1002', customerId: 'c_002', customer: 'Mey Lin', phone: '+855 11 222 333', card: 'Standard NFC Card', amount: 49, discount: 12.25, code: 'SALE-THEAN25', status: 'approved', batch: 'NFC-1024', progress: 0, createdAt: Date.now()-7200e3, payment: 'ACLEDA' },
+        { id: 'o_1003', customerId: 'c_003', customer: 'Rotha Kim', phone: '+855 98 777 666', card: 'Premium NFC Card', amount: 89, discount: 22.25, code: 'SALE-THEAN25', status: 'printing', batch: 'NFC-1024', progress: 65, createdAt: Date.now()-86400e3, payment: 'Wing' },
+        { id: 'o_1004', customerId: 'c_004', customer: 'Pisey Sok', phone: '+855 15 444 555', card: 'Business NFC Card', amount: 149, discount: 37.25, code: 'SALE-THEAN25', status: 'delivered', batch: 'NFC-1020', progress: 100, createdAt: Date.now()-172800e3, payment: 'ABA', cardId: 'CRD-5BW8' },
+        { id: 'o_1005', customerId: 'c_005', customer: 'Channa Lim', phone: '+855 92 111 222', card: 'Standard NFC Card', amount: 49, discount: 0, code: '', status: 'delivered', batch: 'NFC-1019', progress: 100, createdAt: Date.now()-259200e3, payment: 'Cash' },
+        { id: 'o_1006', customerId: 'c_006', customer: 'Bopha Chhay', phone: '+855 93 888 999', card: 'Premium NFC Card', amount: 89, discount: 22.25, code: 'SALE-THEAN25', status: 'cancelled', batch: '-', progress: 0, createdAt: Date.now()-432000e3, payment: 'ABA' }
+      ],
+      customers: [
+        { id: 'c_001', name: 'Sok Dara', phone: '+855 12 345 678', totalOrders: 1, totalSpent: 89, tier: 'New', lastCard: 'Premium NFC Card' },
+        { id: 'c_002', name: 'Mey Lin', phone: '+855 11 222 333', totalOrders: 2, totalSpent: 138, tier: 'VIP', lastCard: 'Standard NFC Card' },
+        { id: 'c_003', name: 'Rotha Kim', phone: '+855 98 777 666', totalOrders: 1, totalSpent: 89, tier: 'New', lastCard: 'Premium NFC Card' },
+        { id: 'c_004', name: 'Pisey Sok', phone: '+855 15 444 555', totalOrders: 3, totalSpent: 387, tier: 'VIP', lastCard: 'Business NFC Card' },
+        { id: 'c_005', name: 'Channa Lim', phone: '+855 92 111 222', totalOrders: 1, totalSpent: 49, tier: 'New', lastCard: 'Standard NFC Card' },
+        { id: 'c_006', name: 'Bopha Chhay', phone: '+855 93 888 999', totalOrders: 1, totalSpent: 0, tier: 'New', lastCard: 'Premium NFC Card' }
+      ],
+      activity: [
+        { id: 'a_1', icon: 'check-circle-2', text: 'Order o_1004 delivered to Pisey Sok', time: Date.now()-3600e3, color: 'emerald' },
+        { id: 'a_2', icon: 'credit-card', text: 'Payment received for Mey Lin ($49)', time: Date.now()-7200e3, color: 'blue' },
+        { id: 'a_3', icon: 'user-plus', text: 'New customer Sok Dara signed up', time: Date.now()-14400e3, color: 'violet' },
+        { id: 'a_4', icon: 'rocket', text: 'You hit 60% of monthly goal!', time: Date.now()-86400e3, color: 'amber' }
+      ],
+      notifications: [
+        { id: 'n_1', title: 'New order received', desc: 'Sok Dara placed an order for Premium NFC', read: false, time: Date.now()-1800e3 },
+        { id: 'n_2', title: 'Batch NFC-1024 ready', desc: '12 cards waiting to start printing', read: false, time: Date.now()-3600e3 },
+        { id: 'n_3', title: 'Goal progress', desc: 'You reached 60% of monthly target', read: true, time: Date.now()-86400e3 }
+      ],
+      referrals: [
+        { id: 'r_1', name: 'Sok Dara', date: Date.now()-86400e3, discount: 22.25, status: 'completed' },
+        { id: 'r_2', name: 'Mey Lin', date: Date.now()-172800e3, discount: 12.25, status: 'completed' },
+        { id: 'r_3', name: 'Pisey Sok', date: Date.now()-259200e3, discount: 37.25, status: 'completed' }
+      ]
+    };
+
+    function loadDB() {
+      try {
+        const raw = localStorage.getItem(DB_KEY);
+        if (!raw) return structuredClone(defaultDB);
+        const parsed = JSON.parse(raw);
+        if (!parsed.version) return structuredClone(defaultDB);
+        return parsed;
+      } catch { return structuredClone(defaultDB); }
+    }
+    function saveDB() {
+      try { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+      catch(e) { toast('Storage full', 'error'); }
+    }
+    let db = loadDB();
+
+    // ============================================================
+    //  UTILITIES
+    // ============================================================
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => document.querySelectorAll(sel);
+
+    function uid(prefix='id') { return prefix + '_' + Math.random().toString(36).slice(2,8); }
+    function fmtMoney(n) { return '$' + (Math.round(n*100)/100).toLocaleString(undefined, {minimumFractionDigits: n % 1 === 0 ? 0 : 2}); }
+    function relTime(ts) {
+      const diff = Date.now() - ts;
+      const m = Math.floor(diff/60000);
+      if (m < 1) return 'just now';
+      if (m < 60) return m + 'm ago';
+      const h = Math.floor(m/60);
+      if (h < 24) return h + 'h ago';
+      const d = Math.floor(h/24);
+      return d + 'd ago';
+    }
+    function initials(name) {
+      return name.split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase();
+    }
+    function iconColor(c) {
+      const map = { emerald: 'bg-emerald-100 text-emerald-700', blue: 'bg-blue-100 text-blue-700', violet: 'bg-violet-100 text-violet-700', amber: 'bg-amber-100 text-amber-700', red: 'bg-red-100 text-red-700' };
+      return map[c] || map.blue;
+    }
+
+    // ============================================================
+    //  TOAST
+    // ============================================================
+    function toast(msg, type='success') {
+      const el = document.createElement('div');
+      el.className = 'toast ' + type;
+      const iconMap = { success: 'check-circle-2', error: 'x-circle', info: 'info', warning: 'alert-triangle' };
+      el.innerHTML = '<i data-lucide="' + iconMap[type] + '" class="w-4 h-4"></i><span>' + msg + '</span>';
+      $('#toastStack').appendChild(el);
+      lucide.createIcons();
+      setTimeout(() => { el.style.opacity = '0'; el.style.transform='translateX(120%)'; el.style.transition='.3s'; setTimeout(() => el.remove(), 300); }, 2600);
+    }
+
+    // ============================================================
+    //  MODAL
+    // ============================================================
+    let modalState = {};
+    function openModal(name, data={}) {
+      modalState = { name, data };
+      const body = $('#modalBody');
+      body.innerHTML = renderModal(name, data);
+      $('#modal').classList.add('show');
+      lucide.createIcons();
+      // Init any dynamic bits
+      if (name === 'orderForm') initOrderForm();
+      if (name === 'settings') initSettings();
+    }
+    function closeModal() {
+      $('#modal').classList.remove('show');
+      modalState = {};
+    }
+    function renderModal(name, data) {
+      if (name === 'orderDetail') return orderDetailHTML(data.order);
+      if (name === 'orderForm') return orderFormHTML(data.order);
+      if (name === 'customerDetail') return customerDetailHTML(data.customer);
+      if (name === 'notifications') return notificationsHTML();
+      if (name === 'referrals') return referralsHTML();
+      if (name === 'referralQR') return referralQRHTML();
+      if (name === 'batchDetails') return batchDetailsHTML();
+      if (name === 'settings') return settingsHTML();
+      return '<p>Modal not found</p>';
+    }
+
+    // ============================================================
+    //  ROUTING (tab switching)
+    // ============================================================
+    function showPage(pageId, title, button) {
+      $$('.page').forEach(p => p.classList.remove('active'));
+      $('#' + pageId).classList.add('active');
+      $('#pageTitle').innerText = title;
+      $$('.quick-btn').forEach(b => b.classList.remove('active'));
+      if (button) button.classList.add('active');
+      else $(`[data-tab="${pageId}"]`)?.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      lucide.createIcons();
+    }
+
+    function filterOrders(status, button) {
+      $$('.filter-btn').forEach(b => b.classList.remove('active'));
+      button.classList.add('active');
+      state.orderFilter = status;
+      renderOrders();
+    }
+
+    // ============================================================
+    //  STATE
+    // ============================================================
+    const state = {
+      orderFilter: 'all',
+      orderSearch: '',
+      customerSearch: '',
+      reportPeriod: 'month'
+    };
+
+    // ============================================================
+    //  RENDERERS
+    // ============================================================
+    function renderAll() {
+      renderHeader();
+      renderRevenue();
+      renderReferral();
+      renderPipeline();
+      renderOrders();
+      renderCustomers();
+      renderTopCustomers();
+      renderActivity();
+      renderWeeklyChart();
+      renderPrinterJobs();
+      renderReport();
+      renderPerformance();
+      renderTopCards();
+      renderNotifications();
+      lucide.createIcons();
+    }
+
+    function renderHeader() {
+      $('#avatar').textContent = initials(db.salesman.name);
+      const initialsEl = $('#avatar');
+      initialsEl.classList.add('avatar-grad');
+    }
+
+    function renderRevenue() {
+      const today = db.orders.filter(o => Date.now() - o.createdAt < 86400e3 && o.status !== 'cancelled');
+      const yesterday = db.orders.filter(o => Date.now() - o.createdAt < 172800e3 && Date.now() - o.createdAt >= 86400e3);
+      const todayTotal = today.reduce((s,o) => s + (o.amount - o.discount), 0);
+      const yTotal = yesterday.reduce((s,o) => s + (o.amount - o.discount), 0);
+      const growth = yTotal > 0 ? Math.round((todayTotal - yTotal) / yTotal * 100) : 12;
+      $('#todayRevenue').textContent = fmtMoney(todayTotal || 1240);
+      $('#revenueTrend').textContent = (growth >= 0 ? '+' : '') + growth + '%';
+      $('#statOrders').textContent = today.length || 12;
+      $('#statConv').textContent = (db.orders.filter(o => o.status === 'delivered').length / Math.max(db.orders.length,1) * 100).toFixed(0) + '%';
+      const commission = db.orders.filter(o => o.status === 'delivered').reduce((s,o) => s + (o.amount - o.discount), 0) * db.salesman.commissionRate / 100;
+      $('#statComm').textContent = fmtMoney(commission || 86);
+    }
+
+    function renderReferral() {
+      $('#refCode').textContent = db.salesman.code;
+    }
+
+    function renderPipeline() {
+      $('#pipePending').textContent = db.orders.filter(o => o.status === 'pending').length;
+      $('#pipePrinting').textContent = db.orders.filter(o => o.status === 'printing' || o.status === 'approved').length;
+      $('#pipeDelivered').textContent = db.orders.filter(o => o.status === 'delivered').length;
+    }
+
+    function orderCardHTML(o) {
+      const statusLabels = { pending: 'Pending', approved: 'Approved', printing: 'Printing', delivered: 'Delivered', cancelled: 'Cancelled' };
+      const amount = fmtMoney(o.amount - o.discount);
+      const cardId = o.cardId ? `Card ID: ${o.cardId}` : '';
+      let actions = '';
+      if (o.status === 'pending') {
+        actions = `<div class="grid grid-cols-2 gap-3 mt-4">
+          <button onclick="approveOrder('${o.id}')" class="rounded-full bg-slate-950 text-white py-3 text-sm font-black btn">Approve</button>
+          <button onclick="rejectOrder('${o.id}')" class="rounded-full bg-slate-100 text-slate-700 py-3 text-sm font-black btn">Reject</button>
+        </div>`;
+      } else if (o.status === 'approved') {
+        actions = `<button onclick="advanceOrder('${o.id}')" class="mt-4 rounded-full bg-blue-600 text-white py-3 w-full text-sm font-black btn">Send to Printer</button>`;
+      } else if (o.status === 'printing') {
+        actions = `<div class="mt-3">
+          <div class="flex justify-between text-xs font-black text-slate-500 mb-1">
+            <span>Printing ${o.progress}%</span>
+            <span>${o.batch}</span>
+          </div>
+          <div class="h-2 rounded-full progress-bar overflow-hidden">
+            <div class="h-2 bg-blue-600 rounded-full transition-all" style="width:${o.progress}%"></div>
+          </div>
+        </div>`;
+      } else if (o.status === 'delivered') {
+        actions = `<button onclick="openModal('orderDetail',{order:getOrder('${o.id}')})" class="mt-4 rounded-full bg-emerald-100 text-emerald-700 py-3 w-full text-sm font-black btn">View Customer Card</button>`;
+      } else if (o.status === 'cancelled') {
+        actions = `<p class="text-xs text-slate-500 font-bold mt-3">Order cancelled · refunded</p>`;
+      }
+      return `
+        <div class="glass rounded-[28px] p-5 card-hover">
+          <div class="flex justify-between items-start gap-3">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <p class="font-black text-lg truncate">${o.customer}</p>
+                <span class="pill ${o.status==='delivered'?'status-delivered':o.status==='pending'?'status-pending':o.status==='approved'?'status-approved':o.status==='printing'?'status-printing':'status-cancelled'}">${statusLabels[o.status]}</span>
+              </div>
+              <p class="text-sm text-slate-500 mt-1">${o.card} · ${o.payment}</p>
+              <div class="flex items-center gap-2 mt-2">
+                <span class="text-lg font-black">${amount}</span>
+                ${o.discount > 0 ? `<span class="pill bg-emerald-100 text-emerald-700">-${fmtMoney(o.discount)}</span>` : ''}
+              </div>
+              ${cardId ? `<p class="text-xs text-slate-400 mt-1">${cardId} · ${relTime(o.createdAt)}</p>` : `<p class="text-xs text-slate-400 mt-1">${relTime(o.createdAt)}</p>`}
+            </div>
+            <button onclick="openModal('orderDetail',{order:getOrder('${o.id}')})" class="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center btn shrink-0">
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+          ${actions}
+        </div>`;
+    }
+
+    function renderOrders() {
+      state.orderSearch = $('#orderSearch')?.value || '';
+      let list = [...db.orders];
+      if (state.orderFilter !== 'all') list = list.filter(o => o.status === state.orderFilter);
+      if (state.orderSearch) {
+        const q = state.orderSearch.toLowerCase();
+        list = list.filter(o => o.customer.toLowerCase().includes(q) || o.id.toLowerCase().includes(q) || (o.cardId||'').toLowerCase().includes(q));
+      }
+      list.sort((a,b) => b.createdAt - a.createdAt);
+      $('#ordersList').innerHTML = list.map(orderCardHTML).join('') || '';
+      $('#ordersEmpty').classList.toggle('hidden', list.length > 0);
+      $('#ordersCount').textContent = list.length;
+      lucide.createIcons();
+    }
+
+    function customerCardHTML(c) {
+      const tierColor = c.tier === 'VIP' ? 'status-delivered' : 'status-approved';
+      return `
+        <div class="glass rounded-[28px] p-5 card-hover">
+          <div class="flex justify-between items-start gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-12 h-12 rounded-full avatar-grad text-sm shrink-0">${initials(c.name)}</div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <p class="font-black truncate">${c.name}</p>
+                  <span class="pill ${tierColor}">${c.tier}</span>
+                </div>
+                <p class="text-xs text-slate-500 font-bold mt-1">${c.phone}</p>
+                <p class="text-xs text-slate-500 font-bold">${c.totalOrders} orders · ${fmtMoney(c.totalSpent)}</p>
+              </div>
+            </div>
+            <button onclick="openModal('customerDetail',{customer:getCustomer('${c.id}')})" class="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center btn shrink-0">
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <div class="grid grid-cols-3 gap-2 mt-4">
+            <button onclick="callCustomer('${c.phone}')" class="rounded-full bg-slate-100 text-slate-700 py-2 text-xs font-black btn">
+              <i data-lucide="phone" class="w-3 h-3 inline"></i> Call
+            </button>
+            <button onclick="messageCustomer('${c.phone}')" class="rounded-full bg-slate-100 text-slate-700 py-2 text-xs font-black btn">
+              <i data-lucide="message-circle" class="w-3 h-3 inline"></i> SMS
+            </button>
+            <button onclick="reorderFor('${c.id}')" class="rounded-full bg-blue-600 text-white py-2 text-xs font-black btn">
+              <i data-lucide="plus" class="w-3 h-3 inline"></i> Order
+            </button>
+          </div>
+        </div>`;
+    }
+
+    function renderCustomers() {
+      state.customerSearch = $('#customerSearch')?.value || '';
+      let list = [...db.customers];
+      if (state.customerSearch) {
+        const q = state.customerSearch.toLowerCase();
+        list = list.filter(c => c.name.toLowerCase().includes(q) || c.phone.toLowerCase().includes(q));
+      }
+      list.sort((a,b) => b.totalSpent - a.totalSpent);
+      $('#customersList').innerHTML = list.map(customerCardHTML).join('');
+      $('#customersEmpty').classList.toggle('hidden', list.length > 0);
+      $('#customersCount').textContent = list.length;
+      lucide.createIcons();
+    }
+
+    function renderTopCustomers() {
+      const top = [...db.customers].sort((a,b) => b.totalSpent - a.totalSpent).slice(0,3);
+      const colors = ['from-amber-400 to-orange-500', 'from-blue-500 to-violet-600', 'from-emerald-400 to-teal-500'];
+      $('#topCustomers').innerHTML = top.map((c, i) => `
+        <div class="glass rounded-2xl p-3 text-center lift">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br ${colors[i]} mx-auto flex items-center justify-center text-white font-black">${initials(c.name)}</div>
+          <p class="text-xs font-black mt-2 truncate">${c.name}</p>
+          <p class="text-[10px] text-slate-500 font-bold">${fmtMoney(c.totalSpent)}</p>
+        </div>
+      `).join('');
+    }
+
+    function renderActivity() {
+      $('#activityFeed').innerHTML = db.activity.slice(0, 6).map(a => `
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl ${iconColor(a.color)} flex items-center justify-center shrink-0">
+            <i data-lucide="${a.icon}" class="w-4 h-4"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold truncate">${a.text}</p>
+            <p class="text-[11px] text-slate-500 font-bold">${relTime(a.time)}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderWeeklyChart() {
+      const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      const data = [320, 480, 290, 610, 540, 720, 680];
+      const max = Math.max(...data);
+      $('#weeklyChart').innerHTML = data.map((v,i) => {
+        const pct = (v/max)*100;
+        const isToday = i === new Date().getDay() - 1;
+        return `<div class="flex-1 flex flex-col items-center justify-end h-full">
+          <div class="chart-bar w-full rounded-t-lg ${isToday ? 'bg-gradient-to-t from-blue-600 to-violet-500' : 'bg-slate-200'}" style="height:${pct}%" title="${days[i]}: $${v}"></div>
+        </div>`;
+      }).join('');
+      $('#weeklyLabels').innerHTML = days.map((d,i) => `<span class="${i===new Date().getDay()-1?'text-blue-600 font-black':'text-slate-500'}">${d}</span>`).join('');
+    }
+
+    function renderPrinterJobs() {
+      const printing = db.orders.filter(o => o.status === 'printing' || o.status === 'approved');
+      $('#printerJobs').innerHTML = printing.length ? printing.map(o => `
+        <div class="glass rounded-[28px] p-5 card-hover">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="font-black">${o.customer} · ${o.card}</p>
+              <p class="text-xs text-slate-500 font-bold mt-1">Batch ${o.batch}</p>
+            </div>
+            <span class="pill ${o.status === 'printing' ? 'status-printing' : 'status-approved'}">${o.status === 'printing' ? 'Printing' : 'Queued'}</span>
+          </div>
+          <div class="mt-3 h-2 rounded-full progress-bar overflow-hidden">
+            <div class="h-2 rounded-full ${o.status === 'printing' ? 'bg-blue-600' : 'bg-slate-300'}" style="width:${o.progress}%"></div>
+          </div>
+          <div class="flex justify-between mt-2">
+            <p class="text-xs text-slate-500 font-bold">${o.progress}% complete</p>
+            ${o.status === 'printing' ? `<button onclick="advancePrint('${o.id}')" class="text-xs font-black text-blue-600 btn">+25%</button>` : ''}
+          </div>
+        </div>
+      `).join('') : '<div class="glass rounded-[28px] p-8 text-center"><i data-lucide="package-check" class="w-10 h-10 text-slate-300 mx-auto"></i><p class="text-sm font-black mt-3 text-slate-500">Queue is empty</p></div>';
+      lucide.createIcons();
+    }
+
+    function renderPerformance() {
+      const delivered = db.orders.filter(o => o.status === 'delivered').length;
+      const printing = db.orders.filter(o => o.status === 'printing').length;
+      $('#perfPrinted').textContent = delivered + printing;
+      $('#perfNfc').textContent = printing;
+      $('#perfQa').textContent = delivered;
+      $('#perfFail').textContent = db.orders.filter(o => o.status === 'cancelled').length;
+    }
+
+    function renderReport() {
+      const delivered = db.orders.filter(o => o.status === 'delivered');
+      const totalSales = delivered.reduce((s,o) => s + (o.amount - o.discount), 0);
+      const period = state.reportPeriod;
+      let factor = 1;
+      if (period === 'day') factor = 0.05;
+      else if (period === 'week') factor = 0.3;
+      const adj = totalSales * factor || 18430;
+      $('#reportTotal').textContent = fmtMoney(adj);
+      $('#repOrders').textContent = Math.round((delivered.length || 284) * factor) || 284;
+      $('#repApproved').textContent = Math.round((delivered.length || 219) * factor) || 219;
+      $('#repReferral').textContent = Math.round((47) * factor) || 47;
+      $('#repComm').textContent = fmtMoney(adj * db.salesman.commissionRate / 100 || 376);
+    }
+
+    function renderTopCards() {
+      const tally = {};
+      db.orders.forEach(o => { tally[o.card] = (tally[o.card] || 0) + 1; });
+      const sorted = Object.entries(tally).sort((a,b) => b[1]-a[1]).slice(0,4);
+      const total = sorted.reduce((s,[,v]) => s+v, 0);
+      $('#topCards').innerHTML = sorted.length ? sorted.map(([k,v]) => `
+        <div>
+          <div class="flex justify-between text-sm font-black">
+            <span>${k}</span>
+            <span>${v} sold</span>
+          </div>
+          <div class="h-2 bg-slate-100 rounded-full mt-1 overflow-hidden">
+            <div class="h-2 bg-blue-600 rounded-full" style="width:${(v/total)*100}%"></div>
+          </div>
+        </div>
+      `).join('') : '<p class="text-sm text-slate-500 font-bold">No data yet</p>';
+    }
+
+    function renderNotifications() {
+      const unread = db.notifications.filter(n => !n.read).length;
+      const badge = $('#notifBadge');
+      if (unread > 0) { badge.classList.remove('hidden'); badge.classList.add('flex'); badge.textContent = unread; }
+      else { badge.classList.add('hidden'); badge.classList.remove('flex'); }
+    }
+
+    function setReportPeriod(period, btn) {
+      $$('.seg-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.reportPeriod = period;
+      renderReport();
+      lucide.createIcons();
+    }
+
+    // ============================================================
+    //  MODAL CONTENT
+    // ============================================================
+    function orderDetailHTML(o) {
+      if (!o) return '<p>Order not found</p>';
+      const items = [
+        ['Order ID', o.id],
+        ['Customer', o.customer],
+        ['Phone', o.phone],
+        ['Card', o.card],
+        ['Amount', fmtMoney(o.amount)],
+        ['Discount', o.discount > 0 ? fmtMoney(o.discount) : 'None'],
+        ['Total', fmtMoney(o.amount - o.discount)],
+        ['Payment', o.payment],
+        ['Status', o.status],
+        ['Batch', o.batch || '—'],
+        ['Card ID', o.cardId || '—'],
+        ['Code', o.code || 'No code'],
+        ['Created', new Date(o.createdAt).toLocaleString()]
+      ];
+      return `
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <p class="text-xs font-black text-blue-600 uppercase tracking-wide">Order Detail</p>
+            <h3 class="text-2xl font-black mt-1">${o.customer}</h3>
+          </div>
+          <button onclick="closeModal()" class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center btn">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="space-y-2">
+          ${items.map(([k,v]) => `<div class="flex justify-between text-sm py-2 border-b border-slate-100"><span class="text-slate-500 font-bold">${k}</span><span class="font-black">${v}</span></div>`).join('')}
+        </div>
+        <div class="grid grid-cols-2 gap-3 mt-6">
+          <button onclick="closeModal()" class="rounded-full bg-slate-100 text-slate-700 py-3 text-sm font-black btn">Close</button>
+          ${o.status === 'delivered' ? `<button onclick="downloadCard('${o.id}')" class="rounded-full bg-blue-600 text-white py-3 text-sm font-black btn">Download Card</button>` : `<button onclick="advanceOrder('${o.id}');closeModal()" class="rounded-full bg-slate-950 text-white py-3 text-sm font-black btn">Advance Status</button>`}
+        </div>`;
+    }
+
+    function orderFormHTML(order) {
+      const o = order || {};
+      return `
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <p class="text-xs font-black text-blue-600 uppercase tracking-wide">${o.id ? 'Edit Order' : 'New Order'}</p>
+            <h3 class="text-2xl font-black mt-1">${o.id ? o.customer : 'Add Order'}</h3>
+          </div>
+          <button onclick="closeModal()" class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center btn">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <form id="orderForm" onsubmit="submitOrder(event, '${o.id || ''}')" class="space-y-3">
+          <div>
+            <label class="text-xs font-black text-slate-500 uppercase">Customer Name</label>
+            <input class="input mt-1" name="customer" required value="${o.customer||''}" placeholder="Full name" />
+          </div>
+          <div>
+            <label class="text-xs font-black text-slate-500 uppercase">Phone</label>
+            <input class="input mt-1" name="phone" required value="${o.phone||''}" placeholder="+855 ..." />
+          </div>
+          <div>
+            <label class="text-xs font-black text-slate-500 uppercase">Card Type</label>
+            <select class="input mt-1" name="card">
+              <option ${o.card==='Standard NFC Card'?'selected':''}>Standard NFC Card</option>
+              <option ${o.card==='Premium NFC Card'?'selected':''}>Premium NFC Card</option>
+              <option ${o.card==='Business NFC Card'?'selected':''}>Business NFC Card</option>
+              <option ${o.card==='Custom NFC Card'?'selected':''}>Custom NFC Card</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs font-black text-slate-500 uppercase">Amount ($)</label>
+              <input class="input mt-1" name="amount" required type="number" min="0" step="0.01" value="${o.amount||49}" />
+            </div>
+            <div>
+              <label class="text-xs font-black text-slate-500 uppercase">Payment</label>
+              <select class="input mt-1" name="payment">
+                <option ${o.payment==='ABA'?'selected':''}>ABA</option>
+                <option ${o.payment==='ACLEDA'?'selected':''}>ACLEDA</option>
+                <option ${o.payment==='Wing'?'selected':''}>Wing</option>
+                <option ${o.payment==='Cash'?'selected':''}>Cash</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 p-3 rounded-2xl bg-blue-50 border border-blue-100">
+            <input id="useCode" type="checkbox" ${o.code?'checked':''} class="w-4 h-4 accent-blue-600" onchange="toggleCode(this)">
+            <label for="useCode" class="text-sm font-black text-blue-700 flex-1 cursor-pointer">Use referral code ${db.salesman.code} (-${db.salesman.discount}%)</label>
+          </div>
+          <input type="hidden" name="discount" value="${o.discount||0}" />
+          <button type="submit" class="w-full rounded-full bg-slate-950 text-white py-4 text-sm font-black btn mt-2">
+            ${o.id ? 'Save Changes' : 'Create Order'}
+          </button>
+        </form>`;
+    }
+
+    function initOrderForm() {
+      // re-bind the checkbox change so discount field updates
+      const cb = document.getElementById('useCode');
+      if (cb) toggleCode(cb);
+    }
+
+    function toggleCode(cb) {
+      const form = document.getElementById('orderForm');
+      if (!form) return;
+      const amount = parseFloat(form.amount.value) || 0;
+      const disc = cb.checked ? +(amount * db.salesman.discount / 100).toFixed(2) : 0;
+      form.discount.value = disc;
+    }
+
+    function customerDetailHTML(c) {
+      if (!c) return '<p>Customer not found</p>';
+      const orders = db.orders.filter(o => o.customerId === c.id);
+      return `
+        <div class="flex justify-between items-start mb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-14 h-14 rounded-full avatar-grad text-lg">${initials(c.name)}</div>
+            <div>
+              <p class="text-xs font-black text-blue-600 uppercase tracking-wide">Customer</p>
+              <h3 class="text-2xl font-black">${c.name}</h3>
+              <p class="text-sm text-slate-500 font-bold">${c.phone}</p>
+            </div>
+          </div>
+          <button onclick="closeModal()" class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center btn">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="grid grid-cols-3 gap-3 mb-4">
+          <div class="rounded-2xl bg-blue-50 p-3 text-center">
+            <p class="text-xs text-slate-500 font-black">Orders</p>
+            <p class="text-2xl font-black mt-1">${c.totalOrders}</p>
+          </div>
+          <div class="rounded-2xl bg-emerald-50 p-3 text-center">
+            <p class="text-xs text-slate-500 font-black">Spent</p>
+            <p class="text-2xl font-black mt-1">${fmtMoney(c.totalSpent)}</p>
+          </div>
+          <div class="rounded-2xl bg-violet-50 p-3 text-center">
+            <p class="text-xs text-slate-500 font-black">Tier</p>
+            <p class="text-2xl font-black mt-1">${c.tier}</p>
+          </div>
+        </div>
+        <p class="font-black text-sm mb-2">Order History</p>
+        <div class="space-y-2">
+          ${orders.length ? orders.map(o => `
+            <div class="flex justify-between items-center p-3 rounded-2xl bg-slate-50 btn" onclick="openModal('orderDetail',{order:getOrder('${o.id}')})">
+              <div>
+                <p class="font-black text-sm">${o.card}</p>
+                <p class="text-xs text-slate-500">${relTime(o.createdAt)}</p>
+              </div>
+              <div class="text-right">
+                <p class="font-black">${fmtMoney(o.amount-o.discount)}</p>
+                <span class="pill status-${o.status}">${o.status}</span>
+              </div>
+            </div>
+          `).join('') : '<p class="text-sm text-slate-500 font-bold text-center py-4">No orders yet</p>'}
+        </div>
+        <div class="grid grid-cols-3 gap-3 mt-5">
+          <button onclick="callCustomer('${c.phone}')" class="rounded-full bg-slate-950 text-white py-3 text-sm font-black btn">Call</button>
+          <button onclick="messageCustomer('${c.phone}')" class="rounded-full bg-blue-600 text-white py-3 text-sm font-black btn">SMS</button>
+          <button onclick="closeModal();reorderFor('${c.id}')" class="rounded-full bg-emerald-600 text-white py-3 text-sm font-black btn">Reorder</button>
+        </div>`;
+    }
+
+    function notificationsHTML() {
+      return `
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <p class="text-xs font-black text-blue-600 uppercase tracking-wide">Inbox</p>
+            <h3 class="text-2xl font-black">Notifications</h3>
+          </div>
+          <button onclick="closeModal()" class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center btn">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="space-y-2">
+          ${db.notifications.length ? db.notifications.map(n => `
+            <div class="p-3 rounded-2xl ${n.read ? 'bg-slate-50' : 'bg-blue-50 border border-blue-100'}">
+              <div class="flex justify-between items-start">
+                <p class="font-black text-sm">${n.title}</p>
+                <span class="text-[10px] text-slate-500 font-bold">${relTime(n.time)}</span>
+              </div>
+              <p class="text-xs text-slate-600 font-bold mt-1">${n.desc}</p>
+            </div>
+          `).join('') : '<p class="text-sm text-slate-500 font-bold text-center py-6">No notifications</p>'}
+        </div>
+        <button onclick="markAllRead()" class="w-full mt-5 rounded-full bg-slate-100 text-slate-700 py-3 text-sm font-black btn">Mark all as read</button>`;
+    }
+
+    function referralsHTML() {
+      return `
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <p class="text-xs font-black text-blue-600 uppercase tracking-wide">Referrals</p>
+            <h3 class="text-2xl font-black">Customers via Code</h3>
+          </div>
+          <button onclick="closeModal()" class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center btn">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="rounded-2xl bg-gradient-to-br from-blue-600 to-violet-600 p-5 text-white mb-4">
+          <p class="text-xs font-black uppercase opacity-80">Code</p>
+          <h3 class="text-2xl font-black mt-1">${db.salesman.code}</h3>
+          <p class="text-sm opacity-90 mt-1">${db.salesman.discount}% off first order · used ${db.referrals.length} times</p>
+        </div>
+        <div class="space-y-2">
+          ${db.referrals.length ? db.referrals.map(r => `
+            <div class="flex justify-between items-center p-3 rounded-2xl bg-slate-50">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full avatar-grad text-xs">${initials(r.name)}</div>
+                <div>
+                  <p class="font-black text-sm">${r.name}</p>
+                  <p class="text-xs text-slate-500">${relTime(r.date)}</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <p class="font-black">${fmtMoney(r.discount)}</p>
+                <span class="pill status-delivered">${r.status}</span>
+              </div>
+            </div>
+          `).join('') : '<p class="text-sm text-slate-500 font-bold text-center py-6">No referrals yet</p>'}
+        </div>`;
+    }
+
+    function referralQRHTML() {
+      return `
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <p class="text-xs font-black text-blue-600 uppercase tracking-wide">Share Code</p>
+            <h3 class="text-2xl font-black">${db.salesman.code}</h3>
+          </div>
+          <button onclick="closeModal()" class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center btn">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="flex flex-col items-center py-4">
+          <div class="qr"></div>
+          <p class="text-sm text-slate-500 font-bold mt-4 text-center">Scan to copy your referral code</p>
+          <p class="text-xs text-emerald-600 font-black mt-1">Customers get ${db.salesman.discount}% off</p>
+        </div>
+        <div class="grid grid-cols-2 gap-3 mt-4">
+          <button onclick="copyRefCode()" class="rounded-full bg-slate-950 text-white py-3 text-sm font-black btn">Copy Code</button>
+          <button onclick="shareRefCode()" class="rounded-full bg-blue-600 text-white py-3 text-sm font-black btn">Share</button>
+        </div>`;
+    }
+
+    function batchDetailsHTML() {
+      const batch = db.orders.filter(o => o.status === 'approved' || o.status === 'printing');
+      return `
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <p class="text-xs font-black text-blue-600 uppercase tracking-wide">Batch</p>
+            <h3 class="text-2xl font-black">NFC-1024</h3>
+          </div>
+          <button onclick="closeModal()" class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center btn">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="rounded-2xl bg-slate-950 text-white p-4 mb-4">
+          <p class="text-xs opacity-70 font-black uppercase">Batch Summary</p>
+          <div class="grid grid-cols-3 gap-3 mt-3 text-center">
+            <div><p class="text-2xl font-black">${batch.length}</p><p class="text-[10px] opacity-70">Cards</p></div>
+            <div><p class="text-2xl font-black">${batch.filter(b=>b.status==='printing').length}</p><p class="text-[10px] opacity-70">Active</p></div>
+            <div><p class="text-2xl font-black">${Math.round(batch.reduce((s,b)=>s+b.progress,0)/Math.max(batch.length,1))}%</p><p class="text-[10px] opacity-70">Avg</p></div>
+          </div>
+        </div>
+        <div class="space-y-2">
+          ${batch.length ? batch.map(o => `
+            <div class="flex justify-between items-center p-3 rounded-2xl bg-slate-50">
+              <div>
+                <p class="font-black text-sm">${o.customer} · ${o.card}</p>
+                <p class="text-xs text-slate-500">${relTime(o.createdAt)}</p>
+              </div>
+              <span class="pill ${o.status==='printing'?'status-printing':'status-approved'}">${o.progress}%</span>
+            </div>
+          `).join('') : '<p class="text-sm text-slate-500 font-bold text-center py-6">No jobs in batch</p>'}
+        </div>`;
+    }
+
+    function settingsHTML() {
+      const isDark = db.salesman.theme === 'dark';
+      return `
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <p class="text-xs font-black text-blue-600 uppercase tracking-wide">Settings</p>
+            <h3 class="text-2xl font-black">Profile & Prefs</h3>
+          </div>
+          <button onclick="closeModal()" class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center btn">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <form id="settingsForm" onsubmit="saveSettings(event)" class="space-y-4">
+          <div class="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-br from-blue-600 to-violet-600 text-white">
+            <div class="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-xl font-black">${initials(db.salesman.name)}</div>
+            <div>
+              <p class="font-black text-lg">${db.salesman.name}</p>
+              <p class="text-xs opacity-90">Salesman · ${db.salesman.code}</p>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-xs font-black text-slate-500 uppercase">Display Name</label>
+            <input class="input mt-1" name="name" value="${db.salesman.name}" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs font-black text-slate-500 uppercase">Referral Code</label>
+              <input class="input mt-1" name="code" value="${db.salesman.code}" />
+            </div>
+            <div>
+              <label class="text-xs font-black text-slate-500 uppercase">Discount %</label>
+              <input class="input mt-1" name="discount" type="number" min="0" max="100" value="${db.salesman.discount}" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs font-black text-slate-500 uppercase">Commission %</label>
+              <input class="input mt-1" name="commissionRate" type="number" min="0" max="100" value="${db.salesman.commissionRate}" />
+            </div>
+            <div>
+              <label class="text-xs font-black text-slate-500 uppercase">Monthly Goal ($)</label>
+              <input class="input mt-1" name="monthlyGoal" type="number" min="0" value="${db.salesman.monthlyGoal}" />
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center p-3 rounded-2xl bg-slate-50">
+            <div>
+              <p class="font-black text-sm">Dark Mode</p>
+              <p class="text-xs text-slate-500 font-bold">Switch theme</p>
+            </div>
+            <div id="themeSwitch" class="switch ${isDark?'on':''}" onclick="toggleTheme(this)"></div>
+          </div>
+
+          <div class="flex justify-between items-center p-3 rounded-2xl bg-slate-50">
+            <div>
+              <p class="font-black text-sm">Sound on Actions</p>
+              <p class="text-xs text-slate-500 font-bold">Beep on approve/reject</p>
+            </div>
+            <div id="soundSwitch" class="switch on" onclick="this.classList.toggle('on')"></div>
+          </div>
+
+          <button type="submit" class="w-full rounded-full bg-slate-950 text-white py-4 text-sm font-black btn">Save Settings</button>
+          <button type="button" onclick="resetData()" class="w-full rounded-full bg-red-100 text-red-700 py-3 text-sm font-black btn">Reset All Data</button>
+        </form>`;
+    }
+
+    // ============================================================
+    //  ACTIONS
+    // ============================================================
+    function getOrder(id) { return db.orders.find(o => o.id === id); }
+    function getCustomer(id) { return db.customers.find(c => c.id === id); }
+
+    function approveOrder(id) {
+      const o = getOrder(id);
+      if (!o) return;
+      o.status = 'approved';
+      o.batch = 'NFC-' + (1024 + Math.floor(Math.random()*99));
+      pushActivity('check-circle-2', 'Order ' + id + ' approved', 'emerald');
+      pushNotification('Order approved', o.customer + '\'s order is queued for printing');
+      saveDB(); renderAll(); toast('Order approved', 'success');
+    }
+
+    function rejectOrder(id) {
+      const o = getOrder(id);
+      if (!o) return;
+      o.status = 'cancelled';
+      pushActivity('x-circle', 'Order ' + id + ' cancelled', 'red');
+      saveDB(); renderAll(); toast('Order rejected', 'warning');
+    }
+
+    function advanceOrder(id) {
+      const o = getOrder(id);
+      if (!o) return;
+      if (o.status === 'approved') {
+        o.status = 'printing';
+        o.progress = 5;
+        o.batch = 'NFC-' + (1024 + Math.floor(Math.random()*99));
+        pushActivity('factory', 'Order ' + id + ' sent to printer', 'blue');
+        toast('Sent to printer', 'info');
+      } else if (o.status === 'printing') {
+        o.progress = Math.min(100, o.progress + 25);
+        if (o.progress >= 100) {
+          o.status = 'delivered';
+          o.cardId = 'CRD-' + Math.random().toString(36).slice(2,6).toUpperCase();
+          pushActivity('badge-check', 'Order ' + id + ' delivered', 'emerald');
+          pushNotification('Card delivered', 'NFC card for ' + o.customer + ' is active');
+          toast('Order delivered', 'success');
+        } else {
+          toast('Progress ' + o.progress + '%', 'info');
+        }
+      } else if (o.status === 'delivered') {
+        toast('Already delivered', 'info'); return;
+      } else {
+        toast('Cannot advance', 'error'); return;
+      }
+      saveDB(); renderAll();
+    }
+
+    function advancePrint(id) {
+      const o = getOrder(id);
+      if (!o || o.status !== 'printing') return;
+      o.progress = Math.min(100, o.progress + 25);
+      if (o.progress >= 100) {
+        o.status = 'delivered';
+        o.cardId = 'CRD-' + Math.random().toString(36).slice(2,6).toUpperCase();
+        pushNotification('Card delivered', 'NFC card for ' + o.customer + ' is active');
+        toast('Card delivered', 'success');
+      } else {
+        toast('Print advanced to ' + o.progress + '%', 'info');
+      }
+      saveDB(); renderAll();
+    }
+
+    function startBatch() {
+      let started = 0;
+      db.orders.filter(o => o.status === 'approved').forEach(o => {
+        o.status = 'printing';
+        o.progress = 5;
+        started++;
+      });
+      if (started) {
+        pushActivity('play', 'Started batch printing (' + started + ' cards)', 'blue');
+        toast('Batch started · ' + started + ' cards', 'success');
+        saveDB(); renderAll();
+      } else {
+        toast('No approved jobs', 'warning');
+      }
+    }
+
+    function submitOrder(ev, id) {
+      ev.preventDefault();
+      const f = ev.target;
+      const data = {
+        customer: f.customer.value.trim(),
+        phone: f.phone.value.trim(),
+        card: f.card.value,
+        amount: parseFloat(f.amount.value) || 0,
+        payment: f.payment.value,
+        discount: parseFloat(f.discount.value) || 0
+      };
+      if (id) {
+        const o = getOrder(id);
+        Object.assign(o, data);
+        pushActivity('edit', 'Order ' + id + ' updated', 'blue');
+        toast('Order updated', 'success');
+      } else {
+        const newId = 'o_' + (1000 + db.orders.length + Math.floor(Math.random()*100));
+        const cid = uid('c');
+        db.customers.push({
+          id: cid, name: data.customer, phone: data.phone,
+          totalOrders: 1, totalSpent: data.amount - data.discount,
+          tier: 'New', lastCard: data.card
+        });
+        const refEntry = data.discount > 0 ? { id: uid('r'), name: data.customer, date: Date.now(), discount: data.discount, status: 'completed' } : null;
+        if (refEntry) db.referrals.unshift(refEntry);
+        db.orders.unshift({
+          id: newId, customerId: cid, ...data,
+          status: 'pending', batch: '-', progress: 0,
+          createdAt: Date.now(),
+          code: data.discount > 0 ? db.salesman.code : ''
+        });
+        pushActivity('plus-circle', 'New order ' + newId + ' created for ' + data.customer, 'violet');
+        pushNotification('New order', data.customer + ' placed a ' + data.card);
+        toast('Order created', 'success');
+      }
+      saveDB(); renderAll(); closeModal();
+    }
+
+    function reorderFor(id) {
+      const c = getCustomer(id);
+      if (c) {
+        openOrderForm();
+        setTimeout(() => {
+          const f = document.getElementById('orderForm');
+          if (f) { f.customer.value = c.name; f.phone.value = c.phone; }
+        }, 50);
+      }
+    }
+
+    function callCustomer(phone) { window.location.href = 'tel:' + phone; }
+    function messageCustomer(phone) { window.location.href = 'sms:' + phone; }
+
+    function copyRefCode() {
+      navigator.clipboard.writeText(db.salesman.code).then(() => toast('Code copied: ' + db.salesman.code, 'success')).catch(() => toast('Copy failed', 'error'));
+    }
+    function shareRefCode() {
+      const text = 'Use my NFC code ' + db.salesman.code + ' for ' + db.salesman.discount + '% off your first order!';
+      if (navigator.share) {
+        navigator.share({ title: 'NFC Referral Code', text }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(text);
+        toast('Copied to clipboard', 'info');
+      }
+    }
+
+    function downloadCard(id) {
+      const o = getOrder(id);
+      if (!o) return;
+      toast('Downloading card ' + o.cardId, 'info');
+    }
+
+    function openOrderForm(order) {
+      openModal('orderForm', { order });
+    }
+    function openReferralQR() { openModal('referralQR'); }
+
+    function pushActivity(icon, text, color) {
+      db.activity.unshift({ id: uid('a'), icon, text, time: Date.now(), color });
+      db.activity = db.activity.slice(0, 20);
+    }
+    function pushNotification(title, desc) {
+      db.notifications.unshift({ id: uid('n'), title, desc, read: false, time: Date.now() });
+      db.notifications = db.notifications.slice(0, 30);
+    }
+
+    function markAllRead() {
+      db.notifications.forEach(n => n.read = true);
+      saveDB(); openModal('notifications'); renderAll();
+      toast('All marked as read', 'success');
+    }
+
+    function saveSettings(ev) {
+      ev.preventDefault();
+      const f = ev.target;
+      db.salesman.name = f.name.value;
+      db.salesman.code = f.code.value.toUpperCase();
+      db.salesman.discount = parseInt(f.discount.value) || 0;
+      db.salesman.commissionRate = parseFloat(f.commissionRate.value) || 0;
+      db.salesman.monthlyGoal = parseFloat(f.monthlyGoal.value) || 0;
+      saveDB(); renderAll();
+      toast('Settings saved', 'success');
+      closeModal();
+    }
+
+    function initSettings() { /* placeholder for future hooks */ }
+
+    function toggleTheme(el) {
+      el.classList.toggle('on');
+      const dark = el.classList.contains('on');
+      db.salesman.theme = dark ? 'dark' : 'light';
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      saveDB();
+    }
+
+    function resetData() {
+      if (!confirm('Reset all data to defaults? This cannot be undone.')) return;
+      localStorage.removeItem(DB_KEY);
+      db = loadDB();
+      renderAll();
+      toast('Data reset', 'success');
+      closeModal();
+    }
+
+    function exportCSV() {
+      const rows = [['Order ID','Customer','Phone','Card','Amount','Discount','Total','Status','Payment','Created']];
+      db.orders.forEach(o => rows.push([o.id, o.customer, o.phone, o.card, o.amount, o.discount, (o.amount-o.discount).toFixed(2), o.status, o.payment, new Date(o.createdAt).toISOString()]));
+      const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'nfc-sales-report-' + new Date().toISOString().split('T')[0] + '.csv';
+      a.click();
+      toast('Report exported', 'success');
+    }
+
+    // ============================================================
+    //  LIVE CLOCK
+    // ============================================================
+    function tickClock() {
+      const d = new Date();
+      const opts = { weekday: 'short', month: 'short', day: 'numeric' };
+      const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      $('#liveClock').textContent = d.toLocaleDateString(undefined, opts) + ' · ' + time;
+    }
+
+    // ============================================================
+    //  DEMO AUTO-PROGRESS (simulates printer)
+    // ============================================================
+    setInterval(() => {
+      let changed = false;
+      db.orders.filter(o => o.status === 'printing').forEach(o => {
+        if (o.progress < 100) { o.progress = Math.min(100, o.progress + 1); changed = true; }
+      });
+      if (changed) { saveDB(); renderAll(); }
+    }, 8000);
+
+    // ============================================================
+    //  BOOTSTRAP
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', () => {
+      // Apply theme
+      document.documentElement.dataset.theme = db.salesman.theme || 'light';
+      // Render
+      renderAll();
+      tickClock();
+      setInterval(tickClock, 30000);
+      lucide.createIcons();
+    });
+
+    // Re-bind search input listener once
+    document.addEventListener('input', e => {
+      if (e.target.id === 'orderSearch') renderOrders();
+      if (e.target.id === 'customerSearch') renderCustomers();
+    });
+  </script>
+</body>
+</html>

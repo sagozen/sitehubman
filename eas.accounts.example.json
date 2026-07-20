@@ -1,0 +1,14 @@
+{
+  "primary": {
+    "account": "vct8888",
+    "projectId": "792fa251-8479-4cf7-909a-0e2800c6303d",
+    "slug": "bio-cloud-native",
+    "buildsUrl": "https://expo.dev/accounts/vct8888/projects/bio-cloud-native/builds"
+  },
+  "backup": {
+    "account": "YOUR_NEW_EXPO_USERNAME",
+    "projectId": "PASTE_AFTER_npm_run_eas_link_backup",
+    "slug": "bio-cloud-native",
+    "buildsUrl": "https://expo.dev/accounts/YOUR_NEW_EXPO_USERNAME/projects/YOUR_PROJECT_SLUG/builds"
+  }
+}

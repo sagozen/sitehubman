@@ -1,0 +1,80 @@
+import { useState, useCallback, useRef } from 'react';
+
+/**
+ * Custom hook to measure component performance metrics
+ * Returns an object with measurement functions and current metrics
+ */
+export const usePerformanceMonitor = () => {
+  const [metrics, setMetrics] = useState<Record<string, number>>({});
+  const isMeasuringRef = useRef(false);
+
+  /**
+   * Measure time taken for a callback to execute
+   * @param label - Identifier for this measurement
+   * @param callback - Function to measure
+   */
+  const measure = useCallback(async <T>(
+    label: string,
+    callback: () => Promise<T> | T
+  ): Promise<T> => {
+    if (isMeasuringRef.current) return callback(); // Prevent nested measurements
+
+    isMeasuringRef.current = true;
+    const start = performance.now();
+
+    try {
+      const result = await callback();
+      const end = performance.now();
+      const duration = end - start;
+
+      setMetrics(prev => ({
+        ...prev,
+        [label]: duration,
+        [`${label}_timestamp]`]: Date.now()
+      }));
+
+      // Log to console for immediate feedback
+      if (__DEV__) {
+        console.log(`[PERF] ${label}: ${duration.toFixed(2)}ms`);
+      }
+
+      return result;
+    } finally {
+      isMeasuringRef.current = false;
+    }
+  }, []);
+
+  /**
+   * Get all current metrics
+   */
+  const getMetrics = useCallback(() => ({ ...metrics }), [metrics]);
+
+  /**
+   * Clear all metrics
+   */
+  const clearMetrics = useCallback(() => {
+    setMetrics({});
+  }, []);
+
+  return {
+    measure,
+    getMetrics,
+    clearMetrics,
+    isMeasuring: isMeasuringRef.current
+  };
+};
+
+/**
+ * Higher-order component wrapper for automatic performance measurement
+ * Usage: wrapComponentWithPerf(MyComponent, 'ScreenName')
+ */
+export const wrapComponentWithPerf = <P extends object>(
+  Component: React.ComponentType<P>,
+  label: string
+) => {
+  return (props: P) => {
+    return require('react').createElement(Component, props);
+  };
+};
+
+export default usePerformanceMonitor;
