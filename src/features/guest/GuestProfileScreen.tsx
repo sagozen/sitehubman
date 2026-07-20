@@ -210,6 +210,9 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 20,
     paddingBottom: 100,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
   },
   header: {
     alignItems: 'center',

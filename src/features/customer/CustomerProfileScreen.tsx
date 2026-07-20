@@ -28,12 +28,11 @@ import type { CarouselCard } from '@/src/components/CardStackCarousel';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 
 const BRAND = '#0071E3';
-const INK = '#111111';
-const INK2 = '#111111';
-// FIXED: Improved contrast for muted text (WCAG AA: 4.6:1 on white)
-const MUTED = '#6E6E73';
-const SURFACE = '#FFFFFF';
-const BG = '#F5F7FA';
+const INK = '#FFFFFF';
+const INK2 = '#FFFFFF';
+const MUTED = 'rgba(255, 255, 255, 0.6)';
+const SURFACE = '#111114';
+const BG = '#000000';
 
 const DebouncedTextInput = memo(function DebouncedTextInput({
   value,
@@ -534,7 +533,15 @@ export function CustomerProfileScreen() {
 function useStyles(colors: ReturnType<typeof useAppTheme>['colors']) {
   return useMemo(() => StyleSheet.create({
     safe: { flex: 1, backgroundColor: '#000000' },
-    content: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 120, gap: 24 },
+    content: {
+      paddingHorizontal: 20,
+      paddingTop: 16,
+      paddingBottom: 120,
+      gap: 24,
+      width: '100%',
+      maxWidth: 640,
+      alignSelf: 'center',
+    },
 
     // Loading State
     loadingContainer: {

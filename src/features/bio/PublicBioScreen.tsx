@@ -163,7 +163,7 @@ function LinkButton({
         </View>
       )}
       <AppText style={lb.label} numberOfLines={1}>{label}</AppText>
-      <AppIcon name="ChevronRight" size={16} color="#C4CFDE" />
+      <AppIcon name="ChevronRight" size={16} color="rgba(255, 255, 255, 0.4)" />
     </Pressable>
   );
 }
@@ -173,21 +173,18 @@ const lb = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 16,
     minHeight: 64,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 1,
   },
   pressed: { opacity: 0.75, transform: [{ scale: 0.98 }] },
   icon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   avatar: { width: 36, height: 36, borderRadius: 10 },
-  label: { flex: 1, fontSize: 15, fontWeight: '600', color: '#1C1C1E' },
+  label: { flex: 1, fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
 });
 
 // ─── Avatar ───────────────────────────────────────────────────────────────────
@@ -212,7 +209,7 @@ function ProfileAvatar({
     );
   }
   return (
-    <View style={[pa.fallback, { width: size, height: size, borderRadius: size / 2, backgroundColor: accent }]}>
+    <View style={[pa.fallback, { width: size, height: size, borderRadius: size / 2, backgroundColor: '#1A1A1E', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.12)' }]}>
       <AppText style={[pa.initial, { fontSize: size * 0.38 }]}>{initial}</AppText>
     </View>
   );
@@ -320,7 +317,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
             <meta name="description" content={DEFAULT_PUBLIC_DESCRIPTION} />
           </Head>
         ) : null}
-        <AppIcon name="Nfc" size={40} color="#2596BE" />
+        <AppIcon name="Nfc" size={40} color="#0071E3" />
         <AppText style={styles.loadingText}>Loading profile…</AppText>
       </View>
     );
@@ -338,7 +335,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
           </Head>
         ) : null}
         <View style={styles.notFoundCenter}>
-          <AppIcon name="User" size={48} color="#D1D5DB" />
+          <AppIcon name="User" size={48} color="rgba(255, 255, 255, 0.3)" />
           <AppText style={styles.notFoundTitle}>Profile not found</AppText>
           <AppText style={styles.notFoundSub}>This card has not been set up yet.</AppText>
           <Pressable onPress={() => router.back()} style={styles.backBtn}>
@@ -350,7 +347,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
   }
 
   // ── Accent color from theme ────────────────────────────────────────────────
-  const accent = '#007AFF';
+  const accent = '#0071E3';
   // Collect social links with real avatars
   const socialLinks = SOCIALS.flatMap((s) => {
     const val = (bioPage as unknown as Record<string, unknown>)[s.key] as string | undefined;
@@ -407,10 +404,10 @@ export function PublicBioScreen({ slug, cardId }: Props) {
         {/* ── Top bar ── */}
         <View style={styles.topBar}>
           <Pressable onPress={() => router.canGoBack() ? router.back() : undefined} style={styles.topBtn} hitSlop={10}>
-            <AppIcon name="ChevronLeft" size={22} color="#1C1C1E" />
+            <AppIcon name="ChevronLeft" size={22} color="#FFFFFF" />
           </Pressable>
           <Pressable onPress={() => void handleShare()} style={styles.topBtn} hitSlop={10}>
-            <AppIcon name="Share" size={20} color={accent} />
+            <AppIcon name="Share" size={20} color="#FFFFFF" />
           </Pressable>
         </View>
 
@@ -418,8 +415,8 @@ export function PublicBioScreen({ slug, cardId }: Props) {
 
           {/* ── Hero ── */}
           <View style={styles.heroCard}>
-            <View style={[styles.avatarRing, { borderColor: `${accent}40` }]}>
-              <ProfileAvatar name={bioPage.displayName} photoUrl={bioPage.photoUrl} accent={accent} size={96} />
+            <View style={styles.avatarRing}>
+              <ProfileAvatar name={bioPage.displayName} photoUrl={bioPage.photoUrl} accent="#0071E3" size={96} />
             </View>
             <AppText style={styles.name}>{bioPage.displayName}</AppText>
             {bioPage.tagline ? (
@@ -429,24 +426,24 @@ export function PublicBioScreen({ slug, cardId }: Props) {
             {/* Stat pills */}
             <View style={styles.statRow}>
               <View style={styles.statPill}>
-                <AppIcon name="Eye" size={12} color={accent} />
-                <AppText style={[styles.statT, { color: accent }]}>{bioPage.views ?? 0} views</AppText>
+                <AppIcon name="Eye" size={12} color="#FFFFFF" />
+                <AppText style={[styles.statT, { color: '#FFFFFF' }]}>{bioPage.views ?? 0} views</AppText>
               </View>
               <View style={styles.statPill}>
-                <AppIcon name="Nfc" size={12} color="#7C3AED" />
-                <AppText style={[styles.statT, { color: '#7C3AED' }]}>{bioPage.taps ?? 0} taps</AppText>
+                <AppIcon name="Nfc" size={12} color="#FFFFFF" />
+                <AppText style={[styles.statT, { color: '#FFFFFF' }]}>{bioPage.taps ?? 0} taps</AppText>
               </View>
             </View>
           </View>
 
-          {/* ── Primary CTA ── */}
+          {/* ── Primary CTA — B&W High-Contrast ── */}
           <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
             <Pressable
               onPress={() => void handleSaveContact()}
-              style={[styles.ctaBtn, { backgroundColor: accent, shadowColor: accent }]}
+              style={styles.ctaBtn}
               accessibilityRole="button"
             >
-              <AppIcon name="UserPlus" size={20} color="#FFFFFF" />
+              <AppIcon name="UserPlus" size={20} color="#000000" />
               <AppText style={styles.ctaBtnT}>
                 {isGuest ? 'Add to Contacts' : 'Save Contact'}
               </AppText>
@@ -489,8 +486,8 @@ export function PublicBioScreen({ slug, cardId }: Props) {
           {/* ── NFC how-it-works hint (only when opened from NFC card) ── */}
           {resolvedCardId ? (
             <View style={styles.nfcHint}>
-              <AppIcon name="Nfc" size={16} color={accent} />
-              <AppText style={[styles.nfcHintT, { color: accent }]}>
+              <AppIcon name="Nfc" size={16} color="rgba(255, 255, 255, 0.7)" />
+              <AppText style={styles.nfcHintT}>
                 Opened via NFC card · tap saved automatically
               </AppText>
             </View>
@@ -506,25 +503,34 @@ export function PublicBioScreen({ slug, cardId }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F2F7' },
+  root: { flex: 1, backgroundColor: '#000000' },
   safe: { flex: 1 },
-  scroll: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 80, gap: 14, alignItems: 'stretch' },
+  scroll: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 80,
+    gap: 14,
+    alignItems: 'stretch',
+    maxWidth: 640,
+    width: '100%',
+    alignSelf: 'center',
+  },
 
   // Loading
-  loadingCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, backgroundColor: '#F2F2F7' },
-  loadingText: { fontSize: 14, fontWeight: '600', color: '#8E8E93' },
+  loadingCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, backgroundColor: '#000000' },
+  loadingText: { fontSize: 14, fontWeight: '600', color: 'rgba(255, 255, 255, 0.6)' },
 
   // Not found
-  notFoundSafe: { flex: 1, backgroundColor: '#F2F2F7' },
+  notFoundSafe: { flex: 1, backgroundColor: '#000000' },
   notFoundCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 32 },
-  notFoundTitle: { fontSize: 20, fontWeight: '800', color: '#1C1C1E' },
-  notFoundSub: { fontSize: 14, fontWeight: '500', color: '#8E8E93', textAlign: 'center' },
-  backBtn: { marginTop: 8, paddingHorizontal: 20, paddingVertical: 10, backgroundColor: '#2596BE', borderRadius: 12 },
+  notFoundTitle: { fontSize: 20, fontWeight: '800', color: '#FFFFFF' },
+  notFoundSub: { fontSize: 14, fontWeight: '500', color: 'rgba(255, 255, 255, 0.6)', textAlign: 'center' },
+  backBtn: { marginTop: 8, paddingHorizontal: 20, paddingVertical: 10, backgroundColor: '#111114', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.15)', borderRadius: 12 },
   backBtnT: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
 
   // Top bar
-  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10 },
-  topBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
+  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, maxWidth: 640, width: '100%', alignSelf: 'center' },
+  topBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#111114', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.12)', alignItems: 'center', justifyContent: 'center' },
 
   // Hero
   heroCard: {
@@ -533,22 +539,19 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 22,
     paddingHorizontal: 20,
-    borderRadius: 28,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.05,
-    shadowRadius: 16,
-    elevation: 2,
+    borderRadius: 24,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
-  avatarRing: { borderWidth: 3, borderRadius: 54, padding: 3 },
-  name: { fontSize: 30, fontWeight: '900', color: '#000000', letterSpacing: 0, textAlign: 'center' },
-  tagline: { fontSize: 14, fontWeight: '500', color: '#8E8E93', textAlign: 'center', lineHeight: 20, maxWidth: 280 },
+  avatarRing: { borderWidth: 2, borderColor: 'rgba(255, 255, 255, 0.15)', borderRadius: 54, padding: 3 },
+  name: { fontSize: 30, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5, textAlign: 'center' },
+  tagline: { fontSize: 14, fontWeight: '500', color: 'rgba(255, 255, 255, 0.6)', textAlign: 'center', lineHeight: 20, maxWidth: 280 },
   statRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
-  statPill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: '#F2F2F7' },
+  statPill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(255, 255, 255, 0.06)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)' },
   statT: { fontSize: 11, fontWeight: '700' },
 
-  // CTA
+  // CTA - Solid White B&W style
   ctaBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -556,20 +559,17 @@ const styles = StyleSheet.create({
     gap: 10,
     height: 54,
     borderRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.14,
-    shadowRadius: 12,
-    elevation: 2,
+    backgroundColor: '#FFFFFF',
   },
-  ctaBtnT: { fontSize: 16, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.2 },
+  ctaBtnT: { fontSize: 16, fontWeight: '800', color: '#000000', letterSpacing: -0.2 },
 
   // Sections
   section: { gap: 10 },
 
   // NFC hint
   nfcHint: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 4 },
-  nfcHintT: { fontSize: 12, fontWeight: '600' },
+  nfcHintT: { fontSize: 12, fontWeight: '600', color: 'rgba(255, 255, 255, 0.6)' },
 
   // Footer
-  footer: { fontSize: 11, color: 'rgba(0,0,0,0.25)', textAlign: 'center', marginTop: 8 },
+  footer: { fontSize: 11, color: 'rgba(255, 255, 255, 0.3)', textAlign: 'center', marginTop: 8 },
 });
