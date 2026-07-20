@@ -324,10 +324,15 @@ export function LoginScreen() {
             style={StyleSheet.absoluteFillObject}
             resizeMode="cover"
           />
-          <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0, 0, 0, 0.65)' }]} />
+          <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0, 0, 0, 0.76)' }]} />
+          {/* Immersive ambient glows */}
+          <View style={styles.glowOverlayRed} pointerEvents="none" />
+          <View style={styles.glowOverlayCyan} pointerEvents="none" />
         </View>
       ) : (
-        <View style={[StyleSheet.absoluteFillObject, { backgroundColor: '#000000' }]} />
+        <View style={[StyleSheet.absoluteFillObject, { backgroundColor: '#000000' }]}>
+          <View style={styles.glowOverlayForm} pointerEvents="none" />
+        </View>
       )}
 
       {/* Header bar/Back button */}
@@ -394,7 +399,7 @@ export function LoginScreen() {
                       {isAppleLoading ? (
                         <ActivityIndicator color="#FFFFFF" size="small" />
                       ) : (
-                        <Ionicons name="logo-apple" size={24} color="#FFFFFF" />
+                        <Ionicons name="logo-apple" size={22} color="#FFFFFF" />
                       )}
                     </Pressable>
                   )}
@@ -407,7 +412,7 @@ export function LoginScreen() {
                     {isGoogleLoading ? (
                       <ActivityIndicator color="#FFFFFF" size="small" />
                     ) : (
-                      <Ionicons name="logo-google" size={22} color="#FFFFFF" />
+                      <Ionicons name="logo-google" size={20} color="#FFFFFF" />
                     )}
                   </Pressable>
 
@@ -419,7 +424,7 @@ export function LoginScreen() {
                     }}
                     disabled={busy}
                   >
-                    <Ionicons name="mail" size={22} color="#FFFFFF" />
+                    <Ionicons name="mail" size={20} color="#FFFFFF" />
                   </Pressable>
                 </View>
 
@@ -443,11 +448,11 @@ export function LoginScreen() {
               <View style={styles.formWrap}>
                 <AppText style={styles.logoTitleForm} weight="extrabold">GENNFC</AppText>
 
-                <View style={styles.inputContainer}>
+                <View style={styles.glassInputCard}>
                   <TextInput
                     style={styles.underlineInput}
                     placeholder="Email or Username"
-                    placeholderTextColor="#555555"
+                    placeholderTextColor="rgba(255, 255, 255, 0.3)"
                     value={email}
                     onChangeText={setEmail}
                     keyboardType="email-address"
@@ -484,24 +489,26 @@ export function LoginScreen() {
 
                 <View style={styles.inputContainer}>
                   {isSignUp && (
-                    <TextInput
-                      style={[styles.underlineInput, { marginBottom: 24 }]}
-                      placeholder="Display Name"
-                      placeholderTextColor="#555555"
-                      value={displayName}
-                      onChangeText={setDisplayName}
-                      autoCapitalize="words"
-                      editable={!busy}
-                      textContentType="name"
-                      autoComplete="name"
-                    />
+                    <View style={[styles.glassInputCard, { marginBottom: 16 }]}>
+                      <TextInput
+                        style={styles.underlineInput}
+                        placeholder="Display Name"
+                        placeholderTextColor="rgba(255, 255, 255, 0.3)"
+                        value={displayName}
+                        onChangeText={setDisplayName}
+                        autoCapitalize="words"
+                        editable={!busy}
+                        textContentType="name"
+                        autoComplete="name"
+                      />
+                    </View>
                   )}
                   
-                  <View style={styles.passwordInputWrap}>
+                  <View style={styles.glassInputCard}>
                     <TextInput
                       style={[styles.underlineInput, { flex: 1 }]}
                       placeholder="Password"
-                      placeholderTextColor="#555555"
+                      placeholderTextColor="rgba(255, 255, 255, 0.3)"
                       value={password}
                       onChangeText={setPassword}
                       secureTextEntry={!showPassword}
@@ -516,8 +523,8 @@ export function LoginScreen() {
                     >
                       <Ionicons
                         name={showPassword ? 'eye-off' : 'eye'}
-                        size={20}
-                        color="#8E8E93"
+                        size={18}
+                        color="rgba(255, 255, 255, 0.4)"
                       />
                     </Pressable>
                   </View>
@@ -798,8 +805,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#333333',
     color: '#FFFFFF',
-    fontSize: 16,
-    paddingVertical: 10,
+    fontSize: 15,
+    fontWeight: '700',
   },
   passwordInputWrap: {
     flexDirection: 'row',
@@ -807,7 +814,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   eyeBtn: {
-    padding: 10,
+    paddingHorizontal: 12,
+    justifyContent: 'center',
   },
   pillBtn: {
     width: '100%',
@@ -817,18 +825,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 4,
   },
   pillBtnText: {
     color: '#000000',
-    fontSize: 16,
+    fontSize: 15,
+    fontWeight: '900',
   },
   guestLink: {
     paddingVertical: 8,
     alignItems: 'center',
   },
   guestLinkText: {
-    color: '#8E8E93',
+    color: 'rgba(255, 255, 255, 0.45)',
     fontSize: 14,
+    fontWeight: '700',
   },
   authLinksWrap: {
     alignItems: 'center',
@@ -840,12 +855,14 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   subLinkText: {
-    color: '#8E8E93',
-    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 13,
+    fontWeight: '700',
   },
   subLinkTextHighlight: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 13,
+    fontWeight: '800',
   },
   checkEmailWrap: {
     width: '100%',
@@ -865,36 +882,38 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 64,
-    backgroundColor: '#111111',
+    backgroundColor: '#050507',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#222222',
+    borderTopColor: 'rgba(255,255,255,0.08)',
   },
   brandFooterLeft: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   logoSquare: {
-    width: 22,
-    height: 22,
-    borderRadius: 0,
-    backgroundColor: 'transparent',
+    width: 20,
+    height: 20,
+    borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#FFFFFF',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
   },
   logoSquareLetter: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 10,
+    fontWeight: '900',
   },
   brandFooterText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 13,
+    fontWeight: '800',
     letterSpacing: 0,
   },
   brandFooterRight: {
@@ -903,12 +922,14 @@ const styles = StyleSheet.create({
     marginLeft: 'auto',
   },
   brandFooterSubText: {
-    color: '#8E8E93',
-    fontSize: 13,
+    color: 'rgba(255,255,255,0.35)',
+    fontSize: 12,
+    fontWeight: '600',
   },
   brandFooterBoldText: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 12,
+    fontWeight: '900',
   },
   splashOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -927,5 +948,43 @@ const styles = StyleSheet.create({
     lineHeight: 58,
     color: '#FFFFFF',
     letterSpacing: 0,
+  },
+  glowOverlayRed: {
+    position: 'absolute',
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: 'rgba(233, 64, 87, 0.08)',
+    top: '10%',
+    left: '-20%',
+  },
+  glowOverlayForm: {
+    position: 'absolute',
+    width: 340,
+    height: 340,
+    borderRadius: 170,
+    backgroundColor: 'rgba(37, 150, 190, 0.06)',
+    top: '30%',
+    alignSelf: 'center',
+  },
+  glowOverlayCyan: {
+    position: 'absolute',
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: 'rgba(37, 150, 190, 0.08)',
+    bottom: '15%',
+    right: '-15%',
+  },
+  glassInputCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    minHeight: 56,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    paddingHorizontal: 16,
   },
 });
