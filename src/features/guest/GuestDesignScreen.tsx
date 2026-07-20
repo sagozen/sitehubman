@@ -70,6 +70,7 @@ function FieldRow({
   placeholder: string;
 } & Pick<React.ComponentProps<typeof TextInput>, 'keyboardType' | 'autoCapitalize'>) {
   const ref = useRef<TextInput>(null);
+  const [focused, setFocused] = useState(false);
 
   const debouncedOnChange = useDebounceCallback((text: string) => {
     onChange(text);
@@ -79,12 +80,12 @@ function FieldRow({
     <Pressable
       onPress={() => { HapticTap.light(); ref.current?.focus(); }}
       hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-      style={({ pressed }) => [
+      style={[
         fi.row,
-        pressed && fi.rowPressed
+        focused && fi.rowFocused
       ] as ViewStyle[]}
     >
-      <AppIcon name={icon} size={20} color={BRAND} />
+      <AppIcon name={icon} size={20} color={focused ? '#FFFFFF' : BRAND} />
       <TextInput
         ref={ref}
         style={fi.input}
@@ -93,6 +94,8 @@ function FieldRow({
         placeholder={placeholder}
         placeholderTextColor={MUTED}
         accessibilityLabel={placeholder}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         {...inputProps}
       />
     </Pressable>
@@ -108,19 +111,23 @@ const fi = StyleSheet.create({
     minHeight: 64,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: BORDER,
-    backgroundColor: SURFACE,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: '#0D0D10',
     overflow: 'hidden'
   } as ViewStyle,
-  rowPressed: {
-    transform: [{ scale: MotionScale.pressed }],
-    borderColor: 'rgba(255, 255, 255, 0.28)'
+  rowFocused: {
+    borderColor: '#FFFFFF',
+    backgroundColor: '#111114',
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
   } as ViewStyle,
   input: {
     flex: 1,
-    fontSize: 16,
-    fontWeight: '800',
-    color: INK,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
     padding: 0,
     fontFamily: 'Inter_800ExtraBold'
   } as TextStyle,
@@ -273,21 +280,25 @@ export function GuestDesignScreen() {
 
         <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <View style={styles.flowCard}>
-            <AppText style={styles.flowTitle}>Launch flow</AppText>
             <View style={styles.flowSteps}>
               {FLOW_STEPS.map((step, index) => {
                 const active = index === 0;
                 return (
-                  <View key={step} style={styles.flowStep}>
-                    <View style={[styles.flowDot, active && styles.flowDotActive]}>
-                      <AppText style={[styles.flowDotText, active && styles.flowDotTextActive]}>
-                        {index + 1}
+                  <React.Fragment key={step}>
+                    <View style={styles.flowStep}>
+                      <View style={[styles.flowDot, active && styles.flowDotActive]}>
+                        <AppText style={[styles.flowDotText, active && styles.flowDotTextActive]}>
+                          {index + 1}
+                        </AppText>
+                      </View>
+                      <AppText style={[styles.flowStepText, active && styles.flowStepTextActive]}>
+                        {step}
                       </AppText>
                     </View>
-                    <AppText style={[styles.flowStepText, active && styles.flowStepTextActive]}>
-                      {step}
-                    </AppText>
-                  </View>
+                    {index < FLOW_STEPS.length - 1 && (
+                      <View style={[styles.flowLine, index === 0 && styles.flowLineActive]} />
+                    )}
+                  </React.Fragment>
                 );
               })}
             </View>
@@ -296,6 +307,7 @@ export function GuestDesignScreen() {
           {/* ── Gen Z Neon Card Stage ── */}
           <View style={styles.previewStage}>
             <View style={styles.glowBackdrop} />
+            <View style={styles.glowBackdropBlue} />
             <View style={styles.previewWrap}>
               <NfcGlobalCardFace
                 fullName={name || 'Your Name'}
@@ -308,8 +320,9 @@ export function GuestDesignScreen() {
               />
             </View>
             <View style={styles.liveRow}>
-              <View style={styles.liveDot} />
-              <AppText style={styles.previewHint}>Live preview</AppText>
+              <View style={styles.livePulseRing} />
+              <View style={styles.livePulseDot} />
+              <AppText style={styles.previewHint}>Live design</AppText>
             </View>
           </View>
 
@@ -462,18 +475,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 8,
+    width: '100%',
   } as ViewStyle,
   flowStep: {
-    flex: 1,
     alignItems: 'center',
     gap: 6,
-    minWidth: 0,
+  } as ViewStyle,
+  flowLine: {
+    flex: 1,
+    height: 1.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    marginHorizontal: 4,
+    transform: [{ translateY: -10 }],
+  } as ViewStyle,
+  flowLineActive: {
+    backgroundColor: '#FFFFFF',
   } as ViewStyle,
   flowDot: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.16)',
     alignItems: 'center',
@@ -485,15 +506,15 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   flowDotText: {
     color: 'rgba(255, 255, 255, 0.64)',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '900',
   } as TextStyle,
   flowDotTextActive: {
     color: '#000000',
   } as TextStyle,
   flowStepText: {
-    color: 'rgba(255, 255, 255, 0.56)',
-    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 10,
     fontWeight: '800',
     textAlign: 'center',
   } as TextStyle,
@@ -504,22 +525,33 @@ const styles = StyleSheet.create({
   previewStage: { alignItems: 'center', position: 'relative', paddingVertical: 24, paddingHorizontal: 20 } as ViewStyle,
   glowBackdrop: {
     position: 'absolute',
-    width: '80%',
-    height: '60%',
-    backgroundColor: '#FFFFFF',
-    opacity: 0.02,
-    borderRadius: 999,
-    top: '20%',
+    width: 260,
+    height: 130,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 130,
+    top: '30%',
+    zIndex: 0,
+  } as ViewStyle,
+  glowBackdropBlue: {
+    position: 'absolute',
+    width: 200,
+    height: 100,
+    backgroundColor: 'rgba(37, 150, 190, 0.1)',
+    borderRadius: 100,
+    top: '35%',
+    zIndex: 0,
   } as ViewStyle,
   previewWrap: {
     borderRadius: 24,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
+    zIndex: 1,
   } as ViewStyle,
-  liveRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 24, backgroundColor: 'rgba(0,0,0,0.4)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 99 } as ViewStyle,
-  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FFFFFF' } as ViewStyle,
-  previewHint: { fontSize: 11, color: 'rgba(255, 255, 255, 0.7)', letterSpacing: 0, fontFamily: 'SF-Pro-Display-Regular' } as TextStyle,
+  liveRow: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 24, backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 99, zIndex: 1 } as ViewStyle,
+  livePulseDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#30D158' } as ViewStyle,
+  livePulseRing: { position: 'absolute', left: 11, width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(48,209,88,0.3)', transform: [{ scale: 1.6 }] } as ViewStyle,
+  previewHint: { fontSize: 11, color: '#FFFFFF', fontWeight: '800', letterSpacing: -0.2, fontFamily: 'SF-Pro-Display-Regular' } as TextStyle,
 
   sectionsContainer: { paddingHorizontal: 20, paddingTop: 10, gap: 40 } as ViewStyle,
   section: { gap: 16 } as ViewStyle,

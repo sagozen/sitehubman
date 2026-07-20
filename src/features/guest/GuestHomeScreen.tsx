@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Animated,
   Image,
   Pressable,
   ScrollView,
@@ -104,6 +105,81 @@ const TRUST_POINTS = [
   { label: 'NFC card order', icon: 'CreditCard' as AppIconName },
   { label: 'Lead moments', icon: 'Users' as AppIconName },
 ];
+
+// ─── Animated Pulsing Live Dot ────────────────────────────────────────────────
+function PulsingDot() {
+  const scale = useRef(new Animated.Value(1)).current;
+  const opacity = useRef(new Animated.Value(0.6)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(scale, { toValue: 2.2, duration: 900, useNativeDriver: true }),
+          Animated.timing(opacity, { toValue: 0, duration: 900, useNativeDriver: true }),
+        ]),
+        Animated.parallel([
+          Animated.timing(scale, { toValue: 1, duration: 0, useNativeDriver: true }),
+          Animated.timing(opacity, { toValue: 0.6, duration: 0, useNativeDriver: true }),
+        ]),
+        Animated.delay(600),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [scale, opacity]);
+
+  return (
+    <View style={dotStyles.wrap}>
+      <Animated.View style={[dotStyles.ring, { transform: [{ scale }], opacity }]} />
+      <View style={dotStyles.core} />
+    </View>
+  );
+}
+const dotStyles = StyleSheet.create({
+  wrap: { width: 16, height: 16, alignItems: 'center', justifyContent: 'center' },
+  ring: { position: 'absolute', width: 10, height: 10, borderRadius: 5, backgroundColor: '#30D158' },
+  core: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#30D158' },
+});
+
+// ─── Live Tap Counter ─────────────────────────────────────────────────────────
+function LiveTapCounter() {
+  const BASE = 2847;
+  const [count, setCount] = useState(BASE);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    // Increment every 8-14 seconds to simulate real live traffic
+    const bump = () => {
+      Animated.sequence([
+        Animated.timing(fadeAnim, { toValue: 0.3, duration: 180, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 220, useNativeDriver: true }),
+      ]).start();
+      setCount((c) => c + Math.floor(Math.random() * 3) + 1);
+    };
+    const id = setInterval(bump, 9000 + Math.random() * 5000);
+    return () => clearInterval(id);
+  }, [fadeAnim]);
+
+  return (
+    <View style={tapStyles.wrap}>
+      <View style={tapStyles.dot} />
+      <Animated.Text style={[tapStyles.count, { opacity: fadeAnim }]}>
+        {count.toLocaleString()}
+      </Animated.Text>
+      <View style={tapStyles.label}>
+        <AppText style={tapStyles.labelText}>cards tapped today</AppText>
+      </View>
+    </View>
+  );
+}
+const tapStyles = StyleSheet.create({
+  wrap: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#30D158' },
+  count: { fontSize: 13, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.3 },
+  label: {},
+  labelText: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.45)' },
+});
 
 // ─── Order status ────────────────────────────────────────────────────────────
 function orderStatus(s: string): { label: string; color: string } {
@@ -377,8 +453,8 @@ export function GuestHomeScreen() {
                     <View style={styles.avatarNoBg}>
                       <AppIcon
                         name="UserRound"
-                        size={24}
-                        color="#FFFFFF"
+                        size={20}
+                        color="rgba(255,255,255,0.85)"
                         variant="solar-bold"
                       />
                     </View>
@@ -405,16 +481,18 @@ export function GuestHomeScreen() {
                   >
                     <AppIcon
                       name="Inbox"
-                      size={16}
+                      size={15}
                       color="#FFFFFF"
                       variant="solar-bold"
                     />
                     <AppText style={styles.inboxBtnText}>Inbox</AppText>
-                    <View style={styles.neonBadgePill}>
-                      <AppText style={styles.neonBadgeNum}>
-                        {unreadCount > 0 ? unreadCount : items?.length || 0}
-                      </AppText>
-                    </View>
+                    {(unreadCount > 0 || (items?.length ?? 0) > 0) && (
+                      <View style={styles.neonBadgePill}>
+                        <AppText style={styles.neonBadgeNum}>
+                          {unreadCount > 0 ? unreadCount : items?.length || 0}
+                        </AppText>
+                      </View>
+                    )}
                   </Pressable>
 
                   <Pressable
@@ -428,6 +506,7 @@ export function GuestHomeScreen() {
                     ]}
                     hitSlop={12}
                   >
+                    <AppIcon name="Palette" size={15} color="rgba(255,255,255,0.7)" />
                     <AppText style={styles.inboxBtnText}>Studio</AppText>
                   </Pressable>
                 </View>
@@ -435,10 +514,12 @@ export function GuestHomeScreen() {
 
               <View style={styles.launchHero}>
                 <View style={styles.launchEyebrowRow}>
-                  <View style={styles.liveDot} />
+                  <PulsingDot />
                   <AppText style={styles.launchEyebrow}>
                     Profile commerce hub
                   </AppText>
+                  <View style={{ flex: 1 }} />
+                  <LiveTapCounter />
                 </View>
                 <AppText style={styles.launchTitle}>
                   One link for your profile, NFC card, orders, and leads.
@@ -484,8 +565,11 @@ export function GuestHomeScreen() {
                 </View>
               </View>
 
-              {/* NFC Card Preview */}
+              {/* NFC Card Preview with ambient glow */}
               <View style={styles.cardContainer}>
+                {/* Ambient glow rings */}
+                <View style={styles.glowRing1} pointerEvents="none" />
+                <View style={styles.glowRing2} pointerEvents="none" />
                 <View style={[styles.cardElevation, { width: cardWidth }]}>
                   <NfcGlobalCardFace
                     fullName={heroName || undefined}
@@ -525,7 +609,7 @@ export function GuestHomeScreen() {
                 <AppIcon name="ChevronRight" size={18} color="#FFFFFF" />
               </Pressable>
 
-              {/* Quick Actions Scroll (Landscape Bento Layout) */}
+              {/* Quick Actions Scroll */}
               <View style={{ marginTop: 4 }}>
                 <ScrollView
                   horizontal
@@ -551,17 +635,20 @@ export function GuestHomeScreen() {
                         pressed && styles.actionCardPressed,
                       ]}
                     >
+                      {/* Glow strip at top */}
+                      <View style={styles.actionGlowStrip} />
                       <View style={styles.actionTextWrap}>
-                        <View style={styles.actionCardHeader}>
-                          <AppText
-                            variant="bodySmall"
-                            weight="bold"
-                            style={{ color: INK }}
-                          >
-                            {a.label}
-                          </AppText>
+                        <View style={styles.actionCardIconBox}>
+                          <AppIcon name={a.icon} size={14} color="#FFFFFF" variant="solar-bold" />
                         </View>
-                        <AppText variant="caption" style={{ color: MUTED }}>
+                        <AppText
+                          variant="bodySmall"
+                          weight="bold"
+                          style={{ color: INK, marginTop: 6 }}
+                        >
+                          {a.label}
+                        </AppText>
+                        <AppText variant="caption" style={{ color: MUTED, marginTop: 1 }}>
                           {a.subtitle}
                         </AppText>
                       </View>
@@ -750,10 +837,10 @@ const styles = StyleSheet.create({
   fbAvatarBtn: {
     width: 40,
     height: 40,
-    borderRadius: 0,
-    backgroundColor: SURFACE,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.08)',
     borderWidth: 1,
-    borderColor: SURFACE_BORDER,
+    borderColor: 'rgba(255,255,255,0.14)',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -776,13 +863,13 @@ const styles = StyleSheet.create({
   inboxBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: SURFACE,
+    gap: 5,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderWidth: 1,
-    borderColor: SURFACE_BORDER,
-    paddingHorizontal: 12,
+    borderColor: 'rgba(255,255,255,0.10)',
+    paddingHorizontal: 13,
     paddingVertical: 8,
-    borderRadius: 0,
+    borderRadius: 999,
   },
   inboxBtnText: {
     color: '#FFFFFF',
@@ -920,6 +1007,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
   },
+  glowRing1: {
+    position: 'absolute',
+    width: 260,
+    height: 130,
+    borderRadius: 130,
+    backgroundColor: 'rgba(37,150,190,0.13)',
+    top: '50%',
+    alignSelf: 'center',
+    transform: [{ translateY: -65 }],
+    zIndex: 0,
+  },
+  glowRing2: {
+    position: 'absolute',
+    width: 180,
+    height: 90,
+    borderRadius: 90,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    top: '50%',
+    alignSelf: 'center',
+    transform: [{ translateY: -45 }],
+    zIndex: 0,
+  },
   cardElevation: {
     borderRadius: 16,
     overflow: 'hidden',
@@ -973,17 +1082,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.base,
   },
   actionCard: {
-    width: 200,
-    height: 96,
-    borderRadius: 16,
+    width: 160,
+    height: 110,
+    borderRadius: 20,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingTop: 0,
+    paddingBottom: 12,
     borderWidth: 1,
-    borderColor: SURFACE_BORDER,
-    backgroundColor: SURFACE,
-    flexDirection: 'row',
-    alignItems: 'center',
+    borderColor: 'rgba(255,255,255,0.10)',
+    backgroundColor: '#0D0D10',
+    flexDirection: 'column',
     justifyContent: 'space-between',
+    overflow: 'hidden',
+  },
+  actionGlowStrip: {
+    height: 2,
+    width: '60%',
+    borderRadius: 1,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+    marginTop: 0,
+  },
+  actionCardIconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actionCardPressed: {
     opacity: 0.75,
