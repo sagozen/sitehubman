@@ -182,10 +182,11 @@ const pp = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#fff',
-    ...theme.shadows.control,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
-  text: { fontSize: 13, fontWeight: '600', color: '#555' },
+  text: { fontSize: 13, fontWeight: '600', color: 'rgba(255, 255, 255, 0.8)' },
 });
 
 function Field({
@@ -213,11 +214,11 @@ const f = StyleSheet.create({
   label: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.6)',
     textTransform: 'uppercase',
     letterSpacing: 0,
   },
-  req: { color: '#E74C3C' },
+  req: { color: '#FF453A' },
 });
 
 function ToggleControl({
@@ -242,12 +243,12 @@ function ToggleControl({
 const inputStyle: object = {
   width: '100%',
   minWidth: 0,
-  backgroundColor: '#fff',
+  backgroundColor: '#111114',
   borderRadius: 12,
   paddingHorizontal: 14,
   height: 48,
   fontSize: 15,
-  color: INK,
+  color: '#FFFFFF',
 };
 
 const multilineStyle: object = {
@@ -542,30 +543,30 @@ function BottomActionBar({ step, totalSteps, saving, onBack, onContinue }: any) 
 
 const newS = StyleSheet.create({
   headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 16 },
-  backBtn: { width: 44, height: 44, borderRadius: 14, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 },
+  backBtn: { width: 44, height: 44, borderRadius: 14, backgroundColor: '#111114', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)' },
   backPlaceholder: { width: 44 },
   headerTitleWrap: { alignItems: 'center', gap: 2 },
-  stepText: { fontSize: 13, fontWeight: '600', color: '#8E8E93' },
-  title: { fontSize: 22, fontWeight: '800', color: '#111827', letterSpacing: -0.5 },
-  segmentWrap: { marginHorizontal: 16, height: 44, borderRadius: 22, backgroundColor: '#FFFFFF', padding: 4, flexDirection: 'row', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 },
+  stepText: { fontSize: 13, fontWeight: '600', color: 'rgba(255, 255, 255, 0.5)' },
+  title: { fontSize: 22, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.5 },
+  segmentWrap: { marginHorizontal: 16, height: 44, borderRadius: 22, backgroundColor: '#111114', padding: 4, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)' },
   segmentItem: { flex: 1, height: '100%', borderRadius: 18, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6 },
-  segmentItemActive: { backgroundColor: '#111827' },
-  segmentText: { fontSize: 13, fontWeight: '600', color: '#94A3B8' },
-  segmentTextActive: { color: '#FFFFFF' },
+  segmentItemActive: { backgroundColor: '#FFFFFF' },
+  segmentText: { fontSize: 13, fontWeight: '600', color: 'rgba(255, 255, 255, 0.6)' },
+  segmentTextActive: { color: '#000000' },
   formContainer: { paddingHorizontal: 16, marginTop: 12 },
-  formCard: { backgroundColor: '#FFFFFF', borderRadius: 24, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 16, elevation: 2 },
-  inputRow: { height: 50, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F1F5F9' },
+  formCard: { backgroundColor: '#111114', borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)' },
+  inputRow: { height: 50, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255, 255, 255, 0.08)' },
   inputRowLast: { borderBottomWidth: 0, height: 50, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16 },
   inputIcon: { width: 28, alignItems: 'flex-start' },
-  input: { flex: 1, fontSize: 15, fontWeight: '500', color: '#111827', height: '100%' },
-  helperNote: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FFFBEB', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F1F5F9' },
-  helperText: { fontSize: 12, fontWeight: '500', color: '#B45309', flex: 1 },
-  microcopy: { fontSize: 12, fontWeight: '500', color: '#94A3B8', textAlign: 'center', marginTop: 16, paddingHorizontal: 20 },
-  bottomBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8, gap: 12, backgroundColor: '#F5F5F7' },
-  bottomBtnSecondary: { flex: 0.35, height: 50, borderRadius: 16, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 8 },
-  bottomBtnSecondaryText: { fontSize: 15, fontWeight: '600', color: '#64748B' },
-  bottomBtnPrimary: { flex: 0.65, height: 50, borderRadius: 16, backgroundColor: '#2596BE', alignItems: 'center', justifyContent: 'center', shadowColor: '#2596BE', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 12 },
-  bottomBtnPrimaryText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+  input: { flex: 1, fontSize: 15, fontWeight: '500', color: '#FFFFFF', height: '100%' },
+  helperNote: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255, 255, 255, 0.04)', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255, 255, 255, 0.08)' },
+  helperText: { fontSize: 12, fontWeight: '500', color: 'rgba(255, 255, 255, 0.8)', flex: 1 },
+  microcopy: { fontSize: 12, fontWeight: '500', color: 'rgba(255, 255, 255, 0.5)', textAlign: 'center', marginTop: 16, paddingHorizontal: 20 },
+  bottomBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8, gap: 12, backgroundColor: '#000000' },
+  bottomBtnSecondary: { flex: 0.35, height: 50, borderRadius: 16, backgroundColor: '#111114', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)' },
+  bottomBtnSecondaryText: { fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
+  bottomBtnPrimary: { flex: 0.65, height: 50, borderRadius: 16, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
+  bottomBtnPrimaryText: { fontSize: 16, fontWeight: '700', color: '#000000' },
 });
 
 export function NewOrderScreen() {
