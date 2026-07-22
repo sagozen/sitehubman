@@ -473,7 +473,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
                 }}
               >
                 <AppIcon name="Mail" size={12} color="#0071E3" />
-                <AppText style={styles.aiPromptText}>Generate Intro Email</AppText>
+                <AppText style={styles.aiPromptText}>Create Introduction Email</AppText>
               </Pressable>
               <Pressable
                 style={styles.aiPromptChip}
@@ -488,7 +488,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
                 }}
               >
                 <AppIcon name="Send" size={12} color="#30D158" />
-                <AppText style={styles.aiPromptText}>Quick Intro Message</AppText>
+                <AppText style={styles.aiPromptText}>Quick Message</AppText>
               </Pressable>
             </View>
           </View>
