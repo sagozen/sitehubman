@@ -32,8 +32,8 @@ export function IconFlowHub({
   metricFlows = [],
   metrics = {},
   onLaunch,
-  textColor = '#1C1C1E',
-  mutedColor = '#8E8E93',
+  textColor = '#FFFFFF',
+  mutedColor = 'rgba(255, 255, 255, 0.6)',
 }: Props) {
   const visibleMetrics = metricFlows.filter((flow) => flow.id in metrics);
 
@@ -118,13 +118,17 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   actionList: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    backgroundColor: '#111114',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     overflow: 'hidden',
   },
   metricList: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    backgroundColor: '#111114',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     overflow: 'hidden',
   },
   row: {
@@ -134,7 +138,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(60,60,67,0.18)',
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
   },
   rowLast: {
     borderBottomWidth: 0,
@@ -147,16 +151,16 @@ const styles = StyleSheet.create({
   actionLabel: {
     fontSize: 15,
     fontWeight: '600',
-    letterSpacing: -0.1,
   },
   actionSub: {
     fontSize: 12,
-    fontWeight: '400',
+    fontWeight: '500',
   },
   metricValue: {
-    fontSize: 15,
-    fontWeight: '500',
-    letterSpacing: -0.1,
+    fontSize: 14,
+    fontWeight: '700',
   },
-  pressed: { opacity: 0.65 },
+  pressed: {
+    opacity: 0.7,
+  },
 });
