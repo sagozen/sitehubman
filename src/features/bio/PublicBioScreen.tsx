@@ -493,19 +493,30 @@ export function PublicBioScreen({ slug, cardId }: Props) {
             </View>
           </View>
 
-          {/* ── Primary CTA — B&W High-Contrast ── */}
-          <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+          {/* ── Primary CTA Row (Save Contact & Apple/Google Wallet) ── */}
+          <View style={styles.ctaRow}>
+            <Animated.View style={[{ flex: 1 }, { transform: [{ scale: pulseAnim }] }]}>
+              <Pressable
+                onPress={() => void handleSaveContact()}
+                style={styles.ctaBtn}
+                accessibilityRole="button"
+              >
+                <AppIcon name="UserPlus" size={20} color="#000000" />
+                <AppText style={styles.ctaBtnT}>
+                  {isGuest ? 'Add to Contacts' : 'Save Contact'}
+                </AppText>
+              </Pressable>
+            </Animated.View>
+
             <Pressable
               onPress={() => void handleSaveContact()}
-              style={styles.ctaBtn}
+              style={styles.walletCtaBtn}
               accessibilityRole="button"
             >
-              <AppIcon name="UserPlus" size={20} color="#000000" />
-              <AppText style={styles.ctaBtnT}>
-                {isGuest ? 'Add to Contacts' : 'Save Contact'}
-              </AppText>
+              <AppIcon name="Wallet" size={20} color="#FFFFFF" variant="solar-duotone" />
+              <AppText style={styles.walletCtaBtnT}>Add to Wallet</AppText>
             </Pressable>
-          </Animated.View>
+          </View>
 
           {/* ── Social links ── */}
           {socialLinks.length > 0 ? (
@@ -672,7 +683,12 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  // CTA - Solid White B&W style
+  // CTA Row
+  ctaRow: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'center',
+  },
   ctaBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -682,7 +698,20 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: '#FFFFFF',
   },
-  ctaBtnT: { fontSize: 16, fontWeight: '800', color: '#000000', letterSpacing: -0.2 },
+  ctaBtnT: { fontSize: 15, fontWeight: '800', color: '#000000', letterSpacing: -0.2 },
+  walletCtaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 54,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  walletCtaBtnT: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
 
   // Sections
   section: { gap: 10 },
