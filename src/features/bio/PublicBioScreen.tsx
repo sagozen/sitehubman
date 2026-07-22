@@ -436,11 +436,11 @@ export function PublicBioScreen({ slug, cardId }: Props) {
             </View>
           </View>
 
-          {/* ── Smart AI Business Card Summary ── */}
+          {/* ── Smart AI Business Card & Networking Assistant ── */}
           <View style={styles.aiCard}>
             <View style={styles.aiHeader}>
               <AppIcon name="Sparkles" size={16} color="#0071E3" variant="solar-duotone" />
-              <AppText style={styles.aiTitle}>Smart AI Bio Summary</AppText>
+              <AppText style={styles.aiTitle}>Smart AI Identity Assistant</AppText>
             </View>
             <View style={styles.aiItems}>
               <View style={styles.aiRow}>
@@ -459,6 +459,37 @@ export function PublicBioScreen({ slug, cardId }: Props) {
                   Specializes in <AppText style={styles.aiBold}>{(bioPage.specialties && bioPage.specialties.length > 0) ? bioPage.specialties.join(' & ') : 'Flutter, Firebase & React Native'}</AppText>
                 </AppText>
               </View>
+            </View>
+
+            {/* AI Interactive Quick Prompts */}
+            <View style={styles.aiPrompts}>
+              <Pressable
+                style={styles.aiPromptChip}
+                onPress={() => {
+                  const email = bioPage.email || 'contact@sitehub.com';
+                  const subject = encodeURIComponent(`Introduction - Connecting with ${bioPage.displayName}`);
+                  const body = encodeURIComponent(`Hi ${bioPage.displayName},\n\nI tapped your NFC card and would love to connect regarding opportunities.\n\nBest regards,`);
+                  void Linking.openURL(`mailto:${email}?subject=${subject}&body=${body}`).catch(() => undefined);
+                }}
+              >
+                <AppIcon name="Mail" size={12} color="#0071E3" />
+                <AppText style={styles.aiPromptText}>Generate Intro Email</AppText>
+              </Pressable>
+              <Pressable
+                style={styles.aiPromptChip}
+                onPress={() => {
+                  const msg = encodeURIComponent(`Hi ${bioPage.displayName}, great connecting via your NFC card!`);
+                  const phone = bioPage.whatsapp ? bioPage.whatsapp.replace(/\D/g, '') : '';
+                  if (phone) {
+                    void Linking.openURL(`https://wa.me/${phone}?text=${msg}`).catch(() => undefined);
+                  } else {
+                    void handleShare();
+                  }
+                }}
+              >
+                <AppIcon name="Send" size={12} color="#30D158" />
+                <AppText style={styles.aiPromptText}>Quick Intro Message</AppText>
+              </Pressable>
             </View>
           </View>
 
@@ -613,6 +644,31 @@ const styles = StyleSheet.create({
   },
   aiBold: {
     fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  aiPrompts: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 4,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  aiPromptChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  aiPromptText: {
+    fontSize: 11,
+    fontWeight: '700',
     color: '#FFFFFF',
   },
 
