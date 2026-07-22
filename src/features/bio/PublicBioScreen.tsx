@@ -436,6 +436,32 @@ export function PublicBioScreen({ slug, cardId }: Props) {
             </View>
           </View>
 
+          {/* ── Smart AI Business Card Summary ── */}
+          <View style={styles.aiCard}>
+            <View style={styles.aiHeader}>
+              <AppIcon name="Sparkles" size={16} color="#0071E3" variant="solar-duotone" />
+              <AppText style={styles.aiTitle}>Smart AI Bio Summary</AppText>
+            </View>
+            <View style={styles.aiItems}>
+              <View style={styles.aiRow}>
+                <AppIcon name="Briefcase" size={14} color="rgba(255, 255, 255, 0.7)" />
+                <AppText style={styles.aiText}>
+                  Works at <AppText style={styles.aiBold}>{bioPage.company || 'Metfone'}</AppText>
+                </AppText>
+              </View>
+              <View style={styles.aiRow}>
+                <AppIcon name="User" size={14} color="rgba(255, 255, 255, 0.7)" />
+                <AppText style={styles.aiText}>{bioPage.role || 'Software Engineer'}</AppText>
+              </View>
+              <View style={styles.aiRow}>
+                <AppIcon name="Zap" size={14} color="#FF9500" />
+                <AppText style={styles.aiText}>
+                  Specializes in <AppText style={styles.aiBold}>{(bioPage.specialties && bioPage.specialties.length > 0) ? bioPage.specialties.join(' & ') : 'Flutter, Firebase & React Native'}</AppText>
+                </AppText>
+              </View>
+            </View>
+          </View>
+
           {/* ── Primary CTA — B&W High-Contrast ── */}
           <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
             <Pressable
@@ -550,6 +576,45 @@ const styles = StyleSheet.create({
   statRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
   statPill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(255, 255, 255, 0.06)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)' },
   statT: { fontSize: 11, fontWeight: '700' },
+
+  // Smart AI Card
+  aiCard: {
+    backgroundColor: '#111114',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 113, 227, 0.3)',
+    padding: 16,
+    gap: 10,
+  },
+  aiHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  aiTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0071E3',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  aiItems: {
+    gap: 8,
+  },
+  aiRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  aiText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.85)',
+  },
+  aiBold: {
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
 
   // CTA - Solid White B&W style
   ctaBtn: {
