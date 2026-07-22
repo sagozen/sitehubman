@@ -2,6 +2,8 @@ import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { theme } from '@/src/constants/theme';
 
+import { recordAppError } from '@/src/services/errorLoggingService';
+
 type Props = {
   children: ReactNode;
 };
@@ -21,6 +23,8 @@ export class ErrorBoundary extends Component<Props, State> {
     if (__DEV__) {
       console.error('[ErrorBoundary]', error, info.componentStack);
     }
+    // Automatically report crash to Firestore telemetry error_logs
+    void recordAppError(error, { componentStack: info.componentStack }).catch(() => undefined);
   }
 
   private handleRetry = () => {

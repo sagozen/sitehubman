@@ -28,4 +28,5 @@ export const firebaseCollections = {
   orderPayments: 'payments',
   ledgerTransactions: 'transactions',
   companyWallets: 'company_wallets',
+  errorLogs: 'error_logs',
 } as const;

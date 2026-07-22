@@ -86,11 +86,14 @@ import { analytics } from '@/src/utils/analytics';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
+import { setupGlobalUnhandledErrorListeners } from '@/src/services/errorLoggingService';
+
 export default function RootLayout() {
   const isReady = useCachedResources();
 
   useEffect(() => {
     void SplashScreen.hideAsync().catch(() => undefined);
+    setupGlobalUnhandledErrorListeners();
   }, []);
 
   useEffect(() => {
