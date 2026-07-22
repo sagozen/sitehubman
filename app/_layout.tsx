@@ -88,6 +88,8 @@ void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 import { setupGlobalUnhandledErrorListeners } from '@/src/services/errorLoggingService';
 
+import { HomeSkeleton } from '@/src/components/HomeSkeleton';
+
 export default function RootLayout() {
   const isReady = useCachedResources();
 
@@ -101,11 +103,7 @@ export default function RootLayout() {
   }, []);
 
   if (!isReady) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
-        <Text style={{ color: '#FFF' }}>App is loading resources...</Text>
-      </View>
-    );
+    return <HomeSkeleton />;
   }
 
   return (
