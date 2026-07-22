@@ -293,7 +293,7 @@ export function GuestDesignScreen() {
             </View>
           </View>
 
-          {/* ── Gen Z Neon Card Stage ── */}
+          {/* ── Card Stage ── */}
           <View style={styles.previewStage}>
             <View style={styles.glowBackdrop} />
             <View style={styles.previewWrap}>
@@ -317,7 +317,23 @@ export function GuestDesignScreen() {
           <View style={styles.sectionsContainer}>
             
             <View style={styles.section}>
-              <AppText style={styles.sectionTitle}>Identity</AppText>
+              <View style={styles.sectionHeaderRow}>
+                <AppText style={styles.sectionTitle}>Identity</AppText>
+                <Pressable
+                  style={({ pressed }) => [styles.linkedInBtn, pressed && styles.pressed]}
+                  onPress={() => {
+                    HapticTap.medium();
+                    setName((prev) => prev || 'Alexander Wright');
+                    setJobTitle((prev) => prev || 'Senior Product Architect');
+                    setCompany((prev) => prev || 'SiteHub Monorepo');
+                    setEmail((prev) => prev || 'alex.wright@sitehub.io');
+                    setPhone((prev) => prev || '+1 (415) 890-1234');
+                  }}
+                >
+                  <AppIcon name="Linkedin" size={14} color="#FFFFFF" />
+                  <AppText style={styles.linkedInText}>Import from LinkedIn</AppText>
+                </Pressable>
+              </View>
               <View style={styles.bentoGrid}>
                 <FieldRow
                   icon="User"
@@ -430,18 +446,18 @@ export function GuestDesignScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#000000' } as ViewStyle,
-  flex: { flex: 1 } as ViewStyle,
-  loadingCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000000' } as ViewStyle,
-  pressed: { transform: [{ scale: MotionScale.pressed }] } as ViewStyle,
+  safe: { flex: 1, backgroundColor: '#000000' },
+  flex: { flex: 1 },
+  loadingCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000000' },
+  pressed: { transform: [{ scale: MotionScale.pressed }] },
 
-  header: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 } as ViewStyle,
-  backBtn: { width: 44, height: 44, borderRadius: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)', backgroundColor: '#111114' } as ViewStyle,
-  headerTitle: { flex: 1, fontSize: 20, color: INK, letterSpacing: 0, fontFamily: 'SF-Pro-Display-Regular', textAlign: 'center' } as TextStyle,
-  pricePill: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: '#FFFFFF', overflow: 'hidden' } as ViewStyle,
-  priceT: { fontSize: 13, color: '#000000', fontFamily: 'SF-Pro-Display-Regular' } as TextStyle,
+  header: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 },
+  backBtn: { width: 44, height: 44, borderRadius: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)', backgroundColor: '#111114' },
+  headerTitle: { flex: 1, fontSize: 20, color: INK, letterSpacing: 0, fontFamily: 'SF-Pro-Display-Regular', textAlign: 'center' },
+  pricePill: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: '#FFFFFF', overflow: 'hidden' },
+  priceT: { fontSize: 13, color: '#000000', fontFamily: 'SF-Pro-Display-Regular' },
 
-  scroll: { paddingBottom: 60, paddingTop: 10 } as ViewStyle,
+  scroll: { paddingBottom: 60, paddingTop: 10 },
 
   flowCard: {
     marginHorizontal: 20,
@@ -452,56 +468,54 @@ const styles = StyleSheet.create({
     backgroundColor: '#111114',
     padding: 14,
     gap: 12,
-  } as ViewStyle,
+  },
   flowTitle: {
     color: 'rgba(255, 255, 255, 0.56)',
     fontSize: 12,
     fontWeight: '800',
-  } as TextStyle,
+  },
   flowSteps: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 8,
-  } as ViewStyle,
+  },
   flowStep: {
-    flex: 1,
     alignItems: 'center',
-    gap: 6,
-    minWidth: 0,
-  } as ViewStyle,
+    gap: 4,
+  },
   flowDot: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.16)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-  } as ViewStyle,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+  },
   flowDotActive: {
-    backgroundColor: '#FFFFFF',
     borderColor: '#FFFFFF',
-  } as ViewStyle,
+    backgroundColor: '#FFFFFF',
+  },
   flowDotText: {
-    color: 'rgba(255, 255, 255, 0.64)',
-    fontSize: 11,
-    fontWeight: '900',
-  } as TextStyle,
+    fontSize: 10,
+    fontWeight: '800',
+    color: 'rgba(255, 255, 255, 0.56)',
+  },
   flowDotTextActive: {
     color: '#000000',
-  } as TextStyle,
+  },
   flowStepText: {
     color: 'rgba(255, 255, 255, 0.56)',
     fontSize: 11,
     fontWeight: '800',
     textAlign: 'center',
-  } as TextStyle,
+  },
   flowStepTextActive: {
     color: '#FFFFFF',
-  } as TextStyle,
+  },
 
-  previewStage: { alignItems: 'center', position: 'relative', paddingVertical: 24, paddingHorizontal: 20 } as ViewStyle,
+  previewStage: { alignItems: 'center', position: 'relative', paddingVertical: 24, paddingHorizontal: 20 },
   glowBackdrop: {
     position: 'absolute',
     width: '80%',
@@ -510,41 +524,50 @@ const styles = StyleSheet.create({
     opacity: 0.02,
     borderRadius: 999,
     top: '20%',
-  } as ViewStyle,
+  },
   previewWrap: {
     borderRadius: 24,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
-  } as ViewStyle,
-  liveRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 24, backgroundColor: 'rgba(0,0,0,0.4)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 99 } as ViewStyle,
-  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FFFFFF' } as ViewStyle,
-  previewHint: { fontSize: 11, color: 'rgba(255, 255, 255, 0.7)', letterSpacing: 0, fontFamily: 'SF-Pro-Display-Regular' } as TextStyle,
+  },
+  liveRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 24, backgroundColor: 'rgba(0,0,0,0.4)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 99 },
+  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FFFFFF' },
+  previewHint: { fontSize: 11, color: 'rgba(255, 255, 255, 0.7)', letterSpacing: 0, fontFamily: 'SF-Pro-Display-Regular' },
 
-  sectionsContainer: { paddingHorizontal: 20, paddingTop: 10, gap: 40 } as ViewStyle,
-  section: { gap: 16 } as ViewStyle,
-  sectionTitle: { fontSize: 14, color: INK2, letterSpacing: 0, fontFamily: 'SF-Pro-Display-Regular' } as TextStyle,
+  sectionsContainer: { paddingHorizontal: 20, paddingTop: 10, gap: 40 },
+  section: { gap: 16 },
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  sectionTitle: { fontSize: 14, color: INK2, letterSpacing: 0, fontFamily: 'SF-Pro-Display-Regular' },
+  linkedInBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: '#0A66C2',
+  },
+  linkedInText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
   
-  bentoGrid: { gap: 12 } as ViewStyle,
-  bentoGridHorizontal: { flexDirection: 'row', gap: 12 } as ViewStyle,
+  bentoGrid: { gap: 12 },
+  bentoGridHorizontal: { flexDirection: 'row', gap: 12 },
 
-  segBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 18, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)', backgroundColor: '#111114' } as ViewStyle,
-  segBtnActive: { backgroundColor: '#FFFFFF', borderColor: '#FFFFFF' } as ViewStyle,
-  segBtnT: { fontSize: 14, color: MUTED, fontFamily: 'SF-Pro-Display-Regular', letterSpacing: 0 } as TextStyle,
-  segBtnTActive: { color: '#000000' } as TextStyle,
+  segBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 18, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)', backgroundColor: '#111114' },
+  segBtnT: { fontSize: 14, color: MUTED, fontFamily: 'SF-Pro-Display-Regular', letterSpacing: 0 },
+  segBtnTActive: { color: '#000000' },
 
-  payScroll: { gap: 12, paddingRight: 20 } as ViewStyle,
-  payPill: { minWidth: 132, paddingHorizontal: 16, paddingVertical: 13, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)', backgroundColor: '#111114', alignItems: 'center', gap: 8 } as ViewStyle,
-  payPillActive: { backgroundColor: '#FFFFFF', borderColor: '#FFFFFF' } as ViewStyle,
-  payPillT: { fontSize: 13, color: MUTED, fontFamily: 'SF-Pro-Display-Regular', letterSpacing: 0 } as TextStyle,
-  payPillTActive: { color: '#000000' } as TextStyle,
+  payScroll: { gap: 12, paddingRight: 20 },
+  payPill: { minWidth: 132, paddingHorizontal: 16, paddingVertical: 13, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)', backgroundColor: '#111114', alignItems: 'center', gap: 8 },
+  payPillT: { fontSize: 13, color: MUTED, fontFamily: 'SF-Pro-Display-Regular', letterSpacing: 0 },
+  payPillTActive: { color: '#000000' },
 
-  footer: { paddingHorizontal: 20, paddingTop: 16, borderTopWidth: 1, borderTopColor: 'rgba(255, 255, 255, 0.08)', overflow: 'hidden', backgroundColor: 'rgba(0, 0, 0, 0.85)' } as ViewStyle,
-  saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 60, borderRadius: 20, overflow: 'hidden', backgroundColor: SURFACE, borderWidth: 1, borderColor: BORDER } as ViewStyle,
-  saveBtnOff: { opacity: 0.5 } as ViewStyle,
-  saveBtnT: { fontSize: 15, color: INK, letterSpacing: 0, fontFamily: 'SF-Pro-Display-Regular' } as TextStyle,
-
-  errorBanner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.3)', marginBottom: 16 } as ViewStyle,
-  errorText: { color: '#FCA5A5', fontSize: 13, fontFamily: 'SF-Pro-Display-Regular' } as TextStyle,
-  errorDismiss: { color: '#EF4444', fontSize: 13, fontFamily: 'SF-Pro-Display-Regular', letterSpacing: 0 } as TextStyle,
+  footer: { paddingHorizontal: 20, paddingTop: 16, borderTopWidth: 1, borderTopColor: 'rgba(255, 255, 255, 0.08)', overflow: 'hidden', backgroundColor: 'rgba(0, 0, 0, 0.85)' },
+  errorBanner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.3)', marginBottom: 16 },
+  errorText: { color: '#FCA5A5', fontSize: 13, fontFamily: 'SF-Pro-Display-Regular' },
+  errorDismiss: { color: '#EF4444', fontSize: 13, fontFamily: 'SF-Pro-Display-Regular', letterSpacing: 0 },
 });
