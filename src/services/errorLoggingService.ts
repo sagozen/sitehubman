@@ -93,17 +93,34 @@ export async function fetchRecentErrorLogs(maxResults = 50) {
  * Initializes global uncaught error listeners for Web and Native environments.
  */
 export function setupGlobalUnhandledErrorListeners() {
-  if (typeof window !== 'undefined') {
-    window.addEventListener('error', (event) => {
-      if (event.error) {
-        void recordAppError(event.error, { extra: { source: 'window.onerror' } });
-      }
-    });
-
-    window.addEventListener('unhandledrejection', (event) => {
-      void recordAppError(event.reason || 'Unhandled Promise Rejection', {
-        extra: { source: 'window.unhandledrejection' },
+  try {
+    // 1. Web environment event listeners
+    if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+      window.addEventListener('error', (event) => {
+        if (event.error) {
+          void recordAppError(event.error, { extra: { source: 'window.onerror' } });
+        }
       });
-    });
+
+      window.addEventListener('unhandledrejection', (event) => {
+        void recordAppError(event.reason || 'Unhandled Promise Rejection', {
+          extra: { source: 'window.unhandledrejection' },
+        });
+      });
+    }
+
+    // 2. React Native mobile native environment error handler
+    const globalAny = global as any;
+    if (globalAny.ErrorUtils && typeof globalAny.ErrorUtils.getGlobalHandler === 'function') {
+      const originalHandler = globalAny.ErrorUtils.getGlobalHandler();
+      globalAny.ErrorUtils.setGlobalHandler((error: any, isFatal?: boolean) => {
+        void recordAppError(error, { extra: { source: 'ErrorUtils', isFatal } });
+        if (typeof originalHandler === 'function') {
+          originalHandler(error, isFatal);
+        }
+      });
+    }
+  } catch (err) {
+    console.warn('[Telemetry Logger] Listener registration notice:', err);
   }
 }
