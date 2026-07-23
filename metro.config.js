@@ -23,6 +23,22 @@ config.resolver.blockList = [
   new RegExp(/node_modules[/\\]pngjs[/\\].*/),
 ];
 
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (moduleName === 'qrcode') {
+    return {
+      filePath: path.resolve(__dirname, 'node_modules/qrcode/lib/browser.js'),
+      type: 'sourceFile',
+    };
+  }
+  if (moduleName === 'pngjs' || moduleName.endsWith('renderer/png.js') || moduleName.endsWith('renderer/png')) {
+    return {
+      filePath: path.resolve(__dirname, 'node_modules/qrcode/lib/renderer/svg-tag.js'),
+      type: 'sourceFile',
+    };
+  }
+  return context.resolveRequest(context, moduleName, platform);
+};
+
 config.maxWorkers = 2;
 
 module.exports = config;
