@@ -564,32 +564,11 @@ export function GuestHomeScreen() {
               {/* Stats Overview */}
               {insights ? (
                 <View style={styles.statsSection}>
-                  <View style={styles.sectionHeader}>
-                    <AppText
-                      variant="title3"
-                      weight="bold"
-                      style={{ color: INK }}
-                    >
-                      Account Overview
-                    </AppText>
-                  </View>
                   <View style={styles.statsRow}>
                     {[
-                      {
-                        label: 'Orders',
-                        value: String(insights.totalOrders),
-                        icon: 'ShoppingCart' as const,
-                      },
-                      {
-                        label: 'Active',
-                        value: String(insights.activeOrders),
-                        icon: 'Activity' as const,
-                      },
-                      {
-                        label: 'Delivered',
-                        value: String(insights.deliveredOrders),
-                        icon: 'CheckCircle' as const,
-                      },
+                      { label: 'Orders', value: String(insights.totalOrders), icon: 'ShoppingCart' as const },
+                      { label: 'Active', value: String(insights.activeOrders), icon: 'Activity' as const },
+                      { label: 'Delivered', value: String(insights.deliveredOrders), icon: 'CheckCircle' as const },
                     ].map((stat, index) => (
                       <StatCard
                         key={stat.label}
@@ -651,16 +630,8 @@ export function GuestHomeScreen() {
                     <AppIcon name="ShieldCheck" size={20} color="#FFFFFF" />
                   </View>
                   <View style={styles.guestBannerCopy}>
-                    <AppText
-                      variant="bodySmall"
-                      weight="bold"
-                      style={{ color: INK }}
-                    >
-                      7-Day Free eCard Preview
-                    </AppText>
-                    <AppText variant="caption" style={{ color: MUTED }}>
-                      Your draft is saved locally on this device. Sign in
-                      anytime to sync to cloud and unlock all features.
+                    <AppText variant="bodySmall" weight="bold" style={{ color: INK }}>
+                      Your card is saved. Sign in to claim it.
                     </AppText>
                   </View>
                 </View>

@@ -54,7 +54,6 @@ const SURFACE = DESIGN_THEME.surface;
 const SURFACE_ACTIVE = DESIGN_THEME.accent;
 const BORDER = DESIGN_THEME.border;
 
-const FLOW_STEPS = ['Design', 'Preview', 'Checkout', 'Track'];
 
 // ─── Performance Optimized Glass Field ──────────────────────────────────────
 function FieldRow({
@@ -277,26 +276,6 @@ export function GuestDesignScreen() {
         </View>
 
         <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-          <View style={styles.flowCard}>
-            <AppText style={styles.flowTitle}>Launch flow</AppText>
-            <View style={styles.flowSteps}>
-              {FLOW_STEPS.map((step, index) => {
-                const active = index === 0;
-                return (
-                  <View key={step} style={styles.flowStep}>
-                    <View style={[styles.flowDot, active && styles.flowDotActive]}>
-                      <AppText style={[styles.flowDotText, active && styles.flowDotTextActive]}>
-                        {index + 1}
-                      </AppText>
-                    </View>
-                    <AppText style={[styles.flowStepText, active && styles.flowStepTextActive]}>
-                      {step}
-                    </AppText>
-                  </View>
-                );
-              })}
-            </View>
-          </View>
 
           {/* ── Card Stage ── */}
           <View style={styles.previewStage}>
@@ -324,20 +303,6 @@ export function GuestDesignScreen() {
             <View style={styles.section}>
               <View style={styles.sectionHeaderRow}>
                 <AppText style={styles.sectionTitle}>Identity</AppText>
-                <Pressable
-                  style={({ pressed }) => [styles.linkedInBtn, pressed && styles.pressed]}
-                  onPress={() => {
-                    HapticTap.medium();
-                    setName((prev) => prev || 'Alexander Wright');
-                    setJobTitle((prev) => prev || 'Senior Product Architect');
-                    setCompany((prev) => prev || 'SiteHub Monorepo');
-                    setEmail((prev) => prev || 'alex.wright@sitehub.io');
-                    setPhone((prev) => prev || '+1 (415) 890-1234');
-                  }}
-                >
-                  <AppIcon name="Linkedin" size={14} color="#FFFFFF" />
-                  <AppText style={styles.linkedInText}>Import from LinkedIn</AppText>
-                </Pressable>
               </View>
               <View style={styles.bentoGrid}>
                 <FieldRow
