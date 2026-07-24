@@ -179,13 +179,12 @@ export function GuestDesignScreen() {
   const handleSave = useCallback(async () => {
     if (!infoComplete) return;
 
-    await measure('Save Guest Card Design', async () => {
-      HapticTap.light();
+    await measure('Create and Activate NFC Card', async () => {
+      HapticTap.medium();
       setSaving(true);
       setSaveError(null);
 
       try {
-        // PREPARE DATA ONCE
         const draft = {
           displayName: name.trim(),
           jobTitle: jobTitle.trim(),
@@ -217,10 +216,16 @@ export function GuestDesignScreen() {
         ]);
 
         HapticTap.success();
-        router.push({ pathname: '/cards/preview/[cardId]', params: { cardId: session.cardId } });
+
+        if (cardType === 'physical') {
+          router.push({ pathname: '/payments/checkout/[cardId]', params: { cardId: session.cardId } });
+        } else {
+          const slug = session.publicSlug || session.cardId;
+          router.push(`/u/${encodeURIComponent(slug)}`);
+        }
       } catch (error) {
-        console.error('Save failed:', error);
-        setSaveError('Failed to save. Check your connection.');
+        console.error('Card creation failed:', error);
+        setSaveError('Failed to create card. Please check your connection.');
         HapticTap.error();
       } finally {
         setSaving(false);
@@ -430,7 +435,7 @@ export function GuestDesignScreen() {
           )}
 
           <AppButton
-            label="Continue to preview"
+            label={cardType === 'physical' ? 'Order NFC Physical Card' : 'Create & Activate Digital Card'}
             variant="white"
             size="bottomCTA"
             onPress={() => void handleSave()}
