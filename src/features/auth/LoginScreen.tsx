@@ -353,12 +353,6 @@ export function LoginScreen() {
             {authStep === 'LANDING' ? (
               <View style={styles.landingWrap}>
                 <AppText style={styles.logoTitle} weight="extrabold">GENNFC</AppText>
-                <AppText style={styles.landingTitle} weight="black">
-                  Your profile, NFC card, and customer moments in one link.
-                </AppText>
-                <AppText style={styles.landingSub} weight="semibold">
-                  Design a card, publish your digital profile, then track the order from draft to delivery.
-                </AppText>
 
                 <Pressable
                   style={({ pressed }) => [styles.guestPrimaryBtn, pressed && styles.btnPressed]}
@@ -374,14 +368,6 @@ export function LoginScreen() {
                     </>
                   )}
                 </Pressable>
-
-                <View style={styles.valuePillRow}>
-                  {['Card order', 'Public profile', 'Lead moments'].map((label) => (
-                    <View key={label} style={styles.valuePill}>
-                      <AppText style={styles.valuePillText} weight="bold">{label}</AppText>
-                    </View>
-                  ))}
-                </View>
                 
                 {/* Social Login Icons Row */}
                 <View style={styles.socialRow}>
