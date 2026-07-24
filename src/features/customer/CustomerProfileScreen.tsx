@@ -111,6 +111,14 @@ export function CustomerProfileScreen() {
   const [editSlug, setEditSlug] = useState('');
   const [isSavingLive, setIsSavingLive] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
+  // Social Links state
+  const [socials, setSocials] = useState<{ platform: string; icon: AppIconName; handle: string }[]>([
+    { platform: 'Instagram', icon: 'Instagram', handle: '@creator' },
+    { platform: 'Twitter / X', icon: 'Twitter', handle: '@creator' },
+  ]);
+  const [showAddSocialModal, setShowAddSocialModal] = useState(false);
+  const [newPlatform, setNewPlatform] = useState('Instagram');
+  const [newHandle, setNewHandle] = useState('');
 
   useEffect(() => {
     if (bioPage || user) {
@@ -495,6 +503,34 @@ export function CustomerProfileScreen() {
             })}
           </View>
 
+          {/* ── Social Media Connect Section (With Skeleton + Add Slot) ── */}
+          <View style={styles.socialConnectSection}>
+            <AppText style={styles.socialConnectTitle} weight="extrabold">
+              Connect Channels
+            </AppText>
+            <View style={styles.socialIconsRow}>
+              {socials.map((s, idx) => (
+                <View key={idx} style={styles.socialIconBadge}>
+                  <AppIcon name={s.icon} size={18} color="#FFFFFF" />
+                </View>
+              ))}
+              
+              {/* Skeleton + Add Slot */}
+              <Pressable
+                onPress={() => {
+                  HapticTap.medium();
+                  setShowAddSocialModal(true);
+                }}
+                style={({ pressed }) => [
+                  styles.skeletonAddSlot,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <AppIcon name="Plus" size={16} color="rgba(255, 255, 255, 0.7)" />
+              </Pressable>
+            </View>
+          </View>
+
           {/* ── Publish Changes Button (Black & White Theme) ── */}
           <View style={{ marginTop: 16, gap: 12 }}>
             <AppButton
@@ -699,6 +735,43 @@ function useStyles(colors: ReturnType<typeof useAppTheme>['colors']) {
     rowCopy: { flex: 1, gap: 2, minWidth: 0 },
     rowLabel: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: 0.5 },
     rowValue: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' },
+
+    socialConnectSection: {
+      marginTop: 20,
+      marginBottom: 10,
+      gap: 10,
+    },
+    socialConnectTitle: {
+      fontSize: 14,
+      color: '#FFFFFF',
+    },
+    socialIconsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      flexWrap: 'wrap',
+    },
+    socialIconBadge: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: '#1E1E22',
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.12)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    skeletonAddSlot: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+      borderWidth: 1.5,
+      borderStyle: 'dashed',
+      borderColor: 'rgba(255, 255, 255, 0.35)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
     // Sign out
     signOut: {
