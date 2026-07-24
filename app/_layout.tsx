@@ -4,6 +4,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { ErrorBoundary } from '@/src/components/ErrorBoundary';
 import { View, Text } from 'react-native';
+import { SeoHead } from '@/src/components/SeoHead';
 
 // Suppress verbose development-only logs to keep console clean
 const originalLog = console.log;
@@ -107,7 +108,14 @@ export default function RootLayout() {
   }
 
   return (
-    <ErrorBoundary>
+    <>
+      {/* Global default SEO for web — overridden per page by individual SeoHead instances */}
+      <SeoHead
+        title="SiteHub Man – Smart NFC Digital Business Cards"
+        description="Create premium NFC digital business cards. Share your profile via tap, QR, or link. Track every scan in real time. The future of networking."
+        type="website"
+      />
+      <ErrorBoundary>
       <ThemeProvider>
         <AuthProvider>
           <PreferencesProvider>
@@ -166,5 +174,6 @@ export default function RootLayout() {
         </AuthProvider>
       </ThemeProvider>
     </ErrorBoundary>
+    </>
   );
 }

@@ -327,6 +327,13 @@ export function PublicBioScreen({ slug, cardId }: Props) {
           <Head>
             <title>{DEFAULT_PUBLIC_TITLE}</title>
             <meta name="description" content={DEFAULT_PUBLIC_DESCRIPTION} />
+            <meta name="robots" content="noindex" />
+            <meta property="og:title" content={DEFAULT_PUBLIC_TITLE} />
+            <meta property="og:description" content={DEFAULT_PUBLIC_DESCRIPTION} />
+            <meta property="og:site_name" content="SiteHub Man" />
+            <meta name="apple-mobile-web-app-capable" content="yes" />
+            <meta name="apple-mobile-web-app-title" content="SiteHub Man" />
+            <meta name="theme-color" content="#000000" />
           </Head>
         ) : null}
         <AppIcon name="Nfc" size={40} color="#0071E3" />
@@ -341,9 +348,12 @@ export function PublicBioScreen({ slug, cardId }: Props) {
       <SafeAreaView style={styles.notFoundSafe}>
         {Platform.OS === 'web' ? (
           <Head>
-            <title>Profile not found | Snap Tap NFC</title>
-            <meta name="description" content="This NFC profile is not available or has not been set up yet." />
-            <meta name="robots" content="noindex" />
+            <title>Profile not found | SiteHub Man</title>
+            <meta name="description" content="This NFC profile link is not available or has not been set up yet." />
+            <meta name="robots" content="noindex, nofollow" />
+            <meta property="og:title" content="Profile not found | SiteHub Man" />
+            <meta property="og:site_name" content="SiteHub Man" />
+            <meta name="theme-color" content="#000000" />
           </Head>
         ) : null}
         <View style={styles.notFoundCenter}>
@@ -399,17 +409,65 @@ export function PublicBioScreen({ slug, cardId }: Props) {
         <Head>
           <title>{metaTitle}</title>
           <meta name="description" content={metaDescription} />
+          <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+          <meta name="author" content={bioPage.displayName} />
           <link rel="canonical" href={canonicalUrl} />
+
+          {/* Open Graph */}
           <meta property="og:type" content="profile" />
           <meta property="og:title" content={metaTitle} />
           <meta property="og:description" content={metaDescription} />
           <meta property="og:url" content={canonicalUrl} />
           <meta property="og:image" content={metaImage} />
+          <meta property="og:image:width" content="1200" />
+          <meta property="og:image:height" content="630" />
+          <meta property="og:image:alt" content={`${bioPage.displayName} NFC digital business card profile`} />
+          <meta property="og:site_name" content="SiteHub Man" />
+          <meta property="og:locale" content="en_US" />
+          {bioPage.displayName ? <meta property="profile:username" content={bioPage.publicSlug ?? slug ?? ''} /> : null}
+
+          {/* Twitter / X Card */}
           <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:site" content="@sitehubman" />
+          <meta name="twitter:creator" content="@sitehubman" />
           <meta name="twitter:title" content={metaTitle} />
           <meta name="twitter:description" content={metaDescription} />
           <meta name="twitter:image" content={metaImage} />
-          <script type="application/ld+json">{JSON.stringify(profileJsonLd)}</script>
+          <meta name="twitter:image:alt" content={`${bioPage.displayName} NFC profile`} />
+
+          {/* Apple / PWA */}
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+          <meta name="apple-mobile-web-app-title" content={bioPage.displayName || 'SiteHub Man'} />
+          <meta name="mobile-web-app-capable" content="yes" />
+          <meta name="theme-color" content="#000000" />
+
+          {/* JSON-LD ProfilePage structured data */}
+          <script type="application/ld+json">{JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'ProfilePage',
+            dateModified: new Date().toISOString(),
+            mainEntity: {
+              '@type': 'Person',
+              name: bioPage.displayName,
+              description: bioPage.tagline || metaDescription,
+              image: bioPage.photoUrl || undefined,
+              url: canonicalUrl,
+              email: bioPage.email || undefined,
+              telephone: bioPage.whatsapp || undefined,
+              identifier: bioPage.publicSlug ?? bioPage.slug ?? slug ?? '',
+              sameAs: [...socialLinks.map((s) => s.url(s.value)), ...customLinks.map((link) => link.url)],
+            },
+            url: canonicalUrl,
+            name: metaTitle,
+            description: metaDescription,
+            image: metaImage,
+            publisher: {
+              '@type': 'Organization',
+              name: 'SiteHub Man',
+              url: 'https://sitehubman.vercel.app',
+            },
+          })}</script>
         </Head>
       ) : null}
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
