@@ -427,12 +427,6 @@ export function CustomerProfileScreen() {
               onCardPress={handleCardPress}
             />
           </View>
-          <View style={styles.carouselHint}>
-            <AppIcon name="PlusSimple" size={12} color={BRAND} />
-            <AppText style={styles.carouselHintText}>
-              Swipe to the last card and tap the dashed slot — or use the button below.
-            </AppText>
-          </View>
         </View>
 
         {/* ── Persistent create-card CTA (B&W Outline Theme) ── */}
@@ -451,8 +445,7 @@ export function CustomerProfileScreen() {
         {/* ── Account section (Live Editing + 3X Bigger Black Icons) ── */}
         <View style={styles.section}>
           <View style={styles.sectionHead}>
-            <AppText style={styles.sectionTitle}>ACCOUNT (LIVE EDIT)</AppText>
-            <AppText style={styles.sectionMeta}>Edit below & publish to DB</AppText>
+            <AppText style={styles.sectionTitle}>Profile</AppText>
           </View>
           <View style={styles.list}>
             {liveFields.map((field, i) => {
@@ -494,7 +487,7 @@ export function CustomerProfileScreen() {
           {/* ── Publish Changes Button (Black & White Theme) ── */}
           <View style={{ marginTop: 16, gap: 12 }}>
             <AppButton
-              label={isSavingLive ? 'Publishing to Database...' : 'Publish Changes to DB'}
+              label={isSavingLive ? 'Saving...' : 'Save changes'}
               iconName="CloudUpload"
               variant="dark"
               loading={isSavingLive}

@@ -136,7 +136,7 @@ export function CustomerAccountScreen() {
   const [fabOpen, setFabOpen] = useState(false);
   const unreadCount = 0; // fallback or hook value
   const items = [];      // fallback or hook value
-  const isDark = true;
+  const isDark = true; // TODO: wire to theme context
   const { bioPage } = useBioPage(user?.id ?? '');
 
   // Responsive card width: clamp to a realistic Apple Wallet card dimension (max 380px)
@@ -285,9 +285,6 @@ export function CustomerAccountScreen() {
               <AppIcon name="Share2" size={26} color="#FFFFFF" variant="solar-bold" />
             </View>
             <View style={{ flex: 1 }}>
-              <AppText style={{ fontSize: 11, fontWeight: '800', color: 'rgba(255,255,255,0.85)', letterSpacing: 0.6 }}>
-                INSTANT CONTACTLESS SHARE
-              </AppText>
               <AppText style={{ fontSize: 18, fontWeight: '800', color: '#FFFFFF' }}>
                 Share Digital Profile
               </AppText>
@@ -343,11 +340,6 @@ export function CustomerAccountScreen() {
           {/* Stats Summary Section */}
           {insights ? (
             <View style={styles.statsSection}>
-              <View style={styles.sectionHeader}>
-                <AppText variant="title3" weight="bold" style={{ color: textTheme }}>
-                  Account Overview
-                </AppText>
-              </View>
               <View style={styles.statsRow}>
                 {[
                   { label: 'Orders', value: String(insights.totalOrders), image: require('@/assets/images/3d_track_card_v2.png'), color: APPLE_BLUE },
@@ -574,7 +566,7 @@ const styles = StyleSheet.create({
   actionCard: {
     width: 220,
     height: 104,
-    borderRadius: 0,
+    borderRadius: 16,
     paddingLeft: 16,
     paddingRight: 8,
     paddingVertical: 12,
@@ -613,7 +605,7 @@ const styles = StyleSheet.create({
   },
   statCardContainer: {
     flex: 1,
-    borderRadius: 0,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
@@ -632,7 +624,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   ordersCard: {
-    borderRadius: 0,
+    borderRadius: 16,
     paddingVertical: 4,
     borderWidth: 0,
     shadowColor: '#000000',
@@ -654,7 +646,7 @@ const styles = StyleSheet.create({
   orderIcon: {
     width: 38,
     height: 38,
-    borderRadius: 0,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -669,7 +661,7 @@ const styles = StyleSheet.create({
   orderBadge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 0,
+    borderRadius: 12,
   },
   oceanShareCard: {
     backgroundColor: '#000000',
@@ -678,7 +670,7 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: 20,
     paddingVertical: 18,
-    borderRadius: 0,
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
@@ -692,7 +684,7 @@ const styles = StyleSheet.create({
   oceanShareIconWrap: {
     width: 48,
     height: 48,
-    borderRadius: 0,
+    borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -702,7 +694,7 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: 24,
     paddingVertical: 16,
-    borderRadius: 0,
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,

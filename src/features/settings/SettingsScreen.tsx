@@ -551,7 +551,6 @@ export function SettingsScreen() {
         {/* ── Header ── */}
         <PageHeader
           theme={PAGE_THEME}
-          eyebrow="Application control"
           title="Settings"
           subtitle={
             isGuest
@@ -624,9 +623,6 @@ export function SettingsScreen() {
           <View style={styles.sectionHead}>
             <AppText style={styles.sectionTitle} weight="extrabold">
               My Cards
-            </AppText>
-            <AppText style={styles.sectionMeta} weight="medium">
-              Controls what shows on your home
             </AppText>
           </View>
           <View style={styles.list}>
@@ -739,9 +735,6 @@ export function SettingsScreen() {
                 <View style={styles.appearanceCopy}>
                   <AppText style={styles.appearanceTitle} weight="bold">
                     Display mode
-                  </AppText>
-                  <AppText style={styles.appearanceSub}>
-                    Currently: {appearanceLabel}
                   </AppText>
                 </View>
               </View>
