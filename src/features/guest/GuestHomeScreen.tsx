@@ -249,15 +249,11 @@ function StatCard({
 }) {
   return (
     <View style={[styles.statCard, style]}>
-      <View style={styles.statCardHeader}>
-        <AppText variant="title1" weight="extrabold" style={{ color: INK }}>
-          {value}
-        </AppText>
-        <View style={styles.statCardIconWrap}>
-          <AppIcon name={icon} size={15} color="#FFFFFF" variant="solar-bold" />
-        </View>
-      </View>
-      <AppText style={styles.statCardLabel} weight="bold">
+      <AppIcon name={icon} size={15} color="rgba(255,255,255,0.5)" />
+      <AppText variant="title1" weight="extrabold" style={{ color: INK }}>
+        {value}
+      </AppText>
+      <AppText style={styles.statLabel} weight="bold">
         {label}
       </AppText>
     </View>
@@ -366,26 +362,48 @@ export function GuestHomeScreen() {
             <ErrorBanner message={error} onRetry={() => setIsLoading(true)} />
           ) : (
             <>
-              {/* ── Chat OS Search Bar & Category Tags (Matching Reference Mockup) ── */}
-              <View style={styles.chatOsHeader}>
-                <View style={styles.searchBarPill}>
-                  <AppIcon name="Search" size={16} color="rgba(255,255,255,0.5)" />
-                  <AppText style={styles.searchBarText}>Start Search</AppText>
-                </View>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagScroll}>
-                  {['Barber', 'Shop', 'Designer', 'Featured', 'NFC Tag'].map((tag, idx) => (
-                    <View key={tag} style={[styles.tagPill, idx === 2 && styles.tagPillActive]}>
-                      <AppText style={[styles.tagPillText, idx === 2 && styles.tagPillActiveText]} weight="extrabold">
-                        {tag}
+              {/* ── 1. Top Greeting Bar ── */}
+              <View style={styles.topGreetingRow}>
+                <Pressable
+                  onPress={() => { HapticTap.light(); router.push('/profile' as any); }}
+                  style={styles.greetingLeft}
+                >
+                  {bioPage?.photoUrl ? (
+                    <Image source={{ uri: bioPage.photoUrl }} style={styles.greetingAvatarImg} />
+                  ) : (
+                    <LinearGradient
+                      colors={getTelegramColors(heroName || 'Creator')}
+                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                      style={styles.greetingAvatarCircle}
+                    >
+                      <AppText style={styles.greetingAvatarLetter} weight="extrabold">
+                        {(heroName?.[0] || 'C').toUpperCase()}
                       </AppText>
-                    </View>
-                  ))}
-                </ScrollView>
+                    </LinearGradient>
+                  )}
+                  <View>
+                    <AppText style={styles.greetingSub}>Good day,</AppText>
+                    <AppText style={styles.greetingName} weight="extrabold">
+                      {heroName?.split(' ')[0] || 'Creator'}
+                    </AppText>
+                  </View>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => { HapticTap.light(); router.push(appRoutes.guestDesign as Href); }}
+                  style={styles.notifBtn}
+                >
+                  <AppIcon name="Bell" size={20} color="#FFFFFF" />
+                  {unreadCount > 0 && <View style={styles.notifDot} />}
+                </Pressable>
               </View>
 
-              {/* ── 2. NFC Card Hero Preview ── */}
+              {/* ── 2. NFC Card Hero ── */}
               <View style={styles.cardContainer}>
-                <View style={[styles.cardElevation, { width: cardWidth }]}>
+                <Pressable
+                  onPress={() => { HapticTap.medium(); router.push(appRoutes.guestDesign as Href); }}
+                  style={[styles.cardElevation, { width: cardWidth }]}
+                >
                   <NfcGlobalCardFace
                     fullName={heroName || undefined}
                     title={heroTitle || undefined}
@@ -394,147 +412,83 @@ export function GuestHomeScreen() {
                     gradientIndex={cloudCard?.design?.gradientIndex ?? 0}
                     width={cardWidth}
                   />
-                </View>
+                </Pressable>
+                <AppText style={styles.cardHint}>Tap card to edit design</AppText>
               </View>
 
-              {/* ── Chat OS Grid Cards (Matching Reference Mockup) ── */}
-              <View style={styles.chatOsGrid}>
+              {/* ── 3. Stats Row ── */}
+              <View style={styles.statsRow}>
                 {[
-                  { name: 'Sophia Mitchell', role: '@janintop - Designer', color: '#E2F16D' },
-                  { name: 'Ava Sullivan', role: '@avas - Bio Hacker', color: '#E57A65' },
-                  { name: 'Slava Kornilov', role: '@slava - Architect', color: '#2563EB' },
-                ].map((p, idx) => (
-                  <View key={p.name} style={styles.chatOsCard}>
-                    {/* Large colorful sphere avatar inside card */}
-                    <View style={styles.chatOsCardVisual}>
-                      <LinearGradient
-                        colors={[p.color, '#000000']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        style={styles.chatOsSphere}
-                      />
-                    </View>
-                    <View style={styles.chatOsCardFooter}>
-                      <AppText style={styles.chatOsCardName} weight="extrabold">
-                        {p.name}
-                      </AppText>
-                      <AppText style={styles.chatOsCardRole}>
-                        {p.role}
-                      </AppText>
-                    </View>
+                  { label: 'Total Orders', value: insights?.totalOrders ?? 0, icon: 'CreditCard' as AppIconName },
+                  { label: 'Active', value: insights?.activeOrders ?? 0, icon: 'Nfc' as AppIconName },
+                  { label: 'Delivered', value: insights?.deliveredOrders ?? 0, icon: 'Package' as AppIconName },
+                ].map((stat) => (
+                  <View key={stat.label} style={styles.statCard}>
+                    <AppIcon name={stat.icon} size={16} color="rgba(255,255,255,0.5)" />
+                    <AppText style={styles.statValue} weight="extrabold">{stat.value}</AppText>
+                    <AppText style={styles.statLabel}>{stat.label}</AppText>
                   </View>
                 ))}
               </View>
 
-              {/* ── 4. Profile Details + QR Code Module ── */}
-              <View style={styles.profileDetailsQrCard}>
-                <View style={styles.detailsCopyWrap}>
-                  <AppText style={styles.detailsLabel}>Profile details</AppText>
-                  <AppText style={styles.detailsName} weight="bold" numberOfLines={1}>
-                    {heroName || 'Creator'}
-                  </AppText>
-                  <AppText style={styles.detailsSub} numberOfLines={2}>
-                    {heroTitle || 'Digital identity card optimized for contactless share.'}
-                  </AppText>
-                </View>
-
-                <View style={styles.detailsQrWrap}>
-                  <QRCode
-                    value={bioPage?.slug ? `https://sitehub.app/public/${bioPage.slug}` : 'https://sitehub.app'}
-                    size={58}
-                    color="#000000"
-                    backgroundColor="#FFFFFF"
-                    quietZone={2}
-                  />
-                </View>
-              </View>
-
-
-
-              {/* Quick Actions Scroll (Landscape Bento Layout) */}
-              <View style={{ marginTop: 4 }}>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  style={styles.actionScrollView}
-                  contentContainerStyle={styles.actionScroll}
+              {/* ── 4. Primary CTAs: Share Card + Design Card ── */}
+              <View style={styles.primaryCtaRow}>
+                <Pressable
+                  onPress={() => { HapticTap.medium(); handleShare(); }}
+                  style={({ pressed }) => [styles.ctaShare, pressed && styles.pressed]}
                 >
-                  {ACTIONS.map((a) => (
-                    <Pressable
-                      key={a.label}
-                      onPress={() => {
-                        HapticTap.light();
-                        if (isGuest && a.label === 'Sample Moments') {
-                          requireAccount(undefined, {
-                            message: 'Sign in to see moments capture.',
-                          });
-                        } else {
-                          router.push(a.route);
-                        }
-                      }}
-                      style={({ pressed }) => [
-                        styles.actionCard,
-                        { backgroundColor: a.bg },
-                        pressed && styles.actionCardPressed,
-                      ]}
-                    >
-                      <View style={styles.actionTextWrap}>
-                        <View style={styles.actionCardHeader}>
-                          <AppText
-                            variant="bodySmall"
-                            weight="extrabold"
-                            style={{ color: a.color }}
-                          >
-                            {a.label}
-                          </AppText>
-                        </View>
-                        <AppText variant="caption" style={{ color: a.color === '#FFFFFF' ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.7)' }}>
-                          {a.subtitle}
-                        </AppText>
-                      </View>
-                      <View style={styles.actionImageWrap}>
-                        {a.image ? (
-                          <Image
-                            source={a.image}
-                            style={styles.actionImage}
-                            resizeMode="contain"
-                          />
-                        ) : (
-                          <View style={styles.actionIconContainer}>
-                            <AppIcon name={a.icon} size={15} color="#FFFFFF" />
-                          </View>
-                        )}
-                      </View>
-                    </Pressable>
-                  ))}
-                </ScrollView>
+                  <AppIcon name="Share" size={18} color="#000000" />
+                  <AppText style={styles.ctaShareText} weight="extrabold">Share Card</AppText>
+                </Pressable>
+                <Pressable
+                  onPress={() => { HapticTap.medium(); router.push(appRoutes.guestDesign as Href); }}
+                  style={({ pressed }) => [styles.ctaDesign, pressed && styles.pressed]}
+                >
+                  <AppIcon name="PenLine" size={18} color="#FFFFFF" />
+                  <AppText style={styles.ctaDesignText} weight="extrabold">Edit Design</AppText>
+                </Pressable>
               </View>
 
+              {/* ── 5. Quick Action 2×2 Grid ── */}
+              <AppText style={styles.sectionTitle} weight="extrabold">Quick Actions</AppText>
+              <View style={styles.quickGrid}>
+                {ACTIONS.map((a) => (
+                  <Pressable
+                    key={a.label}
+                    onPress={() => {
+                      HapticTap.light();
+                      if (isGuest && a.label === 'Sample Moments') {
+                        requireAccount(undefined, { message: 'Sign in to see moments capture.' });
+                      } else {
+                        router.push(a.route);
+                      }
+                    }}
+                    style={({ pressed }) => [
+                      styles.quickCard,
+                      { backgroundColor: a.bg },
+                      pressed && styles.actionCardPressed,
+                    ]}
+                  >
+                    <View style={styles.quickCardIcon}>
+                      <AppIcon name={a.icon} size={20} color={a.color} />
+                    </View>
+                    <AppText style={[styles.quickCardLabel, { color: a.color }]} weight="extrabold">
+                      {a.label}
+                    </AppText>
+                    <AppText style={[styles.quickCardSub, { color: a.color === '#FFFFFF' ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.55)' }]}>
+                      {a.subtitle}
+                    </AppText>
+                  </Pressable>
+                ))}
+              </View>
 
-
-              {/* Recent Orders */}
+              {/* ── 6. Recent Orders ── */}
               {!isGuest && recentOrders.length > 0 ? (
                 <View style={styles.ordersSection}>
                   <View style={styles.sectionHeader}>
-                    <AppText
-                      variant="title3"
-                      weight="bold"
-                      style={{ color: INK }}
-                    >
-                      Recent Orders
-                    </AppText>
-                    <Pressable
-                      onPress={() =>
-                        router.push(appRoutes.guestTrackOrder as Href)
-                      }
-                    >
-                      <AppText
-                        variant="caption"
-                        weight="bold"
-                        style={{ color: '#FFFFFF' }}
-                      >
-                        View All
-                      </AppText>
+                    <AppText style={styles.sectionTitle} weight="extrabold">Recent Orders</AppText>
+                    <Pressable onPress={() => router.push(appRoutes.guestTrackOrder as Href)}>
+                      <AppText variant="caption" weight="bold" style={{ color: 'rgba(255,255,255,0.5)' }}>View All</AppText>
                     </Pressable>
                   </View>
                   <View style={styles.ordersCard}>
@@ -542,53 +496,37 @@ export function GuestHomeScreen() {
                       <OrderRow
                         key={o.id}
                         order={o}
-                        onPress={() =>
-                          router.push(`/orders/detail/${o.id}` as Href)
-                        }
+                        onPress={() => router.push(`/orders/detail/${o.id}` as Href)}
                       />
                     ))}
                   </View>
                 </View>
               ) : null}
 
-              {/* Guest Local Draft Banner */}
+              {/* ── 7. Guest Sign-In Banner ── */}
               {isGuest ? (
-                <View style={styles.guestBanner}>
+                <Pressable
+                  onPress={() => requireAccount(undefined, { message: 'Sign in to unlock your full card.' })}
+                  style={styles.guestBanner}
+                >
                   <View style={styles.guestBannerIcon}>
                     <AppIcon name="ShieldCheck" size={20} color="#FFFFFF" />
                   </View>
                   <View style={styles.guestBannerCopy}>
                     <AppText variant="bodySmall" weight="bold" style={{ color: INK }}>
-                      Your card is saved. Sign in to claim it.
+                      Your card is saved locally.
+                    </AppText>
+                    <AppText variant="caption" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                      Sign in to claim it and go live →
                     </AppText>
                   </View>
-                </View>
+                </Pressable>
               ) : null}
             </>
+
           )}
         </IosScrollView>
       </SafeAreaView>
-
-      {/* Floating Action Button (+ Post style from mockup) */}
-      <View style={styles.floatingActionContainer}>
-        <Pressable
-          style={({ pressed }) => [
-            styles.floatingActionButton,
-            pressed && styles.pressed,
-          ]}
-          onPress={() => {
-            HapticTap.medium();
-            router.push(appRoutes.guestDesign as Href);
-          }}
-        >
-          <AppText style={styles.floatingActionText} weight="extrabold">
-            Post
-          </AppText>
-          <View style={styles.floatingActionPlus}>
-            <AppText style={styles.floatingActionPlusText} weight="extrabold">+</AppText>
-          </View>
-        </Pressable>
-      </View>
 
       {/* FAB and Overlay Modal */}
       <FAB
@@ -690,6 +628,131 @@ const styles = StyleSheet.create({
   addPillText: {
     color: '#FFFFFF',
     fontSize: 13,
+  },
+  // ── Notification bell ─────────────────────────────────────────
+  notifBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notifDot: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FF3B30',
+    borderWidth: 1,
+    borderColor: '#000000',
+  },
+  // ── Card hint ─────────────────────────────────────────────────
+  cardHint: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.3)',
+    textAlign: 'center',
+    marginTop: 8,
+    letterSpacing: 0.3,
+  },
+  // ── Stats row ─────────────────────────────────────────────────
+  statsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginVertical: 16,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#111114',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    gap: 4,
+  },
+  statValue: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    lineHeight: 26,
+  },
+  statLabel: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 10,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  // ── Primary CTA row ───────────────────────────────────────────
+  primaryCtaRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 24,
+  },
+  ctaShare: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 52,
+    borderRadius: 999,
+    backgroundColor: '#FFFFFF',
+  },
+  ctaShareText: {
+    color: '#000000',
+    fontSize: 15,
+  },
+  ctaDesign: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 52,
+    borderRadius: 999,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  ctaDesignText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+  },
+  // ── Section title ─────────────────────────────────────────────
+  sectionTitle: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    marginBottom: 12,
+  },
+  // ── Quick 2×2 grid ────────────────────────────────────────────
+  quickGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 24,
+  },
+  quickCard: {
+    width: '47%',
+    borderRadius: 20,
+    padding: 16,
+    minHeight: 120,
+    justifyContent: 'flex-end',
+    gap: 4,
+  },
+  quickCardIcon: {
+    marginBottom: 6,
+  },
+  quickCardLabel: {
+    fontSize: 14,
+  },
+  quickCardSub: {
+    fontSize: 11,
+    lineHeight: 14,
   },
   primaryPillRow: {
     flexDirection: 'row',
@@ -1050,40 +1113,6 @@ const styles = StyleSheet.create({
   actionImage: {
     width: 48,
     height: 48,
-  },
-  statsSection: {
-    marginVertical: 4,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: SPACING.md,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: SURFACE,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: SURFACE_BORDER,
-    paddingHorizontal: 12,
-    paddingVertical: 14,
-    justifyContent: 'space-between',
-    minHeight: 80,
-  },
-  statCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  statCardIconWrap: {
-    opacity: 0.35,
-  },
-  statCardLabel: {
-    fontSize: 10,
-    color: MUTED,
-    letterSpacing: 0,
-    marginTop: 4,
   },
   ordersSection: {
     marginVertical: 4,
