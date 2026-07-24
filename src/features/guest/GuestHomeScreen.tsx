@@ -77,6 +77,8 @@ const ACTIONS = [
     subtitle: 'Preview captured leads',
     route: appRoutes.customerConnections as Href,
     icon: 'Users' as AppIconName,
+    bg: '#E2F16D', // Lime Yellow
+    color: '#000000',
     image: require('@/assets/images/3d_share_card_v2.png'),
   },
   {
@@ -84,6 +86,8 @@ const ACTIONS = [
     subtitle: 'Try tap-to-open',
     route: appRoutes.nfcDemo as Href,
     icon: 'Nfc' as AppIconName,
+    bg: '#E57A65', // Terracotta
+    color: '#FFFFFF',
     image: require('@/assets/images/3d_signals_v2.png'),
   },
   {
@@ -91,6 +95,8 @@ const ACTIONS = [
     subtitle: 'Follow production',
     route: appRoutes.guestTrackOrder as Href,
     icon: 'Truck' as AppIconName,
+    bg: '#2563EB', // Sapphire Blue
+    color: '#FFFFFF',
     image: require('@/assets/images/3d_track_card_v2.png'),
   },
   {
@@ -98,6 +104,8 @@ const ACTIONS = [
     subtitle: 'Choose a card design',
     route: appRoutes.customer.templates as Href,
     icon: 'Plus' as AppIconName,
+    bg: '#FF5733', // Coral Red
+    color: '#FFFFFF',
     image: require('@/assets/images/3d_create_card_v2.png'),
   },
 ];
@@ -505,6 +513,7 @@ export function GuestHomeScreen() {
                       }}
                       style={({ pressed }) => [
                         styles.actionCard,
+                        { backgroundColor: a.bg },
                         pressed && styles.actionCardPressed,
                       ]}
                     >
@@ -512,13 +521,13 @@ export function GuestHomeScreen() {
                         <View style={styles.actionCardHeader}>
                           <AppText
                             variant="bodySmall"
-                            weight="bold"
-                            style={{ color: INK }}
+                            weight="extrabold"
+                            style={{ color: a.color }}
                           >
                             {a.label}
                           </AppText>
                         </View>
-                        <AppText variant="caption" style={{ color: MUTED }}>
+                        <AppText variant="caption" style={{ color: a.color === '#FFFFFF' ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.7)' }}>
                           {a.subtitle}
                         </AppText>
                       </View>
