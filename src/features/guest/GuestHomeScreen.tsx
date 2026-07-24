@@ -366,52 +366,21 @@ export function GuestHomeScreen() {
             <ErrorBanner message={error} onRetry={() => setIsLoading(true)} />
           ) : (
             <>
-              {/* ── 1. Top Header Row: Hello, Name + (+ Add) ── */}
-              <View style={styles.topGreetingRow}>
-                <Pressable
-                  onPress={() => {
-                    HapticTap.light();
-                    router.push('/profile' as any);
-                  }}
-                  style={styles.greetingLeft}
-                >
-                  {bioPage?.photoUrl ? (
-                    <Image
-                      source={{ uri: bioPage.photoUrl }}
-                      style={styles.greetingAvatarImg}
-                    />
-                  ) : (
-                    <LinearGradient
-                      colors={getTelegramColors(heroName || 'Creator')}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.greetingAvatarCircle}
-                    >
-                      <AppText style={styles.greetingAvatarLetter} weight="extrabold">
-                        {(heroName?.[0] || 'C').toUpperCase()}
+              {/* ── Chat OS Search Bar & Category Tags (Matching Reference Mockup) ── */}
+              <View style={styles.chatOsHeader}>
+                <View style={styles.searchBarPill}>
+                  <AppIcon name="Search" size={16} color="rgba(255,255,255,0.5)" />
+                  <AppText style={styles.searchBarText}>Start Search</AppText>
+                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagScroll}>
+                  {['Barber', 'Shop', 'Designer', 'Featured', 'NFC Tag'].map((tag, idx) => (
+                    <View key={tag} style={[styles.tagPill, idx === 2 && styles.tagPillActive]}>
+                      <AppText style={[styles.tagPillText, idx === 2 && styles.tagPillActiveText]} weight="extrabold">
+                        {tag}
                       </AppText>
-                    </LinearGradient>
-                  )}
-                  <View>
-                    <AppText style={styles.greetingSub}>Hello,</AppText>
-                    <AppText style={styles.greetingName} weight="extrabold">
-                      {heroName?.split(' ')[0] || 'Creator'}
-                    </AppText>
-                  </View>
-                </Pressable>
-
-                <Pressable
-                  onPress={() => {
-                    HapticTap.medium();
-                    router.push(appRoutes.guestDesign as Href);
-                  }}
-                  style={({ pressed }) => [
-                    styles.addPillBtn,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <AppText style={styles.addPillText} weight="bold">+ Add</AppText>
-                </Pressable>
+                    </View>
+                  ))}
+                </ScrollView>
               </View>
 
               {/* ── 2. NFC Card Hero Preview ── */}
@@ -428,41 +397,33 @@ export function GuestHomeScreen() {
                 </View>
               </View>
 
-              {/* ── 3. Primary Action Row (My Card & View Profile) ── */}
-              <View style={styles.primaryPillRow}>
-                <Pressable
-                  onPress={() => {
-                    HapticTap.medium();
-                    router.push(appRoutes.guestDesign as Href);
-                  }}
-                  style={({ pressed }) => [
-                    styles.myCardPill,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <AppText style={styles.myCardPillText} weight="black">
-                    My Card
-                  </AppText>
-                </Pressable>
-
-                <Pressable
-                  onPress={() => {
-                    HapticTap.light();
-                    if (bioPage?.slug) {
-                      router.push(`/public/${bioPage.slug}` as Href);
-                    } else {
-                      router.push(appRoutes.studio as Href);
-                    }
-                  }}
-                  style={({ pressed }) => [
-                    styles.viewProfilePill,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <AppText style={styles.viewProfilePillText} weight="bold">
-                    View Profile
-                  </AppText>
-                </Pressable>
+              {/* ── Chat OS Grid Cards (Matching Reference Mockup) ── */}
+              <View style={styles.chatOsGrid}>
+                {[
+                  { name: 'Sophia Mitchell', role: '@janintop - Designer', color: '#E2F16D' },
+                  { name: 'Ava Sullivan', role: '@avas - Bio Hacker', color: '#E57A65' },
+                  { name: 'Slava Kornilov', role: '@slava - Architect', color: '#2563EB' },
+                ].map((p, idx) => (
+                  <View key={p.name} style={styles.chatOsCard}>
+                    {/* Large colorful sphere avatar inside card */}
+                    <View style={styles.chatOsCardVisual}>
+                      <LinearGradient
+                        colors={[p.color, '#000000']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.chatOsSphere}
+                      />
+                    </View>
+                    <View style={styles.chatOsCardFooter}>
+                      <AppText style={styles.chatOsCardName} weight="extrabold">
+                        {p.name}
+                      </AppText>
+                      <AppText style={styles.chatOsCardRole}>
+                        {p.role}
+                      </AppText>
+                    </View>
+                  </View>
+                ))}
               </View>
 
               {/* ── 4. Profile Details + QR Code Module ── */}
@@ -607,6 +568,27 @@ export function GuestHomeScreen() {
           )}
         </IosScrollView>
       </SafeAreaView>
+
+      {/* Floating Action Button (+ Post style from mockup) */}
+      <View style={styles.floatingActionContainer}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.floatingActionButton,
+            pressed && styles.pressed,
+          ]}
+          onPress={() => {
+            HapticTap.medium();
+            router.push(appRoutes.guestDesign as Href);
+          }}
+        >
+          <AppText style={styles.floatingActionText} weight="extrabold">
+            Post
+          </AppText>
+          <View style={styles.floatingActionPlus}>
+            <AppText style={styles.floatingActionPlusText} weight="extrabold">+</AppText>
+          </View>
+        </Pressable>
+      </View>
 
       {/* FAB and Overlay Modal */}
       <FAB
@@ -1200,5 +1182,122 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  chatOsHeader: {
+    gap: 12,
+    marginBottom: 16,
+  },
+  searchBarPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1E1E22',
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    height: 48,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  searchBarText: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 14,
+  },
+  tagScroll: {
+    flexDirection: 'row',
+  },
+  tagPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    marginRight: 8,
+  },
+  tagPillActive: {
+    backgroundColor: '#FFFFFF',
+  },
+  tagPillText: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.6)',
+  },
+  tagPillActiveText: {
+    color: '#000000',
+  },
+  chatOsGrid: {
+    gap: 16,
+    marginTop: 20,
+    marginBottom: 40,
+  },
+  chatOsCard: {
+    backgroundColor: '#111114',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    overflow: 'hidden',
+    height: 240,
+    position: 'relative',
+  },
+  chatOsCardVisual: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#070708',
+  },
+  chatOsSphere: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+  },
+  chatOsCardFooter: {
+    padding: 16,
+    backgroundColor: '#111114',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.05)',
+  },
+  chatOsCardName: {
+    fontSize: 18,
+    color: '#FFFFFF',
+  },
+  chatOsCardRole: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: 2,
+  },
+  floatingActionContainer: {
+    position: 'absolute',
+    bottom: 24,
+    alignSelf: 'center',
+    zIndex: 999,
+  },
+  floatingActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 999,
+    paddingLeft: 20,
+    paddingRight: 6,
+    paddingVertical: 6,
+    gap: 8,
+    height: 48,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  floatingActionText: {
+    color: '#000000',
+    fontSize: 14,
+  },
+  floatingActionPlus: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  floatingActionPlusText: {
+    color: '#FFFFFF',
+    fontSize: 18,
   },
 });
