@@ -389,9 +389,19 @@ export function AppButton({
       case 'soft':
         return { bg: isDark ? 'rgba(0,122,255,0.2)' : IOS_TOKENS.colors.softBlue, text: IOS_TOKENS.colors.primary };
       case 'dark':
-        return { bg: IOS_TOKENS.colors.dark, text: IOS_TOKENS.colors.white };
+        return {
+          bg: IOS_TOKENS.colors.dark,
+          text: IOS_TOKENS.colors.white,
+          border: 'rgba(255,255,255,0.18)',
+          borderWidth: 1,
+        };
       case 'white':
-        return { bg: IOS_TOKENS.colors.white, text: IOS_TOKENS.colors.textPrimary, border: isDark ? undefined : IOS_TOKENS.colors.border, borderWidth: isDark ? 0 : 1 };
+        return {
+          bg: IOS_TOKENS.colors.white,
+          text: IOS_TOKENS.colors.textPrimary,
+          border: 'rgba(0,0,0,0.12)',
+          borderWidth: 1,
+        };
       case 'menu':
         return { bg: 'transparent', text: isDark ? IOS_TOKENS.colors.white : IOS_TOKENS.colors.textPrimary };
       case 'disabled':
@@ -489,13 +499,13 @@ export function AppButton({
           {displayLabel ? (
             <AppText
               variant="body"
-              weight="semibold"
+              weight="extrabold"
               style={[
                 styles.text,
                 {
                   color: variantStyle.text,
                   fontSize: sizeConfig.fontSize,
-                  fontWeight: IOS_TOKENS.fontWeight,
+                  letterSpacing: 0.3,
                   textDecorationLine: effectiveVariant === 'link' ? 'underline' : 'none',
                 },
                 labelStyle || textStyle,
