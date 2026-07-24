@@ -17,9 +17,7 @@ import { AppText } from '@/src/components/AppText';
 import { GeneratedProfileIcon } from '@/src/components/GeneratedProfileIcon';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { buildCardProfileUrl } from '@/src/constants/publicProfile';
-import { iosDesign } from '@/src/design-system/ios';
 import { GuestAccountSheet } from '@/src/features/guest/GuestAccountSheet';
-import { PhotoBanner } from '@/src/components/PhotoBanner';
 import { GuestCardPreview } from '@/src/features/guest/GuestCardPreview';
 import { guestUi } from '@/src/features/guest/GuestScreenUi';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -58,7 +56,7 @@ function ActionTile({ icon, label, disabled, onPress }: ActionTileProps) {
       ]}
     >
       <View style={styles.actionIcon}>
-        <AppIcon name={icon} size={19} color={guestUi.accent} />
+        <AppIcon name={icon} size={19} color="#FFFFFF" />
       </View>
       <AppText style={styles.actionLabel}>{label}</AppText>
     </Pressable>
@@ -169,113 +167,112 @@ export default function GuestCardPreviewRoute() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <AppHeader title="Your NFC Profile" subtitle="Preview before checkout" showBack />
+      <AppHeader title="Your NFC Card Preview" subtitle="Review before physical order or cloud sync" showBack />
       <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <PhotoBanner
-          marketingSceneId="profile-preview"
-          cacheKey="marketing-profile-preview"
-          variant="compact"
-          overlay="product"
-        />
-        <GuestCardPreview
-          displayName={profile.fullName}
-          jobTitle={profile.role}
-          company={profile.company}
-          email={profile.email}
-          phone={profile.phone}
-          product={card.design.product ?? 'pvc_card'}
-          cardDesign={card.design.cardDesign ?? 'classic_black'}
-        />
+        <View style={styles.container}>
+          <GuestCardPreview
+            displayName={profile.fullName}
+            jobTitle={profile.role}
+            company={profile.company}
+            email={profile.email}
+            phone={profile.phone}
+            product={card.design.product ?? 'pvc_card'}
+            cardDesign={card.design.cardDesign ?? 'classic_black'}
+          />
 
-        <View style={styles.profileCard}>
-          <GeneratedProfileIcon
-            name={profile.fullName}
-            subtitle={[profile.role, profile.company].filter(Boolean).join(' ')}
-            seed={card.publicSlug || card.cardId}
-            photoUrl={card.design.avatarUrl}
-            size={62}
-          />
-          <View style={styles.profileCopy}>
-            <AppText style={styles.profileName}>{profile.fullName || 'Your Name'}</AppText>
-            <AppText style={styles.profileSub}>
-              {[profile.role, profile.company].filter(Boolean).join(' - ') || 'NFC business card'}
-            </AppText>
-          </View>
-        </View>
-
-        <View style={styles.actionsGrid}>
-          <ActionTile
-            icon="Phone"
-            label="Call"
-            disabled={!profile.phone}
-            onPress={() => void Linking.openURL(`tel:${profile.phone}`)}
-          />
-          <ActionTile
-            icon="Mail"
-            label="Email"
-            disabled={!profile.email}
-            onPress={() => void Linking.openURL(`mailto:${profile.email}`)}
-          />
-          <ActionTile
-            icon="Share"
-            label="Telegram"
-            disabled={!telegramUrl}
-            onPress={() => void Linking.openURL(telegramUrl)}
-          />
-          <ActionTile
-            icon="Link"
-            label="Website"
-            disabled={!profile.website}
-            onPress={() => void Linking.openURL(ensureUrl(profile.website))}
-          />
-        </View>
-
-        <View style={styles.qrCard}>
-          <View style={styles.qrBox}>
-            {publicUrl ? <QRCode value={publicUrl} size={148} /> : null}
-          </View>
-          <View style={styles.qrCopy}>
-            <AppText style={styles.sectionTitle}>Public NFC link</AppText>
-            <AppText style={styles.publicLink} numberOfLines={2}>{publicUrl}</AppText>
-            <View style={styles.inlineActions}>
-              <Pressable style={styles.inlineButton} onPress={() => router.push(`/u/${encodeURIComponent(card.publicSlug)}`)}>
-                <AppIcon name="ExternalLink" size={16} color={guestUi.text} />
-                <AppText style={styles.inlineText}>Preview Live</AppText>
-              </Pressable>
-              <Pressable style={styles.inlineButton} onPress={() => void shareContact()}>
-                <AppIcon name="Download" size={16} color={guestUi.text} />
-                <AppText style={styles.inlineText}>Save Contact</AppText>
-              </Pressable>
+          <View style={styles.profileCard}>
+            <GeneratedProfileIcon
+              name={profile.fullName}
+              subtitle={[profile.role, profile.company].filter(Boolean).join(' ')}
+              seed={card.publicSlug || card.cardId}
+              photoUrl={card.design.avatarUrl}
+              size={62}
+            />
+            <View style={styles.profileCopy}>
+              <AppText style={styles.profileName}>{profile.fullName || 'Your Name'}</AppText>
+              <AppText style={styles.profileSub}>
+                {[profile.role, profile.company].filter(Boolean).join(' · ') || 'NFC business profile'}
+              </AppText>
             </View>
           </View>
-        </View>
 
-        <View style={styles.prompt}>
-          <AppText style={styles.promptTitle}>Ready for checkout</AppText>
-          <AppText style={styles.promptText}>
-            Continue to checkout when the preview looks right. You can create an account to sync edits and track future orders.
-          </AppText>
-          <View style={styles.benefits}>
-            {['Sync across devices', 'Track your order', 'Edit anytime'].map((item) => (
-              <View key={item} style={styles.benefitRow}>
-                <AppIcon name="CheckCheck" size={14} color={guestUi.accent} />
-                <AppText style={styles.benefitText}>{item}</AppText>
-              </View>
-          ))}
+          <View style={styles.actionsGrid}>
+            <ActionTile
+              icon="Phone"
+              label="Call"
+              disabled={!profile.phone}
+              onPress={() => void Linking.openURL(`tel:${profile.phone}`)}
+            />
+            <ActionTile
+              icon="Mail"
+              label="Email"
+              disabled={!profile.email}
+              onPress={() => void Linking.openURL(`mailto:${profile.email}`)}
+            />
+            <ActionTile
+              icon="Share"
+              label="Telegram"
+              disabled={!telegramUrl}
+              onPress={() => void Linking.openURL(telegramUrl)}
+            />
+            <ActionTile
+              icon="Link"
+              label="Website"
+              disabled={!profile.website}
+              onPress={() => void Linking.openURL(ensureUrl(profile.website))}
+            />
           </View>
-          {error ? <AppText style={styles.error}>{error}</AppText> : null}
-          <AppButton
-            label={busyGuest ? 'Preparing checkout...' : 'Continue to checkout'}
-            iconName="CreditCard"
-            loading={busyGuest}
-            onPress={() => void handleContinueAsGuest()}
-          />
-          <AppButton
-            label="Create Account"
-            iconName="UserPlus"
-            variant="outline"
-            onPress={() => setAccountOpen(true)}
-          />
+
+          <View style={styles.qrCard}>
+            <View style={styles.qrBox}>
+              {publicUrl ? <QRCode value={publicUrl} size={130} /> : null}
+            </View>
+            <View style={styles.qrCopy}>
+              <AppText style={styles.sectionTitle}>Public NFC Profile Link</AppText>
+              <AppText style={styles.publicLink} numberOfLines={2}>{publicUrl}</AppText>
+              <View style={styles.inlineActions}>
+                <Pressable style={styles.inlineButton} onPress={() => router.push(`/u/${encodeURIComponent(card.publicSlug)}`)}>
+                  <AppIcon name="ExternalLink" size={14} color="#FFFFFF" />
+                  <AppText style={styles.inlineText}>Preview Live</AppText>
+                </Pressable>
+                <Pressable style={styles.inlineButton} onPress={() => void shareContact()}>
+                  <AppIcon name="Download" size={14} color="#FFFFFF" />
+                  <AppText style={styles.inlineText}>Save Contact</AppText>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.prompt}>
+            <AppText style={styles.promptTitle}>Ready for Order & Sync</AppText>
+            <AppText style={styles.promptText}>
+              Continue to checkout when the preview looks right. Create an account to sync live edits and track physical card delivery.
+            </AppText>
+            <View style={styles.benefits}>
+              {['Instant NFC tap activation', 'Real-time tap analytics', 'Order status tracking'].map((item) => (
+                <View key={item} style={styles.benefitRow}>
+                  <AppIcon name="CheckCheck" size={15} color="#30D158" />
+                  <AppText style={styles.benefitText}>{item}</AppText>
+                </View>
+            ))}
+            </View>
+            {error ? <AppText style={styles.error}>{error}</AppText> : null}
+            <View style={styles.btnRow}>
+              <AppButton
+                label={busyGuest ? 'Preparing checkout...' : 'Continue to Checkout'}
+                iconName="CreditCard"
+                loading={busyGuest}
+                variant="dark"
+                onPress={() => void handleContinueAsGuest()}
+              />
+              <AppButton
+                label="Create Account to Sync"
+                iconName="UserPlus"
+                variant="outline"
+                onPress={() => setAccountOpen(true)}
+              />
+            </View>
+          </View>
         </View>
       </IosScrollView>
 
@@ -290,109 +287,117 @@ export default function GuestCardPreviewRoute() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: guestUi.bg },
+  safe: { flex: 1, backgroundColor: '#000000' },
   scroll: {
-    padding: iosDesign.spacing.md,
-    gap: iosDesign.spacing.md,
-    paddingBottom: iosDesign.spacing.xxl,
+    padding: 16,
+    paddingBottom: 40,
+  },
+  container: {
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
+    gap: 16,
   },
   center: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: iosDesign.spacing.md,
-    padding: iosDesign.spacing.lg,
+    gap: 16,
+    padding: 20,
   },
-  muted: { color: guestUi.muted, fontWeight: '600' },
-  emptyTitle: { fontSize: 22, fontWeight: '800', color: guestUi.text },
-  emptyText: { textAlign: 'center', color: guestUi.muted, lineHeight: 20 },
+  muted: { color: 'rgba(255,255,255,0.6)', fontWeight: '600' },
+  emptyTitle: { fontSize: 22, fontWeight: '800', color: '#FFFFFF' },
+  emptyText: { textAlign: 'center', color: 'rgba(255,255,255,0.6)', lineHeight: 20 },
   profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: iosDesign.spacing.md,
-    backgroundColor: guestUi.surface,
-    borderRadius: guestUi.radiusLg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: guestUi.border,
-    padding: iosDesign.spacing.md,
-    ...guestUi.shadow,
+    gap: 14,
+    backgroundColor: '#111114',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    padding: 16,
   },
   profileCopy: { flex: 1, minWidth: 0, gap: 4 },
-  profileName: { fontSize: 22, fontWeight: '800', color: guestUi.text },
-  profileSub: { fontSize: 13, fontWeight: '600', color: guestUi.muted },
+  profileName: { fontSize: 20, fontWeight: '800', color: '#FFFFFF' },
+  profileSub: { fontSize: 13, fontWeight: '500', color: 'rgba(255,255,255,0.6)' },
   actionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: iosDesign.spacing.sm,
+    gap: 10,
   },
   actionTile: {
     width: '48%',
-    minHeight: 82,
-    borderRadius: guestUi.radiusMd,
-    backgroundColor: guestUi.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: guestUi.border,
-    padding: iosDesign.spacing.sm,
-    gap: iosDesign.spacing.xs,
-    ...guestUi.shadow,
+    minHeight: 78,
+    borderRadius: 16,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    padding: 14,
+    gap: 8,
   },
   actionIcon: {
     width: 34,
     height: 34,
-    borderRadius: 14,
-    backgroundColor: guestUi.accentSoft,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
-  actionLabel: { fontSize: 13, fontWeight: '800', color: guestUi.text },
-  actionDisabled: { opacity: 0.42 },
-  pressed: { opacity: 0.82, transform: [{ scale: iosDesign.animation.softPressScale }] },
+  actionLabel: { fontSize: 13, fontWeight: '700', color: '#FFFFFF' },
+  actionDisabled: { opacity: 0.35 },
+  pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
   qrCard: {
     flexDirection: 'row',
-    gap: iosDesign.spacing.md,
-    backgroundColor: guestUi.surface,
-    borderRadius: guestUi.radiusLg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: guestUi.border,
-    padding: iosDesign.spacing.md,
-    ...guestUi.shadow,
+    gap: 16,
+    backgroundColor: '#111114',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    padding: 16,
+    alignItems: 'center',
   },
   qrBox: {
-    width: 168,
-    height: 168,
-    borderRadius: guestUi.radiusMd,
+    width: 144,
+    height: 144,
+    borderRadius: 14,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 6,
   },
-  qrCopy: { flex: 1, minWidth: 0, gap: iosDesign.spacing.xs },
-  sectionTitle: { fontSize: 15, fontWeight: '800', color: guestUi.text },
-  publicLink: { fontSize: 12, lineHeight: 17, fontWeight: '600', color: guestUi.muted },
-  inlineActions: { gap: iosDesign.spacing.xs, marginTop: iosDesign.spacing.xs },
+  qrCopy: { flex: 1, minWidth: 0, gap: 6 },
+  sectionTitle: { fontSize: 15, fontWeight: '800', color: '#FFFFFF' },
+  publicLink: { fontSize: 11, lineHeight: 16, fontWeight: '500', color: 'rgba(255,255,255,0.5)' },
+  inlineActions: { gap: 6, marginTop: 4 },
   inlineButton: {
-    minHeight: 38,
-    borderRadius: 16,
-    backgroundColor: guestUi.surfaceSoft,
+    minHeight: 36,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingHorizontal: iosDesign.spacing.sm,
+    paddingHorizontal: 12,
   },
-  inlineText: { fontSize: 12, fontWeight: '800', color: guestUi.text },
+  inlineText: { fontSize: 12, fontWeight: '700', color: '#FFFFFF' },
   prompt: {
-    gap: iosDesign.spacing.sm,
-    backgroundColor: guestUi.surface,
-    borderRadius: guestUi.radiusLg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: guestUi.border,
-    padding: iosDesign.spacing.md,
-    ...guestUi.shadow,
+    gap: 12,
+    backgroundColor: '#111114',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    padding: 18,
   },
-  promptTitle: { fontSize: 22, fontWeight: '800', color: guestUi.text },
-  promptText: { fontSize: 14, lineHeight: 20, fontWeight: '500', color: guestUi.muted },
+  promptTitle: { fontSize: 20, fontWeight: '800', color: '#FFFFFF' },
+  promptText: { fontSize: 13, lineHeight: 19, fontWeight: '500', color: 'rgba(255,255,255,0.6)' },
   benefits: { gap: 6 },
-  benefitRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  benefitText: { fontSize: 12, fontWeight: '700', color: guestUi.text },
-  error: { fontSize: 12, fontWeight: '700', color: '#FF3B30' },
+  benefitRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  benefitText: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
+  error: { fontSize: 12, fontWeight: '700', color: '#FF453A' },
+  btnRow: { gap: 10, marginTop: 4 },
 });
