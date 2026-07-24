@@ -381,7 +381,6 @@ export function GuestHomeScreen() {
                     pressed && styles.pressed,
                   ]}
                 >
-                  <AppIcon name="Plus" size={14} color="#FFFFFF" />
                   <AppText style={styles.addPillText} weight="bold">+ Add</AppText>
                 </Pressable>
               </View>
@@ -431,7 +430,6 @@ export function GuestHomeScreen() {
                     pressed && styles.pressed,
                   ]}
                 >
-                  <AppIcon name="Compass" size={15} color="#FFFFFF" />
                   <AppText style={styles.viewProfilePillText} weight="bold">
                     View Profile
                   </AppText>
@@ -470,11 +468,8 @@ export function GuestHomeScreen() {
                     pressed && styles.pressed,
                   ]}
                 >
-                  <View style={styles.bentoIconWrap}>
-                    <AppIcon name="Share2" size={18} color="#FFFFFF" />
-                  </View>
                   <AppText style={styles.bentoTitle} weight="bold">
-                    Share Profile
+                    Share Profile →
                   </AppText>
                 </Pressable>
 
@@ -492,11 +487,8 @@ export function GuestHomeScreen() {
                     pressed && styles.pressed,
                   ]}
                 >
-                  <View style={styles.bentoIconWrap}>
-                    <AppIcon name="Eye" size={18} color="#FFFFFF" />
-                  </View>
                   <AppText style={styles.bentoTitle} weight="bold">
-                    Public View
+                    Public View →
                   </AppText>
                 </Pressable>
               </View>
@@ -704,8 +696,7 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     backgroundColor: '#1E1E22',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderWidth: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -761,24 +752,21 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 48,
     borderRadius: 24,
-    backgroundColor: '#1C1C1E',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 7,
   },
   viewProfilePillText: {
     color: '#FFFFFF',
     fontSize: 14,
   },
   profileDetailsQrCard: {
-    backgroundColor: '#141416',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 18,
-    padding: 16,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -818,11 +806,6 @@ const styles = StyleSheet.create({
   },
   bentoCard: {
     flex: 1,
-    backgroundColor: '#141416',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 16,
-    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
