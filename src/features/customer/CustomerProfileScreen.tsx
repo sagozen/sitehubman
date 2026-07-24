@@ -14,7 +14,9 @@ import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { AppButton } from '@/src/components/AppButton';
 import { CardStackCarousel } from '@/src/components/CardStackCarousel';
+import { PageHeader } from '@/src/components/PageHeader';
 import { appRoutes } from '@/src/constants/navigation';
+import { pageThemes } from '@/src/constants/pageThemes';
 import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useBioPage } from '@/src/hooks/useBioPage';
@@ -375,6 +377,15 @@ export function CustomerProfileScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <IosScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Top Header bar matching reference image */}
+        <PageHeader
+          theme={pageThemes.profile}
+          title="Profile"
+          subtitle="Your saved card and profile details."
+          showBack={true}
+          onBack={() => router.back()}
+          compact
+        />
 
         {/* ── Facebook-Style Centered Header ── */}
         <View style={styles.header}>
