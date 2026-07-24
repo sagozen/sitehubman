@@ -48,11 +48,10 @@ export function LoginScreen() {
   // Custom Splash overlay state
   const [showSplash, setShowSplash] = useState(true);
   
-  // Animation values for G, E, N, N, F, C characters
+  // Animation values for G, E, N, F, C characters
   const charAnims = useRef([
     new Animated.Value(0), // G
     new Animated.Value(0), // E
-    new Animated.Value(0), // N
     new Animated.Value(0), // N
     new Animated.Value(0), // F
     new Animated.Value(0), // C
@@ -352,20 +351,29 @@ export function LoginScreen() {
           <View style={styles.mainContent}>
             {authStep === 'LANDING' ? (
               <View style={styles.landingWrap}>
-                <AppText style={styles.logoTitle} weight="extrabold">GENNFC</AppText>
+                {/* Cyberpunk Glitch Title GENFC */}
+                <View style={styles.glitchLogoRow}>
+                  <AppText style={styles.logoTitleText} weight="black">GE</AppText>
+                  <View style={styles.glitchNWrap}>
+                    <AppText style={[styles.logoTitleText, styles.glitchNCyan]} weight="black">N</AppText>
+                    <AppText style={[styles.logoTitleText, styles.glitchNRed]} weight="black">N</AppText>
+                    <AppText style={[styles.logoTitleText, styles.glitchNMain]} weight="black">N</AppText>
+                  </View>
+                  <AppText style={styles.logoTitleText} weight="black">FC</AppText>
+                </View>
 
+                {/* Clean guest link (no white box, no underline) */}
                 <Pressable
-                  style={({ pressed }) => [styles.guestPrimaryBtn, pressed && styles.btnPressed]}
+                  style={({ pressed }) => [styles.guestTextLink, pressed && styles.btnPressed]}
                   onPress={handleGuest}
                   disabled={busy}
                 >
                   {isGuestLoading ? (
-                    <ActivityIndicator color="#000000" size="small" />
+                    <ActivityIndicator color="#FFFFFF" size="small" />
                   ) : (
-                    <>
-                      <Ionicons name="sparkles" size={18} color="#000000" />
-                      <AppText style={styles.guestPrimaryText} weight="black">Preview as guest</AppText>
-                    </>
+                    <AppText style={styles.guestTextLinkText} weight="semibold">
+                      Preview as guest
+                    </AppText>
                   )}
                 </Pressable>
                 
@@ -427,7 +435,7 @@ export function LoginScreen() {
               </View>
             ) : authStep === 'EMAIL' ? (
               <View style={styles.formWrap}>
-                <AppText style={styles.logoTitleForm} weight="extrabold">GENNFC</AppText>
+                <AppText style={styles.logoTitleForm} weight="extrabold">GENFC</AppText>
 
                 <View style={styles.inputContainer}>
                   <TextInput
@@ -466,7 +474,7 @@ export function LoginScreen() {
               </View>
             ) : authStep === 'PASSWORD' ? (
               <View style={styles.formWrap}>
-                <AppText style={styles.logoTitleForm} weight="extrabold">GENNFC</AppText>
+                <AppText style={styles.logoTitleForm} weight="extrabold">GENFC</AppText>
 
                 <View style={styles.inputContainer}>
                   {isSignUp && (
@@ -553,7 +561,7 @@ export function LoginScreen() {
               </View>
             ) : (
               <View style={styles.formWrap}>
-                <AppText style={styles.logoTitleForm} weight="extrabold">GENNFC</AppText>
+                <AppText style={styles.logoTitleForm} weight="extrabold">GENFC</AppText>
                 
                 <View style={styles.checkEmailWrap}>
                   <AppText style={styles.checkEmailText} weight="medium">
@@ -576,13 +584,13 @@ export function LoginScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Styled Brand Footer "GENNFC curated by M GENNFC" */}
+      {/* Styled Brand Footer "GENFC curated by M GENFC" */}
       <View style={[styles.brandFooter, { paddingBottom: Math.max(insets.bottom, 12) }]}>
         <View style={styles.brandFooterLeft}>
           <View style={styles.logoSquare}>
             <AppText style={styles.logoSquareLetter}>G</AppText>
           </View>
-          <AppText style={styles.brandFooterText} weight="bold">GENNFC</AppText>
+          <AppText style={styles.brandFooterText} weight="bold">GENFC</AppText>
         </View>
         
         <View style={styles.brandFooterRight}>
@@ -590,7 +598,7 @@ export function LoginScreen() {
           <View style={[styles.logoSquare, { marginLeft: 4, marginRight: 6 }]}>
             <AppText style={styles.logoSquareLetter}>M</AppText>
           </View>
-          <AppText style={styles.brandFooterBoldText} weight="extrabold">GENNFC</AppText>
+          <AppText style={styles.brandFooterBoldText} weight="extrabold">GENFC</AppText>
         </View>
       </View>
 
@@ -598,7 +606,7 @@ export function LoginScreen() {
       {showSplash && (
         <Animated.View style={[styles.splashOverlay, { opacity: splashOpacity }]} pointerEvents="none">
           <View style={styles.splashTextContainer}>
-            {['G', 'E', 'N', 'N', 'F', 'C'].map((char, index) => {
+            {['G', 'E', 'N', 'F', 'C'].map((char, index) => {
               const anim = charAnims[index];
               const scale = anim.interpolate({
                 inputRange: [0, 1],
@@ -661,45 +669,49 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 40,
   },
-  logoTitle: {
-    fontSize: 48,
-    lineHeight: 56,
-    color: '#FFFFFF',
-    letterSpacing: 0,
-    marginBottom: 14,
-    textAlign: 'center',
-  },
-  landingTitle: {
-    maxWidth: 420,
-    color: '#FFFFFF',
-    fontSize: 26,
-    lineHeight: 32,
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  landingSub: {
-    maxWidth: 440,
-    color: '#D4D4D8',
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: 'center',
-    marginBottom: 22,
-  },
-  guestPrimaryBtn: {
-    width: '100%',
-    maxWidth: 360,
-    minHeight: 52,
-    borderRadius: 26,
-    backgroundColor: '#FFFFFF',
+  glitchLogoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    marginBottom: 14,
+    marginBottom: 20,
   },
-  guestPrimaryText: {
-    color: '#000000',
-    fontSize: 15,
+  logoTitleText: {
+    fontSize: 52,
+    lineHeight: 60,
+    color: '#FFFFFF',
+    letterSpacing: 1,
+  },
+  glitchNWrap: {
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  glitchNMain: {
+    color: '#FFFFFF',
+  },
+  glitchNCyan: {
+    position: 'absolute',
+    left: -2,
+    top: 1,
+    color: '#00F0FF',
+    opacity: 0.8,
+  },
+  glitchNRed: {
+    position: 'absolute',
+    left: 2,
+    top: -1,
+    color: '#FF0055',
+    opacity: 0.8,
+  },
+  guestTextLink: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginBottom: 24,
+  },
+  guestTextLinkText: {
+    fontSize: 14,
+    color: '#A1A1AA',
+    textAlign: 'center',
   },
   valuePillRow: {
     flexDirection: 'row',
