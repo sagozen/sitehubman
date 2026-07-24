@@ -91,6 +91,22 @@ export function CardStackCarousel({
   const [activeIndex, setActiveIndex] = useState(0);
   const listRef = useRef<FlatList<Item>>(null);
 
+  // Auto-play smooth card carousel preview every 4 seconds
+  useEffect(() => {
+    if (items.length <= 1) return;
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => {
+        const next = (prev + 1) % items.length;
+        listRef.current?.scrollToOffset({
+          offset: next * snapInterval,
+          animated: true,
+        });
+        return next;
+      });
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [items.length, snapInterval]);
+
   const scroll = useSharedValue(0);
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {

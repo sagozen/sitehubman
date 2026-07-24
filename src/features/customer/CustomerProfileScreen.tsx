@@ -111,10 +111,11 @@ export function CustomerProfileScreen() {
   const [editSlug, setEditSlug] = useState('');
   const [isSavingLive, setIsSavingLive] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
-  // Social Links state
-  const [socials, setSocials] = useState<{ platform: string; icon: AppIconName; handle: string }[]>([
-    { platform: 'Instagram', icon: 'Instagram', handle: '@creator' },
-    { platform: 'Twitter / X', icon: 'Twitter', handle: '@creator' },
+  // Social Links state with real brand colors
+  const [socials, setSocials] = useState<{ platform: string; icon: AppIconName; handle: string; color: string }[]>([
+    { platform: 'Instagram', icon: 'Instagram', handle: '@creator', color: '#E1306C' },
+    { platform: 'Twitter / X', icon: 'Twitter', handle: '@creator', color: '#1DA1F2' },
+    { platform: 'WhatsApp', icon: 'Phone', handle: '+1234567890', color: '#25D366' },
   ]);
   const [showAddSocialModal, setShowAddSocialModal] = useState(false);
   const [newPlatform, setNewPlatform] = useState('Instagram');
@@ -510,8 +511,8 @@ export function CustomerProfileScreen() {
             </AppText>
             <View style={styles.socialIconsRow}>
               {socials.map((s, idx) => (
-                <View key={idx} style={styles.socialIconBadge}>
-                  <AppIcon name={s.icon} size={18} color="#FFFFFF" />
+                <View key={idx} style={[styles.socialIconBadge, { backgroundColor: s.color }]}>
+                  <AppIcon name={s.icon} size={20} color="#FFFFFF" />
                 </View>
               ))}
               
