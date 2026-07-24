@@ -427,10 +427,10 @@ export function GuestHomeScreen() {
                   </AppText>
                 </View>
                 <AppText style={styles.launchTitle}>
-                  One link for your profile, NFC card, orders, and leads.
+                  Tap once. They have your contact forever.
                 </AppText>
                 <AppText style={styles.launchSub}>
-                  Build the card, share the profile, track the order, and keep every customer moment in one place.
+                  One NFC card. Your profile, links, and business — always up to date.
                 </AppText>
                 <View style={styles.launchCtaRow}>
                   <Pressable
@@ -459,14 +459,6 @@ export function GuestHomeScreen() {
                     <AppIcon name="ClipboardList" size={17} color="#FFFFFF" />
                     <AppText style={styles.launchSecondaryText}>Drafts</AppText>
                   </Pressable>
-                </View>
-                <View style={styles.trustRow}>
-                  {TRUST_POINTS.map((point) => (
-                    <View key={point.label} style={styles.trustPill}>
-                      <AppIcon name={point.icon} size={13} color="#7DD3FC" />
-                      <AppText style={styles.trustPillText}>{point.label}</AppText>
-                    </View>
-                  ))}
                 </View>
               </View>
 

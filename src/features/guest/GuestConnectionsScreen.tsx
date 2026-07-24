@@ -195,13 +195,6 @@ export function GuestConnectionsScreen() {
               </Pressable>
             ) : null}
           </View>
-
-          <View style={styles.yearSelector}>
-            <AppIcon name="Filter" size={14} color={THEME.accent} />
-            <AppText style={styles.yearText} weight="bold">
-              All sources
-            </AppText>
-          </View>
         </View>
       </View>
     ),
@@ -296,23 +289,9 @@ export function GuestConnectionsScreen() {
                   openPreview();
                 }}
               >
+                <AppIcon name="User" size={16} color="#000000" />
                 <AppText style={styles.viewBioText} weight="bold">
-                  View Bio
-                </AppText>
-              </Pressable>
-
-              <Pressable
-                style={({ pressed }) => [
-                  styles.addContactBtn,
-                  pressed && styles.pressed,
-                ]}
-                onPress={() => {
-                  HapticTap.success();
-                  handleClosePopup();
-                }}
-              >
-                <AppText style={styles.addContactText} weight="bold">
-                  Add Contact
+                  View Profile
                 </AppText>
               </Pressable>
 
@@ -324,7 +303,7 @@ export function GuestConnectionsScreen() {
                 onPress={handleClosePopup}
               >
                 <AppText style={styles.cancelText} weight="bold">
-                  Cancel
+                  Dismiss
                 </AppText>
               </Pressable>
             </View>
