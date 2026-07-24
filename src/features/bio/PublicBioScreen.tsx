@@ -440,44 +440,40 @@ export function PublicBioScreen({ slug, cardId }: Props) {
             </View>
           </View>
 
-          {/* ── Smart AI Business Card & Networking Assistant ── */}
+          {/* ── Facebook-Style High-Impact Identity Card ── */}
           <View style={styles.aiCard}>
             <View style={styles.aiHeader}>
-              <AppIcon name="Sparkles" size={16} color="#0071E3" variant="solar-duotone" />
-              <AppText style={styles.aiTitle}>Smart AI Identity Assistant</AppText>
+              <AppIcon name="ShieldCheck" size={16} color="#30D158" />
+              <AppText style={styles.aiTitle}>Verified NFC Profile</AppText>
             </View>
             <View style={styles.aiItems}>
-              <View style={styles.aiRow}>
-                <AppIcon name="Briefcase" size={14} color="rgba(255, 255, 255, 0.7)" />
-                <AppText style={styles.aiText}>
-                  Works at <AppText style={styles.aiBold}>{bioPage.company || 'Metfone'}</AppText>
-                </AppText>
-              </View>
-              <View style={styles.aiRow}>
-                <AppIcon name="User" size={14} color="rgba(255, 255, 255, 0.7)" />
-                <AppText style={styles.aiText}>{bioPage.role || 'Software Engineer'}</AppText>
-              </View>
-              <View style={styles.aiRow}>
-                <AppIcon name="Zap" size={14} color="#FF9500" />
-                <AppText style={styles.aiText}>
-                  Specializes in <AppText style={styles.aiBold}>{(bioPage.specialties && bioPage.specialties.length > 0) ? bioPage.specialties.join(' & ') : 'Flutter, Firebase & React Native'}</AppText>
-                </AppText>
-              </View>
+              {bioPage.company ? (
+                <View style={styles.aiRow}>
+                  <AppIcon name="Briefcase" size={14} color="rgba(255, 255, 255, 0.7)" />
+                  <AppText style={styles.aiText}>
+                    <AppText style={styles.aiBold}>{bioPage.company}</AppText>
+                    {bioPage.role ? ` · ${bioPage.role}` : ''}
+                  </AppText>
+                </View>
+              ) : null}
             </View>
 
-            {/* AI Interactive Quick Prompts */}
+            {/* Quick Action Chips */}
             <View style={styles.aiPrompts}>
               <Pressable
                 style={styles.aiPromptChip}
                 onPress={() => {
-                  const email = bioPage.email || 'contact@sitehub.com';
-                  const subject = encodeURIComponent(`Introduction - Connecting with ${bioPage.displayName}`);
-                  const body = encodeURIComponent(`Hi ${bioPage.displayName},\n\nI tapped your NFC card and would love to connect regarding opportunities.\n\nBest regards,`);
-                  void Linking.openURL(`mailto:${email}?subject=${subject}&body=${body}`).catch(() => undefined);
+                  const email = bioPage.email || '';
+                  if (email) {
+                    const subject = encodeURIComponent(`Connecting with ${bioPage.displayName}`);
+                    void Linking.openURL(`mailto:${email}?subject=${subject}`).catch(() => undefined);
+                  } else {
+                    void handleSaveContact();
+                  }
                 }}
               >
-                <AppIcon name="Mail" size={12} color="#0071E3" />
-                <AppText style={styles.aiPromptText}>Create Introduction Email</AppText>
+                <AppIcon name="Mail" size={13} color="#0071E3" />
+                <AppText style={styles.aiPromptText}>Email</AppText>
               </Pressable>
               <Pressable
                 style={styles.aiPromptChip}
@@ -491,8 +487,8 @@ export function PublicBioScreen({ slug, cardId }: Props) {
                   }
                 }}
               >
-                <AppIcon name="Send" size={12} color="#30D158" />
-                <AppText style={styles.aiPromptText}>Quick Message</AppText>
+                <AppIcon name="Send" size={13} color="#30D158" />
+                <AppText style={styles.aiPromptText}>Message</AppText>
               </Pressable>
             </View>
           </View>
