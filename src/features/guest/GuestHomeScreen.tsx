@@ -14,6 +14,7 @@ import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
 import QRCode from 'react-native-qrcode-svg';
+import { LinearGradient } from 'expo-linear-gradient';
 import { appRoutes } from '@/src/constants/navigation';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -35,7 +36,22 @@ import { FAB } from '@/src/components/FAB';
 import { QuickActionModal } from '@/src/components/QuickActionModal';
 import { pageThemes } from '@/src/constants/pageThemes';
 
-// ─── Theme Config ───────────────────────────────────────────────────────────
+// ─── Telegram-style Avatar Gradient helper ──────────────────────────────────
+const TELEGRAM_GRADIENTS = [
+  ['#FF512F', '#DD2476'], // Sunset Pink/Orange
+  ['#4776E6', '#8E54E9'], // Purple Violet
+  ['#00B4DB', '#0083B0'], // Ocean Cyan
+  ['#11998E', '#38EF7D'], // Emerald Green
+  ['#FC4A1A', '#F7B733'], // Bright Amber
+  ['#8E2DE2', '#4A00E0'], // Deep Royal Purple
+  ['#F857A6', '#FF5858'], // Rose Coral
+] as const;
+
+function getTelegramColors(name: string) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return TELEGRAM_GRADIENTS[Math.abs(hash) % TELEGRAM_GRADIENTS.length];
+}
 const HOME_THEME = pageThemes.home;
 const INK = HOME_THEME.text;
 const MUTED = HOME_THEME.muted;
@@ -357,11 +373,16 @@ export function GuestHomeScreen() {
                       style={styles.greetingAvatarImg}
                     />
                   ) : (
-                    <View style={styles.greetingAvatarCircle}>
-                      <AppText style={styles.greetingAvatarLetter} weight="bold">
+                    <LinearGradient
+                      colors={getTelegramColors(heroName || 'Creator')}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.greetingAvatarCircle}
+                    >
+                      <AppText style={styles.greetingAvatarLetter} weight="extrabold">
                         {(heroName?.[0] || 'C').toUpperCase()}
                       </AppText>
-                    </View>
+                    </LinearGradient>
                   )}
                   <View>
                     <AppText style={styles.greetingSub}>Hello,</AppText>

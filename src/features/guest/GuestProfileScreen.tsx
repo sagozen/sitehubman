@@ -6,6 +6,7 @@ import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { PageHeader } from '@/src/components/PageHeader';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
+import { LinearGradient } from 'expo-linear-gradient';
 import { pageThemes } from '@/src/constants/pageThemes';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
@@ -51,13 +52,18 @@ export function GuestProfileScreen() {
           compact
         />
 
-        {/* Minimalist Profile Header */}
+        {/* Minimalist Telegram-style Avatar Header */}
         <View style={styles.header}>
-          <View style={styles.avatarWrap}>
-            <AppText style={styles.avatarText} weight="bold">
+          <LinearGradient
+            colors={['#4776E6', '#8E54E9']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.avatarWrap}
+          >
+            <AppText style={styles.avatarText} weight="extrabold">
               {initial}
             </AppText>
-          </View>
+          </LinearGradient>
           <View style={styles.headerCopy}>
             <View style={styles.nameRow}>
               <AppText style={styles.name} weight="extrabold">
