@@ -92,12 +92,9 @@ export const NfcGlobalCardFace = memo(function NfcGlobalCardFace({
       />
       <View style={styles.top}>
         <View style={styles.brand}>
-          <View style={[styles.logo, compact && styles.logoCompact]}>
-            <AppText style={[styles.logoText, compact && styles.logoTextCompact]}>G</AppText>
-          </View>
           <View style={styles.brandCopy}>
             <AppText style={[styles.brandName, compact && styles.brandNameCompact]} numberOfLines={1}>
-              GENNFC
+              GENFC
             </AppText>
             <AppText style={[styles.brandSub, compact && styles.brandSubCompact]} numberOfLines={1}>
               {roleLine || 'Verified identity'}
