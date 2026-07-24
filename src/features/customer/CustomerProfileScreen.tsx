@@ -111,6 +111,8 @@ export function CustomerProfileScreen() {
   const [editSlug, setEditSlug] = useState('');
   const [isSavingLive, setIsSavingLive] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
+  // Active Profile Tab segment: 'bio' | 'contact' | 'card'
+  const [activeProfileTab, setActiveProfileTab] = useState<'bio' | 'contact' | 'card'>('bio');
   // Social Links state with real brand colors
   const [socials, setSocials] = useState<{ platform: string; icon: AppIconName; handle: string; color: string }[]>([
     { platform: 'Instagram', icon: 'Instagram', handle: '@creator', color: '#E1306C' },
@@ -432,6 +434,34 @@ export function CustomerProfileScreen() {
           </View>
         </View>
 
+        {/* ── 3-Tab Segment Switcher (Bio | Contact | Card - Matching Reference Image) ── */}
+        <View style={styles.tabSegmentWrap}>
+          {[
+            { id: 'bio', label: 'Bio', icon: 'User' },
+            { id: 'contact', label: 'Contact', icon: 'Mail' },
+            { id: 'card', label: 'Card', icon: 'CreditCard' },
+          ].map((t) => {
+            const isActive = activeProfileTab === t.id;
+            return (
+              <Pressable
+                key={t.id}
+                onPress={() => {
+                  HapticTap.light();
+                  setActiveProfileTab(t.id as any);
+                }}
+                style={[styles.tabSegmentBtn, isActive && styles.tabSegmentActive]}
+              >
+                <AppText
+                  style={[styles.tabSegmentText, isActive && styles.tabSegmentActiveText]}
+                  weight="extrabold"
+                >
+                  {t.label}
+                </AppText>
+              </Pressable>
+            );
+          })}
+        </View>
+
         {/* ── Cards carousel + inline hint ── */}
         <View style={styles.carouselSection}>
           <View style={styles.sectionHead}>
@@ -715,6 +745,34 @@ function useStyles(colors: ReturnType<typeof useAppTheme>['colors']) {
       paddingVertical: 4,
       paddingHorizontal: 0,
       margin: 0,
+    },
+    tabSegmentWrap: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#111114',
+      borderRadius: 16,
+      padding: 4,
+      marginTop: 16,
+      marginBottom: 20,
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.08)',
+    },
+    tabSegmentBtn: {
+      flex: 1,
+      paddingVertical: 10,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    tabSegmentActive: {
+      backgroundColor: '#FFFFFF',
+    },
+    tabSegmentText: {
+      fontSize: 14,
+      color: 'rgba(255, 255, 255, 0.6)',
+    },
+    tabSegmentActiveText: {
+      color: '#000000',
     },
     successBanner: {
       flexDirection: 'row',

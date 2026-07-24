@@ -1,22 +1,17 @@
-import { PublicBioScreen } from '@/src/features/bio/PublicBioScreen';
-import { useAuth } from '@/src/hooks/useAuth';
-import { useBioPage } from '@/src/hooks/useBioPage';
+import { CustomerShareScreen } from '@/src/features/customer/CustomerShareScreen';
 import { Platform } from 'react-native';
 import Head from 'expo-router/head';
 
 export default function ShareTabRoute() {
-  const { user } = useAuth();
-  const { bioPage } = useBioPage(user?.id ?? '');
-
   return (
     <>
       {Platform.OS === 'web' && (
         <Head>
-          <title>Digital Bio Profile | Snap Tap NFC</title>
-          <meta name="description" content="Live digital NFC profile and contact links." />
+          <title>Share Card & QR | Snap Tap NFC</title>
+          <meta name="description" content="Share your business profile instantly using a QR code scan or NFC tag transmission." />
         </Head>
       )}
-      <PublicBioScreen slug={bioPage?.slug || 'guest-demo'} />
+      <CustomerShareScreen />
     </>
   );
 }
