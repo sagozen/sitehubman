@@ -17,17 +17,17 @@ import { SNAP_TAP_BORDER, SNAP_TAP_BRAND, SNAP_TAP_BRAND_SOFT, SNAP_TAP_CARD_BOR
 import { iosDesign } from '@/src/design-system/ios';
 import { usePreferences } from '@/src/hooks/usePreferences';
 
-/** Guest consumer UI — aligned with sales/printer premium tokens. */
+/** Guest consumer UI — aligned with deep dark canvas design system. */
 export const guestUi = {
-  bg: '#F5F7FA',
-  surface: '#FFFFFF',
-  surfaceSoft: '#F8F9FA',
-  border: 'rgba(0,0,0,0.08)',
-  text: '#111111',
-  muted: '#6E6E73',
+  bg: '#000000',
+  surface: '#111114',
+  surfaceSoft: '#18181C',
+  border: 'rgba(255,255,255,0.08)',
+  text: '#FFFFFF',
+  muted: 'rgba(255,255,255,0.6)',
   accent: '#007AFF',
-  accentSoft: 'rgba(0,122,255,0.1)',
-  charcoal: '#111111',
+  accentSoft: 'rgba(0,122,255,0.15)',
+  charcoal: '#111114',
   radiusLg: iosDesign.radius.lg,
   radiusMd: iosDesign.radius.md,
   radiusSm: iosDesign.radius.sm,
