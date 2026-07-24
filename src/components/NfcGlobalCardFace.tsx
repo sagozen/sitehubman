@@ -68,18 +68,8 @@ export const NfcGlobalCardFace = memo(function NfcGlobalCardFace({
 
   return (
     <View style={[styles.card, compact && styles.cardCompact, cardSizeStyle, style]}>
-      <LinearGradient colors={gradientColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-      {backgroundImageUri?.trim() ? (
-        <>
-          <Image source={{ uri: backgroundImageUri.trim() }} style={StyleSheet.absoluteFill} resizeMode="cover" />
-          <LinearGradient
-            colors={['rgba(24,127,196,0.32)', 'rgba(37,150,190,0.44)', 'rgba(0,0,0,0.54)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
-        </>
-      ) : null}
+      {/* Single Solid Deep Color Background */}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0D0D0F' }]} />
       {shimmer ? <HolographicShimmer enabled={!compact} opacity={0.55} /> : null}
 
       {/* Realistic Metallic Sheen Overlay */}
@@ -293,6 +283,9 @@ const styles = StyleSheet.create({
     fontSize: 28,
     lineHeight: 31,
     fontWeight: '900',
+    textShadowColor: 'rgba(255, 255, 255, 0.75)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
   personNameCompact: {
     fontSize: 16,
