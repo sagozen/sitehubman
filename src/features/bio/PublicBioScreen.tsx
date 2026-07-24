@@ -10,6 +10,7 @@ import {
   Easing,
   Image,
   Linking,
+  Modal,
   Pressable,
   Platform,
   Share,
@@ -19,6 +20,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Head from 'expo-router/head';
+import QRCode from 'react-native-qrcode-svg';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { buildCardProfileUrl, buildSlugProfileUrl } from '@/src/constants/publicProfile';
@@ -229,6 +231,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
   const [publicUrl, setPublicUrl] = useState('');
   const [resolvedCardId, setResolvedCardId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(true);
+  const [showQrModal, setShowQrModal] = useState(false);
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   // Load bio data
@@ -289,10 +292,6 @@ export function PublicBioScreen({ slug, cardId }: Props) {
   }
 
   async function handleSaveContact() {
-    if (isGuest) {
-      requireAccount(undefined, { message: 'Sign in to save contacts.' });
-      return;
-    }
     trackTap();
     const url = publicUrl || '';
     const vcard = [
@@ -406,9 +405,14 @@ export function PublicBioScreen({ slug, cardId }: Props) {
           <Pressable onPress={() => router.canGoBack() ? router.back() : undefined} style={styles.topBtn} hitSlop={10}>
             <AppIcon name="ChevronLeft" size={22} color="#FFFFFF" />
           </Pressable>
-          <Pressable onPress={() => void handleShare()} style={styles.topBtn} hitSlop={10}>
-            <AppIcon name="Share" size={20} color="#FFFFFF" />
-          </Pressable>
+          <View style={styles.topRightBtns}>
+            <Pressable onPress={() => setShowQrModal(true)} style={styles.topBtn} hitSlop={10}>
+              <AppIcon name="QrCode" size={20} color="#FFFFFF" />
+            </Pressable>
+            <Pressable onPress={() => void handleShare()} style={styles.topBtn} hitSlop={10}>
+              <AppIcon name="Share" size={20} color="#FFFFFF" />
+            </Pressable>
+          </View>
         </View>
 
         <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -566,6 +570,25 @@ export function PublicBioScreen({ slug, cardId }: Props) {
 
         </IosScrollView>
       </SafeAreaView>
+
+      {/* ── High-Contrast QR Code Full Screen Modal ── */}
+      <Modal visible={showQrModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.qrModalCard}>
+            <View style={styles.qrHeaderRow}>
+              <AppText style={styles.qrModalTitle}>Scan Profile QR</AppText>
+              <Pressable onPress={() => setShowQrModal(false)} style={styles.closeBtn} hitSlop={10}>
+                <AppIcon name="X" size={20} color="#FFFFFF" />
+              </Pressable>
+            </View>
+            <View style={styles.qrContainer}>
+              {canonicalUrl ? <QRCode value={canonicalUrl} size={220} /> : null}
+            </View>
+            <AppText style={styles.qrNameText}>{bioPage.displayName}</AppText>
+            <AppText style={styles.qrSubText}>Scan with phone camera to open profile</AppText>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -598,7 +621,18 @@ const styles = StyleSheet.create({
 
   // Top bar
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, maxWidth: 640, width: '100%', alignSelf: 'center' },
+  topRightBtns: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   topBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#111114', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.12)', alignItems: 'center', justifyContent: 'center' },
+
+  // Modal
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.85)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  qrModalCard: { width: '100%', maxWidth: 360, backgroundColor: '#111114', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.12)', padding: 24, alignItems: 'center', gap: 16 },
+  qrHeaderRow: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  qrModalTitle: { fontSize: 18, fontWeight: '800', color: '#FFFFFF' },
+  closeBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255, 255, 255, 0.1)', alignItems: 'center', justifyContent: 'center' },
+  qrContainer: { width: 248, height: 248, backgroundColor: '#FFFFFF', borderRadius: 20, padding: 14, alignItems: 'center', justifyContent: 'center' },
+  qrNameText: { fontSize: 20, fontWeight: '800', color: '#FFFFFF', textAlign: 'center' },
+  qrSubText: { fontSize: 12, fontWeight: '500', color: 'rgba(255, 255, 255, 0.5)', textAlign: 'center' },
 
   // Hero
   heroCard: {
