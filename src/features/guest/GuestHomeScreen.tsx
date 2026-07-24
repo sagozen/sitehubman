@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
+import QRCode from 'react-native-qrcode-svg';
 import { appRoutes } from '@/src/constants/navigation';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -341,128 +342,51 @@ export function GuestHomeScreen() {
             <ErrorBanner message={error} onRetry={() => setIsLoading(true)} />
           ) : (
             <>
-              {/* Profile Header */}
-              <View style={styles.profileHeader}>
+              {/* ── 1. Top Header Row: Hello, Name + (+ Add) ── */}
+              <View style={styles.topGreetingRow}>
                 <Pressable
                   onPress={() => {
                     HapticTap.light();
                     router.push('/profile' as any);
                   }}
-                  style={({ pressed }) => [
-                    styles.fbAvatarBtn,
-                    pressed && styles.pressed,
-                  ]}
-                  hitSlop={12}
+                  style={styles.greetingLeft}
                 >
                   {bioPage?.photoUrl ? (
                     <Image
                       source={{ uri: bioPage.photoUrl }}
-                      style={styles.fbAvatarImg}
+                      style={styles.greetingAvatarImg}
                     />
                   ) : (
-                    <View style={styles.avatarNoBg}>
-                      <AppIcon
-                        name="UserRound"
-                        size={24}
-                        color="#FFFFFF"
-                        variant="solar-bold"
-                      />
-                    </View>
-                  )}
-                </Pressable>
-
-                <View style={styles.headerActions}>
-                  <Pressable
-                    onPress={() => {
-                      HapticTap.light();
-                      if (isGuest) {
-                        requireAccount(undefined, {
-                          message: 'Sign in to receive notifications.',
-                        });
-                      } else {
-                        router.push('/notifications');
-                      }
-                    }}
-                    style={({ pressed }) => [
-                      styles.inboxBtn,
-                      pressed && styles.pressed,
-                    ]}
-                    hitSlop={12}
-                  >
-                    <AppIcon
-                      name="Inbox"
-                      size={16}
-                      color="#FFFFFF"
-                      variant="solar-bold"
-                    />
-                    <AppText style={styles.inboxBtnText}>Inbox</AppText>
-                    <View style={styles.neonBadgePill}>
-                      <AppText style={styles.neonBadgeNum}>
-                        {unreadCount > 0 ? unreadCount : items?.length || 0}
+                    <View style={styles.greetingAvatarCircle}>
+                      <AppText style={styles.greetingAvatarLetter} weight="bold">
+                        {(heroName?.[0] || 'C').toUpperCase()}
                       </AppText>
                     </View>
-                  </Pressable>
+                  )}
+                  <View>
+                    <AppText style={styles.greetingSub}>Hello,</AppText>
+                    <AppText style={styles.greetingName} weight="extrabold">
+                      {heroName?.split(' ')[0] || 'Creator'}
+                    </AppText>
+                  </View>
+                </Pressable>
 
-                  <Pressable
-                    onPress={() => {
-                      HapticTap.medium();
-                      router.push(appRoutes.studio as Href);
-                    }}
-                    style={({ pressed }) => [
-                      styles.inboxBtn,
-                      pressed && styles.pressed,
-                    ]}
-                    hitSlop={12}
-                  >
-                    <AppText style={styles.inboxBtnText}>Studio</AppText>
-                  </Pressable>
-                </View>
+                <Pressable
+                  onPress={() => {
+                    HapticTap.medium();
+                    router.push(appRoutes.guestDesign as Href);
+                  }}
+                  style={({ pressed }) => [
+                    styles.addPillBtn,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <AppIcon name="Plus" size={14} color="#FFFFFF" />
+                  <AppText style={styles.addPillText} weight="bold">+ Add</AppText>
+                </Pressable>
               </View>
 
-              <View style={styles.launchHero}>
-                <View style={styles.launchEyebrowRow}>
-                  <View style={styles.liveDot} />
-                  <AppText style={styles.launchEyebrow}>
-                    Profile commerce hub
-                  </AppText>
-                </View>
-                <AppText style={styles.launchTitle}>
-                  Tap once. They have your contact forever.
-                </AppText>
-                <AppText style={styles.launchSub}>
-                  One NFC card. Your profile, links, and business — always up to date.
-                </AppText>
-                <View style={styles.launchCtaRow}>
-                  <Pressable
-                    onPress={() => {
-                      HapticTap.medium();
-                      router.push(appRoutes.guestDesign as Href);
-                    }}
-                    style={({ pressed }) => [
-                      styles.launchPrimary,
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <AppIcon name="CreditCard" size={17} color="#020617" />
-                    <AppText style={styles.launchPrimaryText}>Design card</AppText>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => {
-                      HapticTap.light();
-                      router.push('/drafts' as Href);
-                    }}
-                    style={({ pressed }) => [
-                      styles.launchSecondary,
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <AppIcon name="ClipboardList" size={17} color="#FFFFFF" />
-                    <AppText style={styles.launchSecondaryText}>Drafts</AppText>
-                  </Pressable>
-                </View>
-              </View>
-
-              {/* NFC Card Preview */}
+              {/* ── 2. NFC Card Hero Preview ── */}
               <View style={styles.cardContainer}>
                 <View style={[styles.cardElevation, { width: cardWidth }]}>
                   <NfcGlobalCardFace
@@ -476,32 +400,106 @@ export function GuestHomeScreen() {
                 </View>
               </View>
 
-              {/* Share Contact Card */}
-              <Pressable
-                onPress={handleShare}
-                style={({ pressed }) => [
-                  styles.oceanShareCard,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <View style={styles.oceanShareIconWrap}>
-                  <AppIcon
-                    name="Share2"
-                    size={22}
-                    color="#FFFFFF"
-                    variant="solar-bold"
+              {/* ── 3. Primary Action Row (My Card & View Profile) ── */}
+              <View style={styles.primaryPillRow}>
+                <Pressable
+                  onPress={() => {
+                    HapticTap.medium();
+                    router.push(appRoutes.guestDesign as Href);
+                  }}
+                  style={({ pressed }) => [
+                    styles.myCardPill,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <AppText style={styles.myCardPillText} weight="black">
+                    My Card
+                  </AppText>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => {
+                    HapticTap.light();
+                    if (bioPage?.slug) {
+                      router.push(`/public/${bioPage.slug}` as Href);
+                    } else {
+                      router.push(appRoutes.studio as Href);
+                    }
+                  }}
+                  style={({ pressed }) => [
+                    styles.viewProfilePill,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <AppIcon name="Compass" size={15} color="#FFFFFF" />
+                  <AppText style={styles.viewProfilePillText} weight="bold">
+                    View Profile
+                  </AppText>
+                </Pressable>
+              </View>
+
+              {/* ── 4. Profile Details + QR Code Module ── */}
+              <View style={styles.profileDetailsQrCard}>
+                <View style={styles.detailsCopyWrap}>
+                  <AppText style={styles.detailsLabel}>Profile details</AppText>
+                  <AppText style={styles.detailsName} weight="bold" numberOfLines={1}>
+                    {heroName || 'Creator'}
+                  </AppText>
+                  <AppText style={styles.detailsSub} numberOfLines={2}>
+                    {heroTitle || 'Digital identity card optimized for contactless share.'}
+                  </AppText>
+                </View>
+
+                <View style={styles.detailsQrWrap}>
+                  <QRCode
+                    value={bioPage?.slug ? `https://sitehub.app/public/${bioPage.slug}` : 'https://sitehub.app'}
+                    size={58}
+                    color="#000000"
+                    backgroundColor="#FFFFFF"
+                    quietZone={2}
                   />
                 </View>
-                <View style={{ flex: 1 }}>
-                  <AppText style={styles.shareSubtitle}>
-                    Contactless share
+              </View>
+
+              {/* ── 5. Quick Grid Bento Cards (Share Profile & Public View) ── */}
+              <View style={styles.bentoGridRow}>
+                <Pressable
+                  onPress={handleShare}
+                  style={({ pressed }) => [
+                    styles.bentoCard,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <View style={styles.bentoIconWrap}>
+                    <AppIcon name="Share2" size={18} color="#FFFFFF" />
+                  </View>
+                  <AppText style={styles.bentoTitle} weight="bold">
+                    Share Profile
                   </AppText>
-                  <AppText style={styles.shareTitle} weight="bold">
-                    Share Digital Profile
+                </Pressable>
+
+                <Pressable
+                  onPress={() => {
+                    HapticTap.light();
+                    if (bioPage?.slug) {
+                      router.push(`/public/${bioPage.slug}` as Href);
+                    } else {
+                      router.push(appRoutes.studio as Href);
+                    }
+                  }}
+                  style={({ pressed }) => [
+                    styles.bentoCard,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <View style={styles.bentoIconWrap}>
+                    <AppIcon name="Eye" size={18} color="#FFFFFF" />
+                  </View>
+                  <AppText style={styles.bentoTitle} weight="bold">
+                    Public View
                   </AppText>
-                </View>
-                <AppIcon name="ChevronRight" size={18} color="#FFFFFF" />
-              </Pressable>
+                </Pressable>
+              </View>
 
               {/* Quick Actions Scroll (Landscape Bento Layout) */}
               <View style={{ marginTop: 4 }}>
@@ -690,11 +688,156 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center',
   },
-  profileHeader: {
+  topGreetingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingTop: SPACING.xs,
+  },
+  greetingLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  greetingAvatarCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#1E1E22',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  greetingAvatarImg: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+  },
+  greetingAvatarLetter: {
+    color: '#FFFFFF',
+    fontSize: 18,
+  },
+  greetingSub: {
+    color: MUTED,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  greetingName: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    lineHeight: 22,
+  },
+  addPillBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FF5722',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  addPillText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+  },
+  primaryPillRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  myCardPill: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: 24,
+    backgroundColor: '#FF5722',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  myCardPillText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+  },
+  viewProfilePill: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: 24,
+    backgroundColor: '#1C1C1E',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+  },
+  viewProfilePillText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  profileDetailsQrCard: {
+    backgroundColor: '#141416',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 18,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 14,
+  },
+  detailsCopyWrap: {
+    flex: 1,
+    gap: 3,
+  },
+  detailsLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: MUTED,
+    textTransform: 'uppercase',
+  },
+  detailsName: {
+    fontSize: 16,
+    color: '#FFFFFF',
+  },
+  detailsSub: {
+    fontSize: 12,
+    color: MUTED,
+    lineHeight: 16,
+  },
+  detailsQrWrap: {
+    width: 68,
+    height: 68,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 5,
+  },
+  bentoGridRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  bentoCard: {
+    flex: 1,
+    backgroundColor: '#141416',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  bentoIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bentoTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
   },
   fbAvatarBtn: {
     width: 40,
