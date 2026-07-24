@@ -34,6 +34,7 @@ import type { BioPage } from '@/src/types/models';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { getSocialAvatar } from '@/src/utils/socialMediaAvatars';
+import { HapticTap } from '@/src/utils/haptics';
 
 interface Props {
   slug?: string;
@@ -234,6 +235,14 @@ export function PublicBioScreen({ slug, cardId }: Props) {
   const [showQrModal, setShowQrModal] = useState(false);
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
+  // Live Edit mode on Bio Page
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editTagline, setEditTagline] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [isSavingBio, setIsSavingBio] = useState(false);
+
   // Load bio data
   useEffect(() => {
     let cancelled = false;
@@ -250,6 +259,10 @@ export function PublicBioScreen({ slug, cardId }: Props) {
           setBioPage(resolved.bioPage);
           setPublicUrl(resolved.publicUrl);
           setResolvedCardId(resolved.cardId);
+          setEditName(resolved.bioPage.displayName || '');
+          setEditTagline(resolved.bioPage.tagline || '');
+          setEditPhone(resolved.bioPage.whatsapp || '');
+          setEditEmail(resolved.bioPage.email || '');
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -406,6 +419,16 @@ export function PublicBioScreen({ slug, cardId }: Props) {
             <AppIcon name="ChevronLeft" size={22} color="#FFFFFF" />
           </Pressable>
           <View style={styles.topRightBtns}>
+            <Pressable
+              onPress={() => {
+                HapticTap.medium();
+                setIsEditMode((v) => !v);
+              }}
+              style={[styles.topBtn, isEditMode && styles.topBtnActive]}
+              hitSlop={10}
+            >
+              <AppIcon name={isEditMode ? 'Check' : 'PenLine'} size={18} color="#FFFFFF" />
+            </Pressable>
             <Pressable onPress={() => setShowQrModal(true)} style={styles.topBtn} hitSlop={10}>
               <AppIcon name="QrCode" size={20} color="#FFFFFF" />
             </Pressable>
@@ -617,6 +640,7 @@ const styles = StyleSheet.create({
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, maxWidth: 640, width: '100%', alignSelf: 'center' },
   topRightBtns: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   topBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#111114', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.12)', alignItems: 'center', justifyContent: 'center' },
+  topBtnActive: { backgroundColor: '#0071E3', borderColor: '#0071E3' },
 
   // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.85)', justifyContent: 'center', alignItems: 'center', padding: 24 },
