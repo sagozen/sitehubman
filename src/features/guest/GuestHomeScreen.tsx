@@ -56,13 +56,6 @@ const SPACING = {
 // ─── Quick actions ───────────────────────────────────────────────────────────
 const ACTIONS = [
   {
-    label: 'Design Card',
-    subtitle: 'Build your profile',
-    route: appRoutes.guestDesign as Href,
-    icon: 'CreditCard' as AppIconName,
-    image: require('@/assets/images/3d_create_card_v2.png'),
-  },
-  {
     label: 'Sample Moments',
     subtitle: 'Preview captured leads',
     route: appRoutes.customerConnections as Href,
@@ -82,13 +75,6 @@ const ACTIONS = [
     route: appRoutes.guestTrackOrder as Href,
     icon: 'Truck' as AppIconName,
     image: require('@/assets/images/3d_track_card_v2.png'),
-  },
-  {
-    label: 'Drafts',
-    subtitle: 'Continue saved work',
-    route: '/drafts' as Href,
-    icon: 'ClipboardList' as AppIconName,
-    image: require('@/assets/images/3d_create_card_v2.png'),
   },
   {
     label: 'New order',

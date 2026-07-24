@@ -493,7 +493,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
             </View>
           </View>
 
-          {/* ── Primary CTA Row (Save Contact & Apple/Google Wallet) ── */}
+          {/* ── Primary CTA Row (Save Contact & Share Profile) ── */}
           <View style={styles.ctaRow}>
             <Animated.View style={[{ flex: 1 }, { transform: [{ scale: pulseAnim }] }]}>
               <Pressable
@@ -502,19 +502,17 @@ export function PublicBioScreen({ slug, cardId }: Props) {
                 accessibilityRole="button"
               >
                 <AppIcon name="UserPlus" size={20} color="#000000" />
-                <AppText style={styles.ctaBtnT}>
-                  {isGuest ? 'Add to Contacts' : 'Save Contact'}
-                </AppText>
+                <AppText style={styles.ctaBtnT}>Save Contact</AppText>
               </Pressable>
             </Animated.View>
 
             <Pressable
-              onPress={() => void handleSaveContact()}
+              onPress={() => void handleShare()}
               style={styles.walletCtaBtn}
               accessibilityRole="button"
             >
-              <AppIcon name="Wallet" size={20} color="#FFFFFF" variant="solar-duotone" />
-              <AppText style={styles.walletCtaBtnT}>Add to Wallet</AppText>
+              <AppIcon name="Share" size={18} color="#FFFFFF" />
+              <AppText style={styles.walletCtaBtnT}>Share</AppText>
             </Pressable>
           </View>
 

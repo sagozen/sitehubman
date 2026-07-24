@@ -87,11 +87,10 @@ export function GuestProfileScreen() {
               <AppIcon name="ShieldCheck" size={26} color={THEME.accent} />
             </View>
             <AppText style={styles.guestTitle} weight="extrabold">
-              Upgrade your identity
+              Your card is ready. Claim it.
             </AppText>
             <AppText style={styles.guestSub} weight="medium">
-              Create an account to sync cards, get a real NFC chip, and build
-              your permanent digital identity.
+              Sign up free to unlock your QR code, NFC chip, and Wallet pass.
             </AppText>
 
             <View style={styles.bannerActions}>
@@ -102,26 +101,11 @@ export function GuestProfileScreen() {
                 ]}
                 onPress={() => {
                   HapticTap.light();
-                  router.push('/(auth)/login');
-                }}
-              >
-                <AppText style={styles.pillBtnText} weight="bold">
-                  Sign in
-                </AppText>
-              </Pressable>
-
-              <Pressable
-                style={({ pressed }) => [
-                  styles.outlineBtn,
-                  pressed && styles.pressed,
-                ]}
-                onPress={() => {
-                  HapticTap.light();
                   router.push('/(auth)/register');
                 }}
               >
-                <AppText style={styles.outlineBtnText} weight="bold">
-                  Create account
+                <AppText style={styles.pillBtnText} weight="bold">
+                  Create your free account →
                 </AppText>
               </Pressable>
             </View>
@@ -131,7 +115,7 @@ export function GuestProfileScreen() {
         {/* Locked list options */}
         <View style={styles.section}>
           <AppText style={styles.sectionLabel} weight="bold">
-            Unlock with an account
+            What you unlock
           </AppText>
           <View style={styles.lockedList}>
             {LOCKED.map((item, index) => (

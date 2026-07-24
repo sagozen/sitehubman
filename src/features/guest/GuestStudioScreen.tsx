@@ -190,20 +190,23 @@ export function GuestStudioScreen() {
           </View>
         </View>
 
-        {/* ─── Order Button (Black & White Theme) ─── */}
+        {/* ─── Share Profile CTA ─── */}
         <View style={styles.footerWrap}>
           <AppButton
-            label="Order NFC card"
-            iconName="CreditCard"
+            label="Share my profile"
+            iconName="Share"
             variant="white"
             style={styles.bwOrderBtn}
             labelStyle={styles.bwOrderBtnText}
             onPress={() => {
               HapticTap.medium();
-              router.push({
-                pathname: '/payments/checkout/[cardId]',
-                params: { cardId: cloudCard?.cardId || 'draft' },
-              });
+              if (profileUrl) {
+                void import('react-native').then(({ Share }) =>
+                  Share.share({ url: profileUrl, message: profileUrl })
+                );
+              } else {
+                router.push(appRoutes.guestDesign as any);
+              }
             }}
           />
         </View>

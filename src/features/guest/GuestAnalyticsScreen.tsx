@@ -20,13 +20,7 @@ import { pageThemes } from '@/src/constants/pageThemes';
 const THEME = pageThemes.analytics;
 const BRAND = THEME.accent;
 
-function StatTile({
-  value,
-  label,
-}: {
-  value: string;
-  label: string;
-}) {
+function StatTile({ value, label }: { value: string; label: string }) {
   return (
     <View style={st.tile}>
       <AppText style={st.tileVal}>{value}</AppText>
@@ -93,11 +87,11 @@ export function GuestAnalyticsScreen() {
         {isGuest ? (
           <View style={styles.guestWall}>
             <AppIcon name="TrendingUp" size={56} color={BRAND} />
-            <AppText style={styles.wallTitle}>Unlock your stats</AppText>
+            <AppText style={styles.wallTitle}>See who viewed you</AppText>
             <AppText style={styles.wallSub}>
-              Sign in to see profile views, order history, and live tap analytics from Firebase.
+              Sign in to track profile views, NFC taps, and orders live.
             </AppText>
-            <AppButton label="Sign in to continue" onPress={() => requireAccount()} />
+            <AppButton label="Sign in free" onPress={() => requireAccount()} />
           </View>
         ) : loading ? (
           <View style={styles.center}>
@@ -120,16 +114,13 @@ export function GuestAnalyticsScreen() {
             </View>
             <View style={styles.statsGrid}>
               <StatTile value={String(insights.deliveredOrders)} label="Delivered" />
-              <StatTile
-                value={insights.bioSlug ? 'Live' : 'None'}
-                label="Profile"
-              />
+              <StatTile value={insights.bioSlug ? 'Live' : 'None'} label="Profile" />
             </View>
 
             {/* Card preview */}
             {insights.bioSlug || insights.displayName ? (
               <View>
-                <AppText style={styles.sectionLabel}>Card</AppText>
+                <AppText style={styles.sectionLabel}>Your card</AppText>
                 <View style={styles.cardWrap}>
                   <NfcGlobalCardFace
                     fullName={insights.displayName || user?.displayName || undefined}
@@ -141,7 +132,7 @@ export function GuestAnalyticsScreen() {
             {/* Profile card */}
             <View style={styles.card}>
               <View style={styles.cardRow}>
-                  <View style={styles.cardCopy}>
+                <View style={styles.cardCopy}>
                   <AppText style={styles.cardTitle}>
                     {insights.displayName ?? user?.displayName ?? 'Your profile'}
                   </AppText>
@@ -161,7 +152,7 @@ export function GuestAnalyticsScreen() {
               ) : null}
             </View>
 
-            <AppText style={styles.note}>Tap and view detail appears as people interact with your card.</AppText>
+            <AppText style={styles.note}>Stats update live as people tap and view your card.</AppText>
           </>
         )}
       </IosScrollView>
@@ -186,15 +177,6 @@ const styles = StyleSheet.create({
   wallSub: { fontSize: 14, fontWeight: '500', color: THEME.muted, textAlign: 'center', lineHeight: 20 },
   center: { alignItems: 'center', gap: 12, paddingVertical: 40 },
   loadingText: { fontSize: 14, color: THEME.muted, fontWeight: '500' },
-  emptyWrap: {
-    backgroundColor: THEME.surface,
-    borderRadius: 8,
-    padding: 32,
-    alignItems: 'center',
-    gap: 12,
-  },
-  emptyTitle: { fontSize: 20, fontWeight: '800', color: THEME.text },
-  emptySub: { fontSize: 13, fontWeight: '500', color: THEME.muted, textAlign: 'center', lineHeight: 18 },
   sectionLabel: {
     fontSize: 13,
     fontWeight: '700',
