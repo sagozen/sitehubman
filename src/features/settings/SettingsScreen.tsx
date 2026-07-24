@@ -4,7 +4,7 @@
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { router } from 'expo-router';
 import { memo, useCallback, useState, useEffect, useMemo } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppearanceSegment } from '@/src/components/AppearanceSegment';
@@ -226,49 +226,74 @@ const ccr = StyleSheet.create({
 const SettingsRow = memo(function SettingsRow({
   icon,
   title,
+  subtitle,
   value,
   onPress,
   disabled,
   destructive,
   last,
+  isSwitch,
+  switchValue,
+  onSwitchChange,
 }: {
   icon: AppIconName;
   title: string;
+  subtitle?: string;
   value?: string;
   onPress?: () => void;
   disabled?: boolean;
   destructive?: boolean;
   last?: boolean;
+  isSwitch?: boolean;
+  switchValue?: boolean;
+  onSwitchChange?: (val: boolean) => void;
 }) {
   return (
     <Pressable
       onPress={() => {
-        HapticTap.light();
-        onPress?.();
+        if (isSwitch && onSwitchChange) {
+          onSwitchChange(!switchValue);
+        } else if (onPress) {
+          HapticTap.light();
+          onPress();
+        }
       }}
-      disabled={disabled || !onPress}
+      disabled={disabled || (!onPress && !isSwitch)}
       style={({ pressed }) => [
         sr.row,
         !last && sr.border,
-        pressed && onPress && sr.pressed,
+        pressed && (onPress || isSwitch) && sr.pressed,
         disabled && sr.disabled,
       ]}
     >
       <AppIcon
         name={icon}
-        size={22}
+        size={20}
         color={destructive ? T.destructive : '#FFFFFF'}
-        variant="solar-duotone"
       />
-      <AppText style={[sr.title, destructive && sr.titleDanger]} weight="bold">
-        {title}
-      </AppText>
-      {value ? (
+      <View style={sr.titleWrap}>
+        <AppText style={[sr.title, destructive && sr.titleDanger]} weight="bold">
+          {title}
+        </AppText>
+        {subtitle ? (
+          <AppText style={sr.subtitle} numberOfLines={1}>
+            {subtitle}
+          </AppText>
+        ) : null}
+      </View>
+
+      {isSwitch ? (
+        <Switch
+          value={switchValue}
+          onValueChange={onSwitchChange}
+          trackColor={{ false: 'rgba(255,255,255,0.15)', true: '#007AFF' }}
+          thumbColor="#FFFFFF"
+        />
+      ) : value ? (
         <AppText style={sr.value} numberOfLines={1}>
           {value}
         </AppText>
-      ) : null}
-      {onPress ? (
+      ) : onPress ? (
         <AppIcon name="ChevronRight" size={15} color={T.muted} />
       ) : null}
     </Pressable>
@@ -282,6 +307,7 @@ const sr = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
     paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   border: {
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -289,7 +315,9 @@ const sr = StyleSheet.create({
   },
   pressed: { opacity: 0.8 },
   disabled: { opacity: 0.35 },
-  title: { flex: 1, fontSize: 15, color: T.ink },
+  titleWrap: { flex: 1, gap: 2 },
+  title: { fontSize: 15, color: T.ink },
+  subtitle: { fontSize: 11, color: T.muted },
   titleDanger: { color: T.destructive },
   value: { maxWidth: 132, fontSize: 13, color: T.muted },
 });
@@ -548,16 +576,13 @@ export function SettingsScreen() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Header ── */}
+        {/* ── Header with Back Button (Matching Reference Image Top Bar) ── */}
         <PageHeader
           theme={PAGE_THEME}
           title="Settings"
-          subtitle={
-            isGuest
-              ? 'Preview application settings.'
-              : 'Control cards, themes, and preferences.'
-          }
-          icon="Settings"
+          subtitle="Control cards, security, notifications, and preferences."
+          showBack={true}
+          onBack={() => router.back()}
           compact
         />
 
@@ -669,6 +694,67 @@ export function SettingsScreen() {
               </AppText>
               <AppIcon name="ChevronRight" size={15} color={T.muted} />
             </Pressable>
+          </View>
+        </View>
+
+        {/* ── Security Settings Module (Matching Reference Image) ── */}
+        <View style={styles.section}>
+          <AppText style={styles.sectionTitle} weight="extrabold">
+            Security Settings
+          </AppText>
+          <View style={styles.list}>
+            <SettingsRow
+              icon="Lock"
+              title="Biometric Login / FaceID"
+              subtitle="Use FaceID or fingerprint to unlock"
+              isSwitch
+              switchValue={true}
+            />
+            <SettingsRow
+              icon="ShieldCheck"
+              title="Remember Login"
+              subtitle="Keep session active on this device"
+              isSwitch
+              switchValue={true}
+            />
+            <SettingsRow
+              icon="Key"
+              title="Account Recovery"
+              value="Manage"
+              onPress={() => Alert.alert('Account Recovery', 'Recovery options are active.')}
+              last
+            />
+          </View>
+        </View>
+
+        {/* ── Notification Settings Module (Matching Reference Image) ── */}
+        <View style={styles.section}>
+          <AppText style={styles.sectionTitle} weight="extrabold">
+            Notification Settings
+          </AppText>
+          <View style={styles.list}>
+            <SettingsRow
+              icon="Bell"
+              title="Tap Alerts"
+              subtitle="Get notified when someone taps your NFC card"
+              isSwitch
+              switchValue={true}
+            />
+            <SettingsRow
+              icon="Truck"
+              title="Order Updates"
+              subtitle="Track printing and shipping progress"
+              isSwitch
+              switchValue={true}
+            />
+            <SettingsRow
+              icon="Smartphone"
+              title="Push Notifications"
+              subtitle="Enable mobile push alerts"
+              isSwitch
+              switchValue={false}
+              last
+            />
           </View>
         </View>
 

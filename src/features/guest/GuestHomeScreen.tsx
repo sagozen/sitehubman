@@ -459,39 +459,7 @@ export function GuestHomeScreen() {
                 </View>
               </View>
 
-              {/* ── 5. Quick Grid Bento Cards (Share Profile & Public View) ── */}
-              <View style={styles.bentoGridRow}>
-                <Pressable
-                  onPress={handleShare}
-                  style={({ pressed }) => [
-                    styles.bentoCard,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <AppText style={styles.bentoTitle} weight="bold">
-                    Share Profile →
-                  </AppText>
-                </Pressable>
 
-                <Pressable
-                  onPress={() => {
-                    HapticTap.light();
-                    if (bioPage?.slug) {
-                      router.push(`/public/${bioPage.slug}` as Href);
-                    } else {
-                      router.push(appRoutes.studio as Href);
-                    }
-                  }}
-                  style={({ pressed }) => [
-                    styles.bentoCard,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <AppText style={styles.bentoTitle} weight="bold">
-                    Public View →
-                  </AppText>
-                </Pressable>
-              </View>
 
               {/* Quick Actions Scroll (Landscape Bento Layout) */}
               <View style={{ marginTop: 4 }}>
@@ -551,28 +519,7 @@ export function GuestHomeScreen() {
                 </ScrollView>
               </View>
 
-              {/* Stats Overview */}
-              {insights ? (
-                <View style={styles.statsSection}>
-                  <View style={styles.statsRow}>
-                    {[
-                      { label: 'Orders', value: String(insights.totalOrders), icon: 'ShoppingCart' as const },
-                      { label: 'Active', value: String(insights.activeOrders), icon: 'Activity' as const },
-                      { label: 'Delivered', value: String(insights.deliveredOrders), icon: 'CheckCircle' as const },
-                    ].map((stat, index) => (
-                      <StatCard
-                        key={stat.label}
-                        {...stat}
-                        style={[
-                          styles.statCard,
-                          index === 0 && { marginRight: 4 },
-                          index === 2 && { marginLeft: 4 },
-                        ]}
-                      />
-                    ))}
-                  </View>
-                </View>
-              ) : null}
+
 
               {/* Recent Orders */}
               {!isGuest && recentOrders.length > 0 ? (
