@@ -1,411 +1,502 @@
-import { IosScrollView } from '@/src/components/IosScrollView';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { router } from 'expo-router';
+/**
+ * GuestProfileScreen — Premium Chat OS-style guest identity page.
+ *
+ * Layout:
+ *  1. Full-bleed Telegram gradient hero (52% screen height)
+ *  2. Deep scrim + bold name + role badge overlaid at bottom
+ *  3. Top bar: back + bell
+ *  4. Sign In CTA pill + NFC Demo pill
+ *  5. 2x2 locked feature grid
+ *  6. Bottom sticky: 'Create Free Account' white pill
+ */
+import React from 'react';
+import {
+  Dimensions,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { type Href, router } from 'expo-router';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { PageHeader } from '@/src/components/PageHeader';
-import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
-import { LinearGradient } from 'expo-linear-gradient';
-import { pageThemes } from '@/src/constants/pageThemes';
+import { appRoutes } from '@/src/constants/navigation';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { HapticTap } from '@/src/utils/haptics';
 
-const THEME = pageThemes.profile;
+const { height: SCREEN_H } = Dimensions.get('window');
+const HERO_H = SCREEN_H * 0.48;
 
-const LOCKED: { icon: AppIconName; label: string; sub: string }[] = [
-  { icon: 'QrCode', label: 'Generate QR code', sub: 'Personal share link' },
-  { icon: 'Nfc', label: 'Write NFC chip', sub: 'Lock chip to your profile' },
-  {
-    icon: 'Wallet',
-    label: 'Apple / Google Wallet',
-    sub: 'Add card to mobile wallet',
-  },
-  {
-    icon: 'Image',
-    label: 'Upload profile photo',
-    sub: 'Personalise your card',
-  },
+// ── Telegram gradient helper ─────────────────────────────────────────────────
+const TELEGRAM_GRADIENTS = [
+  ['#FF512F', '#DD2476'],
+  ['#4776E6', '#8E54E9'],
+  ['#00B4DB', '#0083B0'],
+  ['#11998E', '#38EF7D'],
+  ['#FC4A1A', '#F7B733'],
+  ['#8E2DE2', '#4A00E0'],
+  ['#F857A6', '#FF5858'],
+] as const;
+
+function getTelegramColors(name: string): readonly [string, string] {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return TELEGRAM_GRADIENTS[Math.abs(hash) % TELEGRAM_GRADIENTS.length];
+}
+
+// ── Locked feature tiles ─────────────────────────────────────────────────────
+const LOCKED_FEATURES: { icon: AppIconName; label: string; sub: string }[] = [
+  { icon: 'QrCode', label: 'QR Code', sub: 'Personal share link' },
+  { icon: 'Nfc', label: 'NFC Write', sub: 'Lock chip to profile' },
+  { icon: 'Wallet', label: 'Apple Wallet', sub: 'Add to mobile wallet' },
+  { icon: 'Image', label: 'Photo Upload', sub: 'Personalise your card' },
 ];
 
-export function GuestProfileScreen() {
-  const { user, signOutUser } = useAuth();
+// ── Main component ───────────────────────────────────────────────────────────
+export function GuestProfileScreen() { const [selectedTab, setSelectedTab] = React.useState<'bio' | 'card' | 'settings'>('bio');
+  const { user } = useAuth();
   const isGuest = useIsGuest();
   const { requireAccount } = useRequireAccount();
 
-  const initial = (user?.displayName?.trim() || 'G')[0].toUpperCase();
+  const displayName = user?.displayName?.trim() || 'Guest Creator';
+  const initial = (displayName[0] || 'G').toUpperCase();
+  const gradColors = getTelegramColors(displayName);
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <IosScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        <PageHeader
-          theme={THEME}
-          eyebrow="Personal identity"
-          title="Profile"
-          subtitle="Your card, account, and publishing access."
-          icon="UserRound"
-          compact
-        />
+    <View style={styles.root}>
+      <ScrollView showsVerticalScrollIndicator={false} bounces>
 
-        {/* Minimalist Telegram-style Avatar Header */}
-        <View style={styles.header}>
+        {/* ── 1. Full-bleed Gradient Hero ── */}
+        <View style={styles.heroWrap}>
           <LinearGradient
-            colors={['#4776E6', '#8E54E9']}
+            colors={[gradColors[0], gradColors[1]]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.avatarWrap}
+            style={styles.heroGradient}
+          />
+
+          {/* Scrim */}
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.55)', '#000000']}
+            locations={[0.25, 0.65, 1]}
+            style={styles.heroScrim}
+          />
+
+          {/* Top bar */}
+          <SafeAreaView style={styles.heroTopBar} edges={['top']}>
+            <Pressable
+              style={styles.heroIconBtn}
+              onPress={() => { HapticTap.light(); router.back(); }}
+              hitSlop={12}
+            >
+              <AppIcon name="ChevronLeft" size={22} color="#FFFFFF" />
+            </Pressable>
+            <Pressable
+              style={styles.heroIconBtn}
+              onPress={() => { HapticTap.light(); }}
+              hitSlop={12}
+            >
+              <AppIcon name="Bell" size={20} color="#FFFFFF" />
+            </Pressable>
+          </SafeAreaView>
+
+          {/* Name block at bottom of hero */}
+          <View style={styles.heroNameBlock}>
+            {/* Avatar circle */}
+            <View style={styles.heroAvatar}>
+              <AppText style={styles.heroAvatarLetter} weight="extrabold">
+                {initial}
+              </AppText>
+            </View>
+            <AppText style={styles.heroName} weight="extrabold" numberOfLines={2}>
+              {displayName}
+            </AppText>
+            <View style={styles.guestBadge}>
+              <AppIcon name="ShieldCheck" size={12} color="rgba(255,255,255,0.7)" />
+              <AppText style={styles.guestBadgeText}>
+                {isGuest ? 'Guest account · Preview mode' : 'Verified account'}
+              </AppText>
+            </View>
+          </View>
+        </View>
+
+        {/* ── 2. Action Pills ── */}
+        <View style={styles.actionRow}>
+          <Pressable
+            style={({ pressed }) => [styles.pillPrimary, pressed && styles.pressed]}
+            onPress={() => {
+              HapticTap.medium();
+              requireAccount(undefined, { message: 'Sign in to unlock your full card.' });
+            }}
           >
-            <AppText style={styles.avatarText} weight="extrabold">
-              {initial}
-            </AppText>
-          </LinearGradient>
-          <View style={styles.headerCopy}>
-            <View style={styles.nameRow}>
-              <AppText style={styles.name} weight="extrabold">
-                {user?.displayName ?? 'Guest User'}
-              </AppText>
-              {!isGuest ? (
-                <AppIcon name="BadgeCheck" size={18} color={THEME.accent} />
-              ) : null}
-            </View>
-            <View style={styles.rolePill}>
-              <AppText style={styles.roleText} weight="bold">
-                {isGuest ? 'Guest account' : 'Verified account'}
-              </AppText>
-            </View>
+            <AppIcon name="LogIn" size={16} color="#000000" />
+            <AppText style={styles.pillPrimaryText} weight="extrabold">Sign In to Unlock</AppText>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.pillSecondary, pressed && styles.pressed]}
+            onPress={() => {
+              HapticTap.light();
+              router.push(appRoutes.nfcDemo as Href);
+            }}
+          >
+            <AppIcon name="Nfc" size={16} color="#FFFFFF" />
+            <AppText style={styles.pillSecondaryText} weight="extrabold">NFC Demo</AppText>
+          </Pressable>
+        </View>
+
+        {/* ── 3. Section label ── */}
+        <View style={styles.sectionRow}>
+          <AppText style={styles.sectionLabel} weight="extrabold">What you unlock</AppText>
+          <View style={styles.lockPill}>
+            <AppIcon name="Lock" size={11} color="rgba(255,255,255,0.5)" />
+            <AppText style={styles.lockPillText}>Sign in required</AppText>
           </View>
         </View>
 
-        {/* Card Face Preview */}
-        <View style={styles.cardWrap}>
-          <NfcGlobalCardFace fullName={user?.displayName || undefined} />
+        {/* ── 4. Locked feature 2x2 grid ── */}
+        <View style={styles.featureGrid}>
+          {LOCKED_FEATURES.map((f) => (
+            <Pressable
+              key={f.label}
+              style={({ pressed }) => [styles.featureTile, pressed && styles.pressed]}
+              onPress={() => {
+                HapticTap.light();
+                requireAccount(undefined, { message: `Sign in to access ${f.label}.` });
+              }}
+            >
+              <View style={styles.featureIconWrap}>
+                <AppIcon name={f.icon} size={22} color="#FFFFFF" />
+              </View>
+              <AppText style={styles.featureLabel} weight="extrabold">{f.label}</AppText>
+              <AppText style={styles.featureSub}>{f.sub}</AppText>
+              <View style={styles.featureLockBadge}>
+                <AppIcon name="Lock" size={10} color="rgba(255,255,255,0.4)" />
+              </View>
+            </Pressable>
+          ))}
         </View>
 
-        {/* Upgrade Banner callout */}
-        {isGuest ? (
-          <View style={styles.guestCard}>
-            <View style={styles.guestIconWrap}>
-              <AppIcon name="ShieldCheck" size={26} color={THEME.accent} />
-            </View>
-            <AppText style={styles.guestTitle} weight="extrabold">
-              Your card is ready. Claim it.
-            </AppText>
-            <AppText style={styles.guestSub} weight="medium">
-              Sign up free to unlock your QR code, NFC chip, and Wallet pass.
-            </AppText>
-
-            <View style={styles.bannerActions}>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.pillBtn,
-                  pressed && styles.pressed,
-                ]}
-                onPress={() => {
-                  HapticTap.light();
-                  router.push('/(auth)/register');
-                }}
-              >
-                <AppText style={styles.pillBtnText} weight="bold">
-                  Create your free account →
-                </AppText>
-              </Pressable>
-            </View>
-          </View>
-        ) : null}
-
-        {/* Locked list options */}
-        <View style={styles.section}>
-          <AppText style={styles.sectionLabel} weight="bold">
-            What you unlock
-          </AppText>
-          <View style={styles.lockedList}>
-            {LOCKED.map((item, index) => (
-              <Pressable
-                key={item.label}
-                onPress={() => {
-                  HapticTap.light();
-                  requireAccount(undefined, {
-                    message: `Create an account to unlock: ${item.label.toLowerCase()}.`,
-                  });
-                }}
-                style={({ pressed }) => [
-                  styles.lockedRow,
-                  index === LOCKED.length - 1 && styles.lockedRowLast,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <View style={styles.lockedIconWrap}>
-                  <AppIcon name={item.icon} size={20} color={THEME.accent} />
-                </View>
-                <View style={styles.lockedCopy}>
-                  <AppText style={styles.lockedLabel} weight="bold">
-                    {item.label}
-                  </AppText>
-                  <AppText style={styles.lockedSub}>{item.sub}</AppText>
-                </View>
-                <AppIcon
-                  name="Lock"
-                  size={16}
-                  color="rgba(255, 255, 255, 0.25)"
-                />
-              </Pressable>
-            ))}
-          </View>
-        </View>
-
-        {/* Sign out Option */}
+        {/* ── 5. Design card preview CTA ── */}
         <Pressable
-          onPress={() => {
-            HapticTap.medium();
-            void signOutUser();
-          }}
-          style={({ pressed }) => [
-            styles.signOutCard,
-            pressed && styles.pressed,
-          ]}
+          style={({ pressed }) => [styles.designCta, pressed && styles.pressed]}
+          onPress={() => { HapticTap.medium(); router.push(appRoutes.guestDesign as Href); }}
         >
-          <View style={styles.oceanIconWrap}>
-            <AppIcon
-              name="LogOut"
-              size={20}
-              color="#FF453A"
-              variant="solar-bold"
-            />
+          <View style={styles.designCtaLeft}>
+            <AppIcon name="CreditCard" size={20} color="#FFFFFF" />
+            <View>
+              <AppText style={styles.designCtaTitle} weight="extrabold">Design Your Card</AppText>
+              <AppText style={styles.designCtaSub}>Preview your NFC card for free</AppText>
+            </View>
           </View>
-          <View style={styles.oceanTextWrap}>
-            <AppText style={styles.oceanSubtitle} weight="extrabold">
-              Session
-            </AppText>
-            <AppText style={styles.oceanTitle} weight="bold">
-              Sign out
-            </AppText>
-          </View>
+          <AppIcon name="ChevronRight" size={18} color="rgba(255,255,255,0.4)" />
         </Pressable>
-      </IosScrollView>
-    </SafeAreaView>
+
+        <View style={{ height: 140 }} />
+      </ScrollView>
+
+      {/* ── 6. Sticky bottom CTA ── */}
+      <View style={styles.stickyFooter}>
+        <SafeAreaView edges={['bottom']}>
+          <Pressable
+            style={({ pressed }) => [styles.createAccountBtn, pressed && styles.pressed]}
+            onPress={() => {
+              HapticTap.medium();
+              requireAccount(undefined, { message: 'Create your free account to go live.' });
+            }}
+          >
+            <AppText style={styles.createAccountText} weight="extrabold">
+              Create your free account →
+            </AppText>
+          </Pressable>
+        </SafeAreaView>
+      </View>
+    </View>
   );
 }
 
+// ── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  safe: {
+  root: {
     flex: 1,
-    backgroundColor: THEME.canvas,
+    backgroundColor: '#000000',
   },
-  content: {
-    padding: 20,
-    gap: 20,
-    paddingBottom: 100,
-    width: '100%',
-    maxWidth: 640,
-    alignSelf: 'center',
-  },
-  header: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: THEME.surface,
-    borderWidth: 1,
-    borderColor: THEME.border,
-    borderRadius: 8,
-    paddingVertical: 24,
-    paddingHorizontal: 20,
-    gap: 12,
-  },
-  avatarWrap: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    backgroundColor: THEME.accentSoft,
-    borderWidth: 1.5,
-    borderColor: THEME.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    fontSize: 32,
-    color: THEME.accent,
-  },
-  headerCopy: {
-    alignItems: 'center',
-    gap: 6,
-  },
-  nameRow: {
+  tabRow: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-  },
-  name: {
-    fontSize: 22,
-    color: THEME.text,
-    letterSpacing: 0,
-    textAlign: 'center',
-  },
-  rolePill: {
-    alignSelf: 'center',
-    backgroundColor: THEME.accentSoft,
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-  },
-  roleText: {
-    fontSize: 10,
-    color: THEME.accent,
-    letterSpacing: 0,
-  },
-  cardWrap: {
-    borderRadius: 8,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  guestCard: {
-    backgroundColor: THEME.surface,
-    borderWidth: 1,
-    borderColor: THEME.border,
-    borderRadius: 8,
-    padding: 20,
-    alignItems: 'center',
-    gap: 12,
-  },
-  guestIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 8,
-    backgroundColor: THEME.accentSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  guestTitle: {
-    fontSize: 18,
-    color: THEME.text,
-    letterSpacing: 0,
-  },
-  guestSub: {
-    fontSize: 13,
-    color: THEME.muted,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  bannerActions: {
-    width: '100%',
-    gap: 10,
-    marginTop: 8,
-  },
-  pillBtn: {
-    width: '100%',
-    height: 48,
-    borderRadius: 8,
-    backgroundColor: THEME.accent,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  pillBtnText: {
-    color: THEME.onAccent,
-    fontSize: 15,
-  },
-  outlineBtn: {
-    width: '100%',
-    height: 48,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: THEME.border,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  outlineBtnText: {
-    color: THEME.text,
-    fontSize: 15,
-  },
-  section: {
-    gap: 10,
-  },
-  sectionLabel: {
-    fontSize: 12,
-    color: THEME.muted,
-    letterSpacing: 0,
-  },
-  lockedList: {
-    backgroundColor: THEME.surface,
-    borderWidth: 1,
-    borderColor: THEME.border,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  lockedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    padding: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: THEME.border,
-  },
-  lockedRowLast: {
-    borderBottomWidth: 0,
-  },
-  lockedIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    backgroundColor: THEME.accentSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  lockedCopy: {
-    flex: 1,
-    gap: 2,
-  },
-  lockedLabel: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.4)',
-  },
-  lockedSub: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.25)',
-  },
-  signOutCard: {
-    backgroundColor: THEME.surface,
-    borderWidth: 1,
-    borderColor: THEME.border,
-    width: '100%',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
+    gap: 8,
     marginTop: 12,
-    marginBottom: 40,
+    marginBottom: 8,
   },
-  oceanIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 69, 58, 0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
+  tabPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
-  oceanTextWrap: {
-    flex: 1,
-    gap: 2,
-    alignItems: 'flex-start',
-    justifyContent: 'center',
+  tabPillActive: {
+    backgroundColor: '#FFFFFF',
   },
-  oceanSubtitle: {
-    fontSize: 10,
-    color: 'rgba(255, 69, 58, 0.7)',
-    letterSpacing: 0.5,
+  tabText: {
+    color: '#FFFFFF',
+    fontSize: 14,
   },
-  oceanTitle: {
-    fontSize: 15,
-    color: '#FF453A',
+  tabTextActive: {
+    color: '#000000',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  tabContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: '#111114',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   pressed: {
-    opacity: 0.8,
+    opacity: 0.75,
     transform: [{ scale: 0.97 }],
+  },
+
+  // ── Hero ──────────────────────────────────────────────────────
+  heroWrap: {
+    width: '100%',
+    height: HERO_H,
+    position: 'relative',
+  },
+  heroGradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  heroScrim: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: HERO_H * 0.7,
+  },
+  heroTopBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+  heroIconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroNameBlock: {
+    position: 'absolute',
+    bottom: 28,
+    left: 20,
+    right: 20,
+    gap: 6,
+  },
+  heroAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.25)',
+  },
+  heroAvatarLetter: {
+    fontSize: 24,
+    color: '#FFFFFF',
+  },
+  heroName: {
+    fontSize: 32,
+    lineHeight: 38,
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
+  },
+  guestBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  guestBadgeText: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.55)',
+  },
+
+  // ── Action pills ─────────────────────────────────────────────
+  actionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 6,
+  },
+  pillPrimary: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    height: 50,
+    borderRadius: 999,
+    backgroundColor: '#FFFFFF',
+  },
+  pillPrimaryText: {
+    color: '#000000',
+    fontSize: 14,
+  },
+  pillSecondary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    height: 50,
+    paddingHorizontal: 20,
+    borderRadius: 999,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  pillSecondaryText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+
+  // ── Section row ──────────────────────────────────────────────
+  sectionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
+  },
+  sectionLabel: {
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+  lockPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  lockPillText: {
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.45)',
+    fontWeight: '600',
+  },
+
+  // ── Feature grid ─────────────────────────────────────────────
+  featureGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  featureTile: {
+    width: '47%',
+    backgroundColor: '#111114',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    padding: 18,
+    gap: 6,
+    minHeight: 120,
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  featureIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  featureLabel: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  featureSub: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 11,
+    lineHeight: 14,
+  },
+  featureLockBadge: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
+  },
+
+  // ── Design CTA ───────────────────────────────────────────────
+  designCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: 20,
+    backgroundColor: '#111114',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    marginBottom: 12,
+  },
+  designCtaLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  designCtaTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  designCtaSub: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 12,
+    marginTop: 2,
+  },
+
+  // ── Sticky footer ────────────────────────────────────────────
+  stickyFooter: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#000000',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.07)',
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  createAccountBtn: {
+    height: 54,
+    borderRadius: 999,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  createAccountText: {
+    color: '#000000',
+    fontSize: 16,
   },
 });
