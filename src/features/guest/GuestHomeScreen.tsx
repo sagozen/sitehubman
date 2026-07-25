@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Animated,
   Image,
   Pressable,
   ScrollView,
@@ -279,6 +280,19 @@ export function GuestHomeScreen() {
 
   const cardWidth = Math.min(screenWidth - 40, 380);
 
+  // NFC Live pulse animation — 60fps native driver
+  const pulseOpacity = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseOpacity, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
+        Animated.timing(pulseOpacity, { toValue: 1, duration: 1000, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulseOpacity]);
+
   const loadData = useCallback(async () => {
     setError(null);
     try {
@@ -412,6 +426,11 @@ export function GuestHomeScreen() {
                     gradientIndex={cloudCard?.design?.gradientIndex ?? 0}
                     width={cardWidth}
                   />
+                  {/* NFC Live pulse badge */}
+                  <Animated.View style={[styles.liveBadgeWrap, { opacity: pulseOpacity }]}>
+                    <View style={styles.liveDot} />
+                    <AppText style={styles.liveBadgeText}>Live</AppText>
+                  </Animated.View>
                 </Pressable>
                 <AppText style={styles.cardHint}>Tap card to edit design</AppText>
               </View>
@@ -1328,5 +1347,25 @@ const styles = StyleSheet.create({
   floatingActionPlusText: {
     color: '#FFFFFF',
     fontSize: 18,
+  },
+
+  // NFC Live pulse badge
+  liveBadgeWrap: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    gap: 6,
+  },
+  liveBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
 });

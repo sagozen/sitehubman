@@ -1,5 +1,5 @@
-import { memo } from 'react';
-import { Image, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import React, { memo, useEffect, useRef } from 'react';
+import { Animated, Image, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { createShadow } from '@/src/utils/shadows';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
@@ -66,8 +66,30 @@ export const NfcGlobalCardFace = memo(function NfcGlobalCardFace({
 
   const gradientColors = CARD_GRADIENTS[gradientIndex % CARD_GRADIENTS.length];
 
+  // Subtle breathing scale animation — 60fps native driver
+  const breatheAnim = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (compact) return; // skip animation on compact cards
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(breatheAnim, {
+          toValue: 1.015,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(breatheAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [compact, breatheAnim]);
+
   return (
-    <View style={[styles.card, compact && styles.cardCompact, cardSizeStyle, style]}>
+    <Animated.View style={[styles.card, compact && styles.cardCompact, cardSizeStyle, style, !compact && { transform: [{ scale: breatheAnim }] }]}>
       {/* Single Solid Deep Color Background */}
       <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0D0D0F' }]} />
       {shimmer ? <HolographicShimmer enabled={!compact} opacity={0.55} /> : null}
@@ -137,7 +159,7 @@ export const NfcGlobalCardFace = memo(function NfcGlobalCardFace({
           />
         </View>
       </View>
-    </View>
+    </Animated.View>
   );
 });
 
