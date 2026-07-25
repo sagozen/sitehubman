@@ -90,6 +90,8 @@ const GuestMomentCard = memo(function GuestMomentCard({
           </AppText>
         ) : null}
       </View>
+      {/* Recently active dot */}
+      {index < 4 && <View style={styles.activeDot} />}
     </Pressable>
   );
 });
@@ -377,6 +379,15 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.8,
     transform: [{ scale: 0.96 }],
+  },
+  activeDot: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#30D158',
   },
   // Header styles
   headerContainer: {

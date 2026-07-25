@@ -33,9 +33,7 @@ const st = StyleSheet.create({
   tile: {
     flex: 1,
     backgroundColor: THEME.surface,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: THEME.border,
+    borderRadius: 20,
     padding: 22,
     gap: 8,
   },
@@ -166,9 +164,7 @@ const styles = StyleSheet.create({
   statsGrid: { flexDirection: 'row', gap: 12 },
   guestWall: {
     backgroundColor: THEME.surface,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: THEME.border,
+    borderRadius: 20,
     padding: 32,
     alignItems: 'center',
     gap: 14,
@@ -187,8 +183,6 @@ const styles = StyleSheet.create({
   cardWrap: {
     borderRadius: 24,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: THEME.border,
     shadowColor: THEME.accent,
     shadowOffset: { width: 0, height: 16 },
     shadowOpacity: 0.12,
@@ -197,9 +191,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: THEME.surface,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: THEME.border,
+    borderRadius: 20,
     padding: 20,
     gap: 14,
   },
