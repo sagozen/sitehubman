@@ -1,5 +1,5 @@
 import { PropsWithChildren } from 'react';
-import { StyleProp, StyleSheet, Text, TextProps, TextStyle } from 'react-native';
+import { Platform, StyleProp, StyleSheet, Text, TextProps, TextStyle } from 'react-native';
 import { usePreferences } from '@/src/hooks/usePreferences';
 import { iosTypography } from '@/src/design-system/ios';
 import { memo } from 'react';
@@ -60,6 +60,9 @@ function sanitizeTextStyle(style: TextStyle | undefined) {
 }
 
 function getFontFamily(fontWeight: TextStyle['fontWeight']): string {
+  if (Platform.OS === 'web') {
+    return '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif';
+  }
   switch (fontWeight) {
     case '500':
     case 'medium':
