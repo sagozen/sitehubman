@@ -451,6 +451,8 @@ export function AppButton({
       <Pressable
         disabled={isEffectiveDisabled || loading}
         accessibilityRole="button"
+        accessibilityLabel={rest.accessibilityLabel || displayLabel || 'Action'}
+        hitSlop={rest.hitSlop || { top: 8, bottom: 8, left: 8, right: 8 }}
         onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
