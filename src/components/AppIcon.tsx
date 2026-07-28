@@ -203,9 +203,8 @@ const AppIconRaw = ({
   // Resolve size based on usage preset or direct size prop
   const resolvedSize = size ?? (usage ? USAGE_SIZES[usage] : DEFAULT_ICON_SIZE);
 
-  // Read preferred global variant if not explicitly passed
-  // We default to 'solar-duotone' or 'phosphor-duotone' for premium UI feel
-  const resolvedVariant = variant ?? 'solar-duotone';
+  // Default to clean 'lucide-minimal' (uniform regular-weight outline vectors, SF Symbols style)
+  const resolvedVariant = variant ?? 'lucide-minimal';
 
   // 1. Solar Bold or Solar Duotone
   if (resolvedVariant === 'solar-bold' || resolvedVariant === 'solar-duotone') {
