@@ -190,6 +190,8 @@ function Dot({ active }: { active: boolean }) {
         styles.dot,
         active ? styles.dotActive : styles.dotInactive,
       ]}
+      accessibilityRole="text"
+      accessibilityLabel={active ? 'Active card' : 'Card dot'}
     />
   );
 }
