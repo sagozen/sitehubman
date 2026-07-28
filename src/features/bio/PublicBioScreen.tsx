@@ -162,10 +162,12 @@ function LinkButton({
         />
       ) : (
         <View style={[lb.icon, { backgroundColor: color }]}>
-          <AppIcon name={icon} size={18} color="#FFFFFF" />
+          <AppIcon name={icon} size={20} color="#FFFFFF" />
         </View>
       )}
-      <AppText style={lb.label} numberOfLines={1}>{label}</AppText>
+      <View style={lb.copyWrap}>
+        <AppText style={lb.label} weight="extrabold" numberOfLines={1}>{label}</AppText>
+      </View>
       <AppIcon name="ChevronRight" size={16} color="rgba(255, 255, 255, 0.4)" />
     </Pressable>
   );
@@ -175,19 +177,31 @@ const lb = StyleSheet.create({
   btn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 16,
     backgroundColor: '#111114',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 20,
-    minHeight: 64,
+    minHeight: 68,
     paddingVertical: 12,
     paddingHorizontal: 18,
   },
-  pressed: { opacity: 0.75, transform: [{ scale: 0.98 }] },
-  icon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  avatar: { width: 40, height: 40, borderRadius: 12 },
-  label: { flex: 1, fontSize: 16, color: '#FFFFFF' },
+  pressed: { opacity: 0.78, transform: [{ scale: 0.98 }] },
+  icon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  avatar: { width: 44, height: 44, borderRadius: 14 },
+  copyWrap: { flex: 1, minWidth: 0 },
+  label: { fontSize: 16, color: '#FFFFFF', letterSpacing: -0.2 },
 });
 
 // ─── Avatar ───────────────────────────────────────────────────────────────────
