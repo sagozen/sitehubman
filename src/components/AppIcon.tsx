@@ -45,7 +45,25 @@ const ionicMap: Record<string, { outline: keyof typeof Ionicons.glyphMap; fill: 
   Users: { outline: 'people-outline', fill: 'people' },
   BarChart2: { outline: 'bar-chart-outline', fill: 'bar-chart' },
   Copy: { outline: 'copy-outline', fill: 'copy' },
+  Share: { outline: 'share-outline', fill: 'share' },
   Share2: { outline: 'share-outline', fill: 'share' },
+  ShareCard: { outline: 'share-outline', fill: 'share' },
+  QrCode: { outline: 'qr-code-outline', fill: 'qr-code' },
+  Calendar: { outline: 'calendar-outline', fill: 'calendar' },
+  Send: { outline: 'send-outline', fill: 'send' },
+  Sparkles: { outline: 'sparkles-outline', fill: 'sparkles' },
+  Zap: { outline: 'flash-outline', fill: 'flash' },
+  Truck: { outline: 'bus-outline', fill: 'bus' },
+  Package: { outline: 'cube-outline', fill: 'cube' },
+  Globe: { outline: 'globe-outline', fill: 'globe' },
+  Twitter: { outline: 'logo-twitter', fill: 'logo-twitter' },
+  Facebook: { outline: 'logo-facebook', fill: 'logo-facebook' },
+  Linkedin: { outline: 'logo-linkedin', fill: 'logo-linkedin' },
+  UserPlus: { outline: 'person-add-outline', fill: 'person-add' },
+  Briefcase: { outline: 'briefcase-outline', fill: 'briefcase' },
+  Link: { outline: 'link-outline', fill: 'link' },
+  Check: { outline: 'checkmark-outline', fill: 'checkmark' },
+  Refresh: { outline: 'refresh-outline', fill: 'refresh' },
   Plus: { outline: 'add-outline', fill: 'add' },
   X: { outline: 'close-outline', fill: 'close' },
   BadgePercent: { outline: 'pricetag-outline', fill: 'pricetag' },
@@ -74,17 +92,13 @@ const ionicMap: Record<string, { outline: keyof typeof Ionicons.glyphMap; fill: 
   Star: { outline: 'star-outline', fill: 'star' },
   Heart: { outline: 'heart-outline', fill: 'heart' },
   UserRound: { outline: 'person-outline', fill: 'person' },
-  Briefcase: { outline: 'briefcase-outline', fill: 'briefcase' },
-  Link: { outline: 'link-outline', fill: 'link' },
   PlusSimple: { outline: 'add-outline', fill: 'add' },
   LogOut: { outline: 'log-out-outline', fill: 'log-out' },
-  UserPlus: { outline: 'person-add-outline', fill: 'person-add' },
   Tag: { outline: 'pricetag-outline', fill: 'pricetag' },
   CircleCheck: { outline: 'checkmark-circle-outline', fill: 'checkmark-circle' },
-  Check: { outline: 'checkmark-outline', fill: 'checkmark' },
 };
 
-const featherMap: Record<string, keyof typeof Feather.glyphMap> = {
+const featherMap: Record<string, string> = {
   Home: 'home',
   CreditCard: 'credit-card',
   Wallet: 'credit-card',
@@ -96,8 +110,11 @@ const featherMap: Record<string, keyof typeof Feather.glyphMap> = {
   Bell: 'bell',
   Users: 'users',
   BarChart2: 'bar-chart-2',
+  BarChart: 'bar-chart-2',
   Copy: 'copy',
+  Share: 'share-2',
   Share2: 'share-2',
+  ShareCard: 'share-2',
   Plus: 'plus',
   X: 'x',
   BadgePercent: 'tag',
@@ -125,6 +142,22 @@ const featherMap: Record<string, keyof typeof Feather.glyphMap> = {
   EyeOff: 'eye-off',
   Star: 'star',
   Heart: 'heart',
+  QrCode: 'grid',
+  Calendar: 'calendar',
+  Send: 'send',
+  Sparkles: 'award',
+  Zap: 'zap',
+  Truck: 'truck',
+  Package: 'package',
+  Globe: 'globe',
+  Twitter: 'twitter',
+  Facebook: 'facebook',
+  Linkedin: 'linkedin',
+  UserPlus: 'user-plus',
+  Briefcase: 'briefcase',
+  Link: 'link',
+  Check: 'check',
+  Refresh: 'refresh-cw',
 };
 
 // Solar specific overrides mapping
@@ -141,7 +174,9 @@ const solarKeyMap: Record<string, string> = {
   Users: 'UsersGroupTwoRounded',
   BarChart2: 'Chart',
   Copy: 'Copy',
+  Share: 'Share',
   Share2: 'Share',
+  ShareCard: 'Share',
   Plus: 'AddCircle',
   X: 'CloseCircle',
   BadgePercent: 'Sale',
@@ -179,6 +214,11 @@ const solarKeyMap: Record<string, string> = {
   Refresh: 'Refresh',
   MoreHorizontal: 'MenuDots',
   MoreVertical: 'MenuDots',
+  Calendar: 'Calendar',
+  Send: 'Plain',
+  Sparkles: 'Stars',
+  Zap: 'Bolt',
+  Globe: 'Global',
 };
 
 interface AppIconProps extends Omit<ComponentProps<typeof Feather>, 'size' | 'color' | 'name'> {
@@ -292,17 +332,21 @@ const AppIconRaw = ({
     );
   }
 
-  // Final fallback Feather representation
-  const finalFeatherName = featherMap[name] in Feather.glyphMap ? featherMap[name] : 'info';
-  return (
-    <Feather
-      name={finalFeatherName as any}
-      size={resolvedSize}
-      color={resolvedColor}
-      strokeWidth={1.8}
-      {...rest}
-    />
-  );
+  // Final fallback Feather representation (do NOT return (i) info icon)
+  const resolvedFeatherKey = featherMap[name] ?? name;
+  if (resolvedFeatherKey in Feather.glyphMap) {
+    return (
+      <Feather
+        name={resolvedFeatherKey as any}
+        size={resolvedSize}
+        color={resolvedColor}
+        strokeWidth={1.8}
+        {...rest}
+      />
+    );
+  }
+
+  return null;
 };
 
 // MEMOIZE: Prevent unnecessary re-renders when props are unchanged
