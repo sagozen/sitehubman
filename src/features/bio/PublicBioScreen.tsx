@@ -161,12 +161,12 @@ function LinkButton({
           onError={() => setImageError(true)}
         />
       ) : (
-        <View style={[lb.icon, { backgroundColor: color }]}>
-          <AppIcon name={icon} size={20} color="#FFFFFF" />
+        <View style={lb.icon}>
+          <AppIcon name={icon} size={22} color="#000000" />
         </View>
       )}
       <View style={lb.copyWrap}>
-        <AppText style={lb.label} weight="extrabold" numberOfLines={1}>{label}</AppText>
+        <AppText style={lb.label} weight="bold" numberOfLines={1}>{label}</AppText>
       </View>
       <AppIcon name="ChevronRight" size={16} color="rgba(255, 255, 255, 0.4)" />
     </Pressable>
@@ -191,11 +191,12 @@ const lb = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 4,
   },
