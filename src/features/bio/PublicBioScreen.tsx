@@ -488,7 +488,20 @@ export function PublicBioScreen({ slug, cardId }: Props) {
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
         {/* ── Top bar ── */}
         <View style={styles.topBar}>
-          <Pressable onPress={() => router.canGoBack() ? router.back() : undefined} style={styles.topBtn} hitSlop={10}>
+          <Pressable
+            onPress={() => {
+              HapticTap.light();
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.push('/');
+              }
+            }}
+            style={styles.topBtn}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
             <AppIcon name="ChevronLeft" size={22} color="#FFFFFF" />
           </Pressable>
           <View style={styles.topRightBtns}>

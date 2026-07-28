@@ -39,7 +39,13 @@ export function PageHeader({
             hitSlop={12}
             onPress={() => {
               HapticTap.selection();
-              (onBack ?? router.back)();
+              if (onBack) {
+                onBack();
+              } else if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.push('/');
+              }
             }}
             style={({ pressed }) => [
               styles.iconButton,
