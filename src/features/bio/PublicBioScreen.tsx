@@ -179,15 +179,15 @@ const lb = StyleSheet.create({
     backgroundColor: '#111114',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 16,
+    borderRadius: 20,
     minHeight: 64,
     paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
   },
   pressed: { opacity: 0.75, transform: [{ scale: 0.98 }] },
-  icon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  avatar: { width: 36, height: 36, borderRadius: 10 },
-  label: { flex: 1, fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
+  icon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 40, height: 40, borderRadius: 12 },
+  label: { flex: 1, fontSize: 16, color: '#FFFFFF' },
 });
 
 // ─── Avatar ───────────────────────────────────────────────────────────────────
@@ -477,16 +477,6 @@ export function PublicBioScreen({ slug, cardId }: Props) {
             <AppIcon name="ChevronLeft" size={22} color="#FFFFFF" />
           </Pressable>
           <View style={styles.topRightBtns}>
-            <Pressable
-              onPress={() => {
-                HapticTap.medium();
-                setIsEditMode((v) => !v);
-              }}
-              style={[styles.topBtn, isEditMode && styles.topBtnActive]}
-              hitSlop={10}
-            >
-              <AppIcon name={isEditMode ? 'Check' : 'PenLine'} size={18} color="#FFFFFF" />
-            </Pressable>
             <Pressable onPress={() => setShowQrModal(true)} style={styles.topBtn} hitSlop={10}>
               <AppIcon name="QrCode" size={20} color="#FFFFFF" />
             </Pressable>
@@ -697,7 +687,7 @@ const styles = StyleSheet.create({
   // Top bar
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, maxWidth: 640, width: '100%', alignSelf: 'center' },
   topRightBtns: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  topBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#111114', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.12)', alignItems: 'center', justifyContent: 'center' },
+  topBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#111114', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.12)', alignItems: 'center', justifyContent: 'center' },
   topBtnActive: { backgroundColor: '#0071E3', borderColor: '#0071E3' },
 
   // Modal
