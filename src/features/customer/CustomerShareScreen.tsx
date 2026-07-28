@@ -139,6 +139,21 @@ export function CustomerShareScreen() {
             <AppIcon name="ChevronRight" size={15} color={THEME.muted} />
           </Pressable>
           <Pressable
+            onPress={() => {
+              HapticTap.light();
+              if (profileUrl) {
+                void Share.share({ message: `Add to Apple Wallet: ${profileUrl}`, url: profileUrl });
+              } else {
+                Alert.alert('Apple Wallet Pass', 'Publish your profile link first to generate an Apple Wallet pass.');
+              }
+            }}
+            style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+          >
+            <View style={styles.rowIcon}><AppIcon name="Wallet" size={22} color="#FFFFFF" /></View>
+            <AppText style={styles.rowTitle}>Add to Apple Wallet</AppText>
+            <AppIcon name="ChevronRight" size={15} color={THEME.muted} />
+          </Pressable>
+          <Pressable
             onPress={() => router.push(appRoutes.studio as never)}
             style={({ pressed }) => [styles.row, styles.rowLast, pressed && styles.pressed]}
           >
