@@ -178,17 +178,12 @@ export function GuestConnectionsScreen() {
   const renderHeader = useCallback(
     () => (
       <View style={styles.headerContainer}>
-        <PageHeader
-          theme={THEME}
-          title="Moments"
-          subtitle={`${filteredMoments.length} moments captured.`}
-          compact
-        />
-
+        {/* Controls row above: Search bar + Date filter */}
         <View style={styles.controlsRow}>
           <View style={styles.searchBar}>
+            <AppIcon name="Search" size={16} color={THEME.muted} />
             <TextInput
-              placeholder="Search"
+              placeholder="Search leads..."
               placeholderTextColor={THEME.muted}
               style={styles.searchInput}
               value={query}
@@ -207,7 +202,24 @@ export function GuestConnectionsScreen() {
               </Pressable>
             ) : null}
           </View>
+
+          {/* Date Filter pill next to search */}
+          <Pressable
+            style={({ pressed }) => [styles.yearSelector, pressed && styles.pressed]}
+            onPress={() => {
+              HapticTap.light();
+            }}
+          >
+            <AppIcon name="Calendar" size={15} color={THEME.accent} />
+            <AppText style={styles.yearText} weight="bold">2026</AppText>
+            <AppIcon name="ChevronDown" size={13} color={THEME.accent} />
+          </Pressable>
         </View>
+
+        {/* Subtitle count below */}
+        <AppText style={styles.momentsCountText} weight="bold">
+          {filteredMoments.length} moments captured.
+        </AppText>
       </View>
     ),
     [filteredMoments.length, query],
@@ -438,6 +450,12 @@ const styles = StyleSheet.create({
   yearText: {
     color: THEME.accent,
     fontSize: 13,
+  },
+  momentsCountText: {
+    color: THEME.muted,
+    fontSize: 14,
+    fontFamily: 'SF-Pro-Display-Regular',
+    marginTop: 4,
   },
   emptyState: { alignItems: 'center', gap: 8, paddingVertical: 56 },
   emptyTitle: { color: THEME.text, fontSize: 17, fontWeight: '800' },
