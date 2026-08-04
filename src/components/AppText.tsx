@@ -1,207 +1,78 @@
-import { PropsWithChildren } from 'react';
-import { Platform, StyleProp, StyleSheet, Text, TextProps, TextStyle } from 'react-native';
+/**
+ * AppText — backward-compatible wrapper over MonoText.
+ * All existing call sites continue to work; the typography has been
+ * retuned to monochrome tokens.
+ */
+import { memo, type PropsWithChildren } from 'react';
+import { StyleProp, StyleSheet, type TextProps, type TextStyle } from 'react-native';
+
+import { MonoText, type MonoTone, type MonoVariant, type MonoWeight } from '@/src/components/MonoText';
 import { usePreferences } from '@/src/hooks/usePreferences';
-import { iosTypography } from '@/src/design-system/ios';
-import { memo } from 'react';
 
-type TextVariant = keyof typeof iosTypography;
-type TextTone = 'primary' | 'muted' | 'inverse';
-type TextWeight = 'regular' | 'medium' | 'semibold' | 'bold' | 'extrabold' | 'black';
-
-interface AppTextProps extends TextProps {
-  variant?: TextVariant;
-  tone?: TextTone;
+interface AppTextProps extends Omit<TextProps, 'style'> {
+  variant?: MonoVariant;
+  tone?: MonoTone;
   muted?: boolean;
-  weight?: TextWeight;
-  style?: StyleProp<TextStyle>;
-  /** Optional text color override */
+  weight?: MonoWeight;
+  /** Direct color override */
   color?: string;
-}
-
-const weightStyles: Record<TextWeight, TextStyle> = {
-  regular: {
-    fontWeight: '400',
-  },
-  medium: {
-    fontWeight: '500',
-  },
-  semibold: {
-    fontWeight: '600',
-  },
-  bold: {
-    fontWeight: '700',
-  },
-  extrabold: {
-    fontWeight: '800',
-  },
-  black: {
-    fontWeight: '900',
-  },
-};
-
-function inferVariantFromStyle(style: TextStyle | undefined): TextVariant {
-  const size = typeof style?.fontSize === 'number' ? style.fontSize : undefined;
-  if (!size) return 'body';
-  if (size >= 34) return 'display';
-  if (size >= 28) return 'h1';
-  if (size >= 22) return 'h2';
-  if (size >= 18) return 'h3';
-  if (size >= 16) return 'h4';
-  if (size <= 12) return 'caption';
-  if (size <= 15) return 'caption2';
-  if (size <= 17) return 'footnote';
-  if (size <= 18) return 'subhead';
-  if (size <= 22) return 'body';
-  return 'body';
-}
-
-function sanitizeTextStyle(style: TextStyle | undefined) {
-  return style;
-}
-
-function getFontFamily(fontWeight: TextStyle['fontWeight']): string {
-  if (Platform.OS === 'web') {
-    return '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif';
-  }
-  switch (fontWeight) {
-    case '500':
-    case 'medium':
-      return 'SF-Pro-Display-Medium';
-    case '600':
-    case 'semibold':
-      return 'SF-Pro-Display-Semibold';
-    case '700':
-    case 'bold':
-    case '800':
-    case '900':
-      return 'SF-Pro-Display-Bold';
-    case '400':
-    case 'normal':
-    default:
-      return 'SF-Pro-Display-Regular';
-  }
+  style?: StyleProp<TextStyle>;
 }
 
 const AppTextRaw = ({
   children,
   variant,
-  tone = 'primary',
+  tone,
   muted = false,
   weight,
-  style,
   color,
+  style,
   ...rest
 }: PropsWithChildren<AppTextProps>) => {
+  // Read prefs so colors re-bind on theme switch.
   const { colors } = usePreferences();
-  const rawStyle = StyleSheet.flatten(style);
-  const resolvedVariant = variant ?? inferVariantFromStyle(rawStyle);
-  const resolvedTone = muted ? 'muted' : tone;
 
-  const toneStyles: Record<TextTone, TextStyle> = {
-    primary: { color: colors.textPrimary },
-    muted: { color: colors.textMuted },
-    inverse: { color: colors.textInverse },
-  };
-
-  const baseTypography = iosTypography[resolvedVariant];
-  const activeWeight = weight ?? baseTypography?.fontWeight ?? rawStyle?.fontWeight ?? '400';
-  const resolvedFontFamily = getFontFamily(activeWeight);
-
-  // Strip fontWeight from style objects to prevent custom font fallback
-  const cleanBaseTypo: TextStyle = baseTypography ? { ...baseTypography } : {};
-  delete cleanBaseTypo.fontWeight;
-
-  const cleanStyle: TextStyle = rawStyle ? { ...rawStyle } : {};
-  delete cleanStyle.fontWeight;
+  const resolvedTone: MonoTone = muted ? 'muted' : tone ?? 'primary';
+  const resolvedColor =
+    color ??
+    (resolvedTone === 'primary'
+      ? colors.textPrimary
+      : resolvedTone === 'muted'
+        ? colors.textMuted
+        : resolvedTone === 'tertiary'
+          ? (colors as any).textTertiary ?? colors.textMuted
+          : colors.textInverse);
 
   return (
-    <Text
-      style={[
-        styles.base,
-        cleanBaseTypo,
-        toneStyles[resolvedTone],
-        { fontFamily: resolvedFontFamily },
-        color && { color },
-        cleanStyle,
-      ]}
+    <MonoText
+      variant={variant}
+      weight={weight}
+      tone={resolvedTone}
+      color={resolvedColor}
+      style={style as TextStyle | TextStyle[]}
       {...rest}
     >
       {children}
-    </Text>
+    </MonoText>
   );
 };
 
-const styles = StyleSheet.create({
-  base: {
-    includeFontPadding: false,
-    textAlignVertical: 'center',
-  },
-});
-
-// MEMOIZE: Prevent unnecessary re-renders when props are unchanged
 export const AppText = memo(AppTextRaw);
 
-// Export specialized components (these will be memoized through AppText)
-export function Display(props: Omit<AppTextProps, 'variant'>) {
-  return <AppText {...props} variant="display" />;
-}
-
-export function H1(props: Omit<AppTextProps, 'variant'>) {
-  return <AppText {...props} variant="h1" />;
-}
-
-export function H2(props: Omit<AppTextProps, 'variant'>) {
-  return <AppText {...props} variant="h2" />;
-}
-
-export function H3(props: Omit<AppTextProps, 'variant'>) {
-  return <AppText {...props} variant="h3" />;
-}
-
-export function H4(props: Omit<AppTextProps, 'variant'>) {
-  return <AppText {...props} variant="h4" />;
-}
-
-export function Body(props: Omit<AppTextProps, 'variant'>) {
-  return <AppText {...props} variant="body" />;
-}
-
-export function BodySmall(props: Omit<AppTextProps, 'variant'>) {
-  return <AppText {...props} variant="bodySmall" />;
-}
-
-export function Callout(props: Omit<AppTextProps, 'variant'>) {
-  return <AppText {...props} variant="callout" />;
-}
-
-export function Caption(props: Omit<AppTextProps, 'variant'>) {
-  return <AppText {...props} variant="caption" />;
-}
-
-export function Caption2(props: Omit<AppTextProps, 'variant'>) {
-  return <AppText {...props} variant="caption2" />;
-}
-
-export function Footnote(props: Omit<AppTextProps, 'variant'>) {
-  return <AppText {...props} variant="footnote" />;
-}
-
-export function Subhead(props: Omit<AppTextProps, 'variant'>) {
-  return <AppText {...props} variant="subhead" />;
-}
-
-export function Headline(props: Omit<AppTextProps, 'variant'>) {
-  return <AppText {...props} variant="headline" />;
-}
-
-export function Title1(props: Omit<AppTextProps, 'variant'>) {
-  return <AppText {...props} variant="title1" />;
-}
-
-export function Title2(props: Omit<AppTextProps, 'variant'>) {
-  return <AppText {...props} variant="title2" />;
-}
-
-export function Title3(props: Omit<AppTextProps, 'variant'>) {
-  return <AppText {...props} variant="title3" />;
-}
+// Export specialized components (memoized through MonoText)
+export const Display = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} variant="display" />;
+export const H1 = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} variant="title1" />;
+export const H2 = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} variant="title2" />;
+export const H3 = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} variant="title3" />;
+export const H4 = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} variant="headline" />;
+export const Body = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} variant="body" />;
+export const BodySmall = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} variant="bodySmall" />;
+export const Callout = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} variant="callout" />;
+export const Caption = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} variant="caption" />;
+export const Caption2 = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} variant="footnote" />;
+export const Footnote = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} variant="footnote" />;
+export const Subhead = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} variant="subhead" />;
+export const Headline = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} variant="headline" />;
+export const Title1 = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} variant="title1" />;
+export const Title2 = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} variant="title2" />;
+export const Title3 = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} variant="title3" />;

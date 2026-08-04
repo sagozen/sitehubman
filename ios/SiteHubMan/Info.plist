@@ -30,7 +30,7 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>biocloud</string>
-          <string>com.sagozen.sitehubman</string>
+          <string>com.sagozen.oneapp</string>
         </array>
       </dict>
     </array>

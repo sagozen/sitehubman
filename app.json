@@ -12,7 +12,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.sagozen.sitehubman",
+      "bundleIdentifier": "com.sagozen.oneapp",
       "usesAppleSignIn": true,
       "infoPlist": {
         "NSCameraUsageDescription": "SiteHub needs camera access to scan QR codes on NFC cards.",
