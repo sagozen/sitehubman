@@ -4,13 +4,13 @@
  * Memoized, zero-allocation in render. ~1ms budget per call.
  */
 import { memo, type PropsWithChildren } from 'react';
-import { Platform, StyleSheet, Text, type TextProps, type TextStyle } from 'react-native';
+import { Platform, StyleProp, StyleSheet, Text, type TextProps, type TextStyle } from 'react-native';
 
 import { monoFonts, monoType } from '@/src/design-system/monochrome';
 
-export type MonoVariant = keyof typeof monoType;
+export type MonoVariant = keyof typeof monoType | 'h1' | 'h2' | 'h3' | 'h4';
 export type MonoTone = 'primary' | 'muted' | 'tertiary' | 'inverse';
-export type MonoWeight = 'regular' | 'medium' | 'semibold' | 'bold' | 'heavy';
+export type MonoWeight = 'regular' | 'medium' | 'semibold' | 'bold' | 'heavy' | 'extrabold' | 'black';
 export type MonoAlign = 'left' | 'center' | 'right';
 
 interface MonoTextProps extends Omit<TextProps, 'style'> {
@@ -26,7 +26,7 @@ interface MonoTextProps extends Omit<TextProps, 'style'> {
   underline?: boolean;
   /** Strike through */
   strike?: boolean;
-  style?: TextStyle | TextStyle[];
+  style?: StyleProp<TextStyle>;
 }
 
 const weightMap: Record<MonoWeight, TextStyle['fontWeight']> = {
@@ -35,6 +35,8 @@ const weightMap: Record<MonoWeight, TextStyle['fontWeight']> = {
   semibold: '600',
   bold: '700',
   heavy: '800',
+  extrabold: '800',
+  black: '900',
 };
 
 function resolveFamily(weight: MonoWeight): string {

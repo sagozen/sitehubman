@@ -42,12 +42,27 @@ export type ButtonVariant =
   | 'link'
   | 'icon'
   | 'iconCircle'
+  | 'icon-circle'
   | 'menu'
   | 'close'
   | 'back'
-  | 'floating';
+  | 'floating'
+  | 'success'
+  | 'warning'
+  | 'disabled'
+  | 'loading'
+  | 'glass'
+  | 'glass-primary'
+  | 'share'
+  | 'scan'
+  | 'add'
+  | 'edit'
+  | 'pill'
+  | 'approval'
+  | 'reject'
+  | 'urgent';
 
-export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
+export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl' | 'bottomCTA' | 'mini' | 'default';
 export type ButtonHaptic = 'light' | 'medium' | 'success' | 'error' | 'warning' | 'none';
 
 export interface AppButtonProps extends Omit<PressableProps, 'style' | 'children'> {
@@ -57,6 +72,12 @@ export interface AppButtonProps extends Omit<PressableProps, 'style' | 'children
   size?: ButtonSize;
   iconLeft?: AppIconName | ReactNode;
   iconRight?: AppIconName | ReactNode;
+  /** Alias for iconLeft */
+  iconName?: AppIconName | ReactNode;
+  iconPosition?: string;
+  destructiveConfirm?: boolean;
+  shadow?: string;
+  glass?: boolean;
   loading?: boolean;
   disabled?: boolean;
   fullWidth?: boolean;
@@ -68,11 +89,14 @@ export interface AppButtonProps extends Omit<PressableProps, 'style' | 'children
   hitSlop?: number | { top: number; bottom: number; left: number; right: number };
 }
 
-const sizeConfig = {
+const sizeConfig: Record<string, { height: number; radius: number; paddingX: number; fontSize: number; iconSize: number }> = {
+  mini: { height: 32, radius: 8, paddingX: 10, fontSize: 13, iconSize: 14 },
   sm: { height: 36, radius: 10, paddingX: 14, fontSize: 14, iconSize: 16 },
   md: { height: 44, radius: 12, paddingX: 18, fontSize: 15, iconSize: 18 },
+  default: { height: 44, radius: 12, paddingX: 18, fontSize: 15, iconSize: 18 },
   lg: { height: 52, radius: 14, paddingX: 22, fontSize: 16, iconSize: 20 },
   xl: { height: 60, radius: 16, paddingX: 26, fontSize: 17, iconSize: 22 },
+  bottomCTA: { height: 56, radius: 16, paddingX: 24, fontSize: 16, iconSize: 20 },
 };
 
 const iconOnlyVariants: ButtonVariant[] = ['icon', 'iconCircle', 'close', 'back'];
@@ -84,6 +108,7 @@ function AppButtonRaw({
   size = 'md',
   iconLeft,
   iconRight,
+  iconName,
   loading = false,
   disabled = false,
   fullWidth = false,
@@ -139,7 +164,7 @@ function AppButtonRaw({
   const isMenu = variant === 'menu' || variant === 'back';
 
   // Default icons for action variants
-  const resolvedLeft = resolveIcon(iconLeft, variant, 'left');
+  const resolvedLeft = resolveIcon(iconLeft || iconName, variant, 'left');
   const resolvedRight = resolveIcon(iconRight, variant, 'right');
 
   const buttonStyle: ViewStyle = {
