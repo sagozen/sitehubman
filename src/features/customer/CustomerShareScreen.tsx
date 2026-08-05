@@ -68,12 +68,11 @@ export function CustomerShareScreen() {
       <IosScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <PageHeader
           theme={THEME}
-          eyebrow="Identity handoff"
           title="Share"
-          subtitle="Send your NFC card, QR code, or public profile link."
+          subtitle="Your card. One tap away."
           compact
           showBack={true}
-          onBack={() => router.replace('/')}
+          onBack={() => router.back()}
         />
 
         <View style={styles.cardWrap}>
@@ -88,10 +87,6 @@ export function CustomerShareScreen() {
           />
         </View>
 
-        <View style={styles.radarBadge}>
-          <AppIcon name="Nfc" size={16} color="#FFFFFF" />
-          <AppText style={styles.radarText}>NFC ANTENNA ACTIVE</AppText>
-        </View>
 
         <View style={styles.qrPanel}>
           <View style={styles.qrHeader}>
@@ -130,6 +125,32 @@ export function CustomerShareScreen() {
           >
             <View style={styles.rowIcon}><AppIcon name="QrCode" size={22} color="#FFFFFF" /></View>
             <AppText style={styles.rowTitle}>Open full QR</AppText>
+            <AppIcon name="ChevronRight" size={15} color={THEME.muted} />
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              HapticTap.light();
+              if (profileUrl) void Share.share({ message: profileUrl, url: profileUrl });
+            }}
+            style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+          >
+            <View style={styles.rowIcon}><AppIcon name="Copy" size={22} color="#FFFFFF" /></View>
+            <AppText style={styles.rowTitle}>Copy profile link</AppText>
+            <AppIcon name="ChevronRight" size={15} color={THEME.muted} />
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              HapticTap.light();
+              if (profileUrl) {
+                void Share.share({ message: `Add to Apple Wallet: ${profileUrl}`, url: profileUrl });
+              } else {
+                Alert.alert('Apple Wallet Pass', 'Publish your profile link first to generate an Apple Wallet pass.');
+              }
+            }}
+            style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+          >
+            <View style={styles.rowIcon}><AppIcon name="Wallet" size={22} color="#FFFFFF" /></View>
+            <AppText style={styles.rowTitle}>Add to Apple Wallet</AppText>
             <AppIcon name="ChevronRight" size={15} color={THEME.muted} />
           </Pressable>
           <Pressable

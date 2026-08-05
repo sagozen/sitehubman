@@ -4,6 +4,15 @@ import { FirebaseStorage, getStorage } from 'firebase/storage';
 import { getFirebaseConfig, getFirebaseConfigError, isFirebaseConfigured } from '@/src/services/firebase/firebaseConfig';
 import { initFirebaseAppCheck } from '@/src/services/firebase/firebase.appCheck';
 
+import { setLogLevel } from 'firebase/app';
+
+// Suppress non-critical WebChannel transport logs in console
+try {
+  setLogLevel('error');
+} catch {
+  // Silent fallback
+}
+
 let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
 let storage: FirebaseStorage | null = null;
@@ -19,6 +28,7 @@ export const firebaseInitError = (() => {
     try {
       db = initializeFirestore(app, {
         ignoreUndefinedProperties: true,
+        experimentalAutoDetectLongPolling: true,
         localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
       });
     } catch {

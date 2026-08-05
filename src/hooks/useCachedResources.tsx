@@ -42,25 +42,24 @@ export default function useCachedResources(): boolean {
     }
 
     // Helper to run heavy tasks without blocking the main thread
-    async function triggerBackgroundTasks() {
-      try {
-        const routes = [
-          'cards',
-          'orders',
-          'payments',
-          'production',
-          'customer',
-          'admin',
-        ];
-        for (const r of routes) {
-          router.prefetch(`/${r}` as any);
+    function triggerBackgroundTasks() {
+      setTimeout(() => {
+        try {
+          const routes = [
+            'cards',
+            'orders',
+            'payments',
+            'production',
+            'customer',
+            'admin',
+          ];
+          for (const r of routes) {
+            router.prefetch(`/${r}` as any);
+          }
+        } catch {
+          // Silent catch for initial render prefetch
         }
-
-        // Cloudinary prefetch (if needed)
-        // await prefetchCloudinaryUrls([], 800); 
-      } catch (err) {
-        console.warn('Background prefetch failed, but app is still running.', err);
-      }
+      }, 1000);
     }
 
     // If fonts are loaded OR if there was an error loading fonts, we proceed.

@@ -20,66 +20,78 @@ import { HapticTap } from '@/src/utils/haptics';
 
 const THEME = pageThemes.leads;
 const CARD_GAP = 8;
-const CARD_RATIO = 16 / 9;
+const CARD_RATIO = 1.0; // Square 1:1 blocks like the 3x3 reference image
 const HEADER_ESTIMATE = 170;
 
-const SOURCE_META = {
-  nfc: { icon: 'Nfc', label: 'NFC tap', color: '#32D583' },
-  qr: { icon: 'QrCode', label: 'QR scan', color: '#5B8BFF' },
-  view: { icon: 'Eye', label: 'Profile view', color: '#F79009' },
-  share: { icon: 'Share', label: 'Shared link', color: '#F04438' },
-  link: { icon: 'Link', label: 'Web tap', color: '#A855F7' },
-} as const;
+const BLOCK_COLORS = [
+  { bg: '#E2F16D', fg: '#111111', sub: '#444444' }, // Lime Yellow
+  { bg: '#E57A65', fg: '#FFFFFF', sub: 'rgba(255,255,255,0.85)' }, // Terracotta
+  { bg: '#FFFFFF', fg: '#111111', sub: '#666666' }, // Crisp White
+  { bg: '#FF5733', fg: '#FFFFFF', sub: 'rgba(255,255,255,0.85)' }, // Coral Red
+  { bg: '#1E3A34', fg: '#E2F16D', sub: 'rgba(226,241,109,0.75)' }, // Dark Emerald
+  { bg: '#2563EB', fg: '#FFFFFF', sub: 'rgba(255,255,255,0.85)' }, // Sapphire Blue
+  { bg: '#18181B', fg: '#FFFFFF', sub: '#A1A1AA' }, // Dark Charcoal
+  { bg: '#D97706', fg: '#FFFFFF', sub: 'rgba(255,255,255,0.85)' }, // Warm Amber
+  { bg: '#0F766E', fg: '#FFFFFF', sub: 'rgba(255,255,255,0.85)' }, // Deep Teal
+] as const;
 
 type GuestMomentCardProps = {
   item: TapMoment;
+  index: number;
   cardWidth: number;
   onPress: (item: TapMoment) => void;
 };
 
 const GuestMomentCard = memo(function GuestMomentCard({
   item,
+  index,
   cardWidth,
   onPress,
 }: GuestMomentCardProps) {
-  const meta = SOURCE_META[item.source];
+  const theme = BLOCK_COLORS[index % BLOCK_COLORS.length];
+  const initialChar = (item.initial ?? item.name?.[0] ?? '?').toUpperCase();
 
   return (
     <Pressable
       onPress={() => onPress(item)}
       style={({ pressed }) => [
         styles.gridCard,
-        { width: cardWidth, height: Math.round(cardWidth * CARD_RATIO) },
+        {
+          width: cardWidth,
+          height: cardWidth,
+          backgroundColor: theme.bg,
+        },
         pressed && styles.pressed,
       ]}
     >
-      <View style={styles.cardGlow} />
-      <View style={styles.cardTopRow}>
-        <View style={styles.avatarCircle}>
-          <AppText style={styles.avatarLetter} weight="bold">
-            {(item.initial ?? item.name?.[0] ?? '?').toUpperCase()}
-          </AppText>
-        </View>
-        <View style={[styles.sourcePill, { borderColor: `${meta.color}55`, backgroundColor: `${meta.color}18` }]}>
-          <AppIcon name={meta.icon} size={13} color="#FFFFFF" />
-        </View>
+      {/* Central Symbol / Icon */}
+      <View style={styles.cardCenterSymbol}>
+        <AppText style={[styles.symbolText, { color: theme.fg }]} weight="black">
+          {initialChar}
+        </AppText>
       </View>
 
-      <View style={styles.cardBody}>
-        <AppText style={styles.gridName} numberOfLines={1}>
+      {/* Bottom Name Label */}
+      <View style={styles.cardBottomWrap}>
+        <AppText
+          style={[styles.gridName, { color: theme.fg }]}
+          weight="extrabold"
+          numberOfLines={1}
+        >
           {item.name}
         </AppText>
-        <AppText style={styles.gridSubtitle} numberOfLines={1}>
-          {item.subtitle || 'NFC connection'}
-        </AppText>
+        {item.subtitle ? (
+          <AppText
+            style={[styles.gridSubtitle, { color: theme.sub }]}
+            weight="bold"
+            numberOfLines={1}
+          >
+            {item.subtitle}
+          </AppText>
+        ) : null}
       </View>
-
-      <View style={styles.cardFooter}>
-        <View style={[styles.signalDot, { backgroundColor: meta.color }]} />
-        <AppText style={styles.signalText} numberOfLines={1}>
-          {meta.label}
-        </AppText>
-      </View>
+      {/* Recently active dot */}
+      {index < 4 && <View style={styles.activeDot} />}
     </Pressable>
   );
 });
@@ -99,9 +111,9 @@ export function GuestConnectionsScreen() {
   const scaleAnim = useRef(new Animated.Value(0.85)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const numColumns = sw >= 480 ? 3 : 2;
+  const numColumns = 3;
   const gridWidth = Math.floor((Math.min(sw, 640) - 32 - (numColumns - 1) * CARD_GAP) / numColumns);
-  const rowHeight = Math.round(gridWidth * CARD_RATIO) + CARD_GAP;
+  const rowHeight = gridWidth + CARD_GAP;
 
   const allMoments = useMemo(() => SEED_MOMENTS, []);
   const filteredMoments = useMemo(() => {
@@ -157,8 +169,8 @@ export function GuestConnectionsScreen() {
   }, [fadeAnim, scaleAnim]);
 
   const renderGridItem = useCallback(
-    ({ item }: { item: TapMoment }) => (
-      <GuestMomentCard item={item} cardWidth={gridWidth} onPress={handleOpenPopup} />
+    ({ item, index }: { item: TapMoment; index: number }) => (
+      <GuestMomentCard item={item} index={index} cardWidth={gridWidth} onPress={handleOpenPopup} />
     ),
     [gridWidth, handleOpenPopup],
   );
@@ -166,17 +178,12 @@ export function GuestConnectionsScreen() {
   const renderHeader = useCallback(
     () => (
       <View style={styles.headerContainer}>
-        <PageHeader
-          theme={THEME}
-          title="Moments"
-          subtitle={`${filteredMoments.length} moments captured.`}
-          compact
-        />
-
+        {/* Controls row above: Search bar + Date filter */}
         <View style={styles.controlsRow}>
           <View style={styles.searchBar}>
+            <AppIcon name="Search" size={16} color={THEME.muted} />
             <TextInput
-              placeholder="Search"
+              placeholder="Search leads..."
               placeholderTextColor={THEME.muted}
               style={styles.searchInput}
               value={query}
@@ -196,13 +203,23 @@ export function GuestConnectionsScreen() {
             ) : null}
           </View>
 
-          <View style={styles.yearSelector}>
-            <AppIcon name="Filter" size={14} color={THEME.accent} />
-            <AppText style={styles.yearText} weight="bold">
-              All sources
-            </AppText>
-          </View>
+          {/* Date Filter pill next to search */}
+          <Pressable
+            style={({ pressed }) => [styles.yearSelector, pressed && styles.pressed]}
+            onPress={() => {
+              HapticTap.light();
+            }}
+          >
+            <AppIcon name="Calendar" size={15} color={THEME.accent} />
+            <AppText style={styles.yearText} weight="bold">2026</AppText>
+            <AppIcon name="ChevronDown" size={13} color={THEME.accent} />
+          </Pressable>
         </View>
+
+        {/* Subtitle count below */}
+        <AppText style={styles.momentsCountText} weight="bold">
+          {filteredMoments.length} moments captured.
+        </AppText>
       </View>
     ),
     [filteredMoments.length, query],
@@ -296,23 +313,9 @@ export function GuestConnectionsScreen() {
                   openPreview();
                 }}
               >
+                <AppIcon name="User" size={16} color="#000000" />
                 <AppText style={styles.viewBioText} weight="bold">
-                  View Bio
-                </AppText>
-              </Pressable>
-
-              <Pressable
-                style={({ pressed }) => [
-                  styles.addContactBtn,
-                  pressed && styles.pressed,
-                ]}
-                onPress={() => {
-                  HapticTap.success();
-                  handleClosePopup();
-                }}
-              >
-                <AppText style={styles.addContactText} weight="bold">
-                  Add Contact
+                  View Profile
                 </AppText>
               </Pressable>
 
@@ -324,7 +327,7 @@ export function GuestConnectionsScreen() {
                 onPress={handleClosePopup}
               >
                 <AppText style={styles.cancelText} weight="bold">
-                  Cancel
+                  Dismiss
                 </AppText>
               </Pressable>
             </View>
@@ -358,16 +361,45 @@ const styles = StyleSheet.create({
   gridCard: {
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: THEME.surface,
-    borderWidth: 1,
-    borderColor: THEME.border,
-    position: 'relative',
     padding: 12,
+    alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  cardCenterSymbol: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  symbolText: {
+    fontSize: 32,
+    lineHeight: 38,
+  },
+  cardBottomWrap: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  gridName: {
+    fontSize: 13,
+    lineHeight: 16,
+    textAlign: 'center',
+  },
+  gridSubtitle: {
+    fontSize: 10,
+    lineHeight: 13,
+    textAlign: 'center',
   },
   pressed: {
     opacity: 0.8,
     transform: [{ scale: 0.96 }],
+  },
+  activeDot: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#30D158',
   },
   // Header styles
   headerContainer: {
@@ -388,13 +420,13 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: THEME.surface,
-    borderRadius: 12,
-    paddingHorizontal: 12,
+    backgroundColor: '#16161A',
+    borderRadius: 22,
+    paddingHorizontal: 14,
     height: 44,
     gap: 8,
     borderWidth: 1,
-    borderColor: THEME.border,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   searchInput: {
     color: THEME.text,
@@ -407,8 +439,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: THEME.accentSoft,
-    borderRadius: 12,
-    paddingHorizontal: 12,
+    borderRadius: 22,
+    paddingHorizontal: 14,
     height: 44,
     gap: 6,
     borderWidth: 1,
@@ -418,72 +450,11 @@ const styles = StyleSheet.create({
     color: THEME.accent,
     fontSize: 13,
   },
-  cardGlow: {
-    position: 'absolute',
-    top: -24,
-    right: -24,
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    opacity: 0.2,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-  },
-  cardTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  avatarCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: THEME.accentSoft,
-    borderWidth: 1,
-    borderColor: THEME.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarLetter: {
-    color: '#FFFFFF',
-    fontSize: 18,
-  },
-  sourcePill: {
-    width: 34,
-    height: 34,
-    borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: THEME.border,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-  },
-  signalDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
-  },
-  signalText: { color: THEME.muted, fontSize: 9, fontWeight: '900' },
-  cardBody: {
-    gap: 3,
-  },
-  gridName: {
-    color: THEME.text,
-    fontSize: 15,
-    lineHeight: 19,
-    fontWeight: '800',
-  },
-  gridSubtitle: {
+  momentsCountText: {
     color: THEME.muted,
-    fontSize: 11,
-    lineHeight: 15,
-    fontWeight: '600',
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    minHeight: 18,
+    fontSize: 14,
+    fontFamily: 'SF-Pro-Display-Regular',
+    marginTop: 4,
   },
   emptyState: { alignItems: 'center', gap: 8, paddingVertical: 56 },
   emptyTitle: { color: THEME.text, fontSize: 17, fontWeight: '800' },

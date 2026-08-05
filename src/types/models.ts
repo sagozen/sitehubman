@@ -572,6 +572,11 @@ export interface BioPage {
   twitter?: string;
   facebook?: string;
   customLinks: { label: string; url: string }[];
+  /** Smart AI Business Card attributes */
+  company?: string;
+  role?: string;
+  specialties?: string[];
+  aiSummary?: string;
   /** Channel ids hidden on the public profile (stored on bio_pages - no separate collection). */
   hiddenChannels?: string[];
   theme: BioTheme;

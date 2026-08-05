@@ -54,7 +54,7 @@ const SURFACE = DESIGN_THEME.surface;
 const SURFACE_ACTIVE = DESIGN_THEME.accent;
 const BORDER = DESIGN_THEME.border;
 
-const FLOW_STEPS = ['Design', 'Preview', 'Checkout', 'Track'];
+const FLOW_STEPS = ['Design', 'Pay', 'Deliver'] as const;
 
 // ─── Performance Optimized Glass Field ──────────────────────────────────────
 function FieldRow({
@@ -186,13 +186,12 @@ export function GuestDesignScreen() {
   const handleSave = useCallback(async () => {
     if (!infoComplete) return;
 
-    await measure('Save Guest Card Design', async () => {
-      HapticTap.light();
+    await measure('Create and Activate NFC Card', async () => {
+      HapticTap.medium();
       setSaving(true);
       setSaveError(null);
 
       try {
-        // PREPARE DATA ONCE
         const draft = {
           displayName: name.trim(),
           jobTitle: jobTitle.trim(),
@@ -224,10 +223,16 @@ export function GuestDesignScreen() {
         ]);
 
         HapticTap.success();
-        router.push({ pathname: '/cards/preview/[cardId]', params: { cardId: session.cardId } });
+
+        if (cardType === 'physical') {
+          router.push({ pathname: '/payments/checkout/[cardId]', params: { cardId: session.cardId } });
+        } else {
+          const slug = session.publicSlug || session.cardId;
+          router.push(`/u/${encodeURIComponent(slug)}`);
+        }
       } catch (error) {
-        console.error('Save failed:', error);
-        setSaveError('Failed to save. Check your connection.');
+        console.error('Card creation failed:', error);
+        setSaveError('Failed to create card. Please check your connection.');
         HapticTap.error();
       } finally {
         setSaving(false);
@@ -304,7 +309,7 @@ export function GuestDesignScreen() {
             </View>
           </View>
 
-          {/* ── Gen Z Neon Card Stage ── */}
+          {/* ── Card Stage ── */}
           <View style={styles.previewStage}>
             <View style={styles.glowBackdrop} />
             <View style={styles.glowBackdropBlue} />
@@ -330,7 +335,9 @@ export function GuestDesignScreen() {
           <View style={styles.sectionsContainer}>
             
             <View style={styles.section}>
-              <AppText style={styles.sectionTitle}>Identity</AppText>
+              <View style={styles.sectionHeaderRow}>
+                <AppText style={styles.sectionTitle}>Identity</AppText>
+              </View>
               <View style={styles.bentoGrid}>
                 <FieldRow
                   icon="User"
@@ -427,7 +434,7 @@ export function GuestDesignScreen() {
           )}
 
           <AppButton
-            label="Continue to preview"
+            label={cardType === 'physical' ? 'Order NFC Physical Card' : 'Create & Activate Digital Card'}
             variant="white"
             size="bottomCTA"
             onPress={() => void handleSave()}
@@ -443,18 +450,18 @@ export function GuestDesignScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#000000' } as ViewStyle,
-  flex: { flex: 1 } as ViewStyle,
-  loadingCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000000' } as ViewStyle,
-  pressed: { transform: [{ scale: MotionScale.pressed }] } as ViewStyle,
+  safe: { flex: 1, backgroundColor: '#000000' },
+  flex: { flex: 1 },
+  loadingCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000000' },
+  pressed: { transform: [{ scale: MotionScale.pressed }] },
 
-  header: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 } as ViewStyle,
-  backBtn: { width: 44, height: 44, borderRadius: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)', backgroundColor: '#111114' } as ViewStyle,
-  headerTitle: { flex: 1, fontSize: 20, color: INK, letterSpacing: 0, fontFamily: 'SF-Pro-Display-Regular', textAlign: 'center' } as TextStyle,
-  pricePill: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: '#FFFFFF', overflow: 'hidden' } as ViewStyle,
-  priceT: { fontSize: 13, color: '#000000', fontFamily: 'SF-Pro-Display-Regular' } as TextStyle,
+  header: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 },
+  backBtn: { width: 44, height: 44, borderRadius: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)', backgroundColor: '#111114' },
+  headerTitle: { flex: 1, fontSize: 20, color: INK, letterSpacing: 0, fontFamily: 'SF-Pro-Display-Regular', textAlign: 'center' },
+  pricePill: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: '#FFFFFF', overflow: 'hidden' },
+  priceT: { fontSize: 13, color: '#000000', fontFamily: 'SF-Pro-Display-Regular' },
 
-  scroll: { paddingBottom: 60, paddingTop: 10 } as ViewStyle,
+  scroll: { paddingBottom: 60, paddingTop: 10 },
 
   flowCard: {
     marginHorizontal: 20,
@@ -465,12 +472,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#111114',
     padding: 14,
     gap: 12,
-  } as ViewStyle,
+  },
   flowTitle: {
     color: 'rgba(255, 255, 255, 0.56)',
     fontSize: 12,
     fontWeight: '800',
-  } as TextStyle,
+  },
   flowSteps: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -496,14 +503,15 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.16)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-  } as ViewStyle,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+  },
   flowDotActive: {
-    backgroundColor: '#FFFFFF',
     borderColor: '#FFFFFF',
-  } as ViewStyle,
+    backgroundColor: '#FFFFFF',
+  },
   flowDotText: {
     color: 'rgba(255, 255, 255, 0.64)',
     fontSize: 10,
@@ -511,18 +519,18 @@ const styles = StyleSheet.create({
   } as TextStyle,
   flowDotTextActive: {
     color: '#000000',
-  } as TextStyle,
+  },
   flowStepText: {
     color: 'rgba(255, 255, 255, 0.4)',
     fontSize: 10,
     fontWeight: '800',
     textAlign: 'center',
-  } as TextStyle,
+  },
   flowStepTextActive: {
     color: '#FFFFFF',
-  } as TextStyle,
+  },
 
-  previewStage: { alignItems: 'center', position: 'relative', paddingVertical: 24, paddingHorizontal: 20 } as ViewStyle,
+  previewStage: { alignItems: 'center', position: 'relative', paddingVertical: 24, paddingHorizontal: 20 },
   glowBackdrop: {
     position: 'absolute',
     width: 260,
@@ -553,30 +561,39 @@ const styles = StyleSheet.create({
   livePulseRing: { position: 'absolute', left: 11, width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(48,209,88,0.3)', transform: [{ scale: 1.6 }] } as ViewStyle,
   previewHint: { fontSize: 11, color: '#FFFFFF', fontWeight: '800', letterSpacing: -0.2, fontFamily: 'SF-Pro-Display-Regular' } as TextStyle,
 
-  sectionsContainer: { paddingHorizontal: 20, paddingTop: 10, gap: 40 } as ViewStyle,
-  section: { gap: 16 } as ViewStyle,
-  sectionTitle: { fontSize: 14, color: INK2, letterSpacing: 0, fontFamily: 'SF-Pro-Display-Regular' } as TextStyle,
+  sectionsContainer: { paddingHorizontal: 20, paddingTop: 10, gap: 40 },
+  section: { gap: 16 },
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  sectionTitle: { fontSize: 14, color: INK2, letterSpacing: 0, fontFamily: 'SF-Pro-Display-Regular' },
+  linkedInBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: '#0A66C2',
+  },
+  linkedInText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
   
-  bentoGrid: { gap: 12 } as ViewStyle,
-  bentoGridHorizontal: { flexDirection: 'row', gap: 12 } as ViewStyle,
+  bentoGrid: { gap: 12 },
+  bentoGridHorizontal: { flexDirection: 'row', gap: 12 },
 
-  segBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 18, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)', backgroundColor: '#111114' } as ViewStyle,
-  segBtnActive: { backgroundColor: '#FFFFFF', borderColor: '#FFFFFF' } as ViewStyle,
-  segBtnT: { fontSize: 14, color: MUTED, fontFamily: 'SF-Pro-Display-Regular', letterSpacing: 0 } as TextStyle,
-  segBtnTActive: { color: '#000000' } as TextStyle,
+  segBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 18, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)', backgroundColor: '#111114' },
+  segBtnT: { fontSize: 14, color: MUTED, fontFamily: 'SF-Pro-Display-Regular', letterSpacing: 0 },
+  segBtnTActive: { color: '#000000' },
 
-  payScroll: { gap: 12, paddingRight: 20 } as ViewStyle,
-  payPill: { minWidth: 132, paddingHorizontal: 16, paddingVertical: 13, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)', backgroundColor: '#111114', alignItems: 'center', gap: 8 } as ViewStyle,
-  payPillActive: { backgroundColor: '#FFFFFF', borderColor: '#FFFFFF' } as ViewStyle,
-  payPillT: { fontSize: 13, color: MUTED, fontFamily: 'SF-Pro-Display-Regular', letterSpacing: 0 } as TextStyle,
-  payPillTActive: { color: '#000000' } as TextStyle,
+  payScroll: { gap: 12, paddingRight: 20 },
+  payPill: { minWidth: 132, paddingHorizontal: 16, paddingVertical: 13, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)', backgroundColor: '#111114', alignItems: 'center', gap: 8 },
+  payPillT: { fontSize: 13, color: MUTED, fontFamily: 'SF-Pro-Display-Regular', letterSpacing: 0 },
+  payPillTActive: { color: '#000000' },
 
-  footer: { paddingHorizontal: 20, paddingTop: 16, borderTopWidth: 1, borderTopColor: 'rgba(255, 255, 255, 0.08)', overflow: 'hidden', backgroundColor: 'rgba(0, 0, 0, 0.85)' } as ViewStyle,
-  saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 60, borderRadius: 20, overflow: 'hidden', backgroundColor: SURFACE, borderWidth: 1, borderColor: BORDER } as ViewStyle,
-  saveBtnOff: { opacity: 0.5 } as ViewStyle,
-  saveBtnT: { fontSize: 15, color: INK, letterSpacing: 0, fontFamily: 'SF-Pro-Display-Regular' } as TextStyle,
-
-  errorBanner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.3)', marginBottom: 16 } as ViewStyle,
-  errorText: { color: '#FCA5A5', fontSize: 13, fontFamily: 'SF-Pro-Display-Regular' } as TextStyle,
-  errorDismiss: { color: '#EF4444', fontSize: 13, fontFamily: 'SF-Pro-Display-Regular', letterSpacing: 0 } as TextStyle,
+  footer: { paddingHorizontal: 20, paddingTop: 16, borderTopWidth: 1, borderTopColor: 'rgba(255, 255, 255, 0.08)', overflow: 'hidden', backgroundColor: 'rgba(0, 0, 0, 0.85)' },
+  errorBanner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.3)', marginBottom: 16 },
+  errorText: { color: '#FCA5A5', fontSize: 13, fontFamily: 'SF-Pro-Display-Regular' },
+  errorDismiss: { color: '#EF4444', fontSize: 13, fontFamily: 'SF-Pro-Display-Regular', letterSpacing: 0 },
 });

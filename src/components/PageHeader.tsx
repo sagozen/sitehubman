@@ -39,7 +39,13 @@ export function PageHeader({
             hitSlop={12}
             onPress={() => {
               HapticTap.selection();
-              (onBack ?? router.back)();
+              if (onBack) {
+                onBack();
+              } else if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.push('/');
+              }
             }}
             style={({ pressed }) => [
               styles.iconButton,
@@ -109,7 +115,7 @@ const styles = StyleSheet.create({
   iconButton: {
     width: 44,
     height: 44,
-    borderRadius: 12,
+    borderRadius: 22,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',

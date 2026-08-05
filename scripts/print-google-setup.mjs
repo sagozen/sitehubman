@@ -12,7 +12,7 @@ const appJson = JSON.parse(readFileSync(join(root, 'app.json'), 'utf8'));
 const owner = appJson.expo.owner ?? 'vct8888';
 const slug = appJson.expo.slug ?? 'bio-cloud-native';
 const scheme = appJson.expo.scheme ?? 'biocloud';
-const iosBundle = appJson.expo.ios?.bundleIdentifier ?? 'com.sagozen.sitehubman';
+const iosBundle = appJson.expo.ios?.bundleIdentifier ?? 'com.sagozen.oneapp';
 const androidPackage = appJson.expo.android?.package ?? 'com.biocloud.nativeapp';
 
 const expoGoRedirect = `https://auth.expo.io/@${owner}/${slug}`;

@@ -91,6 +91,8 @@ export function CardStackCarousel({
   const [activeIndex, setActiveIndex] = useState(0);
   const listRef = useRef<FlatList<Item>>(null);
 
+
+
   const scroll = useSharedValue(0);
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -188,6 +190,8 @@ function Dot({ active }: { active: boolean }) {
         styles.dot,
         active ? styles.dotActive : styles.dotInactive,
       ]}
+      accessibilityRole="text"
+      accessibilityLabel={active ? 'Active card' : 'Card dot'}
     />
   );
 }

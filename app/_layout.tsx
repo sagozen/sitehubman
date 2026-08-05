@@ -4,6 +4,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { ErrorBoundary } from '@/src/components/ErrorBoundary';
 import { View, Text } from 'react-native';
+import { SeoHead } from '@/src/components/SeoHead';
 
 // Suppress verbose development-only logs to keep console clean
 const originalLog = console.log;
@@ -86,11 +87,16 @@ import { analytics } from '@/src/utils/analytics';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
+import { setupGlobalUnhandledErrorListeners } from '@/src/services/errorLoggingService';
+
+import { HomeSkeleton } from '@/src/components/HomeSkeleton';
+
 export default function RootLayout() {
   const isReady = useCachedResources();
 
   useEffect(() => {
     void SplashScreen.hideAsync().catch(() => undefined);
+    setupGlobalUnhandledErrorListeners();
   }, []);
 
   useEffect(() => {
@@ -98,15 +104,18 @@ export default function RootLayout() {
   }, []);
 
   if (!isReady) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
-        <Text style={{ color: '#FFF' }}>App is loading resources...</Text>
-      </View>
-    );
+    return <HomeSkeleton />;
   }
 
   return (
-    <ErrorBoundary>
+    <>
+      {/* Global default SEO for web — overridden per page by individual SeoHead instances */}
+      <SeoHead
+        title="SiteHub Man – Smart NFC Digital Business Cards"
+        description="Create premium NFC digital business cards. Share your profile via tap, QR, or link. Track every scan in real time. The future of networking."
+        type="website"
+      />
+      <ErrorBoundary>
       <ThemeProvider>
         <AuthProvider>
           <PreferencesProvider>
@@ -165,5 +174,6 @@ export default function RootLayout() {
         </AuthProvider>
       </ThemeProvider>
     </ErrorBoundary>
+    </>
   );
 }

@@ -1,5 +1,5 @@
-import { memo } from 'react';
-import { Image, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import React, { memo, useEffect, useRef } from 'react';
+import { Animated, Image, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { createShadow } from '@/src/utils/shadows';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
@@ -59,39 +59,71 @@ export const NfcGlobalCardFace = memo(function NfcGlobalCardFace({
   const cardSizeStyle = width ? { width, height: height ?? width / 1.586 } : undefined;
   const qrSize = compact ? 26 : 36;
 
+  // Real scannable QR URL fallback if profileUrl is omitted
+  const activeQrUrl = profileUrl.trim()
+    ? profileUrl.trim()
+    : `https://sitehub.app/u/${encodeURIComponent(displayName.toLowerCase().replace(/\s+/g, '-'))}`;
+
   const gradientColors = CARD_GRADIENTS[gradientIndex % CARD_GRADIENTS.length];
 
+  // Subtle breathing scale animation — 60fps native driver
+  const breatheAnim = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (compact) return; // skip animation on compact cards
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(breatheAnim, {
+          toValue: 1.015,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(breatheAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [compact, breatheAnim]);
+
   return (
-    <View style={[styles.card, compact && styles.cardCompact, cardSizeStyle, style]}>
-      <LinearGradient colors={gradientColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-      {backgroundImageUri?.trim() ? (
-        <>
-          <Image source={{ uri: backgroundImageUri.trim() }} style={StyleSheet.absoluteFill} resizeMode="cover" />
-          <LinearGradient
-            colors={['rgba(24,127,196,0.32)', 'rgba(37,150,190,0.44)', 'rgba(0,0,0,0.54)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
-        </>
-      ) : null}
+    <Animated.View style={[styles.card, compact && styles.cardCompact, cardSizeStyle, style, !compact && { transform: [{ scale: breatheAnim }] }]}>
+      {/* Single Solid Deep Color Background */}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0D0D0F' }]} />
       {shimmer ? <HolographicShimmer enabled={!compact} opacity={0.55} /> : null}
+
+      {/* Realistic Metallic Sheen Overlay */}
+      <LinearGradient
+        colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.03)', 'transparent', 'rgba(255,255,255,0.08)']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
       <View style={styles.top}>
         <View style={styles.brand}>
-          <View style={[styles.logo, compact && styles.logoCompact]}>
-            <AppText style={[styles.logoText, compact && styles.logoTextCompact]}>G</AppText>
-          </View>
           <View style={styles.brandCopy}>
             <AppText style={[styles.brandName, compact && styles.brandNameCompact]} numberOfLines={1}>
-              GENNFC
+              GENFC
             </AppText>
             <AppText style={[styles.brandSub, compact && styles.brandSubCompact]} numberOfLines={1}>
               {roleLine || 'Verified identity'}
             </AppText>
           </View>
         </View>
-        <View style={[styles.check, compact && styles.checkCompact]}>
-          <AppIcon name="BadgeCheck" size={compact ? 13 : 17} color="#FFFFFF" />
+        
+        {/* Realistic EMV Metallic Smart Chip Graphic */}
+        <View style={[styles.emvChip, compact && styles.emvChipCompact]}>
+          <LinearGradient
+            colors={['#D4AF37', '#FFDF00', '#AA7C11']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+          <View style={styles.emvChipLine} />
+          <View style={styles.emvChipLineHoriz} />
         </View>
       </View>
 
@@ -116,26 +148,18 @@ export const NfcGlobalCardFace = memo(function NfcGlobalCardFace({
           <ContactLine icon="Mail" text={emailLine} compact={compact} />
           <ContactLine icon="Link" text={webLine} compact={compact} />
         </View>
-        {/* QR tile — real scannable QR when profileUrl is provided, icon fallback otherwise */}
+        {/* QR tile — ALWAYS renders a real scannable SVG QR code */}
         <View style={[styles.qr, compact && styles.qrCompact]}>
-          {profileUrl ? (
-            <QRCode
-              value={profileUrl}
-              size={qrSize}
-              color="#111111"
-              backgroundColor="#FFFFFF"
-              quietZone={2}
-            />
-          ) : (
-            <AppIcon
-              name="QrCode"
-              size={compact ? 22 : 32}
-              color="#111111"
-            />
-          )}
+          <QRCode
+            value={activeQrUrl}
+            size={qrSize}
+            color="#000000"
+            backgroundColor="#FFFFFF"
+            quietZone={2}
+          />
         </View>
       </View>
-    </View>
+    </Animated.View>
   );
 });
 
@@ -162,16 +186,20 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     aspectRatio: 1.586,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 22,
     position: 'relative',
     overflow: 'hidden',
     backgroundColor: '#111111',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
     ...createShadow({ color: '#111111', offset: { width: 0, height: 24 }, opacity: 0.28, radius: 55, elevation: 10 }),
   },
   cardCompact: {
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 13,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     ...createShadow({ color: '#111111', offset: { width: 0, height: 14 }, opacity: 0.28, radius: 28, elevation: 6 }),
   },
   top: {
@@ -233,18 +261,33 @@ const styles = StyleSheet.create({
     fontSize: 7.5,
     marginTop: 1,
   },
-  check: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    alignItems: 'center',
+  emvChip: {
+    width: 32,
+    height: 24,
+    borderRadius: 5,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 223, 0, 0.6)',
+    position: 'relative',
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  checkCompact: {
+  emvChipCompact: {
     width: 22,
-    height: 22,
-    borderRadius: 11,
+    height: 16,
+    borderRadius: 4,
+  },
+  emvChipLine: {
+    position: 'absolute',
+    width: 1,
+    height: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+  },
+  emvChipLineHoriz: {
+    position: 'absolute',
+    height: 1,
+    width: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   person: {
     marginTop: 12,
@@ -262,6 +305,9 @@ const styles = StyleSheet.create({
     fontSize: 28,
     lineHeight: 31,
     fontWeight: '900',
+    textShadowColor: 'rgba(255, 255, 255, 0.75)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
   personNameCompact: {
     fontSize: 16,

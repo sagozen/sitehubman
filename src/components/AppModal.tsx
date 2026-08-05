@@ -57,9 +57,9 @@ export function AppModal({
           {children ? <View style={styles.content}>{children}</View> : null}
 
           <View style={styles.actions}>
-            <AppButton label={cancelLabel} variant="outline" role={role} fullWidth={false} style={styles.action} onPress={onClose} />
+            <AppButton label={cancelLabel} variant="outline" fullWidth={false} style={styles.action} onPress={onClose} />
             {confirmLabel && onConfirm ? (
-              <AppButton label={confirmLabel} role={role} fullWidth={false} style={styles.action} onPress={onConfirm} />
+              <AppButton label={confirmLabel} fullWidth={false} style={styles.action} onPress={onConfirm} />
             ) : null}
           </View>
         </Pressable>

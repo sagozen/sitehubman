@@ -10,6 +10,7 @@ import {
   Easing,
   Image,
   Linking,
+  Modal,
   Pressable,
   Platform,
   Share,
@@ -19,6 +20,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Head from 'expo-router/head';
+import QRCode from 'react-native-qrcode-svg';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { buildCardProfileUrl, buildSlugProfileUrl } from '@/src/constants/publicProfile';
@@ -32,6 +34,7 @@ import type { BioPage } from '@/src/types/models';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { getSocialAvatar } from '@/src/utils/socialMediaAvatars';
+import { HapticTap } from '@/src/utils/haptics';
 
 interface Props {
   slug?: string;
@@ -158,11 +161,13 @@ function LinkButton({
           onError={() => setImageError(true)}
         />
       ) : (
-        <View style={[lb.icon, { backgroundColor: color }]}>
-          <AppIcon name={icon} size={18} color="#FFFFFF" />
+        <View style={lb.icon}>
+          <AppIcon name={icon} size={22} color="#000000" />
         </View>
       )}
-      <AppText style={lb.label} numberOfLines={1}>{label}</AppText>
+      <View style={lb.copyWrap}>
+        <AppText style={lb.label} weight="bold" numberOfLines={1}>{label}</AppText>
+      </View>
       <AppIcon name="ChevronRight" size={16} color="rgba(255, 255, 255, 0.4)" />
     </Pressable>
   );
@@ -172,19 +177,32 @@ const lb = StyleSheet.create({
   btn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 16,
     backgroundColor: '#111114',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 16,
-    minHeight: 64,
+    borderRadius: 20,
+    minHeight: 68,
     paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
   },
-  pressed: { opacity: 0.75, transform: [{ scale: 0.98 }] },
-  icon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  avatar: { width: 36, height: 36, borderRadius: 10 },
-  label: { flex: 1, fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
+  pressed: { opacity: 0.78, transform: [{ scale: 0.98 }] },
+  icon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  avatar: { width: 44, height: 44, borderRadius: 14 },
+  copyWrap: { flex: 1, minWidth: 0 },
+  label: { fontSize: 16, color: '#FFFFFF', letterSpacing: -0.2 },
 });
 
 // ─── Avatar ───────────────────────────────────────────────────────────────────
@@ -229,7 +247,16 @@ export function PublicBioScreen({ slug, cardId }: Props) {
   const [publicUrl, setPublicUrl] = useState('');
   const [resolvedCardId, setResolvedCardId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(true);
+  const [showQrModal, setShowQrModal] = useState(false);
   const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  // Live Edit mode on Bio Page
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editTagline, setEditTagline] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [isSavingBio, setIsSavingBio] = useState(false);
 
   // Load bio data
   useEffect(() => {
@@ -247,6 +274,10 @@ export function PublicBioScreen({ slug, cardId }: Props) {
           setBioPage(resolved.bioPage);
           setPublicUrl(resolved.publicUrl);
           setResolvedCardId(resolved.cardId);
+          setEditName(resolved.bioPage.displayName || '');
+          setEditTagline(resolved.bioPage.tagline || '');
+          setEditPhone(resolved.bioPage.whatsapp || '');
+          setEditEmail(resolved.bioPage.email || '');
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -289,10 +320,6 @@ export function PublicBioScreen({ slug, cardId }: Props) {
   }
 
   async function handleSaveContact() {
-    if (isGuest) {
-      requireAccount(undefined, { message: 'Sign in to save contacts.' });
-      return;
-    }
     trackTap();
     const url = publicUrl || '';
     const vcard = [
@@ -315,6 +342,13 @@ export function PublicBioScreen({ slug, cardId }: Props) {
           <Head>
             <title>{DEFAULT_PUBLIC_TITLE}</title>
             <meta name="description" content={DEFAULT_PUBLIC_DESCRIPTION} />
+            <meta name="robots" content="noindex" />
+            <meta property="og:title" content={DEFAULT_PUBLIC_TITLE} />
+            <meta property="og:description" content={DEFAULT_PUBLIC_DESCRIPTION} />
+            <meta property="og:site_name" content="SiteHub Man" />
+            <meta name="apple-mobile-web-app-capable" content="yes" />
+            <meta name="apple-mobile-web-app-title" content="SiteHub Man" />
+            <meta name="theme-color" content="#000000" />
           </Head>
         ) : null}
         <AppIcon name="Nfc" size={40} color="#0071E3" />
@@ -329,9 +363,12 @@ export function PublicBioScreen({ slug, cardId }: Props) {
       <SafeAreaView style={styles.notFoundSafe}>
         {Platform.OS === 'web' ? (
           <Head>
-            <title>Profile not found | Snap Tap NFC</title>
-            <meta name="description" content="This NFC profile is not available or has not been set up yet." />
-            <meta name="robots" content="noindex" />
+            <title>Profile not found | SiteHub Man</title>
+            <meta name="description" content="This NFC profile link is not available or has not been set up yet." />
+            <meta name="robots" content="noindex, nofollow" />
+            <meta property="og:title" content="Profile not found | SiteHub Man" />
+            <meta property="og:site_name" content="SiteHub Man" />
+            <meta name="theme-color" content="#000000" />
           </Head>
         ) : null}
         <View style={styles.notFoundCenter}>
@@ -387,28 +424,94 @@ export function PublicBioScreen({ slug, cardId }: Props) {
         <Head>
           <title>{metaTitle}</title>
           <meta name="description" content={metaDescription} />
+          <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+          <meta name="author" content={bioPage.displayName} />
           <link rel="canonical" href={canonicalUrl} />
+
+          {/* Open Graph */}
           <meta property="og:type" content="profile" />
           <meta property="og:title" content={metaTitle} />
           <meta property="og:description" content={metaDescription} />
           <meta property="og:url" content={canonicalUrl} />
           <meta property="og:image" content={metaImage} />
+          <meta property="og:image:width" content="1200" />
+          <meta property="og:image:height" content="630" />
+          <meta property="og:image:alt" content={`${bioPage.displayName} NFC digital business card profile`} />
+          <meta property="og:site_name" content="SiteHub Man" />
+          <meta property="og:locale" content="en_US" />
+          {bioPage.displayName ? <meta property="profile:username" content={bioPage.publicSlug ?? slug ?? ''} /> : null}
+
+          {/* Twitter / X Card */}
           <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:site" content="@sitehubman" />
+          <meta name="twitter:creator" content="@sitehubman" />
           <meta name="twitter:title" content={metaTitle} />
           <meta name="twitter:description" content={metaDescription} />
           <meta name="twitter:image" content={metaImage} />
-          <script type="application/ld+json">{JSON.stringify(profileJsonLd)}</script>
+          <meta name="twitter:image:alt" content={`${bioPage.displayName} NFC profile`} />
+
+          {/* Apple / PWA */}
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+          <meta name="apple-mobile-web-app-title" content={bioPage.displayName || 'SiteHub Man'} />
+          <meta name="mobile-web-app-capable" content="yes" />
+          <meta name="theme-color" content="#000000" />
+
+          {/* JSON-LD ProfilePage structured data */}
+          <script type="application/ld+json">{JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'ProfilePage',
+            dateModified: new Date().toISOString(),
+            mainEntity: {
+              '@type': 'Person',
+              name: bioPage.displayName,
+              description: bioPage.tagline || metaDescription,
+              image: bioPage.photoUrl || undefined,
+              url: canonicalUrl,
+              email: bioPage.email || undefined,
+              telephone: bioPage.whatsapp || undefined,
+              identifier: bioPage.publicSlug ?? bioPage.slug ?? slug ?? '',
+              sameAs: [...socialLinks.map((s) => s.url(s.value)), ...customLinks.map((link) => link.url)],
+            },
+            url: canonicalUrl,
+            name: metaTitle,
+            description: metaDescription,
+            image: metaImage,
+            publisher: {
+              '@type': 'Organization',
+              name: 'SiteHub Man',
+              url: 'https://sitehubman.vercel.app',
+            },
+          })}</script>
         </Head>
       ) : null}
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
         {/* ── Top bar ── */}
         <View style={styles.topBar}>
-          <Pressable onPress={() => router.canGoBack() ? router.back() : undefined} style={styles.topBtn} hitSlop={10}>
+          <Pressable
+            onPress={() => {
+              HapticTap.light();
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.push('/');
+              }
+            }}
+            style={styles.topBtn}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
             <AppIcon name="ChevronLeft" size={22} color="#FFFFFF" />
           </Pressable>
-          <Pressable onPress={() => void handleShare()} style={styles.topBtn} hitSlop={10}>
-            <AppIcon name="Share" size={20} color="#FFFFFF" />
-          </Pressable>
+          <View style={styles.topRightBtns}>
+            <Pressable onPress={() => setShowQrModal(true)} style={styles.topBtn} hitSlop={10}>
+              <AppIcon name="QrCode" size={20} color="#FFFFFF" />
+            </Pressable>
+            <Pressable onPress={() => void handleShare()} style={styles.topBtn} hitSlop={10}>
+              <AppIcon name="Share" size={20} color="#FFFFFF" />
+            </Pressable>
+          </View>
         </View>
 
         <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -436,19 +539,81 @@ export function PublicBioScreen({ slug, cardId }: Props) {
             </View>
           </View>
 
-          {/* ── Primary CTA — B&W High-Contrast ── */}
-          <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+          {/* ── Facebook-Style High-Impact Identity Card ── */}
+          <View style={styles.aiCard}>
+            <View style={styles.aiHeader}>
+              <AppIcon name="ShieldCheck" size={16} color="#30D158" />
+              <AppText style={styles.aiTitle}>Verified NFC Profile</AppText>
+            </View>
+            <View style={styles.aiItems}>
+              {bioPage.company ? (
+                <View style={styles.aiRow}>
+                  <AppIcon name="Briefcase" size={14} color="rgba(255, 255, 255, 0.7)" />
+                  <AppText style={styles.aiText}>
+                    <AppText style={styles.aiBold}>{bioPage.company}</AppText>
+                    {bioPage.role ? ` · ${bioPage.role}` : ''}
+                  </AppText>
+                </View>
+              ) : null}
+            </View>
+
+            {/* Quick Action Chips */}
+            <View style={styles.aiPrompts}>
+              <Pressable
+                style={styles.aiPromptChip}
+                onPress={() => {
+                  const email = bioPage.email || '';
+                  if (email) {
+                    const subject = encodeURIComponent(`Connecting with ${bioPage.displayName}`);
+                    void Linking.openURL(`mailto:${email}?subject=${subject}`).catch(() => undefined);
+                  } else {
+                    void handleSaveContact();
+                  }
+                }}
+              >
+                <AppIcon name="Mail" size={13} color="#0071E3" />
+                <AppText style={styles.aiPromptText}>Email</AppText>
+              </Pressable>
+              <Pressable
+                style={styles.aiPromptChip}
+                onPress={() => {
+                  const msg = encodeURIComponent(`Hi ${bioPage.displayName}, great connecting via your NFC card!`);
+                  const phone = bioPage.whatsapp ? bioPage.whatsapp.replace(/\D/g, '') : '';
+                  if (phone) {
+                    void Linking.openURL(`https://wa.me/${phone}?text=${msg}`).catch(() => undefined);
+                  } else {
+                    void handleShare();
+                  }
+                }}
+              >
+                <AppIcon name="Send" size={13} color="#30D158" />
+                <AppText style={styles.aiPromptText}>Message</AppText>
+              </Pressable>
+            </View>
+          </View>
+
+          {/* ── Primary CTA Row (Save Contact & Share Profile) ── */}
+          <View style={styles.ctaRow}>
+            <Animated.View style={[{ flex: 1 }, { transform: [{ scale: pulseAnim }] }]}>
+              <Pressable
+                onPress={() => void handleSaveContact()}
+                style={styles.ctaBtn}
+                accessibilityRole="button"
+              >
+                <AppIcon name="UserPlus" size={20} color="#000000" />
+                <AppText style={styles.ctaBtnT}>Save Contact</AppText>
+              </Pressable>
+            </Animated.View>
+
             <Pressable
-              onPress={() => void handleSaveContact()}
-              style={styles.ctaBtn}
+              onPress={() => void handleShare()}
+              style={styles.walletCtaBtn}
               accessibilityRole="button"
             >
-              <AppIcon name="UserPlus" size={20} color="#000000" />
-              <AppText style={styles.ctaBtnT}>
-                {isGuest ? 'Add to Contacts' : 'Save Contact'}
-              </AppText>
+              <AppIcon name="Share" size={18} color="#FFFFFF" />
+              <AppText style={styles.walletCtaBtnT}>Share</AppText>
             </Pressable>
-          </Animated.View>
+          </View>
 
           {/* ── Social links ── */}
           {socialLinks.length > 0 ? (
@@ -498,6 +663,25 @@ export function PublicBioScreen({ slug, cardId }: Props) {
 
         </IosScrollView>
       </SafeAreaView>
+
+      {/* ── High-Contrast QR Code Full Screen Modal ── */}
+      <Modal visible={showQrModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.qrModalCard}>
+            <View style={styles.qrHeaderRow}>
+              <AppText style={styles.qrModalTitle}>Scan Profile QR</AppText>
+              <Pressable onPress={() => setShowQrModal(false)} style={styles.closeBtn} hitSlop={10}>
+                <AppIcon name="X" size={20} color="#FFFFFF" />
+              </Pressable>
+            </View>
+            <View style={styles.qrContainer}>
+              {canonicalUrl ? <QRCode value={canonicalUrl} size={220} /> : null}
+            </View>
+            <AppText style={styles.qrNameText}>{bioPage.displayName}</AppText>
+            <AppText style={styles.qrSubText}>Scan with phone camera to open profile</AppText>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -530,7 +714,19 @@ const styles = StyleSheet.create({
 
   // Top bar
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, maxWidth: 640, width: '100%', alignSelf: 'center' },
-  topBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#111114', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.12)', alignItems: 'center', justifyContent: 'center' },
+  topRightBtns: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  topBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#111114', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.12)', alignItems: 'center', justifyContent: 'center' },
+  topBtnActive: { backgroundColor: '#0071E3', borderColor: '#0071E3' },
+
+  // Modal
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.85)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  qrModalCard: { width: '100%', maxWidth: 360, backgroundColor: '#111114', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.12)', padding: 24, alignItems: 'center', gap: 16 },
+  qrHeaderRow: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  qrModalTitle: { fontSize: 18, fontWeight: '800', color: '#FFFFFF' },
+  closeBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255, 255, 255, 0.1)', alignItems: 'center', justifyContent: 'center' },
+  qrContainer: { width: 248, height: 248, backgroundColor: '#FFFFFF', borderRadius: 20, padding: 14, alignItems: 'center', justifyContent: 'center' },
+  qrNameText: { fontSize: 20, fontWeight: '800', color: '#FFFFFF', textAlign: 'center' },
+  qrSubText: { fontSize: 12, fontWeight: '500', color: 'rgba(255, 255, 255, 0.5)', textAlign: 'center' },
 
   // Hero
   heroCard: {
@@ -551,7 +747,76 @@ const styles = StyleSheet.create({
   statPill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(255, 255, 255, 0.06)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)' },
   statT: { fontSize: 11, fontWeight: '700' },
 
-  // CTA - Solid White B&W style
+  // Smart AI Card
+  aiCard: {
+    backgroundColor: '#111114',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 113, 227, 0.3)',
+    padding: 16,
+    gap: 10,
+  },
+  aiHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  aiTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0071E3',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  aiItems: {
+    gap: 8,
+  },
+  aiRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  aiText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.85)',
+  },
+  aiBold: {
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  aiPrompts: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 4,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  aiPromptChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  aiPromptText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+
+  // CTA Row
+  ctaRow: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'center',
+  },
   ctaBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -561,7 +826,20 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: '#FFFFFF',
   },
-  ctaBtnT: { fontSize: 16, fontWeight: '800', color: '#000000', letterSpacing: -0.2 },
+  ctaBtnT: { fontSize: 15, fontWeight: '800', color: '#000000', letterSpacing: -0.2 },
+  walletCtaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 54,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  walletCtaBtnT: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
 
   // Sections
   section: { gap: 10 },
