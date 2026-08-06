@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useCallback, useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
@@ -14,10 +14,10 @@ type FlippableNfcCardProps = {
   website?: string;
   profileUrl?: string;
   backgroundImageUri?: string | null;
-  
+
   // Back props
   cardId?: string;
-  
+
   // Size
   width?: number;
   height?: number;
@@ -26,38 +26,42 @@ type FlippableNfcCardProps = {
   gradientIndex?: number;
 };
 
-export function FlippableNfcCard(props: FlippableNfcCardProps) {
+export const FlippableNfcCard = memo(function FlippableNfcCard(props: FlippableNfcCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
-  const [flipAnim] = useState(new Animated.Value(0));
-  const [scaleAnim] = useState(new Animated.Value(1));
 
-  function handleFlip() {
+  // useRef instead of useState — no re-render when Animated.Value changes internally
+  const flipAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  // useCallback — stable function reference, no recreation on re-render
+  const handleFlip = useCallback(() => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    const toValue = isFlipped ? 0 : 1;
-    setIsFlipped(!isFlipped);
-    
-    Animated.sequence([
-      Animated.timing(scaleAnim, {
-        toValue: 0.94,
-        duration: 80,
-        useNativeDriver: true,
-      }),
-      Animated.parallel([
-        Animated.spring(flipAnim, {
-          toValue,
-          friction: 8,
-          tension: 10,
+    setIsFlipped((prev) => {
+      const toValue = prev ? 0 : 1;
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 0.94,
+          duration: 80,
           useNativeDriver: true,
         }),
-        Animated.spring(scaleAnim, {
-          toValue: 1.0,
-          friction: 6,
-          tension: 12,
-          useNativeDriver: true,
-        }),
-      ]),
-    ]).start();
-  }
+        Animated.parallel([
+          Animated.spring(flipAnim, {
+            toValue,
+            friction: 8,
+            tension: 10,
+            useNativeDriver: true,
+          }),
+          Animated.spring(scaleAnim, {
+            toValue: 1.0,
+            friction: 6,
+            tension: 12,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]).start();
+      return !prev;
+    });
+  }, [flipAnim, scaleAnim]);
 
   const frontInterpolate = flipAnim.interpolate({
     inputRange: [0, 1],
@@ -116,7 +120,7 @@ export function FlippableNfcCard(props: FlippableNfcCardProps) {
       </Animated.View>
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

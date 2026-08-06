@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { createShadow } from '@/src/utils/shadows';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -18,7 +19,7 @@ type NfcGlobalCardBackProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-export function NfcGlobalCardBack({
+export const NfcGlobalCardBack = memo(function NfcGlobalCardBack({
   profileUrl = '',
   cardId = '',
   width,
@@ -83,7 +84,7 @@ export function NfcGlobalCardBack({
       </View>
     </View>
   );
-}
+});
 
 function FeatureBadge({ icon, label, compact }: { icon: string; label: string; compact: boolean }) {
   return (

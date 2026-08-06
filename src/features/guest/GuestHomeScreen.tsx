@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Animated,
   Image,
+  InteractionManager,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -333,7 +334,11 @@ export function GuestHomeScreen() {
   }, [isGuest, user?.id]);
 
   useEffect(() => {
-    void loadData();
+    // Render the screen first, then load cloud data after animations settle
+    const task = InteractionManager.runAfterInteractions(() => {
+      void loadData();
+    });
+    return () => task.cancel();
   }, [loadData]);
 
   const recentOrders = useMemo(() => orders.slice(0, 3), [orders]);

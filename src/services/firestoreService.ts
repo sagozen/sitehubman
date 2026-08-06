@@ -635,7 +635,7 @@ export async function createCustomerReorder(sourceOrderId: string): Promise<stri
 
 export async function listOrders(role: UserRole, userId: string, branch?: string): Promise<Order[]> {
   const { listOrdersPage } = await import('@/src/services/orderListService');
-  const page = await listOrdersPage(role, userId, { branch, pageSize: 500 });
+  const page = await listOrdersPage(role, userId, { branch, pageSize: 30 }); // capped — use pagination for full list
   return page.items;
 }
 
