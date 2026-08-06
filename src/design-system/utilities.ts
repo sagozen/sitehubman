@@ -316,10 +316,10 @@ export function row(gap?: SpacingToken, align?: ViewStyle['alignItems']): ViewSt
  * Create absolute positioning
  */
 export function absolute(
-  top?: DimensionValue,
-  right?: DimensionValue,
-  bottom?: DimensionValue,
-  left?: DimensionValue,
+  top?: ViewStyle['top'],
+  right?: ViewStyle['right'],
+  bottom?: ViewStyle['bottom'],
+  left?: ViewStyle['left'],
 ): ViewStyle {
   return {
     position: 'absolute',
