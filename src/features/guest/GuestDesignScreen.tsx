@@ -22,6 +22,7 @@ import { AppText } from '@/src/components/AppText';
 import { AppButton } from '@/src/components/AppButton';
 import { PaymentMethodIcon } from '@/src/components/PaymentMethodIcon';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
+import { FlippableNfcCard } from '@/src/components/FlippableNfcCard';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   formatFooterDualPrice,
@@ -277,11 +278,11 @@ export function GuestDesignScreen() {
 
         <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
-          {/* ── Card Stage ── */}
+          {/* ── Card Stage (Interactive 3D Flip) ── */}
           <View style={styles.previewStage}>
             <View style={styles.glowBackdrop} />
             <View style={styles.previewWrap}>
-              <NfcGlobalCardFace
+              <FlippableNfcCard
                 fullName={name || 'Your Name'}
                 title={jobTitle || 'Verified Member'}
                 company={company || 'NFC Global'}
@@ -293,7 +294,7 @@ export function GuestDesignScreen() {
             </View>
             <View style={styles.liveRow}>
               <View style={styles.liveDot} />
-              <AppText style={styles.previewHint}>Live preview</AppText>
+              <AppText style={styles.previewHint}>Tap card to preview Back & Front</AppText>
             </View>
           </View>
 
