@@ -98,6 +98,7 @@ export const FlippableNfcCard = memo(function FlippableNfcCard(props: FlippableN
           compact={props.compact}
           gradientIndex={props.gradientIndex}
           theme={props.theme}
+          paused={isFlipped}
         />
       </Animated.View>
 

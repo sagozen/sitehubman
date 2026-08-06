@@ -33,6 +33,8 @@ type NfcGlobalCardFaceProps = {
   gradientIndex?: number;
   /** Card color theme: 'dark' (default) or 'light' */
   theme?: 'dark' | 'light';
+  /** Pause animation when card is flipped or offscreen */
+  paused?: boolean;
 };
 
 export const NfcGlobalCardFace = memo(function NfcGlobalCardFace({
@@ -51,6 +53,7 @@ export const NfcGlobalCardFace = memo(function NfcGlobalCardFace({
   style,
   gradientIndex = 0,
   theme,
+  paused = false,
 }: NfcGlobalCardFaceProps) {
   const isLight = theme === 'light' || gradientIndex === 6;
 
@@ -60,7 +63,7 @@ export const NfcGlobalCardFace = memo(function NfcGlobalCardFace({
   // Breathing animation — 60fps native driver
   const breatheAnim = useRef(new Animated.Value(1)).current;
   useEffect(() => {
-    if (compact) return;
+    if (compact || paused) return;
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(breatheAnim, {
@@ -77,7 +80,7 @@ export const NfcGlobalCardFace = memo(function NfcGlobalCardFace({
     );
     loop.start();
     return () => loop.stop();
-  }, [compact, breatheAnim]);
+  }, [compact, paused, breatheAnim]);
 
   return (
     <Animated.View
@@ -121,7 +124,9 @@ export const NfcGlobalCardFace = memo(function NfcGlobalCardFace({
         />
       )}
 
-      {shimmer ? <HolographicShimmer enabled={!compact} opacity={isLight ? 0.25 : 0.4} /> : null}
+      {shimmer ? (
+        <HolographicShimmer enabled={!compact && !paused} opacity={isLight ? 0.25 : 0.4} />
+      ) : null}
 
       {/* Top Header Row */}
       <View style={styles.top}>
