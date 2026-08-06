@@ -27,37 +27,28 @@ export function NfcGlobalCardBack({
   style,
 }: NfcGlobalCardBackProps) {
   const cardSizeStyle = width ? { width, height: height ?? width / 1.586 } : undefined;
-  const resolvedHeight = height ?? (width ? width / 1.586 : undefined);
-  const maxQrSize = resolvedHeight ? Math.max(62, Math.floor(resolvedHeight * 0.32)) : compact ? 74 : 104;
-  const qrSize = compact ? Math.min(74, maxQrSize) : Math.min(104, maxQrSize);
+  const qrUrl = profileUrl.trim() || `https://sitehub.app/u/${cardId || 'nexus-7a3f'}`;
 
   return (
     <View style={[styles.card, compact && styles.cardCompact, cardSizeStyle, style]}>
-      {/* Dark Matte Background */}
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: '#090A0E' }]} />
+      {/* Dark Forged Carbon Background */}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0A0B0E' }]} />
 
-      {/* Subtle Sheen Overlay */}
+      {/* Glossy Metallic Gradient Sheen */}
       <LinearGradient
-        colors={['rgba(255,255,255,0.12)', 'rgba(255,255,255,0.02)', 'transparent']}
+        colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.03)', 'transparent', 'rgba(0,240,255,0.05)']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
       />
 
-      {/* Geometric Mesh Overlay */}
-      <View style={styles.meshPattern} pointerEvents="none">
-        {[...Array(6)].map((_, i) => (
-          <View key={i} style={styles.meshLine} />
-        ))}
-      </View>
-
       {/* Content Layout */}
       <View style={[styles.content, compact && styles.contentCompact]}>
         {/* Top Header */}
         <View style={styles.header}>
           <AppText style={[styles.cardHeaderTitle, compact && styles.cardHeaderTitleCompact]}>
-            N E X U S   C A R D
+            NEXUS CARD
           </AppText>
           <AppText style={[styles.cardHeaderSub, compact && styles.cardHeaderSubCompact]}>
             Future of Connectivity
@@ -67,32 +58,26 @@ export function NfcGlobalCardBack({
         {/* Feature Badges List */}
         <View style={[styles.featureList, compact && styles.featureListCompact]}>
           <FeatureBadge icon="ShieldCheck" label="Secure Chip" compact={compact} />
-          <FeatureBadge icon="Wifi" label="Tap to Connect" compact={compact} />
+          <FeatureBadge icon="Nfc" label="Tap to Connect" compact={compact} />
           <FeatureBadge icon="Zap" label="Energy Harvesting" compact={compact} />
-          <FeatureBadge icon="Leaf" label="Eco Material" compact={compact} />
+          <FeatureBadge icon="Sparkles" label="Eco Material" compact={compact} />
         </View>
 
-        {/* Bottom Section */}
-        <View style={styles.bottomRow}>
-          <AppText style={[styles.sloganText, compact && styles.sloganTextCompact]}>
-            Designed for a <AppText style={styles.sloganBold}>Smarter</AppText> Tomorrow
-          </AppText>
+        {/* Bottom Slogan */}
+        <AppText style={[styles.sloganText, compact && styles.sloganTextCompact]}>
+          Designed for a <AppText style={styles.sloganBold}>Smarter</AppText> Tomorrow
+        </AppText>
 
-          {/* QR Code Bottom Right */}
-          <View style={[styles.qrBox, compact && styles.qrBoxCompact]}>
-            {profileUrl ? (
-              <QRCode
-                value={profileUrl}
-                size={qrSize}
-                color="#090A0E"
-                backgroundColor="#FFFFFF"
-                quietZone={2}
-              />
-            ) : (
-              <View style={[styles.qrPlaceholder, { width: qrSize, height: qrSize }]}>
-                <AppText style={styles.qrPlaceholderText}>QR</AppText>
-              </View>
-            )}
+        {/* Real Scannable QR Code (Right Side Positioned) */}
+        <View style={[styles.qrContainer, compact && styles.qrContainerCompact]}>
+          <View style={styles.qrWhiteFrame}>
+            <QRCode
+              value={qrUrl}
+              size={compact ? 48 : 68}
+              color="#000000"
+              backgroundColor="#FFFFFF"
+              quietZone={2}
+            />
           </View>
         </View>
       </View>
@@ -103,7 +88,9 @@ export function NfcGlobalCardBack({
 function FeatureBadge({ icon, label, compact }: { icon: string; label: string; compact: boolean }) {
   return (
     <View style={styles.badgeRow}>
-      <AppIcon name={icon as any} size={compact ? 10 : 13} color="rgba(255,255,255,0.85)" />
+      <View style={styles.badgeIconDot}>
+        <AppIcon name={icon as any} size={compact ? 9 : 12} color="#00F0FF" />
+      </View>
       <AppText style={[styles.badgeLabel, compact && styles.badgeLabelCompact]}>
         {label}
       </AppText>
@@ -180,51 +167,54 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
+  badgeIconDot: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(0, 240, 255, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   badgeLabel: {
-    color: 'rgba(255, 255, 255, 0.82)',
-    fontSize: 11.5,
+    color: '#FFFFFF',
+    fontSize: 12,
     fontWeight: '600',
     letterSpacing: 0.3,
   },
   badgeLabelCompact: {
-    fontSize: 8,
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
+    fontSize: 8.5,
   },
   sloganText: {
-    color: 'rgba(255, 255, 255, 0.45)',
+    color: 'rgba(255, 255, 255, 0.5)',
     fontSize: 10.5,
     fontWeight: '400',
-    maxWidth: '65%',
+    maxWidth: '60%',
   },
   sloganTextCompact: {
     fontSize: 7.5,
+    maxWidth: '55%',
   },
   sloganBold: {
     color: '#FFFFFF',
     fontWeight: '700',
   },
-  qrBox: {
+  qrContainer: {
+    position: 'absolute',
+    right: 18,
+    bottom: 18,
+  },
+  qrContainerCompact: {
+    right: 12,
+    bottom: 12,
+  },
+  qrWhiteFrame: {
     padding: 4,
     borderRadius: 8,
     backgroundColor: '#FFFFFF',
-  },
-  qrBoxCompact: {
-    padding: 3,
-    borderRadius: 6,
-  },
-  qrPlaceholder: {
-    backgroundColor: '#090A0E',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 4,
-  },
-  qrPlaceholderText: {
-    fontSize: 14,
-    fontWeight: '900',
-    color: '#FFFFFF',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
 });

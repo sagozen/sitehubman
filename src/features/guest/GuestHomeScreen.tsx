@@ -424,39 +424,39 @@ export function GuestHomeScreen() {
                   width={cardWidth}
                   cardId={cloudCard?.cardId ?? '7A3F 8C21 9E4B'}
                 />
-                <AppText style={styles.cardHint}>Tap card to flip preview (Front & Back)</AppText>
+                <View style={styles.cardHintBadge}>
+                  <AppIcon name="RotateCcw" size={14} color="#FFFFFF" />
+                  <AppText style={styles.cardHintText} weight="bold">Tap card to flip preview (3D)</AppText>
+                </View>
               </View>
 
-              {/* ── 3. Wide Long Primary CTA: View Bio Profile ── */}
+              {/* ── 3. Primary CTA: Share Card (Primary Focus) ── */}
               <Pressable
-                onPress={() => {
-                  HapticTap.medium();
-                  router.push('/profile' as any);
-                }}
-                style={({ pressed }) => [styles.wideBioButton, pressed && styles.pressed]}
+                onPress={() => { HapticTap.medium(); handleShare(); }}
+                style={({ pressed }) => [styles.widePrimaryShareBtn, pressed && styles.pressed]}
               >
-                <AppIcon name="UserRound" size={20} color="#000000" />
-                <AppText style={styles.wideBioButtonText} weight="extrabold">
-                  View Bio Profile
+                <AppIcon name="Share2" size={20} color="#000000" />
+                <AppText style={styles.widePrimaryShareText} weight="extrabold">
+                  Share Card
                 </AppText>
                 <AppIcon name="ArrowRight" size={18} color="#000000" />
               </Pressable>
 
-              {/* ── 4. Secondary CTAs: Share Card + Edit Design ── */}
+              {/* ── 4. Secondary CTAs: View Bio Profile + Edit Design ── */}
               <View style={styles.primaryCtaRow}>
                 <Pressable
-                  onPress={() => { HapticTap.medium(); handleShare(); }}
-                  style={({ pressed }) => [styles.ctaShare, pressed && styles.pressed]}
+                  onPress={() => { HapticTap.medium(); router.push('/profile' as any); }}
+                  style={({ pressed }) => [styles.ctaSecondaryBtn, pressed && styles.pressed]}
                 >
-                  <AppIcon name="Share" size={18} color="#000000" />
-                  <AppText style={styles.ctaShareText} weight="extrabold">Share Card</AppText>
+                  <AppIcon name="User" size={16} color="#FFFFFF" />
+                  <AppText style={styles.ctaSecondaryText} weight="bold">View Bio Profile</AppText>
                 </Pressable>
                 <Pressable
                   onPress={() => { HapticTap.medium(); router.push(appRoutes.guestDesign as Href); }}
-                  style={({ pressed }) => [styles.ctaDesign, pressed && styles.pressed]}
+                  style={({ pressed }) => [styles.ctaSecondaryBtn, pressed && styles.pressed]}
                 >
-                  <AppIcon name="PenLine" size={18} color="#FFFFFF" />
-                  <AppText style={styles.ctaDesignText} weight="extrabold">Edit Design</AppText>
+                  <AppIcon name="PenLine" size={16} color="#FFFFFF" />
+                  <AppText style={styles.ctaSecondaryText} weight="bold">Edit Design</AppText>
                 </Pressable>
               </View>
             </>
@@ -1287,22 +1287,59 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
-  // Wide Long View Bio Profile Button
-  wideBioButton: {
+  cardHintBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'center',
+    marginTop: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  cardHintText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    letterSpacing: -0.2,
+  },
+
+  // Wide Primary Share Card Button
+  widePrimaryShareBtn: {
     width: '100%',
-    height: 52,
+    height: 54,
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    marginTop: 18,
+    marginTop: 16,
     marginBottom: 12,
   },
-  wideBioButtonText: {
+  widePrimaryShareText: {
     color: '#000000',
     fontSize: 16,
     letterSpacing: -0.2,
+  },
+
+  // Secondary CTA buttons
+  ctaSecondaryBtn: {
+    flex: 1,
+    height: 48,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  ctaSecondaryText: {
+    color: '#FFFFFF',
+    fontSize: 14,
   },
 });

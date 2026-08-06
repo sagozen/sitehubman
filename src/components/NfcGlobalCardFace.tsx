@@ -106,7 +106,7 @@ export const NfcGlobalCardFace = memo(function NfcGlobalCardFace({
       {/* Top Header Row */}
       <View style={styles.top}>
         <AppText style={[styles.nexusTitle, compact && styles.nexusTitleCompact]}>
-          N E X U S
+          NEXUS
         </AppText>
 
         {/* Top Right Dot Grid Pattern */}
@@ -193,12 +193,12 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '800',
-    letterSpacing: 6,
+    letterSpacing: 3.5,
     opacity: 0.95,
   },
   nexusTitleCompact: {
     fontSize: 11,
-    letterSpacing: 4,
+    letterSpacing: 2,
   },
   dotGrid: {
     width: 36,
