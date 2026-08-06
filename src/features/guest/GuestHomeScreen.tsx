@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
+import { FlippableNfcCard } from '@/src/components/FlippableNfcCard';
 import QRCode from 'react-native-qrcode-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { appRoutes } from '@/src/constants/navigation';
@@ -412,45 +413,36 @@ export function GuestHomeScreen() {
                 </Pressable>
               </View>
 
-              {/* ── 2. NFC Card Hero ── */}
+              {/* ── 2. NFC 3D Card Hero (Flippable Front & Back) ── */}
               <View style={styles.cardContainer}>
-                <Pressable
-                  onPress={() => { HapticTap.medium(); router.push(appRoutes.guestDesign as Href); }}
-                  style={[styles.cardElevation, { width: cardWidth }]}
-                >
-                  <NfcGlobalCardFace
-                    fullName={heroName || undefined}
-                    title={heroTitle || undefined}
-                    phone={heroPhone || undefined}
-                    email={heroEmail || undefined}
-                    gradientIndex={cloudCard?.design?.gradientIndex ?? 0}
-                    width={cardWidth}
-                  />
-                  {/* NFC Live pulse badge */}
-                  <Animated.View style={[styles.liveBadgeWrap, { opacity: pulseOpacity }]}>
-                    <View style={styles.liveDot} />
-                    <AppText style={styles.liveBadgeText}>Live</AppText>
-                  </Animated.View>
-                </Pressable>
-                <AppText style={styles.cardHint}>Tap card to edit design</AppText>
+                <FlippableNfcCard
+                  fullName={heroName || undefined}
+                  title={heroTitle || undefined}
+                  phone={heroPhone || undefined}
+                  email={heroEmail || undefined}
+                  gradientIndex={cloudCard?.design?.gradientIndex ?? 0}
+                  width={cardWidth}
+                  cardId={cloudCard?.cardId ?? '7A3F 8C21 9E4B'}
+                />
+                <AppText style={styles.cardHint}>Tap card to flip preview (Front & Back)</AppText>
               </View>
 
-              {/* ── 3. Stats Row ── */}
-              <View style={styles.statsRow}>
-                {[
-                  { label: 'Total Orders', value: insights?.totalOrders ?? 0, icon: 'CreditCard' as AppIconName },
-                  { label: 'Active', value: insights?.activeOrders ?? 0, icon: 'Nfc' as AppIconName },
-                  { label: 'Delivered', value: insights?.deliveredOrders ?? 0, icon: 'Package' as AppIconName },
-                ].map((stat) => (
-                  <View key={stat.label} style={styles.statCard}>
-                    <AppIcon name={stat.icon} size={16} color="rgba(255,255,255,0.5)" />
-                    <AppText style={styles.statValue} weight="extrabold">{stat.value}</AppText>
-                    <AppText style={styles.statLabel}>{stat.label}</AppText>
-                  </View>
-                ))}
-              </View>
+              {/* ── 3. Wide Long Primary CTA: View Bio Profile ── */}
+              <Pressable
+                onPress={() => {
+                  HapticTap.medium();
+                  router.push('/profile' as any);
+                }}
+                style={({ pressed }) => [styles.wideBioButton, pressed && styles.pressed]}
+              >
+                <AppIcon name="UserRound" size={20} color="#000000" />
+                <AppText style={styles.wideBioButtonText} weight="extrabold">
+                  View Bio Profile
+                </AppText>
+                <AppIcon name="ArrowRight" size={18} color="#000000" />
+              </Pressable>
 
-              {/* ── 4. Primary CTAs: Share Card + Design Card ── */}
+              {/* ── 4. Secondary CTAs: Share Card + Edit Design ── */}
               <View style={styles.primaryCtaRow}>
                 <Pressable
                   onPress={() => { HapticTap.medium(); handleShare(); }}
@@ -467,80 +459,6 @@ export function GuestHomeScreen() {
                   <AppText style={styles.ctaDesignText} weight="extrabold">Edit Design</AppText>
                 </Pressable>
               </View>
-
-              {/* ── 5. Quick Action 2×2 Grid ── */}
-              <AppText style={styles.sectionTitle} weight="extrabold">Quick Actions</AppText>
-              <View style={styles.quickGrid}>
-                {ACTIONS.map((a) => (
-                  <Pressable
-                    key={a.label}
-                    onPress={() => {
-                      HapticTap.light();
-                      if (isGuest && a.label === 'Sample Moments') {
-                        requireAccount(undefined, { message: 'Sign in to see moments capture.' });
-                      } else {
-                        router.push(a.route);
-                      }
-                    }}
-                    style={({ pressed }) => [
-                      styles.quickCard,
-                      { backgroundColor: a.bg },
-                      pressed && styles.actionCardPressed,
-                    ]}
-                  >
-                    <View style={styles.quickCardIcon}>
-                      <AppIcon name={a.icon} size={20} color={a.color} />
-                    </View>
-                    <AppText style={[styles.quickCardLabel, { color: a.color }]} weight="extrabold">
-                      {a.label}
-                    </AppText>
-                    <AppText style={[styles.quickCardSub, { color: a.color === '#FFFFFF' ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.55)' }]}>
-                      {a.subtitle}
-                    </AppText>
-                  </Pressable>
-                ))}
-              </View>
-
-              {/* ── 6. Recent Orders ── */}
-              {!isGuest && recentOrders.length > 0 ? (
-                <View style={styles.ordersSection}>
-                  <View style={styles.sectionHeader}>
-                    <AppText style={styles.sectionTitle} weight="extrabold">Recent Orders</AppText>
-                    <Pressable onPress={() => router.push(appRoutes.guestTrackOrder as Href)}>
-                      <AppText variant="caption" weight="bold" style={{ color: 'rgba(255,255,255,0.5)' }}>View All</AppText>
-                    </Pressable>
-                  </View>
-                  <View style={styles.ordersCard}>
-                    {recentOrders.map((o) => (
-                      <OrderRow
-                        key={o.id}
-                        order={o}
-                        onPress={() => router.push(`/orders/detail/${o.id}` as Href)}
-                      />
-                    ))}
-                  </View>
-                </View>
-              ) : null}
-
-              {/* ── 7. Guest Sign-In Banner ── */}
-              {isGuest ? (
-                <Pressable
-                  onPress={() => requireAccount(undefined, { message: 'Sign in to unlock your full card.' })}
-                  style={styles.guestBanner}
-                >
-                  <View style={styles.guestBannerIcon}>
-                    <AppIcon name="ShieldCheck" size={20} color="#FFFFFF" />
-                  </View>
-                  <View style={styles.guestBannerCopy}>
-                    <AppText variant="bodySmall" weight="bold" style={{ color: INK }}>
-                      Your card is saved locally.
-                    </AppText>
-                    <AppText variant="caption" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                      Sign in to claim it and go live →
-                    </AppText>
-                  </View>
-                </Pressable>
-              ) : null}
             </>
 
           )}
@@ -1367,5 +1285,24 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.5,
+  },
+
+  // Wide Long View Bio Profile Button
+  wideBioButton: {
+    width: '100%',
+    height: 52,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginTop: 18,
+    marginBottom: 12,
+  },
+  wideBioButtonText: {
+    color: '#000000',
+    fontSize: 16,
+    letterSpacing: -0.2,
   },
 });

@@ -7,7 +7,7 @@ import { IosScrollView } from '@/src/components/IosScrollView';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { AppButton } from '@/src/components/AppButton';
-import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
+import { FlippableNfcCard } from '@/src/components/FlippableNfcCard';
 import { PageHeader } from '@/src/components/PageHeader';
 import { appRoutes } from '@/src/constants/navigation';
 import { pageThemes } from '@/src/constants/pageThemes';
@@ -76,7 +76,7 @@ export function CustomerShareScreen() {
         />
 
         <View style={styles.cardWrap}>
-          <NfcGlobalCardFace
+          <FlippableNfcCard
             fullName={displayName}
             title={title}
             phone={bioPage?.whatsapp || user?.phone || undefined}
@@ -84,6 +84,7 @@ export function CustomerShareScreen() {
             profileUrl={profileUrl || undefined}
             gradientIndex={cloudCard?.design?.gradientIndex ?? 0}
             backgroundImageUri={cloudCard?.design?.customImageUri || undefined}
+            cardId={cloudCard?.id ?? '7A3F 8C21 9E4B'}
           />
         </View>
 

@@ -1,0 +1,29 @@
+User-agent: *
+Allow: /
+
+# Block private/admin routes from indexing
+Disallow: /admin
+Disallow: /sales
+Disallow: /account
+Disallow: /payments
+Disallow: /production
+Disallow: /orders
+Disallow: /drafts
+Disallow: /customer
+Disallow: /auth
+Disallow: /(auth)
+Disallow: /signin
+Disallow: /signup
+Disallow: /login
+Disallow: /register
+Disallow: /guest-checkout
+Disallow: /guest-post-login-choice
+Disallow: /icon-preview
+Disallow: /qr-generator
+
+# Allow public profile pages and main navigation
+Allow: /u/
+Allow: /public/
+
+Sitemap: https://sitehubman.vercel.app/_sitemap
+Sitemap: https://sitehubman.vercel.app/sitemap.xml

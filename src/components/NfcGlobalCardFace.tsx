@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useRef } from 'react';
-import { Animated, Image, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Animated, Image, Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { createShadow } from '@/src/utils/shadows';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
@@ -90,290 +90,255 @@ export const NfcGlobalCardFace = memo(function NfcGlobalCardFace({
 
   return (
     <Animated.View style={[styles.card, compact && styles.cardCompact, cardSizeStyle, style, !compact && { transform: [{ scale: breatheAnim }] }]}>
-      {/* Single Solid Deep Color Background */}
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0D0D0F' }]} />
-      {shimmer ? <HolographicShimmer enabled={!compact} opacity={0.55} /> : null}
+      {/* Matte Dark Glass Background */}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: '#090A0E' }]} />
+      {shimmer ? <HolographicShimmer enabled={!compact} opacity={0.4} /> : null}
 
-      {/* Realistic Metallic Sheen Overlay */}
+      {/* Realistic Glass Sheen Overlay */}
       <LinearGradient
-        colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.03)', 'transparent', 'rgba(255,255,255,0.08)']}
+        colors={['rgba(255,255,255,0.16)', 'rgba(255,255,255,0.02)', 'transparent', 'rgba(255,255,255,0.06)']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
       />
+
+      {/* Top Header Row */}
       <View style={styles.top}>
-        <View style={styles.brand}>
-          <View style={styles.brandCopy}>
-            <AppText style={[styles.brandName, compact && styles.brandNameCompact]} numberOfLines={1}>
-              GENFC
-            </AppText>
-            <AppText style={[styles.brandSub, compact && styles.brandSubCompact]} numberOfLines={1}>
-              {roleLine || 'Verified identity'}
+        <AppText style={[styles.nexusTitle, compact && styles.nexusTitleCompact]}>
+          N E X U S
+        </AppText>
+
+        {/* Top Right Dot Grid Pattern */}
+        <View style={styles.dotGrid}>
+          {[...Array(12)].map((_, i) => (
+            <View key={i} style={styles.gridDot} />
+          ))}
+        </View>
+      </View>
+
+      {/* EMV Metallic Smart Chip */}
+      <View style={[styles.emvChip, compact && styles.emvChipCompact]}>
+        <LinearGradient
+          colors={['#D4AF37', '#FFF099', '#997000']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={styles.emvChipLine} />
+        <View style={styles.emvChipLineHoriz} />
+      </View>
+
+      {/* Center-Right Glowing Cyan/Purple NFC Target Ring */}
+      <View style={[styles.nfcHaloRing, compact && styles.nfcHaloRingCompact]}>
+        <LinearGradient
+          colors={['#00F0FF', '#A855F7', '#3B82F6']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.nfcHaloBorder}
+        >
+          <View style={styles.nfcHaloInner}>
+            <AppText style={[styles.nfcHaloText, compact && styles.nfcHaloTextCompact]}>
+              NFC )))
             </AppText>
           </View>
-        </View>
-        
-        {/* Realistic EMV Metallic Smart Chip Graphic */}
-        <View style={[styles.emvChip, compact && styles.emvChipCompact]}>
-          <LinearGradient
-            colors={['#D4AF37', '#FFDF00', '#AA7C11']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
-          <View style={styles.emvChipLine} />
-          <View style={styles.emvChipLineHoriz} />
-        </View>
+        </LinearGradient>
       </View>
 
-      <View style={[styles.person, compact && styles.personCompact]}>
-        <AppText style={[styles.personName, compact && styles.personNameCompact]} numberOfLines={1} adjustsFontSizeToFit>
-          {displayName}
+      {/* Bottom Left Owner & ID Badge */}
+      <View style={[styles.bottomLeft, compact && styles.bottomLeftCompact]}>
+        <AppText style={[styles.ownerName, compact && styles.ownerNameCompact]} numberOfLines={1}>
+          {displayName.toUpperCase()}
         </AppText>
-      </View>
 
-      {/* NFC wave icon — Solar icon, subtle opacity */}
-      <View style={[styles.nfcMark, compact && styles.nfcMarkCompact]} pointerEvents="none">
-        <AppIcon
-          name="Nfc"
-          size={compact ? 22 : 32}
-          color="rgba(255,255,255,0.28)"
-        />
-      </View>
-
-      <View style={[styles.bottom, compact && styles.bottomCompact]}>
-        <View style={styles.info}>
-          <ContactLine icon="Phone" text={phoneLine} compact={compact} />
-          <ContactLine icon="Mail" text={emailLine} compact={compact} />
-          <ContactLine icon="Link" text={webLine} compact={compact} />
-        </View>
-        {/* QR tile — ALWAYS renders a real scannable SVG QR code */}
-        <View style={[styles.qr, compact && styles.qrCompact]}>
-          <QRCode
-            value={activeQrUrl}
-            size={qrSize}
-            color="#000000"
-            backgroundColor="#FFFFFF"
-            quietZone={2}
-          />
+        <View style={styles.idRow}>
+          <View style={styles.idBadgeTag}>
+            <AppText style={styles.idBadgeTagText}>ID</AppText>
+          </View>
+          <AppText style={[styles.idCodeText, compact && styles.idCodeTextCompact]}>
+            7A3F 8C21 9E4B
+          </AppText>
         </View>
       </View>
     </Animated.View>
   );
 });
 
-function ContactLine({
-  icon,
-  text,
-  compact,
-}: {
-  icon: 'Phone' | 'Mail' | 'Link';
-  text: string;
-  compact: boolean;
-}) {
-  return (
-    <View style={styles.contactLine}>
-      <AppIcon name={icon} size={compact ? 7 : 10} color="rgba(255,255,255,0.92)" />
-      <AppText style={[styles.contactText, compact && styles.contactTextCompact]} numberOfLines={1}>
-        {text}
-      </AppText>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   card: {
     width: '100%',
     aspectRatio: 1.586,
-    borderRadius: 16,
+    borderRadius: 18,
     padding: 22,
     position: 'relative',
     overflow: 'hidden',
-    backgroundColor: '#111111',
+    backgroundColor: '#090A0E',
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
-    ...createShadow({ color: '#111111', offset: { width: 0, height: 24 }, opacity: 0.28, radius: 55, elevation: 10 }),
+    borderColor: 'rgba(255, 255, 255, 0.16)',
+    ...createShadow({ color: '#000000', offset: { width: 0, height: 24 }, opacity: 0.4, radius: 55, elevation: 12 }),
   },
   cardCompact: {
     borderRadius: 12,
-    padding: 13,
+    padding: 14,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.14)',
-    ...createShadow({ color: '#111111', offset: { width: 0, height: 14 }, opacity: 0.28, radius: 28, elevation: 6 }),
   },
   top: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     zIndex: 2,
   },
-  brand: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 11,
-    flex: 1,
-    minWidth: 0,
-  },
-  logo: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoCompact: {
-    width: 28,
-    height: 28,
-    borderRadius: 10,
-  },
-  logoText: {
-    color: '#111111',
-    fontWeight: '800',
-    fontSize: 22,
-    lineHeight: 26,
-  },
-  logoTextCompact: {
-    fontSize: 16,
-    lineHeight: 19,
-  },
-  brandCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  brandName: {
+  nexusTitle: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '800',
-    letterSpacing: 0,
+    letterSpacing: 6,
+    opacity: 0.95,
   },
-  brandNameCompact: {
-    fontSize: 9.5,
+  nexusTitleCompact: {
+    fontSize: 11,
+    letterSpacing: 4,
   },
-  brandSub: {
-    color: 'rgba(255,255,255,0.58)',
-    fontSize: 10,
-    fontWeight: '600',
-    marginTop: 3,
+  dotGrid: {
+    width: 36,
+    height: 24,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    justifyContent: 'flex-end',
+    opacity: 0.25,
   },
-  brandSubCompact: {
-    fontSize: 7.5,
-    marginTop: 1,
+  gridDot: {
+    width: 2.5,
+    height: 2.5,
+    borderRadius: 1.25,
+    backgroundColor: '#FFFFFF',
   },
   emvChip: {
-    width: 32,
-    height: 24,
-    borderRadius: 5,
+    width: 38,
+    height: 28,
+    borderRadius: 6,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 223, 0, 0.6)',
+    borderColor: 'rgba(255, 240, 150, 0.8)',
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 18,
+    zIndex: 2,
   },
   emvChipCompact: {
-    width: 22,
-    height: 16,
+    width: 26,
+    height: 19,
     borderRadius: 4,
+    marginTop: 10,
   },
   emvChipLine: {
     position: 'absolute',
     width: 1,
     height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   emvChipLineHoriz: {
     position: 'absolute',
     height: 1,
     width: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
-  person: {
-    marginTop: 12,
+  nfcHaloRing: {
+    position: 'absolute',
+    right: 20,
+    top: 24,
+    bottom: 24,
+    aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     zIndex: 2,
-    paddingRight: 52,
-    paddingBottom: 52, // reserve room for bottom info rows
   },
-  personCompact: {
-    marginTop: 6,
-    paddingRight: 34,
-    paddingBottom: 28,
+  nfcHaloRingCompact: {
+    right: 12,
+    top: 14,
+    bottom: 14,
   },
-  personName: {
+  nfcHaloBorder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 999,
+    padding: 2.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  nfcHaloInner: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: '#090A0E',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  nfcHaloText: {
     color: '#FFFFFF',
-    fontSize: 28,
-    lineHeight: 31,
-    fontWeight: '900',
-    textShadowColor: 'rgba(255, 255, 255, 0.75)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 1.5,
   },
-  personNameCompact: {
-    fontSize: 16,
-    lineHeight: 18,
+  nfcHaloTextCompact: {
+    fontSize: 9,
+    letterSpacing: 1,
   },
-  nfcMark: {
+  bottomLeft: {
     position: 'absolute',
-    right: 20,
-    top: '35%',
-    zIndex: 1,
-  },
-  nfcMarkCompact: {
-    right: 13,
-    top: '33%',
-  },
-  bottom: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
-    bottom: 18,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    gap: 12,
+    left: 22,
+    bottom: 20,
     zIndex: 2,
+    gap: 5,
   },
-  bottomCompact: {
-    left: 13,
-    right: 13,
-    bottom: 11,
-    gap: 7,
+  bottomLeftCompact: {
+    left: 14,
+    bottom: 12,
+    gap: 3,
   },
-  info: {
-    flex: 1,
-    minWidth: 0,
+  ownerName: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 2,
+  },
+  ownerNameCompact: {
+    fontSize: 10,
+    letterSpacing: 1.5,
+  },
+  idRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
   },
-  contactLine: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    minWidth: 0,
+  idBadgeTag: {
+    backgroundColor: 'rgba(0, 240, 255, 0.15)',
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 3,
+    borderWidth: 0.5,
+    borderColor: '#00F0FF',
   },
-  contactText: {
-    flex: 1,
-    minWidth: 0,
-    color: 'rgba(255,255,255,0.76)',
-    fontSize: 10.5,
-    lineHeight: 13,
+  idBadgeTagText: {
+    color: '#00F0FF',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  idCodeText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 11,
     fontWeight: '600',
+    letterSpacing: 1.5,
+    fontFamily: Platform.select({ ios: 'SF-Mono', android: 'monospace', default: 'monospace' }),
   },
-  contactTextCompact: {
-    fontSize: 7.5,
-    lineHeight: 9,
-  },
-  qr: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  qrCompact: {
-    width: 30,
-    height: 30,
-    borderRadius: 7,
+  idCodeTextCompact: {
+    fontSize: 8,
+    letterSpacing: 1,
   },
 });

@@ -3,6 +3,7 @@ import { createShadow } from '@/src/utils/shadows';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
 import { AppText } from '@/src/components/AppText';
+import { AppIcon } from '@/src/components/AppIcon';
 
 const CARD_GRADIENT = ['#111111', '#202124', '#2596BE'] as const;
 
@@ -32,70 +33,80 @@ export function NfcGlobalCardBack({
 
   return (
     <View style={[styles.card, compact && styles.cardCompact, cardSizeStyle, style]}>
-      <LinearGradient colors={CARD_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+      {/* Dark Matte Background */}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: '#090A0E' }]} />
 
-      {/* Magnetic stripe - placed higher up */}
-      <View style={[styles.magStripe, compact && styles.magStripeCompact]} />
+      {/* Subtle Sheen Overlay */}
+      <LinearGradient
+        colors={['rgba(255,255,255,0.12)', 'rgba(255,255,255,0.02)', 'transparent']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
 
-      {/* Card content */}
+      {/* Geometric Mesh Overlay */}
+      <View style={styles.meshPattern} pointerEvents="none">
+        {[...Array(6)].map((_, i) => (
+          <View key={i} style={styles.meshLine} />
+        ))}
+      </View>
+
+      {/* Content Layout */}
       <View style={[styles.content, compact && styles.contentCompact]}>
-        <View style={[styles.mainRow, compact && styles.mainRowCompact]}>
-          {/* QR code section on the left */}
-          <View style={[styles.qrSection, compact && styles.qrSectionCompact]}>
-            <View style={[styles.qrBox, compact && styles.qrBoxCompact, { width: qrSize + 16, height: qrSize + 16 }]}>
-              {profileUrl ? (
-                <QRCode
-                  value={profileUrl}
-                  size={qrSize}
-                  color="#111111"
-                  backgroundColor="#FFFFFF"
-                  quietZone={4}
-                />
-              ) : (
-                <View style={[styles.qrPlaceholder, { width: qrSize, height: qrSize }]}>
-                  <AppText style={styles.qrPlaceholderText}>QR</AppText>
-                </View>
-              )}
-            </View>
-            <AppText style={[styles.qrLabel, compact && styles.qrLabelCompact]}>
-              SCAN TO VIEW
-            </AppText>
-          </View>
-
-          {/* Branding, Title, and Note on the right */}
-          <View style={[styles.rightColumn, compact && styles.rightColumnCompact]}>
-            <View style={[styles.brandRow, compact && styles.brandRowCompact]}>
-              <View style={[styles.brandMark, compact && styles.brandMarkCompact]}>
-                <AppText style={[styles.brandMarkText, compact && styles.brandMarkTextCompact]}>N</AppText>
-              </View>
-              <AppText style={[styles.brandText, compact && styles.brandTextCompact]}>
-                NFC GLOBAL
-              </AppText>
-            </View>
-
-            <AppText style={[styles.noteText, compact && styles.noteTextCompact]} numberOfLines={3}>
-              Scan the QR code or tap the card to connect instantly and view the digital profile.
-            </AppText>
-
-            {cardId ? (
-              <AppText style={[styles.cardId, compact && styles.cardIdCompact]}>
-                ID: {cardId}
-              </AppText>
-            ) : null}
-          </View>
+        {/* Top Header */}
+        <View style={styles.header}>
+          <AppText style={[styles.cardHeaderTitle, compact && styles.cardHeaderTitleCompact]}>
+            N E X U S   C A R D
+          </AppText>
+          <AppText style={[styles.cardHeaderSub, compact && styles.cardHeaderSubCompact]}>
+            Future of Connectivity
+          </AppText>
         </View>
 
-        {!compact ? (
-          <View style={styles.instructions}>
-            <View style={styles.instructionRow}>
-              <View style={styles.instructionDot} />
-              <AppText style={styles.instructionText}>
-                Tap or scan back of card to connect
-              </AppText>
-            </View>
+        {/* Feature Badges List */}
+        <View style={[styles.featureList, compact && styles.featureListCompact]}>
+          <FeatureBadge icon="ShieldCheck" label="Secure Chip" compact={compact} />
+          <FeatureBadge icon="Wifi" label="Tap to Connect" compact={compact} />
+          <FeatureBadge icon="Zap" label="Energy Harvesting" compact={compact} />
+          <FeatureBadge icon="Leaf" label="Eco Material" compact={compact} />
+        </View>
+
+        {/* Bottom Section */}
+        <View style={styles.bottomRow}>
+          <AppText style={[styles.sloganText, compact && styles.sloganTextCompact]}>
+            Designed for a <AppText style={styles.sloganBold}>Smarter</AppText> Tomorrow
+          </AppText>
+
+          {/* QR Code Bottom Right */}
+          <View style={[styles.qrBox, compact && styles.qrBoxCompact]}>
+            {profileUrl ? (
+              <QRCode
+                value={profileUrl}
+                size={qrSize}
+                color="#090A0E"
+                backgroundColor="#FFFFFF"
+                quietZone={2}
+              />
+            ) : (
+              <View style={[styles.qrPlaceholder, { width: qrSize, height: qrSize }]}>
+                <AppText style={styles.qrPlaceholderText}>QR</AppText>
+              </View>
+            )}
           </View>
-        ) : null}
+        </View>
       </View>
+    </View>
+  );
+}
+
+function FeatureBadge({ icon, label, compact }: { icon: string; label: string; compact: boolean }) {
+  return (
+    <View style={styles.badgeRow}>
+      <AppIcon name={icon as any} size={compact ? 10 : 13} color="rgba(255,255,255,0.85)" />
+      <AppText style={[styles.badgeLabel, compact && styles.badgeLabelCompact]}>
+        {label}
+      </AppText>
     </View>
   );
 }
@@ -104,211 +115,116 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     aspectRatio: 1.586,
-    borderRadius: 16,
+    borderRadius: 18,
     position: 'relative',
     overflow: 'hidden',
-    backgroundColor: '#111111',
-    ...createShadow({ color: '#111111', offset: { width: 0, height: 24 }, opacity: 0.28, radius: 55, elevation: 10 }),
+    backgroundColor: '#090A0E',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.16)',
+    ...createShadow({ color: '#000000', offset: { width: 0, height: 24 }, opacity: 0.4, radius: 55, elevation: 12 }),
   },
   cardCompact: {
-    borderRadius: 10,
-    ...createShadow({ color: '#111111', offset: { width: 0, height: 14 }, opacity: 0.28, radius: 28, elevation: 6 }),
+    borderRadius: 12,
   },
-
-  // Magnetic stripe (placed higher up)
-  magStripe: {
-    position: 'absolute',
-    top: 20,
-    left: 0,
-    right: 0,
-    height: 38,
-    backgroundColor: '#000000',
+  meshPattern: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.05,
+    flexDirection: 'column',
+    justifyContent: 'space-around',
   },
-  magStripeCompact: {
-    top: 12,
-    height: 24,
+  meshLine: {
+    width: '100%',
+    height: 1,
+    backgroundColor: '#FFFFFF',
   },
-
-  // Content
   content: {
     flex: 1,
     padding: 22,
-    paddingTop: 74, // reduced from 108 to start right below the high-aligned magnetic stripe
-    gap: 12,
+    justifyContent: 'space-between',
     zIndex: 2,
   },
   contentCompact: {
-    padding: 14,
-    paddingTop: 44, // reduced from 62
-    gap: 7,
+    padding: 13,
   },
-
-  // Horizontal Row
-  mainRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 18,
-    flex: 1,
+  header: {
+    gap: 3,
   },
-  mainRowCompact: {
-    gap: 10,
-  },
-
-  // QR section (left)
-  qrSection: {
-    alignItems: 'center',
-    gap: 6,
-  },
-  qrSectionCompact: {
-    gap: 4,
-  },
-  qrBox: {
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 8,
-  },
-  qrBoxCompact: {
-    borderRadius: 10,
-    padding: 6,
-  },
-  qrPlaceholder: {
-    backgroundColor: '#E5E7EB',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-  },
-  qrPlaceholderText: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: '#9CA3AF',
-  },
-  qrLabel: {
-    fontSize: 8,
-    fontWeight: '800',
-    color: 'rgba(255,255,255,0.72)',
-    letterSpacing: 0.9,
-    textAlign: 'center',
-  },
-  qrLabelCompact: {
-    fontSize: 7,
-    letterSpacing: 0.8,
-  },
-
-  // Right column
-  rightColumn: {
-    flex: 1,
-    gap: 6,
-    justifyContent: 'center',
-  },
-  rightColumnCompact: {
-    gap: 4,
-  },
-
-  // Note text (in gray)
-  noteText: {
-    color: 'rgba(255,255,255,0.62)', // Gray tone
-    fontSize: 11,
-    lineHeight: 15,
-    fontWeight: '500',
-  },
-  noteTextCompact: {
-    fontSize: 7.5,
-    lineHeight: 10,
-  },
-
-  // Card ID
-  cardId: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.48)', // Premium light gray
-    letterSpacing: 1.2,
-    marginTop: 2,
-  },
-  cardIdCompact: {
-    fontSize: 7,
-    letterSpacing: 0.8,
-    marginTop: 1,
-  },
-
-  // Branding mark (logo box)
-  brandMark: {
-    width: 26,
-    height: 26,
-    borderRadius: 8,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  brandMarkCompact: {
-    width: 18,
-    height: 18,
-    borderRadius: 5,
-  },
-  brandMarkText: {
-    color: '#111111',
-    fontWeight: '900',
-    fontSize: 14,
-    lineHeight: 16,
-  },
-  brandMarkTextCompact: {
-    fontSize: 10,
-    lineHeight: 11,
-  },
-  brandText: {
+  cardHeaderTitle: {
     color: '#FFFFFF',
     fontSize: 13,
-    lineHeight: 16,
-    fontWeight: '900',
-    letterSpacing: 1.3,
+    fontWeight: '800',
+    letterSpacing: 3,
   },
-  brandTextCompact: {
-    fontSize: 9,
-    lineHeight: 11,
-    letterSpacing: 0.9,
+  cardHeaderTitleCompact: {
+    fontSize: 9.5,
+    letterSpacing: 2,
   },
-  brandRow: {
+  cardHeaderSub: {
+    color: 'rgba(255, 255, 255, 0.55)',
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  cardHeaderSubCompact: {
+    fontSize: 8,
+  },
+  featureList: {
+    gap: 8,
+    marginVertical: 4,
+  },
+  featureListCompact: {
+    gap: 4,
+    marginVertical: 2,
+  },
+  badgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  brandRowCompact: {
-    gap: 6,
+  badgeLabel: {
+    color: 'rgba(255, 255, 255, 0.82)',
+    fontSize: 11.5,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
-
-  // Instructions
-  instructions: {
-    gap: 6,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.10)',
-    marginTop: 'auto',
+  badgeLabelCompact: {
+    fontSize: 8,
   },
-  instructionsCompact: {
-    gap: 4,
-    paddingTop: 6,
-  },
-  instructionRow: {
+  bottomRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+  },
+  sloganText: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 10.5,
+    fontWeight: '400',
+    maxWidth: '65%',
+  },
+  sloganTextCompact: {
+    fontSize: 7.5,
+  },
+  sloganBold: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  qrBox: {
+    padding: 4,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  qrBoxCompact: {
+    padding: 3,
+    borderRadius: 6,
+  },
+  qrPlaceholder: {
+    backgroundColor: '#090A0E',
     alignItems: 'center',
-    gap: 7,
+    justifyContent: 'center',
+    borderRadius: 4,
   },
-  instructionDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.48)',
-  },
-  instructionText: {
-    flex: 1,
-    color: 'rgba(255,255,255,0.58)',
-    fontSize: 9,
-    lineHeight: 12,
-    fontWeight: '500',
-  },
-  instructionTextCompact: {
-    fontSize: 7,
-    lineHeight: 9,
+  qrPlaceholderText: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#FFFFFF',
   },
 });
