@@ -100,9 +100,9 @@ export interface AppButtonV2Props extends Omit<PressableProps, 'style' | 'childr
 // ═══════════════════════════════════════════════════════════════════════════
 
 const SIZE_CONFIG = {
-  sm: { token: 'sm' as const, paddingToken: 3, radiusToken: 'md' as const, iconSize: tokens.iconSize.sm },
-  md: { token: 'md' as const, paddingToken: 4, radiusToken: 'lg' as const, iconSize: tokens.iconSize.md },
-  lg: { token: 'lg' as const, paddingToken: 5, radiusToken: 'xl' as const, iconSize: tokens.iconSize.lg },
+  sm: { token: 'sm' as const, paddingToken: 3 as const, radiusToken: 'md' as const, iconSize: tokens.iconSize.sm },
+  md: { token: 'md' as const, paddingToken: 4 as const, radiusToken: 'lg' as const, iconSize: tokens.iconSize.md },
+  lg: { token: 'lg' as const, paddingToken: 5 as const, radiusToken: 'xl' as const, iconSize: tokens.iconSize.lg },
 };
 
 // ═══════════════════════════════════════════════════════════════════════════

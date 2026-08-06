@@ -179,7 +179,7 @@ export function DesignSystemShowcase() {
           </MonoText>
           <View style={gap(4)}>
             <AppCardV2 elevation="flat">
-              <MonoText variant="bodyEmphasis" weight="semibold">
+              <MonoText variant="body" weight="semibold">
                 Flat Card
               </MonoText>
               <MonoText variant="caption" tone="muted">
@@ -188,7 +188,7 @@ export function DesignSystemShowcase() {
             </AppCardV2>
 
             <AppCardV2 elevation="subtle">
-              <MonoText variant="bodyEmphasis" weight="semibold">
+              <MonoText variant="body" weight="semibold">
                 Subtle Card
               </MonoText>
               <MonoText variant="caption" tone="muted">
@@ -197,7 +197,7 @@ export function DesignSystemShowcase() {
             </AppCardV2>
 
             <AppCardV2 elevation="elevated">
-              <MonoText variant="bodyEmphasis" weight="semibold">
+              <MonoText variant="body" weight="semibold">
                 Elevated Card
               </MonoText>
               <MonoText variant="caption" tone="muted">
@@ -206,7 +206,7 @@ export function DesignSystemShowcase() {
             </AppCardV2>
 
             <AppCardV2 elevation="floating">
-              <MonoText variant="bodyEmphasis" weight="semibold">
+              <MonoText variant="body" weight="semibold">
                 Floating Card
               </MonoText>
               <MonoText variant="caption" tone="muted">
@@ -251,7 +251,7 @@ export function DesignSystemShowcase() {
             onPress={() => Alert.alert('Card pressed!')}
           >
             <View style={row(3, 'center')}>
-              <MonoText variant="bodyEmphasis" weight="semibold" style={{ flex: 1 }}>
+              <MonoText variant="body" weight="semibold" style={{ flex: 1 }}>
                 Tap this card
               </MonoText>
               <MonoText variant="caption" tone="muted">
@@ -270,7 +270,7 @@ export function DesignSystemShowcase() {
             elevation="elevated"
             header={
               <View style={row(3, 'center')}>
-                <MonoText variant="h3" weight="semibold" style={{ flex: 1 }}>
+                <MonoText variant="title3" weight="semibold" style={{ flex: 1 }}>
                   Order #1234
                 </MonoText>
                 <MonoText variant="caption" tone="muted">
@@ -442,14 +442,14 @@ export function DesignSystemShowcase() {
           <MonoText variant="display" weight="bold">
             Display Text (32px)
           </MonoText>
-          <MonoText variant="h1" weight="semibold">
-            Heading 1 (24px)
+          <MonoText variant="title1" weight="semibold">
+            Title 1 (32px)
           </MonoText>
-          <MonoText variant="h2" weight="semibold">
-            Heading 2 (20px)
+          <MonoText variant="title2" weight="semibold">
+            Title 2 (24px)
           </MonoText>
-          <MonoText variant="h3" weight="semibold">
-            Heading 3 (17px)
+          <MonoText variant="title3" weight="semibold">
+            Title 3 (19px)
           </MonoText>
           <MonoText variant="body">
             Body text (15px) - The quick brown fox jumps over the lazy dog

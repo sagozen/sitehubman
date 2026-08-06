@@ -19,11 +19,12 @@ import { MonoText } from '@/src/components/MonoText';
 import { monoRadius, monoSpace } from '@/src/design-system/monochrome';
 import { usePreferences } from '@/src/hooks/usePreferences';
 
-interface AppInputProps extends Omit<TextInputProps, 'style'> {
+interface AppInputProps extends TextInputProps {
   label: string;
   error?: string;
   helperText?: string;
   containerStyle?: StyleProp<ViewStyle>;
+  style?: StyleProp<any>;
 }
 
 export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
@@ -32,6 +33,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
     error,
     helperText,
     containerStyle,
+    style,
     onBlur,
     onFocus,
     value = '',
@@ -110,6 +112,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
           style={[
             styles.input,
             { color: isDark ? '#FFFFFF' : '#27272A' },
+            style,
           ]}
           {...props}
         />

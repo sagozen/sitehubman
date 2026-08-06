@@ -36,6 +36,8 @@ import { usePreferences } from '@/src/hooks/usePreferences';
 export type CardElevation = 'flat' | 'subtle' | 'elevated' | 'floating';
 
 export interface AppCardV2Props {
+  /** Card content */
+  children?: ReactNode;
   /** Elevation level - controls shadow */
   elevation?: CardElevation;
   /** Border radius token */
@@ -213,7 +215,7 @@ export function MetricCardV2({
     <AppCardV2 elevation="subtle" radius="xl" padding={4} onPress={onPress}>
       <View style={{ gap: tokens.spacing[3] }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <View style={{ color: getColor('inkSecondary', mode) }}>
+          <View>
             {/* Label would go here with proper Text component */}
           </View>
           {icon}
