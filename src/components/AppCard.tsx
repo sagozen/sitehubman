@@ -1,39 +1,70 @@
-import { PropsWithChildren } from 'react';
-import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
-import { GlassSurface } from '@/src/components/GlassSurface';
-import { RoleThemeKey, theme } from '@/src/constants/theme';
+/**
+ * AppCard — backward-compatible monochrome card wrapper.
+ * Hairline border by default, sharp 14-radius. Elevated for floating contexts.
+ * Drop-in replacement for the legacy glass card.
+ */
+import { memo, type PropsWithChildren } from 'react';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+
+import { monoRadius, monoSpace } from '@/src/design-system/monochrome';
+import { usePreferences } from '@/src/hooks/usePreferences';
 
 interface AppCardProps {
-  role?: RoleThemeKey;
   elevated?: boolean;
   style?: StyleProp<ViewStyle>;
   contentStyle?: StyleProp<ViewStyle>;
+  bordered?: boolean;
+  pad?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
+  radius?: number;
 }
 
-export function AppCard({
+const padMap = {
+  none: 0,
+  sm: monoSpace[3],
+  md: monoSpace[4],
+  lg: monoSpace[5],
+  xl: monoSpace[6],
+};
+
+function AppCardRaw({
   children,
-  role: _role = 'default',
   elevated = false,
+  bordered = true,
+  pad = 'md',
+  radius = monoRadius.xl,
   style,
   contentStyle,
 }: PropsWithChildren<AppCardProps>) {
-  void _role;
+  const { isDark } = usePreferences();
+
+  const surface = isDark ? '#131316' : '#FFFFFF';
+  const hairline = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(10,10,11,0.06)';
 
   return (
-    <GlassSurface
-      elevated={elevated}
-      intensity={elevated ? 'strong' : 'medium'}
-      borderRadius={theme.radius.xl}
-      style={[!elevated && theme.shadows.control, style]}
-      contentStyle={[styles.pad, contentStyle]}
+    <View
+      style={[
+        {
+          borderRadius: radius,
+          padding: padMap[pad],
+          backgroundColor: surface,
+          borderWidth: bordered ? 0.5 : 0,
+          borderColor: hairline,
+          ...(elevated
+            ? {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.06,
+                shadowRadius: 16,
+                elevation: 2,
+              }
+            : null),
+        },
+        style,
+      ]}
     >
-      {children}
-    </GlassSurface>
+      <View style={contentStyle}>{children}</View>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  pad: {
-    padding: theme.spacing.comfort,
-  },
-});
+export const AppCard = memo(AppCardRaw);

@@ -76,7 +76,7 @@ function MonoTextRaw({
 
   const toneColor =
     color ??
-    (tone === 'inverse' ? 'var(--mono-inverse, #FFFFFF)' : undefined);
+    (tone === 'inverse' ? '#FFFFFF' : undefined);
 
   return (
     <Text
@@ -86,10 +86,11 @@ function MonoTextRaw({
         styles.base,
         variantStyle,
         { fontFamily, fontWeight: weightMap[resolvedWeight] },
-        tone === 'primary' && { color: 'var(--mono-text, #27272A)' },
-        tone === 'muted' && { color: 'var(--mono-muted, #52525B)' },
-        tone === 'tertiary' && { color: 'var(--mono-tertiary, #A1A1AA)' },
-        tone === 'inverse' && { color: toneColor ?? '#FFFFFF' },
+        // Color resolution — explicit color wins, then tone, else fallback
+        !color && tone === 'primary' && { color: '#27272A' },
+        !color && tone === 'muted' && { color: '#52525B' },
+        !color && tone === 'tertiary' && { color: '#A1A1AA' },
+        !color && tone === 'inverse' && { color: toneColor ?? '#FFFFFF' },
         color && { color },
         uppercase && { textTransform: 'uppercase' },
         underline && { textDecorationLine: 'underline' },

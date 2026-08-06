@@ -1,245 +1,160 @@
-import React, { forwardRef, useState, useEffect, useRef, useImperativeHandle } from 'react';
+/**
+ * AppInput — sharp monochrome input.
+ * Hairline border, generous height, no decorative floating labels.
+ * Single accent focus state, monochrome placeholder.
+ */
+import { forwardRef, memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
-  StyleProp,
+  Platform,
+  Pressable,
   StyleSheet,
   TextInput,
-  TextInputProps,
-  TextStyle,
+  type TextInputProps,
   View,
-  Pressable,
-  ScrollView,
-  ViewStyle,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native';
-import { createShadow } from '@/src/utils/shadows';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  interpolate,
-} from 'react-native-reanimated';
-import { AppText } from '@/src/components/AppText';
-import { theme } from '@/src/constants/theme';
+
+import { MonoText } from '@/src/components/MonoText';
+import { monoRadius, monoSpace } from '@/src/design-system/monochrome';
 import { usePreferences } from '@/src/hooks/usePreferences';
 
-interface AppInputProps extends Omit<TextInputProps, 'style' | 'role'> {
+interface AppInputProps extends Omit<TextInputProps, 'style'> {
   label: string;
   error?: string;
   helperText?: string;
-  suggestions?: string[];
-  style?: StyleProp<TextStyle>;
   containerStyle?: StyleProp<ViewStyle>;
 }
-
-const SPRING_CONFIG = {
-  damping: 18,
-  stiffness: 150,
-  mass: 0.8,
-};
 
 export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
   {
     label,
     error,
     helperText,
-    suggestions,
-    style,
     containerStyle,
     onBlur,
     onFocus,
-    onChangeText,
     value = '',
     placeholder,
     ...props
   },
-  ref
+  ref,
 ) {
+  const { colors, isDark } = usePreferences();
+  const inputRef = useRef<TextInput | null>(null);
   const [focused, setFocused] = useState(false);
-  const { colors } = usePreferences();
-  const inputRef = useRef<TextInput>(null);
-
-  // Expose ref to parent
-  useImperativeHandle(ref, () => inputRef.current as TextInput);
-
-  // Shared value for label animation (0 = inside, 1 = floating)
-  const isFloating = useSharedValue(value.length > 0 || focused ? 1 : 0);
 
   useEffect(() => {
-    isFloating.value = withSpring(value.length > 0 || focused ? 1 : 0, SPRING_CONFIG);
-  }, [value, focused]);
+    inputRef.current = ref && typeof ref === 'object' ? (ref as any).current ?? null : null;
+  }, [ref]);
 
-  const animatedLabelStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        {
-          translateY: interpolate(isFloating.value, [0, 1], [14, -8]),
-        },
-        {
-          translateX: interpolate(isFloating.value, [0, 1], [0, -4]),
-        },
-        {
-          scale: interpolate(isFloating.value, [0, 1], [1, 0.82]),
-        },
-      ],
-    };
-  });
+  const handleFocus = useCallback(
+    (e: any) => {
+      setFocused(true);
+      onFocus?.(e);
+    },
+    [onFocus],
+  );
 
-  const handleFocus = (e: any) => {
-    setFocused(true);
-    onFocus?.(e);
-  };
+  const handleBlur = useCallback(
+    (e: any) => {
+      setFocused(false);
+      onBlur?.(e);
+    },
+    [onBlur],
+  );
 
-  const handleBlur = (e: any) => {
-    setFocused(false);
-    onBlur?.(e);
-  };
-
-  const handleSuggestionPress = (text: string) => {
-    onChangeText?.(text);
-    inputRef.current?.focus();
-  };
-
-  // UI colors based on focus and error states
-  const borderHighlightColor = error
-    ? theme.colors.danger
+  const borderColor = error
+    ? '#000000'
     : focused
-    ? colors.primary
-    : colors.border;
-
-  const backgroundFill = colors.surfaceSoft;
+      ? '#000000'
+      : isDark
+        ? 'rgba(255,255,255,0.12)'
+        : 'rgba(10,10,11,0.12)';
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {/* Input container with floating label */}
+      {label ? (
+        <MonoText variant="subhead" weight="medium" tone="muted" style={styles.label}>
+          {label}
+        </MonoText>
+      ) : null}
+
       <Pressable
         onPress={() => inputRef.current?.focus()}
+        android_ripple={null}
         style={[
-          styles.fieldWrapper,
+          styles.field,
           {
-            backgroundColor: backgroundFill,
-            borderColor: borderHighlightColor,
+            backgroundColor: isDark ? '#0F0F12' : '#F4F4F5',
+            borderColor,
+            borderWidth: focused ? 1.5 : 1,
           },
-          focused && styles.focusedBorder,
         ]}
       >
-        {/* Animated Floating Label */}
-        <Animated.View
-          pointerEvents="none"
-          style={[styles.labelContainer, animatedLabelStyle]}
-        >
-          <AppText
-            style={{
-              color: error ? theme.colors.danger : focused ? colors.primary : colors.textMuted,
-              fontWeight: '500',
-            }}
-          >
-            {label}
-          </AppText>
-        </Animated.View>
-
         <TextInput
-          ref={inputRef}
+          ref={(node) => {
+            inputRef.current = node;
+            if (typeof ref === 'function') ref(node);
+            else if (ref) (ref as any).current = node;
+          }}
           value={value}
-          onChangeText={onChangeText}
-          placeholder={focused ? placeholder : ''}
-          placeholderTextColor={colors.textMuted}
-          selectionColor={colors.primary}
+          placeholder={placeholder}
+          placeholderTextColor={isDark ? 'rgba(255,255,255,0.4)' : 'rgba(60,60,67,0.5)'}
+          selectionColor={colors.primary ?? '#000000'}
+          cursorColor="#000000"
           onBlur={handleBlur}
           onFocus={handleFocus}
+          allowFontScaling
+          maxFontSizeMultiplier={1.3}
           style={[
             styles.input,
-            {
-              color: colors.typographyColor,
-            },
-            style,
+            { color: isDark ? '#FFFFFF' : '#27272A' },
           ]}
           {...props}
         />
       </Pressable>
 
-      {/* Smart validation / Helper text */}
       {error ? (
-        <AppText variant="caption" style={{ color: theme.colors.danger, marginTop: 4, paddingLeft: 4 }}>
+        <MonoText variant="footnote" tone="muted" style={styles.error}>
           {error}
-        </AppText>
+        </MonoText>
       ) : helperText ? (
-        <AppText variant="caption" tone="muted" style={{ marginTop: 4, paddingLeft: 4 }}>
+        <MonoText variant="footnote" tone="muted" style={styles.error}>
           {helperText}
-        </AppText>
+        </MonoText>
       ) : null}
-
-      {/* Suggestions Row */}
-      {suggestions && suggestions.length > 0 && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.suggestionsScroll}
-        >
-          {suggestions.map((suggestion) => (
-            <Pressable
-              key={suggestion}
-              onPress={() => handleSuggestionPress(suggestion)}
-              style={({ pressed }) => [
-                styles.suggestionChip,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  opacity: pressed ? 0.72 : 1,
-                },
-              ]}
-            >
-              <AppText variant="caption" weight="medium">
-                {suggestion}
-              </AppText>
-            </Pressable>
-          ))}
-        </ScrollView>
-      )}
     </View>
   );
 });
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 8,
+    marginBottom: monoSpace[3],
   },
-  fieldWrapper: {
-    borderWidth: 1.5,
-    borderRadius: 16, // Extra rounded Apple/Stripe style
-    minHeight: 56,
-    paddingHorizontal: 16,
-    justifyContent: 'flex-end',
-    position: 'relative',
-    ...createShadow({
-      color: '#000',
-      offset: { width: 0, height: 1 },
-      opacity: 0.05,
-      radius: 2,
-      elevation: 1,
+  label: {
+    marginBottom: monoSpace[2],
+    letterSpacing: 0.2,
+  },
+  field: {
+    minHeight: 52,
+    paddingHorizontal: monoSpace[4],
+    borderRadius: monoRadius.lg,
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 2 },
+      default: { elevation: 1 },
     }),
   },
-  focusedBorder: {
-    borderWidth: 2,
-  },
-  labelContainer: {
-    position: 'absolute',
-    left: 16,
-    top: 0,
-  },
   input: {
-    minHeight: 38,
-    paddingTop: 14,
-    paddingBottom: 6,
-    ...theme.typography.variants.body,
+    fontSize: 16,
+    lineHeight: 22,
+    fontWeight: '500',
+    letterSpacing: -0.2,
+    paddingVertical: Platform.select({ ios: 14, default: 8 }),
   },
-  suggestionsScroll: {
-    gap: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 4,
-  },
-  suggestionChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 99,
-    borderWidth: 1,
+  error: {
+    marginTop: monoSpace[2],
+    paddingLeft: 2,
   },
 });

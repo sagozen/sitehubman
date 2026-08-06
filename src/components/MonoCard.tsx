@@ -55,9 +55,9 @@ function MonoCardRaw({
   const containerStyle: ViewStyle = {
     borderRadius: radiusValue,
     padding,
-    backgroundColor: 'var(--mono-surface, #FFFFFF)',
+    backgroundColor: '#FFFFFF',
     borderWidth: bordered ? 0.5 : 0,
-    borderColor: 'var(--mono-hairline, rgba(10,10,11,0.06))',
+    borderColor: 'rgba(10,10,11,0.06)',
   };
 
   if (variant === 'flat') {
@@ -116,7 +116,7 @@ export function MonoRow({ icon, title, subtitle, trailing, onPress, showChevron,
       onPress={onPress as any}
       style={({ pressed }: any) => [
         rowStyles.row,
-        pressed && { backgroundColor: 'var(--mono-sunken, #F4F4F5)' },
+        pressed && { backgroundColor: '#F4F4F5' },
       ]}
     >
       {icon ? <View style={rowStyles.icon}>{icon}</View> : null}
@@ -156,6 +156,6 @@ const rowStyles = StyleSheet.create({
     left: monoSpace[5],
     right: 0,
     height: 0.5,
-    backgroundColor: 'var(--mono-hairline, rgba(10,10,11,0.06))',
+    backgroundColor: 'rgba(10,10,11,0.06)',
   },
 });

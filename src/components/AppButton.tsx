@@ -25,7 +25,7 @@ import Animated, {
 
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { MonoText } from '@/src/components/MonoText';
-import { monoMotion, monoRadius, monoSpace } from '@/src/design-system/monochrome';
+import { monoMotion, monoSpace } from '@/src/design-system/monochrome';
 import { Haptics, HapticTap } from '@/src/utils/haptics';
 import { usePreferences } from '@/src/hooks/usePreferences';
 

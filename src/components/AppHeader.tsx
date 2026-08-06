@@ -1,118 +1,138 @@
-import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { BlurView } from 'expo-blur';
+/**
+ * AppHeader — minimal, monochrome navigation header.
+ * Sharp edges, hairline divider, system back chevron. No glass blur by default —
+ * blur is reserved for floating contexts. Hairline 1px border reads sharper
+ * than blur on translucent backgrounds.
+ */
 import { router } from 'expo-router';
+import { memo } from 'react';
+import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+
 import { AppAvatar } from '@/src/components/AppAvatar';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
-import { AppText } from '@/src/components/AppText';
-import { glassTheme } from '@/src/design-system/glass';
-import { RoleThemeKey, theme } from '@/src/constants/theme';
-import { usePreferences } from '@/src/hooks/usePreferences';
+import { MonoText } from '@/src/components/MonoText';
+import { monoMotion, monoSpace } from '@/src/design-system/monochrome';
 
 interface AppHeaderProps {
   title: string;
   subtitle?: string;
-  role?: RoleThemeKey;
   showBack?: boolean;
   onBackPress?: () => void;
   actionIcon?: AppIconName;
   onActionPress?: () => void;
   avatarName?: string;
   style?: StyleProp<ViewStyle>;
+  /** Hide the bottom hairline (for floating/scroll-overlap contexts) */
+  noDivider?: boolean;
 }
 
-export function AppHeader({
+const AppHeaderRaw = ({
   title,
   subtitle,
-  role = 'default',
   showBack = false,
   onBackPress,
   actionIcon,
   onActionPress,
   avatarName,
   style,
-}: AppHeaderProps) {
-  const { colors, isDark } = usePreferences();
-  void role;
-  const backgroundColor = colors.surfaceGlass;
-  const titleColor = colors.typographyColor;
-  const subtitleColor = colors.textMuted;
-
+  noDivider = false,
+}: AppHeaderProps) => {
   return (
-    <BlurView
-      intensity={glassTheme.blur.subtle}
-      tint={isDark ? 'dark' : 'light'}
-      style={[styles.header, { backgroundColor }, style]}
-    >
+    <View style={[styles.header, !noDivider && styles.divider, style]}>
       {showBack ? (
         <Pressable
+          onPress={onBackPress ?? (() => {
+            if (router.canGoBack()) router.back();
+            else router.replace('/' as any);
+          })}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+          android_ripple={null}
           style={({ pressed }) => [
             styles.iconButton,
-            { backgroundColor: pressed ? colors.textPrimary : colors.surfaceSoft },
+            pressed && { opacity: monoMotion.pressOpacity },
+            Platform.OS === 'web' && ({ outlineStyle: 'none' } as any),
           ]}
-          onPress={onBackPress ?? (() => router.back())}
-          hitSlop={8}
         >
-          {({ pressed }) => (
-            <AppIcon name="ChevronLeft" size={22} color={pressed ? colors.textInverse : colors.textPrimary} />
-          )}
+          <AppIcon name="ChevronLeft" size={22} />
         </Pressable>
-      ) : null}
+      ) : (
+        <View style={styles.iconButtonPlaceholder} />
+      )}
 
       <View style={styles.copy}>
         {subtitle ? (
-          <AppText variant="caption" weight="regular" style={{ color: subtitleColor }}>
-            {subtitle}
-          </AppText>
+          <MonoText variant="micro" tone="muted">
+            {subtitle.toUpperCase()}
+          </MonoText>
         ) : null}
-        <AppText variant="h1" weight="regular" style={[styles.title, { color: titleColor }]} numberOfLines={1}>
+        <MonoText
+          variant="title2"
+          weight="bold"
+          numberOfLines={1}
+          style={styles.title}
+        >
           {title}
-        </AppText>
+        </MonoText>
       </View>
 
       {actionIcon && onActionPress ? (
         <Pressable
+          onPress={onActionPress}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Action"
+          android_ripple={null}
           style={({ pressed }) => [
             styles.iconButton,
-            { backgroundColor: pressed ? colors.textPrimary : colors.surfaceSoft },
+            pressed && { opacity: monoMotion.pressOpacity },
           ]}
-          onPress={onActionPress}
-          hitSlop={8}
         >
-          {({ pressed }) => (
-            <AppIcon name={actionIcon} color={pressed ? colors.textInverse : colors.textPrimary} />
-          )}
+          <AppIcon name={actionIcon} />
         </Pressable>
       ) : avatarName ? (
-        <AppAvatar name={avatarName} role={role} size={theme.avatarSize.chat} />
-      ) : null}
-    </BlurView>
+        <AppAvatar name={avatarName} size={36} />
+      ) : (
+        <View style={styles.iconButtonPlaceholder} />
+      )}
+    </View>
   );
-}
+};
+
+export const AppHeader = memo(AppHeaderRaw);
 
 const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.sm,
-    overflow: 'hidden',
+    paddingHorizontal: monoSpace[4],
+    paddingTop: monoSpace[3],
+    paddingBottom: monoSpace[3],
+    backgroundColor: 'transparent',
+  },
+  divider: {
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(10,10,11,0.06)',
   },
   copy: {
     flex: 1,
     minWidth: 0,
-    gap: 2,
-  },
-  iconButton: {
-    width: 48,
-    height: 48,
-    borderRadius: theme.radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.surface,
+    gap: monoSpace[1],
+    paddingHorizontal: monoSpace[2],
   },
   title: {
-    letterSpacing: 0,
+    letterSpacing: -0.5,
+  },
+  iconButton: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 18,
+  },
+  iconButtonPlaceholder: {
+    width: 36,
+    height: 36,
   },
 });

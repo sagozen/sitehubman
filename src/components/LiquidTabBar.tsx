@@ -212,14 +212,14 @@ type NavItem = RouteItem;
 const CONSUMER_TAB_ORDER = ['index', 'connections', 'share', 'profile', 'settings'] as const;
 
 export function LiquidTabBar({ state, navigation, descriptors }: Props) {
-  const { colors } = usePreferences();
+  const { colors, isDark } = usePreferences();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const tabRoutes = state.routes;
   const activeRoute = tabRoutes[state.index];
 
-  const capsuleWidth = 44;
-  const capsuleHeight = 44;
+  const capsuleWidth = 60;
+  const capsuleHeight = 46;
   const activeOptions = descriptors?.[activeRoute?.key]?.options ?? {};
   const isLegacyConnectionsRoute = activeRoute?.name === 'attendance';
   const shouldHide =
@@ -305,21 +305,22 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
   const items: NavItem[] = visibleRoutes.map((route: any) => ({ type: 'route', route }) as RouteItem);
   const activeIndex = items.findIndex((item) => item.route.name === activeRoute?.name);
 
-  // Animated sliding center value for the active circle indicator
-  // Total capsule width is 320. Padding horizontal is 8. Available inner width is 304.
-  // 5 tabs mean each tab is 60.8 wide.
-  // Circle size is 44x44, so left offset inside tab is (60.8 - 44)/2 = 8.4.
-  // Capsule offset is 8 + index * 60.8 + 8.4
-  const animCenterX = useRef(new Animated.Value(8 + Math.max(0, activeIndex) * 60.8 + 8.4)).current;
+  // Animated sliding center value for the active pill indicator
+  // Capsule width = 360, horizontal padding 8 → inner = 344
+  // 5 tabs at 68 wide each. Pill width = 60. Inner offset per tab = (68 - 60) / 2 = 4.
+  // Capsule target offset = 8 + index * 68 + 4
+  const TAB_WIDTH = 68;
+  const PILL_WIDTH = 60;
+  const animCenterX = useRef(new Animated.Value(8 + Math.max(0, activeIndex) * TAB_WIDTH + 4)).current;
 
   useEffect(() => {
     if (activeIndex !== -1) {
-      const targetX = 8 + activeIndex * 60.8 + 8.4;
+      const targetX = 8 + activeIndex * TAB_WIDTH + (TAB_WIDTH - PILL_WIDTH) / 2;
       Animated.spring(animCenterX, {
         toValue: targetX,
         useNativeDriver: true,
-        tension: 140,
-        friction: 8.5,
+        tension: 160,
+        friction: 9,
       }).start();
     }
   }, [activeIndex, animCenterX]);
@@ -340,14 +341,20 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
     );
   }
 
+  const ink = isDark ? '#FFFFFF' : '#000000';
+  const surface = isDark ? 'rgba(20,20,22,0.92)' : 'rgba(255,255,255,0.92)';
+  const hairline = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(10,10,11,0.08)';
+  const pillBg = isDark ? '#26262B' : '#F4F4F5';
+
   return (
-    <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-      <View style={styles.capsuleBar}>
-        {/* Animated Sliding Background Circle */}
+    <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+      <View style={[styles.capsuleBar, { backgroundColor: surface, borderColor: hairline }]}>
+        {/* Animated Sliding Background Pill */}
         {activeIndex !== -1 && (
           <Animated.View
             style={[
-              styles.slidingActiveCircle,
+              styles.slidingActivePill,
+              { backgroundColor: pillBg },
               {
                 width: capsuleWidth,
                 height: capsuleHeight,
@@ -357,11 +364,12 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
           />
         )}
 
-        {items.map((item, index) => {
+        {items.map((item) => {
           const route = item.route;
           const isActive = activeRoute?.name === route.name;
           const isLegacyAttendance = route.name === 'attendance';
-          
+          const muted = isActive ? ink : (isDark ? 'rgba(255,255,255,0.45)' : 'rgba(60,60,67,0.45)');
+
           return (
             <Pressable
               key={route.key}
@@ -378,39 +386,15 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
             >
               <View style={styles.iconContainer}>
                 {route.name === 'index' ? (
-                  <Ionicons
-                    name={isActive ? 'home' : 'home-outline'}
-                    size={22}
-                    color={isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.45)'}
-                  />
+                  <Ionicons name={isActive ? 'home' : 'home-outline'} size={22} color={muted} />
                 ) : route.name === 'connections' || isLegacyAttendance ? (
-                  <Ionicons
-                    name={isActive ? 'people-circle' : 'people-circle-outline'}
-                    size={22}
-                    color={isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.45)'}
-                  />
+                  <Ionicons name={isActive ? 'people' : 'people-outline'} size={22} color={muted} />
                 ) : route.name === 'share' ? (
-                  <Ionicons
-                    name={isActive ? 'qr-code' : 'qr-code-outline'}
-                    size={22}
-                    color={isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.45)'}
-                  />
+                  <Ionicons name={isActive ? 'qr-code' : 'qr-code-outline'} size={22} color={muted} />
                 ) : route.name === 'profile' ? (
-                  <Ionicons
-                    name={isActive ? 'heart' : 'heart-outline'}
-                    size={22}
-                    color={isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.45)'}
-                  />
+                  <Ionicons name={isActive ? 'heart' : 'heart-outline'} size={22} color={muted} />
                 ) : route.name === 'settings' ? (
-                  <View
-                    style={[
-                      styles.settingsDot,
-                      {
-                        borderWidth: isActive ? 2 : 0,
-                        borderColor: '#FFFFFF',
-                      },
-                    ]}
-                  />
+                  <Ionicons name={isActive ? 'settings' : 'settings-outline'} size={22} color={muted} />
                 ) : null}
               </View>
             </Pressable>
@@ -439,20 +423,18 @@ const styles = StyleSheet.create({
     pointerEvents: 'box-none',
   },
   capsuleBar: {
-    width: 320,
+    width: 360,
     height: 58,
     borderRadius: 29,
-    backgroundColor: 'rgba(28, 28, 32, 0.72)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 0.5,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 8,
     justifyContent: 'space-between',
-    ...createShadow({ color: '#000000', offset: { width: 0, height: 6 }, opacity: 0.1, radius: 16, elevation: 12 }),
+    ...createShadow({ color: '#000000', offset: { width: 0, height: 12 }, opacity: 0.16, radius: 32, elevation: 16 }),
   },
   tabItem: {
-    width: 60.8,
+    width: 68,
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
@@ -464,17 +446,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  slidingActiveCircle: {
+  slidingActivePill: {
     position: 'absolute',
     top: 6,
     borderRadius: 22,
-    backgroundColor: '#2D2E30',
     zIndex: 1,
-  },
-  settingsDot: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#3900FF',
   },
 });
