@@ -1,1031 +1,589 @@
-/**
- * SettingsScreen — Redesigned with Savee Dark Premium aesthetic.
- */
-import { IosScrollView } from '@/src/components/IosScrollView';
-import { router } from 'expo-router';
-import { memo, useCallback, useState, useEffect, useMemo } from 'react';
-import { Alert, Pressable, StyleSheet, View, Switch } from 'react-native';
+import React, { memo, useCallback, useEffect, useState } from 'react';
+import {
+  Alert,
+  InteractionManager,
+  Pressable,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Switch,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
+import { router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
-import { AppearanceSegment } from '@/src/components/AppearanceSegment';
-import { AppSelect } from '@/src/components/AppSelect';
 import { AppText } from '@/src/components/AppText';
 import { PageHeader } from '@/src/components/PageHeader';
-import { appRoutes } from '@/src/constants/navigation';
+import { languageOptions } from '@/src/constants/options';
 import { pageThemes } from '@/src/constants/pageThemes';
-import {
-  languageOptions,
-  profileThemeOptions,
-  typographyColorOptions,
-} from '@/src/constants/options';
-import { SettingsMessageBanner } from '@/src/features/settings/components/SettingsChrome';
 import { useAppTheme } from '@/src/hooks/useAppTheme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
-import { loadGuestCloudCard, loadCustomerCloudCard } from '@/src/services/guestCardDraftService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { UiPreferences } from '@/src/types/models';
-import {
-  getRoleLabel,
-  getRoleScopeSummary,
-} from '@/src/utils/roleCapabilities';
-import { HapticTap } from '@/src/utils/haptics';
+import { loadCustomerCloudCard, loadGuestCloudCard } from '@/src/services/guestCardDraftService';
+import { getStoredGuestCardId } from '@/src/services/guestSessionService';
+import { getRoleLabel } from '@/src/utils/roleCapabilities';
 
-// ─── Savee Dark Theme Design tokens ──────────────────────────────────────────
-const PAGE_THEME = pageThemes.settings;
-const T = {
-  primary: PAGE_THEME.accent,
-  success: '#30D158',
-  warning: '#FF9F0A',
-  destructive: '#FF453A',
-  bg: PAGE_THEME.canvas,
-  card: PAGE_THEME.surface,
-  ink: PAGE_THEME.text,
-  muted: PAGE_THEME.muted,
-  brand: PAGE_THEME.accent,
-  border: PAGE_THEME.border,
-};
+const THEME = pageThemes.settings;
 
-type SavingKey =
-  | 'language'
-  | 'colorMode'
-  | 'profileTheme'
-  | 'typographyColor'
-  | 'reset'
-  | 'signOut'
-  | 'card'
-  | null;
-type Msg = { type: 'success' | 'error'; text: string } | null;
-
-// ─── CardControlRow ───────────────────────────────────────────────────────────
-const CardControlRow = memo(function CardControlRow({
-  cardId,
-  name,
-  isPrimary,
-  isHidden,
-  onSetPrimary,
-  onToggleHide,
-  onUpgrade,
-}: {
-  cardId: string;
-  name: string;
-  isPrimary: boolean;
-  isHidden: boolean;
-  onSetPrimary: (id: string) => void;
-  onToggleHide: (id: string) => void;
-  onUpgrade: (id: string) => void;
-}) {
-  return (
-    <View style={ccr.wrap}>
-      <View style={ccr.left}>
-        <View style={[ccr.indicator, isPrimary && ccr.indicatorActive]} />
-        <View style={ccr.info}>
-          <AppText style={ccr.name} numberOfLines={1} weight="bold">
-            {name}
-          </AppText>
-          <AppText style={ccr.status}>
-            {isPrimary
-              ? 'Primary card · shown on home'
-              : isHidden
-                ? 'Hidden'
-                : 'Active'}
-          </AppText>
-        </View>
-      </View>
-      <View style={ccr.actions}>
-        {/* Set Primary */}
-        {!isPrimary ? (
-          <Pressable
-            style={({ pressed }) => [
-              ccr.btn,
-              ccr.btnPrimary,
-              pressed && ccr.btnPressed,
-            ]}
-            onPress={() => {
-              HapticTap.light();
-              onSetPrimary(cardId);
-            }}
-          >
-            <AppText style={ccr.btnPrimaryText} weight="bold">
-              Set primary
-            </AppText>
-          </Pressable>
-        ) : (
-          <View style={[ccr.btn, ccr.btnActive]}>
-            <AppIcon
-              name="Star"
-              size={12}
-              color="#FFFFFF"
-              variant="solar-duotone"
-            />
-            <AppText style={ccr.btnActiveText} weight="bold">
-              Primary
-            </AppText>
-          </View>
-        )}
-
-        {/* Hide / Show */}
-        <Pressable
-          style={({ pressed }) => [
-            ccr.btn,
-            ccr.btnGhost,
-            pressed && ccr.btnPressed,
-          ]}
-          onPress={() => {
-            HapticTap.light();
-            onToggleHide(cardId);
-          }}
-        >
-          <AppText style={ccr.btnGhostText} weight="bold">
-            {isHidden ? 'Show' : 'Hide'}
-          </AppText>
-        </Pressable>
-
-        {/* Upgrade */}
-        <Pressable
-          style={({ pressed }) => [
-            ccr.btn,
-            ccr.btnUpgrade,
-            pressed && ccr.btnPressed,
-          ]}
-          onPress={() => {
-            HapticTap.medium();
-            onUpgrade(cardId);
-          }}
-        >
-          <AppText style={ccr.btnUpgradeText} weight="bold">
-            Upgrade
-          </AppText>
-        </Pressable>
-      </View>
-    </View>
-  );
-});
-
-const ccr = StyleSheet.create({
-  wrap: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    gap: 12,
-  },
-  left: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  indicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#3A3A3C',
-  },
-  indicatorActive: { backgroundColor: '#FFFFFF' },
-  info: { flex: 1, gap: 2 },
-  name: { fontSize: 15, color: T.ink },
-  status: { fontSize: 12, color: T.muted },
-
-  // Action buttons row
-  actions: { flexDirection: 'row', gap: 8, paddingLeft: 18 },
-  btn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    minHeight: 30,
-  },
-  btnPressed: { opacity: 0.72, transform: [{ scale: 0.97 }] },
-
-  // Set primary — Savee white pill
-  btnPrimary: {
-    backgroundColor: '#FFFFFF',
-  },
-  btnPrimaryText: { fontSize: 12, color: '#000000' },
-
-  // Active primary state
-  btnActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderWidth: 0,
-  },
-  btnActiveText: { fontSize: 12, color: '#FFFFFF' },
-
-  // Ghost — hide/show
-  btnGhost: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 0,
-  },
-  btnGhostText: { fontSize: 12, color: '#FFFFFF' },
-
-  // Upgrade — glass outline
-  btnUpgrade: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 0,
-  },
-  btnUpgradeText: { fontSize: 12, color: '#FFFFFF' },
-});
-
-// ─── SettingsRow ──────────────────────────────────────────────────────────────
-const SettingsRow = memo(function SettingsRow({
-  icon,
-  title,
-  subtitle,
-  value,
-  onPress,
-  disabled,
-  destructive,
-  last,
-  isSwitch,
-  switchValue,
-  onSwitchChange,
-}: {
+// ─── Reusable Clean Settings Row ──────────────────────────────────────────────
+type SettingRowProps = {
   icon: AppIconName;
+  iconColor?: string;
   title: string;
   subtitle?: string;
-  value?: string;
+  valueText?: string;
   onPress?: () => void;
-  disabled?: boolean;
-  destructive?: boolean;
-  last?: boolean;
-  isSwitch?: boolean;
-  switchValue?: boolean;
-  onSwitchChange?: (val: boolean) => void;
-}) {
+  rightElement?: React.ReactNode;
+  isDestructive?: boolean;
+};
+
+const SettingRow = memo(function SettingRow({
+  icon,
+  iconColor = '#00F0FF',
+  title,
+  subtitle,
+  valueText,
+  onPress,
+  rightElement,
+  isDestructive = false,
+}: SettingRowProps) {
   return (
     <Pressable
       onPress={() => {
-        if (isSwitch && onSwitchChange) {
-          onSwitchChange(!switchValue);
-        } else if (onPress) {
-          HapticTap.light();
+        if (onPress) {
+          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           onPress();
         }
       }}
-      disabled={disabled || (!onPress && !isSwitch)}
-      style={({ pressed }) => [
-        sr.row,
-        !last && sr.border,
-        pressed && (onPress || isSwitch) && sr.pressed,
-        disabled && sr.disabled,
-      ]}
+      disabled={!onPress && !rightElement}
+      style={({ pressed }) => [styles.row, pressed && onPress && styles.rowPressed]}
     >
-      <AppIcon
-        name={icon}
-        size={20}
-        color={destructive ? T.destructive : '#FFFFFF'}
-      />
-      <View style={sr.titleWrap}>
-        <AppText style={[sr.title, destructive && sr.titleDanger]} weight="bold">
+      <View style={[styles.iconBox, isDestructive && styles.iconBoxDestructive]}>
+        <AppIcon
+          name={icon}
+          size={18}
+          color={isDestructive ? '#FF453A' : iconColor}
+        />
+      </View>
+
+      <View style={styles.rowContent}>
+        <AppText
+          style={[styles.rowTitle, isDestructive && styles.rowTitleDestructive]}
+          weight="medium"
+        >
           {title}
         </AppText>
         {subtitle ? (
-          <AppText style={sr.subtitle} numberOfLines={1}>
+          <AppText style={styles.rowSubtitle} numberOfLines={1}>
             {subtitle}
           </AppText>
         ) : null}
       </View>
 
-      {isSwitch ? (
-        <Switch
-          value={switchValue}
-          onValueChange={onSwitchChange}
-          trackColor={{ false: 'rgba(255,255,255,0.15)', true: '#007AFF' }}
-          thumbColor="#FFFFFF"
-        />
-      ) : value ? (
-        <AppText style={sr.value} numberOfLines={1}>
-          {value}
-        </AppText>
+      {rightElement ? (
+        rightElement
+      ) : valueText ? (
+        <View style={styles.rowRight}>
+          <AppText style={styles.rowValueText}>{valueText}</AppText>
+          {onPress ? (
+            <AppIcon name="AltArrowRight" size={14} color="rgba(255,255,255,0.3)" />
+          ) : null}
+        </View>
       ) : onPress ? (
-        <AppIcon name="ChevronRight" size={15} color={T.muted} />
+        <AppIcon name="AltArrowRight" size={16} color="rgba(255,255,255,0.3)" />
       ) : null}
     </Pressable>
   );
 });
 
-const sr = StyleSheet.create({
-  row: {
-    minHeight: 58,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  border: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  pressed: { opacity: 0.8 },
-  disabled: { opacity: 0.35 },
-  titleWrap: { flex: 1, gap: 2 },
-  title: { fontSize: 15, color: T.ink },
-  subtitle: { fontSize: 11, color: T.muted },
-  titleDanger: { color: T.destructive },
-  value: { maxWidth: 132, fontSize: 13, color: T.muted },
-});
-
-// ─── Main screen ──────────────────────────────────────────────────────────────
+// ─── Main Settings Screen ─────────────────────────────────────────────────────
 export function SettingsScreen() {
   const { signOutUser, user } = useAuth();
   const isGuest = useIsGuest();
   const { requireAccount } = useRequireAccount();
-  const {
-    preferences,
-    resolvedColorMode,
-    updatePreferences,
-    resetPreferences,
-    isReady,
-  } = useAppTheme();
-  const [savingKey, setSavingKey] = useState<SavingKey>(null);
-  const [message, setMessage] = useState<Msg>(null);
-  const [cloudCard, setCloudCard] = useState<any>(null);
+  const { preferences, updatePreferences, resetPreferences } = useAppTheme();
 
+  // Local state for toggles with instant persistence
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [hapticsEnabled, setHapticsEnabled] = useState(true);
+  const [securityPinEnabled, setSecurityPinEnabled] = useState(false);
+  const [cardProfile, setCardProfile] = useState<{ name: string; cardId: string } | null>(null);
+
+  // Load preferences and card info safely without blocking UI
   useEffect(() => {
-    const loadCard = async () => {
+    const task = InteractionManager.runAfterInteractions(async () => {
       try {
+        // Load toggles from AsyncStorage
+        const [notif, hapt, pin] = await Promise.all([
+          AsyncStorage.getItem('setting_notif'),
+          AsyncStorage.getItem('setting_haptics'),
+          AsyncStorage.getItem('setting_pin'),
+        ]);
+
+        if (notif !== null) setNotificationsEnabled(notif === 'true');
+        if (hapt !== null) setHapticsEnabled(hapt === 'true');
+        if (pin !== null) setSecurityPinEnabled(pin === 'true');
+
+        // Load active cloud card
+        let loadedCard: any = null;
         if (isGuest) {
-          const cardId = await AsyncStorage.getItem('guest_card_id');
-          if (cardId) {
-            const loaded = await loadGuestCloudCard(cardId);
-            setCloudCard(loaded);
-          }
+          const guestCardId = await getStoredGuestCardId();
+          loadedCard = await loadGuestCloudCard(guestCardId ?? undefined);
         } else if (user?.id) {
-          const loaded = await loadCustomerCloudCard(user.id);
-          setCloudCard(loaded);
+          loadedCard = await loadCustomerCloudCard(user.id);
         }
-      } catch {}
-    };
-    void loadCard();
+
+        if (loadedCard) {
+          setCardProfile({
+            name: loadedCard.fullName || loadedCard.profile?.fullName || 'My GENNFC Card',
+            cardId: loadedCard.cardId || 'gennfc-01',
+          });
+        }
+      } catch (err) {
+        console.warn('SettingsScreen: Failed to load data:', err);
+      }
+    });
+
+    return () => task.cancel();
   }, [isGuest, user?.id]);
 
-  const isBusy = savingKey !== null;
-  const isSaving = (k: Exclude<SavingKey, null>) => savingKey === k;
-  const roleLabel = getRoleLabel(user?.role);
-
-  const languageLabel =
-    languageOptions.find((o) => o.value === preferences.language)?.label ??
-    'English';
-  const profileThemeLabel =
-    profileThemeOptions.find((o) => o.value === preferences.profileTheme)
-      ?.label ?? 'Aqua';
-  const typographyLabel =
-    typographyColorOptions.find((o) => o.value === preferences.typographyColor)
-      ?.label ?? 'Default';
-  const appearanceLabel =
-    preferences.colorMode === 'system'
-      ? `System (${resolvedColorMode})`
-      : preferences.colorMode === 'dark'
-        ? 'Dark'
-        : 'Light';
-
-  const initial = (user?.displayName?.trim() || 'S')[0].toUpperCase();
-
-  async function savePref(
-    key: Exclude<SavingKey, 'reset' | 'signOut' | null>,
-    next: Partial<UiPreferences>,
-    label: string,
-  ) {
-    if (isGuest) {
-      try {
-        await updatePreferences(next);
-      } catch {}
-      return;
-    }
-    if (
-      !requireAccount(undefined, {
-        message: 'Create an account to save settings.',
-      })
-    )
-      return;
-    if (!isReady || savingKey === key) return;
-    setSavingKey(key);
-    setMessage(null);
-    try {
-      await updatePreferences(next);
-      setMessage({ type: 'success', text: `${label} saved.` });
-    } catch (e) {
-      setMessage({
-        type: 'error',
-        text: e instanceof Error ? e.message : 'Unable to save.',
-      });
-    } finally {
-      setSavingKey(null);
-    }
-  }
-
-  const handleSetPrimary = useCallback(
-    async (cardId: string) => {
-      if (isGuest) {
-        try {
-          await updatePreferences({ primaryCardId: cardId });
-        } catch {}
-        return;
-      }
-      if (
-        !requireAccount(undefined, {
-          message: 'Create an account to save preferences.',
-        })
-      )
-        return;
-      setSavingKey('card');
-      try {
-        await updatePreferences({ primaryCardId: cardId });
-        setMessage({
-          type: 'success',
-          text: 'Primary card updated. Home page will reflect this.',
-        });
-      } catch {
-        setMessage({ type: 'error', text: 'Could not update primary card.' });
-      } finally {
-        setSavingKey(null);
-      }
-    },
-    [isGuest, requireAccount, updatePreferences],
-  );
-
-  const handleToggleHide = useCallback(
-    async (cardId: string) => {
-      if (isGuest) {
-        try {
-          const current: string[] = (preferences as any).hiddenCardIds ?? [];
-          const next = current.includes(cardId)
-            ? current.filter((id) => id !== cardId)
-            : [...current, cardId];
-          await updatePreferences({
-            hiddenCardIds: next,
-          } as Partial<UiPreferences>);
-        } catch {}
-        return;
-      }
-      if (
-        !requireAccount(undefined, {
-          message: 'Create an account to save preferences.',
-        })
-      )
-        return;
-      setSavingKey('card');
-      try {
-        const current: string[] = (preferences as any).hiddenCardIds ?? [];
-        const next = current.includes(cardId)
-          ? current.filter((id) => id !== cardId)
-          : [...current, cardId];
-        await updatePreferences({
-          hiddenCardIds: next,
-        } as Partial<UiPreferences>);
-        setMessage({
-          type: 'success',
-          text: current.includes(cardId) ? 'Card shown.' : 'Card hidden.',
-        });
-      } catch {
-        setMessage({
-          type: 'error',
-          text: 'Could not update card visibility.',
-        });
-      } finally {
-        setSavingKey(null);
-      }
-    },
-    [preferences, isGuest, requireAccount, updatePreferences],
-  );
-
-  const handleUpgrade = useCallback((cardId: string) => {
-    router.push(appRoutes.studio as any);
+  // Handlers
+  const handleToggleNotifications = useCallback(async (value: boolean) => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setNotificationsEnabled(value);
+    await AsyncStorage.setItem('setting_notif', String(value));
   }, []);
 
-  async function doReset() {
-    if (
-      !requireAccount(undefined, {
-        message: 'Create an account to save settings.',
-      })
-    )
-      return;
-    if (isBusy) return;
-    setSavingKey('reset');
-    setMessage(null);
+  const handleToggleHaptics = useCallback(async (value: boolean) => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setHapticsEnabled(value);
+    await AsyncStorage.setItem('setting_haptics', String(value));
+  }, []);
+
+  const handleTogglePin = useCallback(async (value: boolean) => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setSecurityPinEnabled(value);
+    await AsyncStorage.setItem('setting_pin', String(value));
+  }, []);
+
+  const handleLanguageChange = useCallback(() => {
+    const langs = languageOptions;
+    const currentIndex = langs.findIndex((l) => l.value === preferences.language);
+    const nextLang = langs[(currentIndex + 1) % langs.length];
+
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    void updatePreferences({ language: nextLang.value as any });
+    Alert.alert('Language Updated', `Switched language to ${nextLang.label}`);
+  }, [preferences.language, updatePreferences]);
+
+  const handleColorModeToggle = useCallback(() => {
+    const modes: ('dark' | 'light' | 'system')[] = ['dark', 'light', 'system'];
+    const currentIndex = modes.indexOf(preferences.colorMode ?? 'dark');
+    const nextMode = modes[(currentIndex + 1) % modes.length];
+
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    void updatePreferences({ colorMode: nextMode });
+  }, [preferences.colorMode, updatePreferences]);
+
+  const handleCopyProfileUrl = useCallback(async () => {
+    const profileSlug = user?.displayName?.toLowerCase().replace(/\s+/g, '-') || 'my-card';
+    const profileUrl = `https://sitehub.app/u/${profileSlug}`;
+
     try {
-      await resetPreferences();
-      setMessage({ type: 'success', text: 'Settings reset to defaults.' });
-    } catch (e) {
-      setMessage({
-        type: 'error',
-        text: e instanceof Error ? e.message : 'Unable to reset.',
-      });
-    } finally {
-      setSavingKey(null);
-    }
-  }
+      await Share.share({ message: profileUrl, url: profileUrl });
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch {}
+  }, [user?.displayName]);
 
-  function handleReset() {
-    Alert.alert(
-      'Reset settings?',
-      'Language, appearance, theme, and text color will return to defaults.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Reset', style: 'destructive', onPress: () => void doReset() },
-      ],
-    );
-  }
-
-  async function doSignOut() {
-    if (isBusy) return;
-    setSavingKey('signOut');
-    setMessage(null);
-    try {
-      await signOutUser();
-      router.replace(appRoutes.login);
-    } catch (e) {
-      setMessage({
-        type: 'error',
-        text: e instanceof Error ? e.message : 'Unable to sign out.',
-      });
-      setSavingKey(null);
-    }
-  }
-
-  const primaryCardId = preferences.primaryCardId || 'card-primary';
-  const hiddenCardIds: string[] = (preferences as any).hiddenCardIds ?? [];
-  const cards = useMemo(() => {
-    if (cloudCard) {
-      return [
-        {
-          id: cloudCard.cardId,
-          fullName: cloudCard.profile.fullName || user?.displayName || 'My Card',
-          title: cloudCard.profile.role || '',
-          phone: cloudCard.profile.phone || '',
+  const handleSignOut = useCallback(() => {
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+          await signOutUser();
+          router.replace('/');
         },
-      ];
-    }
-    return [];
-  }, [cloudCard, user?.displayName]);
+      },
+    ]);
+  }, [signOutUser]);
 
-  // Fake colors object for message banner (dark styled)
-  const bannerColors = {
-    background: '#1C1C1E',
-    surface: T.card,
-    surfaceSoft: '#1C1C1E',
-    border: T.border,
-    textPrimary: T.ink,
-    textMuted: T.muted,
-    primary: T.primary,
-    primarySoft: 'rgba(255, 255, 255, 0.08)',
-    systemBlue: '#FFFFFF',
-    danger: T.destructive,
-  };
+  const handleResetPreferences = useCallback(() => {
+    Alert.alert('Reset App Settings', 'Restore all preferences to default settings?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Reset',
+        style: 'destructive',
+        onPress: async () => {
+          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+          await resetPreferences();
+          Alert.alert('Done', 'App settings restored to defaults.');
+        },
+      },
+    ]);
+  }, [resetPreferences]);
+
+  const currentLangLabel =
+    languageOptions.find((l) => l.value === preferences.language)?.label || 'English';
+
+  const userDisplayName = isGuest
+    ? 'Guest User'
+    : user?.displayName || user?.email?.split('@')[0] || 'Member';
+  const roleLabel = getRoleLabel(user?.role);
+  const avatarLetter = (userDisplayName[0] || 'G').toUpperCase();
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <IosScrollView
-        contentContainerStyle={styles.scroll}
+    <SafeAreaView style={styles.screen} edges={['top']}>
+      <PageHeader
+        theme={THEME}
+        title="Settings"
+        subtitle="App preferences & account controls"
+      />
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Header with Back Button (Matching Reference Image Top Bar) ── */}
-        <PageHeader
-          theme={PAGE_THEME}
-          title="Settings"
-          subtitle="Control cards, security, notifications, and preferences."
-          showBack={true}
-          onBack={() => router.back()}
-          compact
-        />
-
-        {/* ── Banners ── */}
-        {isGuest ? (
-          <SettingsMessageBanner colors={bannerColors} tone="info">
-            Guest mode — try light/dark and themes. Create an account to save to
-            cloud.
-          </SettingsMessageBanner>
-        ) : null}
-        {!isReady ? (
-          <SettingsMessageBanner colors={bannerColors}>
-            Loading your saved preferences…
-          </SettingsMessageBanner>
-        ) : null}
-        {message ? (
-          <SettingsMessageBanner
-            colors={bannerColors}
-            tone={message.type === 'error' ? 'error' : 'success'}
-          >
-            {message.text}
-          </SettingsMessageBanner>
-        ) : null}
-
-        {/* ── Account card ── */}
-        <View style={styles.accountCard}>
-          <View style={styles.avatar}>
+        {/* ─── 1. USER PROFILE BANNER ─── */}
+        <View style={styles.profileCard}>
+          <View style={styles.avatarCircle}>
             <AppText style={styles.avatarText} weight="bold">
-              {initial}
+              {avatarLetter}
             </AppText>
           </View>
-          <View style={styles.accountCopy}>
-            <View style={styles.nameRow}>
-              <AppText
-                style={styles.accountName}
-                numberOfLines={1}
-                weight="extrabold"
-              >
-                {user?.displayName ?? 'Guest User'}
-              </AppText>
-              {!isGuest ? (
-                <AppIcon
-                  name="BadgeCheck"
-                  size={18}
-                  color="#FFFFFF"
-                  variant="solar-duotone"
-                />
-              ) : null}
-            </View>
-            <AppText style={styles.accountEmail} numberOfLines={1}>
-              {user?.email ?? 'Not signed in'}
+
+          <View style={styles.profileInfo}>
+            <AppText style={styles.profileName} numberOfLines={1} weight="bold">
+              {userDisplayName}
             </AppText>
-            <View style={styles.roleBadge}>
-              <AppText style={styles.roleBadgeText} weight="bold">
-                {roleLabel}
-              </AppText>
+            <View style={styles.roleTag}>
+              <View style={styles.roleDot} />
+              <AppText style={styles.roleText}>{isGuest ? 'Guest Trial' : roleLabel}</AppText>
             </View>
           </View>
-        </View>
 
-        {/* ── MY CARD section ── */}
-        <View style={styles.section}>
-          <View style={styles.sectionHead}>
-            <AppText style={styles.sectionTitle} weight="extrabold">
-              My Cards
-            </AppText>
-          </View>
-          <View style={styles.list}>
-            {cards.map((card, index) => {
-              const isLast = index === cards.length - 1;
-              const name = card.fullName || card.title || `Card ${index + 1}`;
-              return (
-                <View
-                  key={card.id}
-                  style={isLast ? styles.cardRowLast : undefined}
-                >
-                  <CardControlRow
-                    cardId={card.id}
-                    name={name}
-                    isPrimary={card.id === primaryCardId}
-                    isHidden={hiddenCardIds.includes(card.id)}
-                    onSetPrimary={handleSetPrimary}
-                    onToggleHide={handleToggleHide}
-                    onUpgrade={handleUpgrade}
-                  />
-                </View>
-              );
-            })}
-
-            {/* Add new card CTA */}
+          {isGuest ? (
             <Pressable
-              style={({ pressed }) => [
-                styles.addCardRow,
-                pressed && styles.pressed,
-              ]}
+              style={styles.upgradeBtn}
               onPress={() => {
-                HapticTap.medium();
-                router.push(appRoutes.guestDesign as any);
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                requireAccount(undefined, { message: 'Create an account to sync your card.' });
               }}
             >
-              <AppIcon
-                name="PlusCircle"
-                size={22}
-                color="#FFFFFF"
-                variant="solar-duotone"
-              />
-              <AppText style={styles.addCardText} weight="bold">
-                Create a new card
+              <AppText style={styles.upgradeBtnText} weight="bold">
+                Upgrade
               </AppText>
-              <AppIcon name="ChevronRight" size={15} color={T.muted} />
             </Pressable>
-          </View>
+          ) : (
+            <Pressable style={styles.shareIconBtn} onPress={handleCopyProfileUrl}>
+              <AppIcon name="Share" size={18} color="#00F0FF" />
+            </Pressable>
+          )}
         </View>
 
-        {/* ── Security Settings Module (Matching Reference Image) ── */}
-        <View style={styles.section}>
-          <AppText style={styles.sectionTitle} weight="extrabold">
-            Security Settings
-          </AppText>
-          <View style={styles.list}>
-            <SettingsRow
-              icon="Lock"
-              title="Biometric Login / FaceID"
-              subtitle="Use FaceID or fingerprint to unlock"
-              isSwitch
-              switchValue={true}
-            />
-            <SettingsRow
-              icon="ShieldCheck"
-              title="Remember Login"
-              subtitle="Keep session active on this device"
-              isSwitch
-              switchValue={true}
-            />
-            <SettingsRow
-              icon="Key"
-              title="Account Recovery"
-              value="Manage"
-              onPress={() => Alert.alert('Account Recovery', 'Recovery options are active.')}
-              last
-            />
-          </View>
-        </View>
-
-        {/* ── Notification Settings Module (Matching Reference Image) ── */}
-        <View style={styles.section}>
-          <AppText style={styles.sectionTitle} weight="extrabold">
-            Notification Settings
-          </AppText>
-          <View style={styles.list}>
-            <SettingsRow
-              icon="Bell"
-              title="Tap Alerts"
-              subtitle="Get notified when someone taps your NFC card"
-              isSwitch
-              switchValue={true}
-            />
-            <SettingsRow
-              icon="Truck"
-              title="Order Updates"
-              subtitle="Track printing and shipping progress"
-              isSwitch
-              switchValue={true}
-            />
-            <SettingsRow
-              icon="Smartphone"
-              title="Push Notifications"
-              subtitle="Enable mobile push alerts"
-              isSwitch
-              switchValue={false}
-              last
-            />
-          </View>
-        </View>
-
-        {/* ── Essentials ── */}
-        <View style={styles.section}>
-          <AppText style={styles.sectionTitle} weight="extrabold">
-            Essentials
-          </AppText>
-          <View style={styles.list}>
-            <SettingsRow
-              icon="CreditCard"
-              title="Card studio"
-              value="Design"
-              onPress={() => router.push(appRoutes.studio as any)}
-            />
-            <SettingsRow
-              icon="Users"
-              title="Network"
-              value="People"
-              onPress={() => router.push(appRoutes.customerConnections)}
-            />
-            <SettingsRow
-              icon="BarChart"
-              title="Analysis"
-              value="Signals"
-              onPress={() =>
-                router.push(
-                  isGuest
-                    ? appRoutes.guestAnalytics
-                    : appRoutes.customerAnalysis,
-                )
-              }
-            />
-            <SettingsRow
-              icon="Package"
-              title="Orders"
-              value="Track"
-              onPress={() =>
-                router.push(
-                  isGuest
-                    ? appRoutes.guestTrackOrder
-                    : appRoutes.customer.orders,
-                )
-              }
-              last
-            />
-          </View>
-        </View>
-
-        {/* ── Appearance ── */}
-        <View style={styles.section}>
-          <AppText style={styles.sectionTitle} weight="extrabold">
-            Appearance
-          </AppText>
-          <View style={styles.list}>
-            <View style={styles.appearanceBlock}>
-              <View style={styles.appearanceHead}>
-                <AppIcon
-                  name="Eye"
-                  size={22}
-                  color="#FFFFFF"
-                  variant="solar-duotone"
-                />
-                <View style={styles.appearanceCopy}>
-                  <AppText style={styles.appearanceTitle} weight="bold">
-                    Display mode
-                  </AppText>
-                </View>
-              </View>
-              <AppearanceSegment
-                value={preferences.colorMode}
-                disabled={!isReady || isSaving('colorMode')}
-                onChange={(v) =>
-                  void savePref('colorMode', { colorMode: v }, 'Appearance')
-                }
+        {/* ─── 2. APPEARANCE & PREFERENCES ─── */}
+        <AppText style={styles.sectionHeader}>PREFERENCES</AppText>
+        <View style={styles.groupCard}>
+          <SettingRow
+            icon="Global"
+            iconColor="#00F0FF"
+            title="Language"
+            subtitle="Change display language"
+            valueText={currentLangLabel}
+            onPress={handleLanguageChange}
+          />
+          <View style={styles.divider} />
+          <SettingRow
+            icon="Sun"
+            iconColor="#A855F7"
+            title="Theme Mode"
+            subtitle="Dark, Light, or System"
+            valueText={
+              preferences.colorMode === 'system'
+                ? 'System'
+                : preferences.colorMode === 'light'
+                ? 'Light'
+                : 'Dark'
+            }
+            onPress={handleColorModeToggle}
+          />
+          <View style={styles.divider} />
+          <SettingRow
+            icon="Bell"
+            iconColor="#3B82F6"
+            title="Push Notifications"
+            subtitle="Order updates & tap alerts"
+            rightElement={
+              <Switch
+                value={notificationsEnabled}
+                onValueChange={handleToggleNotifications}
+                trackColor={{ false: '#26262A', true: '#00F0FF' }}
+                thumbColor="#FFFFFF"
               />
-            </View>
-            <SettingsRow
-              icon="Settings"
-              title="Language"
-              value={languageLabel}
-              onPress={() => router.push('/language-picker')}
-            />
-            <SettingsRow
-              icon="Sparkles"
-              title="Profile theme"
-              value={profileThemeLabel}
-              onPress={() => router.push('/theme-picker')}
-            />
-            <View style={styles.selectWrap}>
-              <AppSelect
-                label="Text color accent"
-                value={preferences.typographyColor}
-                description={`Heading color (${typographyLabel})`}
-                options={typographyColorOptions.map((o) => ({
-                  label: o.label,
-                  value: o.value,
-                  leading: (
-                    <View
-                      style={[styles.swatch, { backgroundColor: o.color }]}
-                    />
-                  ),
-                }))}
-                disabled={!isReady || isSaving('typographyColor')}
-                onChange={(v) =>
-                  void savePref(
-                    'typographyColor',
-                    { typographyColor: v },
-                    'Text color',
-                  )
-                }
+            }
+          />
+          <View style={styles.divider} />
+          <SettingRow
+            icon="Vibration"
+            iconColor="#10B981"
+            title="Haptic Feedback"
+            subtitle="Vibrate on tap interactions"
+            rightElement={
+              <Switch
+                value={hapticsEnabled}
+                onValueChange={handleToggleHaptics}
+                trackColor={{ false: '#26262A', true: '#10B981' }}
+                thumbColor="#FFFFFF"
               />
-            </View>
-          </View>
+            }
+          />
         </View>
 
-        {/* ── Account ── */}
-        <View style={styles.section}>
-          <AppText style={styles.sectionTitle} weight="extrabold">
-            Account
-          </AppText>
-          <View style={styles.list}>
-            <SettingsRow
-              icon="ShieldCheck"
-              title="Access"
-              value={getRoleScopeSummary(user?.role)}
-            />
-            <SettingsRow
-              icon="FileText"
-              title="Privacy policy"
-              onPress={() => router.push('/privacy-policy')}
-            />
-            <SettingsRow
-              icon="FileText"
-              title="Terms of service"
-              onPress={() => router.push('/terms-of-service')}
-            />
-            <SettingsRow
-              icon="RefreshCw"
-              title="Reset settings"
-              value={isSaving('reset') ? '…' : undefined}
-              onPress={handleReset}
-              disabled={isBusy}
-            />
-            <SettingsRow
-              icon="LogOut"
-              title="Sign out"
-              value={isSaving('signOut') ? '…' : undefined}
-              onPress={() => void doSignOut()}
-              disabled={isBusy}
-              destructive
-              last
-            />
-          </View>
+        {/* ─── 3. CARD & SECURITY ─── */}
+        <AppText style={styles.sectionHeader}>CARD & SECURITY</AppText>
+        <View style={styles.groupCard}>
+          <SettingRow
+            icon="ShieldCheck"
+            iconColor="#F59E0B"
+            title="Passcode Lock"
+            subtitle="Require PIN on app launch"
+            rightElement={
+              <Switch
+                value={securityPinEnabled}
+                onValueChange={handleTogglePin}
+                trackColor={{ false: '#26262A', true: '#F59E0B' }}
+                thumbColor="#FFFFFF"
+              />
+            }
+          />
+          <View style={styles.divider} />
+          <SettingRow
+            icon="Share"
+            iconColor="#38BDF8"
+            title="Share Public Profile"
+            subtitle="Share sitehub.app link"
+            onPress={handleCopyProfileUrl}
+          />
+          <View style={styles.divider} />
+          <SettingRow
+            icon="Card"
+            iconColor="#EC4899"
+            title="Active NFC Card"
+            subtitle={cardProfile ? cardProfile.name : 'GENNFC Digital Pass'}
+            valueText={cardProfile ? cardProfile.cardId : 'Active'}
+            onPress={() => router.push('/(tabs)/share')}
+          />
         </View>
 
-        <View style={styles.versionWrap}>
-          <AppText style={styles.versionText} weight="medium">
-            Snap Tap NFC - v1.0.0
-          </AppText>
+        {/* ─── 4. ACCOUNT ACTIONS ─── */}
+        <AppText style={styles.sectionHeader}>ACCOUNT ACTIONS</AppText>
+        <View style={styles.groupCard}>
+          <SettingRow
+            icon="Restart"
+            iconColor="#64748B"
+            title="Reset App Settings"
+            subtitle="Restore default preferences"
+            onPress={handleResetPreferences}
+          />
+          <View style={styles.divider} />
+          <SettingRow
+            icon="Logout"
+            title={isGuest ? 'Exit Guest Mode' : 'Sign Out'}
+            subtitle={user?.email || 'Sign out of current session'}
+            onPress={handleSignOut}
+            isDestructive
+          />
         </View>
-      </IosScrollView>
+
+        {/* ─── FOOTER INFO ─── */}
+        <View style={styles.footer}>
+          <AppText style={styles.footerBrand}>GEN DIGITAL • GENNFC</AppText>
+          <AppText style={styles.footerVersion}>Version 1.0.0 (Build 15)</AppText>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#000000' },
-  scroll: {
+  screen: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 14,
-    paddingBottom: 120,
-    gap: 24,
+    paddingBottom: 40,
+    maxWidth: 640,
+    width: '100%',
+    alignSelf: 'center',
   },
 
-  // Account card — Savee Glass Style
-  accountCard: {
+  /* User Profile Card */
+  profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
     backgroundColor: '#111114',
-    borderRadius: 16,
-    padding: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 16,
+    padding: 16,
+    marginVertical: 16,
+    gap: 14,
   },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
-    backgroundColor: '#000000',
-    borderWidth: 1.5,
-    borderColor: '#FFFFFF',
+  avatarCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(0, 240, 255, 0.15)',
+    borderWidth: 1,
+    borderColor: '#00F0FF',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: { fontSize: 24, color: '#FFFFFF' },
-  accountCopy: { flex: 1, minWidth: 0, gap: 4, alignItems: 'flex-start' },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 0 },
-  accountName: {
-    flexShrink: 1,
-    fontSize: 18,
+  avatarText: {
+    color: '#00F0FF',
+    fontSize: 20,
+  },
+  profileInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  profileName: {
     color: '#FFFFFF',
-    letterSpacing: 0,
+    fontSize: 16,
   },
-  accountEmail: { fontSize: 12, color: T.muted },
-  roleBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    marginTop: 2,
-  },
-  roleBadgeText: {
-    fontSize: 9,
-    color: '#FFFFFF',
-    letterSpacing: 0,
-  },
-
-  // Sections
-  section: { gap: 10 },
-  sectionHead: { gap: 2 },
-  sectionTitle: { fontSize: 18, color: T.ink, letterSpacing: 0 },
-  sectionMeta: { fontSize: 12, color: T.muted },
-  list: {
-    backgroundColor: '#111114',
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-
-  cardRowLast: {},
-
-  // Add card row
-  addCardRow: {
+  roleTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(255, 255, 255, 0.05)',
+    gap: 6,
   },
-  addCardText: { flex: 1, fontSize: 15, color: T.ink },
+  roleDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#10B981',
+  },
+  roleText: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 12,
+  },
+  upgradeBtn: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
+  upgradeBtnText: {
+    color: '#000000',
+    fontSize: 12,
+  },
+  shareIconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
-  // Appearance block
-  appearanceBlock: {
+  /* Group Section Header */
+  sectionHeader: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    marginTop: 18,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+
+  /* Group Card Container */
+  groupCard: {
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    marginHorizontal: 16,
+  },
+
+  /* Setting Row Item */
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 16,
     gap: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+    minHeight: 56,
   },
-  appearanceHead: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  appearanceCopy: { flex: 1, gap: 2 },
-  appearanceTitle: { fontSize: 15, color: T.ink },
-  appearanceSub: { fontSize: 12, color: T.muted },
-
-  selectWrap: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(255, 255, 255, 0.05)',
+  rowPressed: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
   },
-  swatch: { width: 18, height: 18, borderRadius: 9 },
+  iconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconBoxDestructive: {
+    backgroundColor: 'rgba(255, 69, 58, 0.12)',
+    borderColor: 'rgba(255, 69, 58, 0.3)',
+  },
+  rowContent: {
+    flex: 1,
+    gap: 2,
+  },
+  rowTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  rowTitleDestructive: {
+    color: '#FF453A',
+  },
+  rowSubtitle: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 11,
+  },
+  rowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  rowValueText: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 13,
+  },
 
-  versionWrap: { alignItems: 'center', paddingVertical: 12 },
-  versionText: { fontSize: 11, color: '#3A3A3C' },
-  pressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.98 }],
+  /* Footer */
+  footer: {
+    alignItems: 'center',
+    marginTop: 28,
+    marginBottom: 20,
+    gap: 4,
+  },
+  footerBrand: {
+    color: 'rgba(255, 255, 255, 0.3)',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+  },
+  footerVersion: {
+    color: 'rgba(255, 255, 255, 0.2)',
+    fontSize: 11,
   },
 });

@@ -18,22 +18,22 @@ type FlippableNfcCardProps = {
   // Back props
   cardId?: string;
 
-  // Size
+  // Size & Styling
   width?: number;
   height?: number;
   compact?: boolean;
   style?: StyleProp<ViewStyle>;
   gradientIndex?: number;
+  /** Card theme: 'dark' (default) or 'light' */
+  theme?: 'dark' | 'light';
 };
 
 export const FlippableNfcCard = memo(function FlippableNfcCard(props: FlippableNfcCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
 
-  // useRef instead of useState — no re-render when Animated.Value changes internally
   const flipAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  // useCallback — stable function reference, no recreation on re-render
   const handleFlip = useCallback(() => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsFlipped((prev) => {
@@ -97,6 +97,7 @@ export const FlippableNfcCard = memo(function FlippableNfcCard(props: FlippableN
           height={props.height}
           compact={props.compact}
           gradientIndex={props.gradientIndex}
+          theme={props.theme}
         />
       </Animated.View>
 
@@ -116,6 +117,7 @@ export const FlippableNfcCard = memo(function FlippableNfcCard(props: FlippableN
           width={props.width}
           height={props.height}
           compact={props.compact}
+          theme={props.theme}
         />
       </Animated.View>
     </Pressable>

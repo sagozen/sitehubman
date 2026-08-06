@@ -4,9 +4,6 @@ import { createShadow } from '@/src/utils/shadows';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
 import { AppText } from '@/src/components/AppText';
-import { AppIcon } from '@/src/components/AppIcon';
-
-const CARD_GRADIENT = ['#111111', '#202124', '#2596BE'] as const;
 
 type NfcGlobalCardBackProps = {
   /** Profile URL for QR code */
@@ -17,6 +14,8 @@ type NfcGlobalCardBackProps = {
   height?: number;
   compact?: boolean;
   style?: StyleProp<ViewStyle>;
+  /** Card color theme: 'dark' (default) or 'light' */
+  theme?: 'dark' | 'light';
 };
 
 export const NfcGlobalCardBack = memo(function NfcGlobalCardBack({
@@ -26,78 +25,151 @@ export const NfcGlobalCardBack = memo(function NfcGlobalCardBack({
   height,
   compact = false,
   style,
+  theme = 'dark',
 }: NfcGlobalCardBackProps) {
+  const isLight = theme === 'light';
   const cardSizeStyle = width ? { width, height: height ?? width / 1.586 } : undefined;
-  const qrUrl = profileUrl.trim() || `https://sitehub.app/u/${cardId || 'nexus-7a3f'}`;
+  const qrUrl = profileUrl.trim() || `https://sitehub.app/u/${cardId || 'gennfc-7a3f'}`;
 
   return (
-    <View style={[styles.card, compact && styles.cardCompact, cardSizeStyle, style]}>
-      {/* Dark Forged Carbon Background */}
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0A0B0E' }]} />
-
-      {/* Glossy Metallic Gradient Sheen */}
-      <LinearGradient
-        colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.03)', 'transparent', 'rgba(0,240,255,0.05)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
+    <View
+      style={[
+        styles.card,
+        compact && styles.cardCompact,
+        isLight && styles.cardLight,
+        cardSizeStyle,
+        style,
+      ]}
+    >
+      {/* Background Color Base */}
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          { backgroundColor: isLight ? '#F8FAFC' : '#0A0B0E' },
+        ]}
       />
 
-      {/* Content Layout */}
+      {/* Surface Gradient */}
+      {isLight ? (
+        <LinearGradient
+          colors={['#FFFFFF', '#F1F5F9', '#E2E8F0']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+      ) : (
+        <LinearGradient
+          colors={[
+            'rgba(255,255,255,0.16)',
+            'rgba(255,255,255,0.02)',
+            'transparent',
+            'rgba(0,240,255,0.04)',
+          ]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+      )}
+
+      {/* Content Layout — Clean 2028 Professional Aesthetic */}
       <View style={[styles.content, compact && styles.contentCompact]}>
-        {/* Top Header */}
-        <View style={styles.header}>
-          <AppText style={[styles.cardHeaderTitle, compact && styles.cardHeaderTitleCompact]}>
-            NEXUS CARD
-          </AppText>
-          <AppText style={[styles.cardHeaderSub, compact && styles.cardHeaderSubCompact]}>
-            Future of Connectivity
+        {/* Top Header Row */}
+        <View style={styles.headerRow}>
+          <View style={styles.headerLeft}>
+            <AppText
+              style={[
+                styles.brandTitle,
+                compact && styles.brandTitleCompact,
+                isLight && styles.textDark,
+              ]}
+            >
+              GENNFC
+            </AppText>
+            <AppText
+              style={[
+                styles.brandSub,
+                compact && styles.brandSubCompact,
+                isLight && styles.textMutedDark,
+              ]}
+            >
+              SMART IDENTIFICATION
+            </AppText>
+          </View>
+
+          <View style={[styles.statusBadge, isLight && styles.statusBadgeLight]}>
+            <View style={[styles.statusDot, isLight && styles.statusDotLight]} />
+            <AppText style={[styles.statusText, isLight && styles.statusTextLight]}>
+              ACTIVE PASS
+            </AppText>
+          </View>
+        </View>
+
+        {/* 2028 Sleek Encrypted Stripe Accent */}
+        <View style={[styles.stripeBand, isLight && styles.stripeBandLight]}>
+          <LinearGradient
+            colors={
+              isLight
+                ? ['rgba(15,23,42,0.06)', 'rgba(15,23,42,0.02)', 'rgba(15,23,42,0.06)']
+                : ['rgba(255,255,255,0.06)', 'rgba(0,240,255,0.08)', 'rgba(255,255,255,0.06)']
+            }
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={StyleSheet.absoluteFill}
+          />
+          <AppText
+            style={[
+              styles.stripeText,
+              compact && styles.stripeTextCompact,
+              isLight && styles.stripeTextLight,
+            ]}
+            numberOfLines={1}
+          >
+            GENNFC • ENCRYPTED NFC PROTOCOL • 2028 EDITION
           </AppText>
         </View>
 
-        {/* Feature Badges List */}
-        <View style={[styles.featureList, compact && styles.featureListCompact]}>
-          <FeatureBadge icon="ShieldCheck" label="Secure Chip" compact={compact} />
-          <FeatureBadge icon="Nfc" label="Tap to Connect" compact={compact} />
-          <FeatureBadge icon="Zap" label="Energy Harvesting" compact={compact} />
-          <FeatureBadge icon="Sparkles" label="Eco Material" compact={compact} />
-        </View>
+        {/* Bottom Row — Left Instructions + Right QR */}
+        <View style={styles.bottomRow}>
+          <View style={styles.bottomLeftContainer}>
+            <AppText
+              style={[
+                styles.instructionTitle,
+                compact && styles.instructionTitleCompact,
+                isLight && styles.textDark,
+              ]}
+            >
+              TAP OR SCAN TO CONNECT
+            </AppText>
 
-        {/* Bottom Slogan */}
-        <AppText style={[styles.sloganText, compact && styles.sloganTextCompact]}>
-          Designed for a <AppText style={styles.sloganBold}>Smarter</AppText> Tomorrow
-        </AppText>
+            <AppText
+              style={[
+                styles.supportUrl,
+                compact && styles.supportUrlCompact,
+                isLight && styles.textMutedDark,
+              ]}
+            >
+              sitehub.app
+            </AppText>
+          </View>
 
-        {/* Real Scannable QR Code (Right Side Positioned) */}
-        <View style={[styles.qrContainer, compact && styles.qrContainerCompact]}>
-          <View style={styles.qrWhiteFrame}>
-            <QRCode
-              value={qrUrl}
-              size={compact ? 48 : 68}
-              color="#000000"
-              backgroundColor="#FFFFFF"
-              quietZone={2}
-            />
+          {/* Real Scannable QR Code */}
+          <View style={[styles.qrContainer, compact && styles.qrContainerCompact]}>
+            <View style={[styles.qrFrame, isLight && styles.qrFrameLight]}>
+              <QRCode
+                value={qrUrl}
+                size={compact ? 44 : 64}
+                color={isLight ? '#0F172A' : '#000000'}
+                backgroundColor="#FFFFFF"
+                quietZone={2}
+              />
+            </View>
           </View>
         </View>
       </View>
     </View>
   );
 });
-
-function FeatureBadge({ icon, label, compact }: { icon: string; label: string; compact: boolean }) {
-  return (
-    <View style={styles.badgeRow}>
-      <View style={styles.badgeIconDot}>
-        <AppIcon name={icon as any} size={compact ? 9 : 12} color="#00F0FF" />
-      </View>
-      <AppText style={[styles.badgeLabel, compact && styles.badgeLabelCompact]}>
-        {label}
-      </AppText>
-    </View>
-  );
-}
 
 const styles = StyleSheet.create({
   card: {
@@ -114,16 +186,10 @@ const styles = StyleSheet.create({
   cardCompact: {
     borderRadius: 12,
   },
-  meshPattern: {
-    ...StyleSheet.absoluteFillObject,
-    opacity: 0.05,
-    flexDirection: 'column',
-    justifyContent: 'space-around',
-  },
-  meshLine: {
-    width: '100%',
-    height: 1,
-    backgroundColor: '#FFFFFF',
+  cardLight: {
+    backgroundColor: '#F8FAFC',
+    borderColor: 'rgba(15, 23, 42, 0.12)',
+    ...createShadow({ color: '#0F172A', offset: { width: 0, height: 16 }, opacity: 0.12, radius: 32, elevation: 8 }),
   },
   content: {
     flex: 1,
@@ -134,82 +200,133 @@ const styles = StyleSheet.create({
   contentCompact: {
     padding: 13,
   },
-  header: {
-    gap: 3,
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
-  cardHeaderTitle: {
+  headerLeft: {
+    gap: 2,
+  },
+  brandTitle: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '800',
-    letterSpacing: 3,
+    letterSpacing: 3.5,
   },
-  cardHeaderTitleCompact: {
-    fontSize: 9.5,
+  brandTitleCompact: {
+    fontSize: 10,
     letterSpacing: 2,
   },
-  cardHeaderSub: {
-    color: 'rgba(255, 255, 255, 0.55)',
-    fontSize: 11,
-    fontWeight: '500',
+  brandSub: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 9.5,
+    fontWeight: '600',
+    letterSpacing: 1.2,
   },
-  cardHeaderSubCompact: {
-    fontSize: 8,
+  brandSubCompact: {
+    fontSize: 7.5,
+    letterSpacing: 0.8,
   },
-  featureList: {
-    gap: 8,
-    marginVertical: 4,
+  textDark: {
+    color: '#0F172A',
   },
-  featureListCompact: {
-    gap: 4,
-    marginVertical: 2,
+  textMutedDark: {
+    color: 'rgba(15, 23, 42, 0.6)',
   },
-  badgeRow: {
+  statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 5,
+    backgroundColor: 'rgba(0, 240, 255, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    borderWidth: 0.5,
+    borderColor: 'rgba(0, 240, 255, 0.4)',
   },
-  badgeIconDot: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: 'rgba(0, 240, 255, 0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
+  statusBadgeLight: {
+    backgroundColor: 'rgba(2, 132, 199, 0.08)',
+    borderColor: 'rgba(2, 132, 199, 0.3)',
   },
-  badgeLabel: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.3,
+  statusDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#00F0FF',
   },
-  badgeLabelCompact: {
+  statusDotLight: {
+    backgroundColor: '#0284C7',
+  },
+  statusText: {
+    color: '#00F0FF',
     fontSize: 8.5,
-  },
-  sloganText: {
-    color: 'rgba(255, 255, 255, 0.5)',
-    fontSize: 10.5,
-    fontWeight: '400',
-    maxWidth: '60%',
-  },
-  sloganTextCompact: {
-    fontSize: 7.5,
-    maxWidth: '55%',
-  },
-  sloganBold: {
-    color: '#FFFFFF',
     fontWeight: '700',
+    letterSpacing: 0.8,
+  },
+  statusTextLight: {
+    color: '#0284C7',
+  },
+  stripeBand: {
+    height: 24,
+    borderRadius: 6,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    marginVertical: 4,
+  },
+  stripeBandLight: {
+    borderColor: 'rgba(15, 23, 42, 0.08)',
+  },
+  stripeText: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 8.5,
+    fontWeight: '600',
+    letterSpacing: 1.5,
+  },
+  stripeTextCompact: {
+    fontSize: 7,
+    letterSpacing: 1,
+  },
+  stripeTextLight: {
+    color: 'rgba(15, 23, 42, 0.5)',
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+  },
+  bottomLeftContainer: {
+    gap: 3,
+  },
+  instructionTitle: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+  },
+  instructionTitleCompact: {
+    fontSize: 8,
+    letterSpacing: 0.8,
+  },
+  supportUrl: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 9.5,
+    fontWeight: '500',
+    letterSpacing: 0.5,
+  },
+  supportUrlCompact: {
+    fontSize: 7.5,
   },
   qrContainer: {
-    position: 'absolute',
-    right: 18,
-    bottom: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  qrContainerCompact: {
-    right: 12,
-    bottom: 12,
-  },
-  qrWhiteFrame: {
-    padding: 4,
+  qrContainerCompact: {},
+  qrFrame: {
+    padding: 3,
     borderRadius: 8,
     backgroundColor: '#FFFFFF',
     shadowColor: '#000000',
@@ -217,5 +334,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 4,
+  },
+  qrFrameLight: {
+    borderWidth: 1,
+    borderColor: 'rgba(15, 23, 42, 0.15)',
+    shadowColor: '#0F172A',
+    shadowOpacity: 0.1,
   },
 });
