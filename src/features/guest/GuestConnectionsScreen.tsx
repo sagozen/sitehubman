@@ -11,7 +11,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { PageHeader } from '@/src/components/PageHeader';
+import { ConnectionCardV2 } from '@/src/components/ConnectionCardV2';
+import { useDebounce } from '@/src/hooks/useDebounce';
 import type { TapMoment } from '@/src/components/TapMomentCard';
 import { pageThemes } from '@/src/constants/pageThemes';
 import { SEED_MOMENTS } from '@/src/data/seedMoments';
@@ -35,67 +36,6 @@ const BLOCK_COLORS = [
   { bg: '#0F766E', fg: '#FFFFFF', sub: 'rgba(255,255,255,0.85)' }, // Deep Teal
 ] as const;
 
-type GuestMomentCardProps = {
-  item: TapMoment;
-  index: number;
-  cardWidth: number;
-  onPress: (item: TapMoment) => void;
-};
-
-const GuestMomentCard = memo(function GuestMomentCard({
-  item,
-  index,
-  cardWidth,
-  onPress,
-}: GuestMomentCardProps) {
-  const theme = BLOCK_COLORS[index % BLOCK_COLORS.length];
-  const initialChar = (item.initial ?? item.name?.[0] ?? '?').toUpperCase();
-
-  return (
-    <Pressable
-      onPress={() => onPress(item)}
-      style={({ pressed }) => [
-        styles.gridCard,
-        {
-          width: cardWidth,
-          height: cardWidth,
-          backgroundColor: theme.bg,
-        },
-        pressed && styles.pressed,
-      ]}
-    >
-      {/* Central Symbol / Icon */}
-      <View style={styles.cardCenterSymbol}>
-        <AppText style={[styles.symbolText, { color: theme.fg }]} weight="black">
-          {initialChar}
-        </AppText>
-      </View>
-
-      {/* Bottom Name Label */}
-      <View style={styles.cardBottomWrap}>
-        <AppText
-          style={[styles.gridName, { color: theme.fg }]}
-          weight="extrabold"
-          numberOfLines={1}
-        >
-          {item.name}
-        </AppText>
-        {item.subtitle ? (
-          <AppText
-            style={[styles.gridSubtitle, { color: theme.sub }]}
-            weight="bold"
-            numberOfLines={1}
-          >
-            {item.subtitle}
-          </AppText>
-        ) : null}
-      </View>
-      {/* Recently active dot */}
-      {index < 4 && <View style={styles.activeDot} />}
-    </Pressable>
-  );
-});
-
 export function GuestConnectionsScreen() {
   const { width: sw } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -111,20 +51,21 @@ export function GuestConnectionsScreen() {
   const scaleAnim = useRef(new Animated.Value(0.85)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const numColumns = 3;
-  const gridWidth = Math.floor((Math.min(sw, 640) - 32 - (numColumns - 1) * CARD_GAP) / numColumns);
-  const rowHeight = gridWidth + CARD_GAP;
+  const numColumns = 1;
+  const rowHeight = 84;
 
   const allMoments = useMemo(() => SEED_MOMENTS, []);
+  const debouncedSearch = useDebounce(query, 300);
+
   const filteredMoments = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-    if (!normalized) return allMoments;
+    if (!debouncedSearch.trim()) return allMoments;
+    const lower = debouncedSearch.toLowerCase();
     return allMoments.filter((moment) =>
       `${moment.name} ${moment.subtitle ?? ''}`
         .toLowerCase()
-        .includes(normalized),
+        .includes(lower),
     );
-  }, [allMoments, query]);
+  }, [allMoments, debouncedSearch]);
 
   // Open custom popup with hardware-accelerated animated overlay
   const handleOpenPopup = useCallback((contact: TapMoment) => {
@@ -170,9 +111,14 @@ export function GuestConnectionsScreen() {
 
   const renderGridItem = useCallback(
     ({ item, index }: { item: TapMoment; index: number }) => (
-      <GuestMomentCard item={item} index={index} cardWidth={gridWidth} onPress={handleOpenPopup} />
+      <ConnectionCardV2 
+        name={item.name || ''} 
+        title={item.subtitle} 
+        onPress={() => handleOpenPopup(item)} 
+        style={{ marginBottom: 8 }}
+      />
     ),
-    [gridWidth, handleOpenPopup],
+    [handleOpenPopup],
   );
 
   const renderHeader = useCallback(
@@ -230,12 +176,10 @@ export function GuestConnectionsScreen() {
       <View style={styles.content}>
         {/* Responsive Grid with FlatList optimizations */}
         <FlatList
-        key={`grid-cols-${numColumns}`}
+        key={`list-cols-${numColumns}`}
         data={filteredMoments}
         keyExtractor={(item) => item.id}
         renderItem={renderGridItem}
-        numColumns={numColumns}
-        columnWrapperStyle={styles.columnWrapper}
         ListHeaderComponent={renderHeader}
         contentContainerStyle={[
           styles.gridContent,
@@ -354,52 +298,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 110,
   },
-  columnWrapper: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  gridCard: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    padding: 12,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  cardCenterSymbol: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  symbolText: {
-    fontSize: 32,
-    lineHeight: 38,
-  },
-  cardBottomWrap: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  gridName: {
-    fontSize: 13,
-    lineHeight: 16,
-    textAlign: 'center',
-  },
-  gridSubtitle: {
-    fontSize: 10,
-    lineHeight: 13,
-    textAlign: 'center',
-  },
   pressed: {
     opacity: 0.8,
     transform: [{ scale: 0.96 }],
-  },
-  activeDot: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#30D158',
   },
   // Header styles
   headerContainer: {

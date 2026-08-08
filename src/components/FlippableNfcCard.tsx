@@ -1,8 +1,8 @@
 import { memo, useCallback, useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
-import { NfcGlobalCardBack } from '@/src/components/NfcGlobalCardBack';
+import { NfcCardFaceV2 } from '@/src/components/NfcCardFaceV2';
+import { NfcCardBackV2 } from '@/src/components/NfcCardBackV2';
 
 type FlippableNfcCardProps = {
   // Front props
@@ -84,19 +84,12 @@ export const FlippableNfcCard = memo(function FlippableNfcCard(props: FlippableN
         ]}
         pointerEvents={isFlipped ? 'none' : 'auto'}
       >
-        <NfcGlobalCardFace
+        <NfcCardFaceV2
           fullName={props.fullName}
-          title={props.title}
-          company={props.company}
-          phone={props.phone}
-          email={props.email}
-          website={props.website}
-          profileUrl={props.profileUrl}
-          backgroundImageUri={props.backgroundImageUri}
+          cardId={props.cardId}
           width={props.width}
           height={props.height}
           compact={props.compact}
-          gradientIndex={props.gradientIndex}
           theme={props.theme}
           paused={isFlipped}
         />
@@ -112,7 +105,7 @@ export const FlippableNfcCard = memo(function FlippableNfcCard(props: FlippableN
         ]}
         pointerEvents={!isFlipped ? 'none' : 'auto'}
       >
-        <NfcGlobalCardBack
+        <NfcCardBackV2
           profileUrl={props.profileUrl}
           cardId={props.cardId}
           width={props.width}

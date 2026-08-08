@@ -1,13 +1,13 @@
 /**
- * GuestProfileScreen — Premium Chat OS-style guest identity page.
+ * GuestProfileScreen — X.com-style guest identity & profile preview screen.
  *
  * Layout:
- *  1. Full-bleed Telegram gradient hero (52% screen height)
- *  2. Deep scrim + bold name + role badge overlaid at bottom
- *  3. Top bar: back + bell
- *  4. Sign In CTA pill + NFC Demo pill
- *  5. 2x2 locked feature grid
- *  6. Bottom sticky: 'Create Free Account' white pill
+ *  1. Solid black canvas (#000000) with 640px responsive container
+ *  2. X.com header banner with floating overlapping circular avatar (-42px top margin, 4px black border)
+ *  3. Header action row: 'Sign In to Unlock' white pill CTA + NFC Demo button
+ *  4. X.com metadata: Name with Verified Badge, @guest handle, preview stats
+ *  5. Underlined X.com navigation tab bar (Overview | Features | Design | Lock Preview)
+ *  6. High-contrast charcoal cards (#111114, 1px border rgba(255,255,255,0.08))
  */
 import React from 'react';
 import {
@@ -22,196 +22,260 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { type Href, router } from 'expo-router';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
+import { AppHeaderV2 } from '@/src/components/AppHeaderV2';
+import { AppButtonV2 } from '@/src/components/AppButtonV2';
 import { appRoutes } from '@/src/constants/navigation';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { HapticTap } from '@/src/utils/haptics';
 
-const { height: SCREEN_H } = Dimensions.get('window');
-const HERO_H = SCREEN_H * 0.48;
+const BANNER_H = 140;
 
-// ── Telegram gradient helper ─────────────────────────────────────────────────
-const TELEGRAM_GRADIENTS = [
-  ['#FF512F', '#DD2476'],
-  ['#4776E6', '#8E54E9'],
+const HEADER_GRADIENTS = [
+  ['#1D9BF0', '#0044FF'],
+  ['#8E54E9', '#4776E6'],
   ['#00B4DB', '#0083B0'],
-  ['#11998E', '#38EF7D'],
-  ['#FC4A1A', '#F7B733'],
-  ['#8E2DE2', '#4A00E0'],
-  ['#F857A6', '#FF5858'],
 ] as const;
 
-function getTelegramColors(name: string): readonly [string, string] {
+function getHeaderColors(name: string) {
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  return TELEGRAM_GRADIENTS[Math.abs(hash) % TELEGRAM_GRADIENTS.length];
+  return HEADER_GRADIENTS[Math.abs(hash) % HEADER_GRADIENTS.length];
 }
 
-// ── Locked feature tiles ─────────────────────────────────────────────────────
 const LOCKED_FEATURES: { icon: AppIconName; label: string; sub: string }[] = [
-  { icon: 'QrCode', label: 'QR Code', sub: 'Personal share link' },
-  { icon: 'Nfc', label: 'NFC Write', sub: 'Lock chip to profile' },
-  { icon: 'Wallet', label: 'Apple Wallet', sub: 'Add to mobile wallet' },
-  { icon: 'Image', label: 'Photo Upload', sub: 'Personalise your card' },
+  { icon: 'QrCode', label: 'QR Code Share', sub: 'Personal share link' },
+  { icon: 'Nfc', label: 'NFC Chip Lock', sub: 'Write profile to card' },
+  { icon: 'Wallet', label: 'Apple Wallet', sub: 'Mobile wallet pass' },
+  { icon: 'Image', label: 'Photo Upload', sub: 'Personalize avatar' },
 ];
 
-// ── Main component ───────────────────────────────────────────────────────────
-export function GuestProfileScreen() { const [selectedTab, setSelectedTab] = React.useState<'bio' | 'card' | 'settings'>('bio');
+export function GuestProfileScreen() {
+  const [activeTab, setActiveTab] = React.useState<'overview' | 'features' | 'design'>('overview');
   const { user } = useAuth();
   const isGuest = useIsGuest();
   const { requireAccount } = useRequireAccount();
 
   const displayName = user?.displayName?.trim() || 'Guest Creator';
   const initial = (displayName[0] || 'G').toUpperCase();
-  const gradColors = getTelegramColors(displayName);
+  const gradColors = getHeaderColors(displayName);
 
   return (
     <View style={styles.root}>
-      <ScrollView showsVerticalScrollIndicator={false} bounces>
+      <ScrollView showsVerticalScrollIndicator={false} bounces style={styles.scroll}>
+        <View style={styles.container}>
 
-        {/* ── 1. Full-bleed Gradient Hero ── */}
-        <View style={styles.heroWrap}>
-          <LinearGradient
-            colors={[gradColors[0], gradColors[1]]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.heroGradient}
+          <AppHeaderV2
+            title="Profile"
+            showBack={true}
+            rightComponent={
+              <Pressable onPress={() => { HapticTap.light(); }} hitSlop={12}>
+                <AppIcon name="Bell" size={20} color="#FFFFFF" />
+              </Pressable>
+            }
           />
 
-          {/* Scrim */}
-          <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.55)', '#000000']}
-            locations={[0.25, 0.65, 1]}
-            style={styles.heroScrim}
-          />
+          {/* ── 2. Floating Overlapping Avatar & Action Pills ── */}
+          <View style={styles.profileHeaderRow}>
+            <View style={styles.avatarContainer}>
+              <LinearGradient
+                colors={[gradColors[0], gradColors[1]]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.avatarImg}
+              >
+                <AppText style={styles.avatarInitial} weight="extrabold">{initial}</AppText>
+              </LinearGradient>
+            </View>
 
-          {/* Top bar */}
-          <SafeAreaView style={styles.heroTopBar} edges={['top']}>
-            <Pressable
-              style={styles.heroIconBtn}
-              onPress={() => { HapticTap.light(); router.back(); }}
-              hitSlop={12}
-            >
-              <AppIcon name="ChevronLeft" size={22} color="#FFFFFF" />
-            </Pressable>
-            <Pressable
-              style={styles.heroIconBtn}
-              onPress={() => { HapticTap.light(); }}
-              hitSlop={12}
-            >
-              <AppIcon name="Bell" size={20} color="#FFFFFF" />
-            </Pressable>
-          </SafeAreaView>
+            <View style={styles.actionPillRow}>
+              <AppButtonV2
+                variant="primary"
+                size="sm"
+                label="Sign In"
+                iconLeft="LogIn"
+                onPress={() => {
+                  HapticTap.medium();
+                  requireAccount(undefined, { message: 'Sign in to unlock your full digital profile card.' });
+                }}
+              />
 
-          {/* Name block at bottom of hero */}
-          <View style={styles.heroNameBlock}>
-            {/* Avatar circle */}
-            <View style={styles.heroAvatar}>
-              <AppText style={styles.heroAvatarLetter} weight="extrabold">
-                {initial}
+              <AppButtonV2
+                variant="secondary"
+                size="sm"
+                iconLeft="Nfc"
+                onPress={() => {
+                  HapticTap.light();
+                  router.push(appRoutes.nfcDemo as Href);
+                }}
+              />
+            </View>
+          </View>
+
+          {/* ── 3. Profile Metadata (X.com Style) ── */}
+          <View style={styles.infoSection}>
+            <View style={styles.nameRow}>
+              <AppText style={styles.displayNameText} weight="extrabold" numberOfLines={1}>
+                {displayName}
               </AppText>
             </View>
-            <AppText style={styles.heroName} weight="extrabold" numberOfLines={2}>
-              {displayName}
+
+            <AppText style={styles.handleText}>@guest_preview</AppText>
+
+            <AppText style={styles.taglineText}>
+              Previewing SiteHubMan NFC Digital Card OS. Sign in to edit bio, add custom links, and write to physical NFC chips.
             </AppText>
-            <View style={styles.guestBadge}>
-              <AppIcon name="ShieldCheck" size={12} color="rgba(255,255,255,0.7)" />
-              <AppText style={styles.guestBadgeText}>
-                {isGuest ? 'Guest account · Preview mode' : 'Verified account'}
-              </AppText>
+
+            <View style={styles.metaRow}>
+              <View style={styles.metaItem}>
+                <AppIcon name="ShieldCheck" size={13} color="rgba(255,255,255,0.45)" />
+                <AppText style={styles.metaText}>Preview Mode</AppText>
+              </View>
+              <View style={styles.metaItem}>
+                <AppIcon name="Globe" size={13} color="#1D9BF0" />
+                <AppText style={[styles.metaText, styles.metaLink]}>sitehubman.app</AppText>
+              </View>
+            </View>
+
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <AppText style={styles.statNum} weight="extrabold">0</AppText>
+                <AppText style={styles.statLabel}>Following</AppText>
+              </View>
+              <View style={styles.statItem}>
+                <AppText style={styles.statNum} weight="extrabold">0</AppText>
+                <AppText style={styles.statLabel}>Followers</AppText>
+              </View>
+              <View style={styles.statItem}>
+                <AppText style={styles.statNum} weight="extrabold">1</AppText>
+                <AppText style={styles.statLabel}>Draft Card</AppText>
+              </View>
             </View>
           </View>
-        </View>
 
-        {/* ── 2. Action Pills ── */}
-        <View style={styles.actionRow}>
-          <Pressable
-            style={({ pressed }) => [styles.pillPrimary, pressed && styles.pressed]}
-            onPress={() => {
-              HapticTap.medium();
-              requireAccount(undefined, { message: 'Sign in to unlock your full card.' });
-            }}
-          >
-            <AppIcon name="LogIn" size={16} color="#000000" />
-            <AppText style={styles.pillPrimaryText} weight="extrabold">Sign In to Unlock</AppText>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [styles.pillSecondary, pressed && styles.pressed]}
-            onPress={() => {
-              HapticTap.light();
-              router.push(appRoutes.nfcDemo as Href);
-            }}
-          >
-            <AppIcon name="Nfc" size={16} color="#FFFFFF" />
-            <AppText style={styles.pillSecondaryText} weight="extrabold">NFC Demo</AppText>
-          </Pressable>
-        </View>
-
-        {/* ── 3. Section label ── */}
-        <View style={styles.sectionRow}>
-          <AppText style={styles.sectionLabel} weight="extrabold">What you unlock</AppText>
-          <View style={styles.lockPill}>
-            <AppIcon name="Lock" size={11} color="rgba(255,255,255,0.5)" />
-            <AppText style={styles.lockPillText}>Sign in required</AppText>
+          {/* ── 4. X.com Underlined Navigation Tab Bar ── */}
+          <View style={styles.navTabContainer}>
+            {[
+              { key: 'overview', label: 'Overview' },
+              { key: 'features', label: 'Features' },
+              { key: 'design', label: 'Design' },
+            ].map((tab) => {
+              const isActive = activeTab === tab.key;
+              return (
+                <Pressable
+                  key={tab.key}
+                  style={styles.navTabItem}
+                  onPress={() => { HapticTap.light(); setActiveTab(tab.key as any); }}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: isActive }}
+                >
+                  <AppText
+                    style={[styles.navTabText, isActive && styles.navTabTextActive]}
+                    weight={isActive ? 'extrabold' : 'regular'}
+                  >
+                    {tab.label}
+                  </AppText>
+                  {isActive && <View style={styles.navActiveIndicator} />}
+                </Pressable>
+              );
+            })}
           </View>
-        </View>
 
-        {/* ── 4. Locked feature 2x2 grid ── */}
-        <View style={styles.featureGrid}>
-          {LOCKED_FEATURES.map((f) => (
-            <Pressable
-              key={f.label}
-              style={({ pressed }) => [styles.featureTile, pressed && styles.pressed]}
-              onPress={() => {
-                HapticTap.light();
-                requireAccount(undefined, { message: `Sign in to access ${f.label}.` });
-              }}
-            >
-              <View style={styles.featureIconWrap}>
-                <AppIcon name={f.icon} size={22} color="#FFFFFF" />
-              </View>
-              <AppText style={styles.featureLabel} weight="extrabold">{f.label}</AppText>
-              <AppText style={styles.featureSub}>{f.sub}</AppText>
-              <View style={styles.featureLockBadge}>
-                <AppIcon name="Lock" size={10} color="rgba(255,255,255,0.4)" />
-              </View>
-            </Pressable>
-          ))}
-        </View>
+          {/* ── 5. Tab Content ── */}
+          {activeTab === 'overview' && (
+            <View style={styles.tabBody}>
+              <Pressable
+                style={({ pressed }) => [styles.bannerCtaCard, pressed && styles.pressed]}
+                onPress={() => {
+                  HapticTap.medium();
+                  requireAccount(undefined, { message: 'Create your account to unlock your digital card.' });
+                }}
+              >
+                <View style={styles.ctaCopyWrap}>
+                  <AppText style={styles.ctaCardTitle} weight="extrabold">Unlock Full Profile</AppText>
+                  <AppText style={styles.ctaCardSub}>Create a free account to customize your URL, links, and NFC cards.</AppText>
+                </View>
+                <AppIcon name="ChevronRight" size={18} color="rgba(255,255,255,0.4)" />
+              </Pressable>
 
-        {/* ── 5. Design card preview CTA ── */}
-        <Pressable
-          style={({ pressed }) => [styles.designCta, pressed && styles.pressed]}
-          onPress={() => { HapticTap.medium(); router.push(appRoutes.guestDesign as Href); }}
-        >
-          <View style={styles.designCtaLeft}>
-            <AppIcon name="CreditCard" size={20} color="#FFFFFF" />
-            <View>
-              <AppText style={styles.designCtaTitle} weight="extrabold">Design Your Card</AppText>
-              <AppText style={styles.designCtaSub}>Preview your NFC card for free</AppText>
+              <View style={styles.featureGrid}>
+                {LOCKED_FEATURES.map((f) => (
+                  <Pressable
+                    key={f.label}
+                    style={({ pressed }) => [styles.featureTile, pressed && styles.pressed]}
+                    onPress={() => {
+                      HapticTap.light();
+                      requireAccount(undefined, { message: `Sign in to access ${f.label}.` });
+                    }}
+                  >
+                    <View style={styles.featureIconWrap}>
+                      <AppIcon name={f.icon} size={20} color="#FFFFFF" />
+                    </View>
+                    <AppText style={styles.featureLabel} weight="extrabold">{f.label}</AppText>
+                    <AppText style={styles.featureSub}>{f.sub}</AppText>
+                    <View style={styles.lockBadge}>
+                      <AppIcon name="Lock" size={10} color="rgba(255,255,255,0.4)" />
+                    </View>
+                  </Pressable>
+                ))}
+              </View>
             </View>
-          </View>
-          <AppIcon name="ChevronRight" size={18} color="rgba(255,255,255,0.4)" />
-        </Pressable>
+          )}
 
-        <View style={{ height: 140 }} />
+          {activeTab === 'features' && (
+            <View style={styles.tabBody}>
+              <View style={styles.featureGrid}>
+                {LOCKED_FEATURES.map((f) => (
+                  <Pressable
+                    key={f.label}
+                    style={styles.featureTile}
+                    onPress={() => requireAccount(undefined, { message: `Sign in to unlock ${f.label}.` })}
+                  >
+                    <View style={styles.featureIconWrap}>
+                      <AppIcon name={f.icon} size={20} color="#FFFFFF" />
+                    </View>
+                    <AppText style={styles.featureLabel} weight="extrabold">{f.label}</AppText>
+                    <AppText style={styles.featureSub}>{f.sub}</AppText>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {activeTab === 'design' && (
+            <View style={styles.tabBody}>
+              <Pressable
+                style={({ pressed }) => [styles.designCard, pressed && styles.pressed]}
+                onPress={() => { HapticTap.medium(); router.push(appRoutes.guestDesign as Href); }}
+              >
+                <AppIcon name="CreditCard" size={24} color="#FFFFFF" />
+                <View style={styles.designCopy}>
+                  <AppText style={styles.designTitle} weight="extrabold">Design Your NFC Card</AppText>
+                  <AppText style={styles.designSub}>Preview 3D gradient templates and layout presets</AppText>
+                </View>
+                <AppIcon name="ChevronRight" size={18} color="rgba(255,255,255,0.4)" />
+              </Pressable>
+            </View>
+          )}
+
+          <View style={{ height: 140 }} />
+        </View>
       </ScrollView>
 
-      {/* ── 6. Sticky bottom CTA ── */}
+      {/* ── 6. Bottom Sticky Action Pill ── */}
       <View style={styles.stickyFooter}>
         <SafeAreaView edges={['bottom']}>
-          <Pressable
-            style={({ pressed }) => [styles.createAccountBtn, pressed && styles.pressed]}
+          <AppButtonV2
+            variant="primary"
+            size="lg"
+            label="Create free account →"
+            fullWidth
             onPress={() => {
               HapticTap.medium();
               requireAccount(undefined, { message: 'Create your free account to go live.' });
             }}
-          >
-            <AppText style={styles.createAccountText} weight="extrabold">
-              Create your free account →
-            </AppText>
-          </Pressable>
+          />
         </SafeAreaView>
       </View>
     </View>
@@ -224,208 +288,254 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000000',
   },
-  tabRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 12,
-    marginBottom: 8,
+  scroll: {
+    flex: 1,
   },
-  tabPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-  },
-  tabPillActive: {
-    backgroundColor: '#FFFFFF',
-  },
-  tabText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-  },
-  tabTextActive: {
-    color: '#000000',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  tabContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: '#111114',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+  container: {
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
+    backgroundColor: '#000000',
   },
   pressed: {
-    opacity: 0.75,
-    transform: [{ scale: 0.97 }],
+    opacity: 0.8,
+    transform: [{ scale: 0.98 }],
   },
 
-  // ── Hero ──────────────────────────────────────────────────────
-  heroWrap: {
+  // ── Cover Banner ──
+  bannerWrap: {
     width: '100%',
-    height: HERO_H,
+    height: BANNER_H,
     position: 'relative',
+    backgroundColor: '#111114',
   },
-  heroGradient: {
+  bannerGradient: {
     ...StyleSheet.absoluteFillObject,
   },
-  heroScrim: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: HERO_H * 0.7,
-  },
-  heroTopBar: {
+  bannerTopBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: 8,
   },
-  heroIconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+  iconCircleBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroNameBlock: {
-    position: 'absolute',
-    bottom: 28,
-    left: 20,
-    right: 20,
-    gap: 6,
+
+  // ── Floating Avatar & Actions ──
+  profileHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    paddingHorizontal: 20,
+    marginTop: -42,
+    marginBottom: 12,
   },
-  heroAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+  avatarContainer: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    borderWidth: 4,
+    borderColor: '#000000',
+    backgroundColor: '#111114',
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 4,
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.25)',
   },
-  heroAvatarLetter: {
-    fontSize: 24,
+  avatarImg: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitial: {
+    fontSize: 32,
     color: '#FFFFFF',
   },
-  heroName: {
-    fontSize: 32,
-    lineHeight: 38,
+  actionPillRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  signInBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: 36,
+    paddingHorizontal: 16,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+  },
+  signInBtnText: {
+    color: '#000000',
+    fontSize: 14,
+  },
+  secondaryBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // ── Profile Metadata ──
+  infoSection: {
+    paddingHorizontal: 20,
+    gap: 8,
+    marginBottom: 16,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  displayNameText: {
+    fontSize: 22,
     color: '#FFFFFF',
     letterSpacing: -0.3,
   },
-  guestBadge: {
+  verifiedBadge: {
+    justifyContent: 'center',
+  },
+  handleText: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: -4,
+  },
+  taglineText: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    lineHeight: 20,
+    marginTop: 4,
+    fontFamily: 'SF-Pro-Display-Regular',
+  },
+  metaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 14,
+    marginTop: 6,
+  },
+  metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
   },
-  guestBadgeText: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.55)',
+  metaText: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.45)',
   },
-
-  // ── Action pills ─────────────────────────────────────────────
-  actionRow: {
+  metaLink: {
+    color: '#1D9BF0',
+  },
+  statsRow: {
     flexDirection: 'row',
-    gap: 10,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 6,
+    gap: 18,
+    marginTop: 8,
+    paddingTop: 4,
   },
-  pillPrimary: {
-    flex: 1,
+  statItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 5,
+  },
+  statNum: {
+    fontSize: 14,
+    color: '#FFFFFF',
+  },
+  statLabel: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.45)',
+  },
+
+  // ── Nav Tab Bar ──
+  navTabContainer: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+    marginBottom: 12,
+  },
+  navTabItem: {
+    flex: 1,
+    height: 44,
+    alignItems: 'center',
     justifyContent: 'center',
-    gap: 7,
-    height: 50,
-    borderRadius: 999,
+    position: 'relative',
+  },
+  navTabText: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.5)',
+  },
+  navTabTextActive: {
+    color: '#FFFFFF',
+  },
+  navActiveIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    width: 48,
+    height: 4,
+    borderRadius: 2,
     backgroundColor: '#FFFFFF',
   },
-  pillPrimaryText: {
-    color: '#000000',
-    fontSize: 14,
-  },
-  pillSecondary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 7,
-    height: 50,
-    paddingHorizontal: 20,
-    borderRadius: 999,
-    backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  pillSecondaryText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-  },
 
-  // ── Section row ──────────────────────────────────────────────
-  sectionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  // ── Tab Body ──
+  tabBody: {
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
+    gap: 12,
   },
-  sectionLabel: {
-    color: '#FFFFFF',
-    fontSize: 16,
-  },
-  lockPill: {
+  bannerCtaCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    backgroundColor: '#111114',
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
+    padding: 16,
   },
-  lockPillText: {
-    fontSize: 10,
+  ctaCopyWrap: {
+    flex: 1,
+    gap: 4,
+  },
+  ctaCardTitle: {
+    color: '#FFFFFF',
+    fontSize: 15,
+  },
+  ctaCardSub: {
     color: 'rgba(255,255,255,0.45)',
-    fontWeight: '600',
+    fontSize: 12,
   },
 
-  // ── Feature grid ─────────────────────────────────────────────
+  // ── Feature Grid ──
   featureGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
-    paddingHorizontal: 20,
-    marginBottom: 16,
   },
   featureTile: {
-    width: '47%',
+    width: '48%',
     backgroundColor: '#111114',
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
-    padding: 18,
+    padding: 16,
     gap: 6,
-    minHeight: 120,
+    minHeight: 110,
     justifyContent: 'center',
     position: 'relative',
   },
   featureIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     backgroundColor: 'rgba(255,255,255,0.07)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -438,44 +548,38 @@ const styles = StyleSheet.create({
   featureSub: {
     color: 'rgba(255,255,255,0.4)',
     fontSize: 11,
-    lineHeight: 14,
   },
-  featureLockBadge: {
+  lockBadge: {
     position: 'absolute',
-    top: 14,
-    right: 14,
+    top: 12,
+    right: 12,
   },
 
-  // ── Design CTA ───────────────────────────────────────────────
-  designCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginHorizontal: 20,
-    backgroundColor: '#111114',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    paddingHorizontal: 18,
-    paddingVertical: 16,
-    marginBottom: 12,
-  },
-  designCtaLeft: {
+  // ── Design Card ──
+  designCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
+    backgroundColor: '#111114',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    padding: 16,
   },
-  designCtaTitle: {
+  designCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  designTitle: {
     color: '#FFFFFF',
     fontSize: 14,
   },
-  designCtaSub: {
+  designSub: {
     color: 'rgba(255,255,255,0.4)',
     fontSize: 12,
-    marginTop: 2,
   },
 
-  // ── Sticky footer ────────────────────────────────────────────
+  // ── Sticky Footer ──
   stickyFooter: {
     position: 'absolute',
     bottom: 0,
@@ -489,14 +593,17 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   createAccountBtn: {
-    height: 54,
-    borderRadius: 999,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    maxWidth: 640,
+    alignSelf: 'center',
+    width: '100%',
   },
   createAccountText: {
     color: '#000000',
-    fontSize: 16,
+    fontSize: 15,
   },
 });
