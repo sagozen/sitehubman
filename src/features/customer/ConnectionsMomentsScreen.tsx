@@ -9,7 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppAvatar } from '@/src/components/AppAvatar';
 import { AppIcon } from '@/src/components/AppIcon';
@@ -23,6 +23,8 @@ import { MomentDetailSheet } from '@/src/components/MomentDetailSheet';
 import { SEED_MOMENTS, SEED_MOMENT_LABELS, getSeedSlugUrl } from '@/src/data/seedMoments';
 import { useCustomerConnections } from '@/src/hooks/useCustomerConnections';
 import { useConnectionIntelligence } from '@/src/hooks/useConnectionIntelligence';
+import { getLeadsForUser } from '@/src/services/leadService';
+import { useAuth } from '@/src/hooks/useAuth';
 import { ALL_TAGS, type ConnectionTagId } from '@/src/services/connectionsIntelligenceService';
 import { HapticTap } from '@/src/utils/haptics';
 import { pageThemes } from '@/src/constants/pageThemes';
@@ -59,7 +61,28 @@ function ConnectionRowSkeleton({ isDark }: { isDark: boolean }) {
  */
 export function ConnectionsMomentsScreen() {
   const { data, refreshing, refresh } = useCustomerConnections(null);
+  const { user } = useAuth();
   const isDark = true;
+
+  const [realLeads, setRealLeads] = useState<TapMoment[]>([]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    getLeadsForUser(user.id).then((leads) => {
+      const moments: TapMoment[] = leads.map(l => ({
+        id: l.id,
+        name: l.name,
+        subtitle: l.company || l.email || l.phone || 'Lead Captured',
+        source: 'link',
+        occurredAt: new Date(l.capturedAt).getTime(),
+        note: l.note,
+        phone: l.phone,
+        email: l.email,
+        needsFollowUp: true,
+      }));
+      setRealLeads(moments);
+    }).catch(console.error);
+  }, [user?.id, refreshing]);
 
   const [celebratingFollowUp, setCelebratingFollowUp] = useState<string | null>(null);
   const [celebratingTap, setCelebratingTap] = useState(false);
@@ -93,8 +116,8 @@ export function ConnectionsMomentsScreen() {
     return 'https://sitehub.app';
   }, [publicUrl]);
 
-  // All seed moments (will be replaced by Firestore query in Phase 3)
-  const allMoments = useMemo(() => SEED_MOMENTS, []);
+  // All seed moments (merged with real leads)
+  const allMoments = useMemo(() => [...realLeads, ...SEED_MOMENTS], [realLeads]);
 
   // ── Phase 2: intelligence hook ────────────────────────────────────────────
   const {
@@ -268,6 +291,26 @@ export function ConnectionsMomentsScreen() {
             </Pressable>
           }
         />
+      </View>
+
+      {/* Event Scanner Mode (Phase 4) */}
+      <View style={styles.scannerBanner}>
+        <Pressable
+          style={({ pressed }) => [styles.scannerBtn, pressed && styles.pressed]}
+          onPress={() => {
+            HapticTap.medium();
+            router.push('/customer/event-scanner' as any);
+          }}
+        >
+          <View style={styles.scannerIconWrap}>
+            <AppIcon name="ScanLine" size={20} color="#FFFFFF" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <AppText style={styles.scannerTitle}>Event Scanner Mode</AppText>
+            <AppText style={styles.scannerSub}>High-speed lead retrieval</AppText>
+          </View>
+          <AppIcon name="ChevronRight" size={20} color="rgba(255,255,255,0.3)" />
+        </Pressable>
       </View>
 
       {/* Stories bar */}
@@ -455,6 +498,39 @@ const styles = StyleSheet.create({
   storyName: {
     fontSize: 12,
     fontWeight: '600',
+  },
+
+  // Scanner Banner
+  scannerBanner: {
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  scannerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#000000',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    gap: 12,
+  },
+  scannerIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,122,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scannerTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  scannerSub: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.6)',
   },
 
   // Search

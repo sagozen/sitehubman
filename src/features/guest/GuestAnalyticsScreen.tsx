@@ -8,6 +8,7 @@ import { AppText } from '@/src/components/AppText';
 import { AppButton } from '@/src/components/AppButton';
 import { PageHeader } from '@/src/components/PageHeader';
 import { CommentLoader } from '@/src/components/CommentLoader';
+import { MetricCardV2 } from '@/src/components/MetricCardV2';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
 import { EmptyState } from '@/src/components/EmptyState';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -19,27 +20,6 @@ import { pageThemes } from '@/src/constants/pageThemes';
 
 const THEME = pageThemes.analytics;
 const BRAND = THEME.accent;
-
-function StatTile({ value, label }: { value: string; label: string }) {
-  return (
-    <View style={st.tile}>
-      <AppText style={st.tileVal}>{value}</AppText>
-      <AppText style={st.tileLbl}>{label}</AppText>
-    </View>
-  );
-}
-
-const st = StyleSheet.create({
-  tile: {
-    flex: 1,
-    backgroundColor: THEME.surface,
-    borderRadius: 20,
-    padding: 22,
-    gap: 8,
-  },
-  tileVal: { fontSize: 38, fontWeight: '900', color: THEME.text, letterSpacing: 0 },
-  tileLbl: { fontSize: 13, fontWeight: '700', color: THEME.muted },
-});
 
 export function GuestAnalyticsScreen() {
   const { user } = useAuth();
@@ -107,12 +87,12 @@ export function GuestAnalyticsScreen() {
           <>
             {/* Stats grid */}
             <View style={styles.statsGrid}>
-              <StatTile value={String(insights.totalOrders)} label="Orders" />
-              <StatTile value={String(insights.activeOrders)} label="In progress" />
+              <MetricCardV2 value={String(insights.totalOrders)} title="Orders" icon="Package" />
+              <MetricCardV2 value={String(insights.activeOrders)} title="In progress" icon="TrendingUp" />
             </View>
             <View style={styles.statsGrid}>
-              <StatTile value={String(insights.deliveredOrders)} label="Delivered" />
-              <StatTile value={insights.bioSlug ? 'Live' : 'None'} label="Profile" />
+              <MetricCardV2 value={String(insights.deliveredOrders)} title="Delivered" icon="Truck" />
+              <MetricCardV2 value={insights.bioSlug ? 'Live' : 'None'} title="Profile" icon="User" />
             </View>
 
             {/* Card preview */}
