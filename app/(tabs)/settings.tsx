@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
-import Head from 'expo-router/head';
+import { SeoHead } from '@/src/components/SeoHead';
 
 const SettingsScreen = lazy(() =>
   import('@/src/features/settings/SettingsScreen').then((m) => ({
@@ -19,15 +19,7 @@ function TabFallback() {
 export default function SettingsTabRoute() {
   return (
     <>
-      {Platform.OS === 'web' ? (
-        <Head>
-          <title>Settings | Snap Tap NFC</title>
-          <meta
-            name="description"
-            content="Manage Snap Tap NFC account settings, card preferences, appearance, language, and privacy links."
-          />
-        </Head>
-      ) : null}
+      <SeoHead title="Settings" description="Manage account settings, card preferences, appearance, language, and privacy." noIndex />
       <Suspense fallback={<TabFallback />}>
         <SettingsScreen />
       </Suspense>

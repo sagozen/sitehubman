@@ -140,7 +140,7 @@ export function GuestAnalyticsScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: THEME.canvas },
-  content: { padding: 20, gap: 20, paddingBottom: 120 },
+  content: { padding: 20, gap: 20, paddingBottom: 120, maxWidth: 640, width: '100%', alignSelf: 'center' },
   statsGrid: { flexDirection: 'row', gap: 12 },
   guestWall: {
     backgroundColor: THEME.surface,

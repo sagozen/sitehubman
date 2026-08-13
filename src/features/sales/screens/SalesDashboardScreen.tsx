@@ -32,19 +32,25 @@ import type { Order } from '@/src/types/models';
 import { FAB } from '@/src/components/FAB';
 import { QuickActionModal } from '@/src/components/QuickActionModal';
 
-// ─── Tokens ─────────────────────────────────────────────────────────────────
-const BACKGROUND = '#F5F7FA';
-const SURFACE = '#FFFFFF';
-const INK = '#111111';
-const MUTED = '#6E6E73';
-const BORDER = 'rgba(0,0,0,0.08)';
-const PRIMARY = '#007AFF';
+import { usePreferences } from '@/src/hooks/usePreferences';
 
-// ─── Main Screen ────────────────────────────────────────────────────────────
+const BACKGROUND = '#000000';
+const SURFACE = '#111114';
+const INK = '#FFFFFF';
+const MUTED = '#9A9AA0';
+const BORDER = 'rgba(255,255,255,0.08)';
+const PRIMARY = '#007AFF';
 
 export default function SalesDashboardScreen() {
   const { user } = useAuth();
+  const { colors, isDark } = usePreferences();
   const { orders, refresh } = useOrders('sales', user?.id ?? '');
+
+  const bg = colors.background;
+  const surface = colors.surface;
+  const textCol = colors.textPrimary;
+  const mutedCol = colors.textMuted;
+  const borderCol = colors.border;
 
   useEffect(() => { refresh(); }, [refresh]);
   const [fabOpen, setFabOpen] = useState(false);
@@ -77,29 +83,29 @@ export default function SalesDashboardScreen() {
   }, [orders]);
 
   return (
-    <View style={s.bg}>
+    <View style={[s.bg, { backgroundColor: bg }]}>
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
         {/* ── Top Header (Sticky or inside Scroll) ── */}
         <View style={s.topHeader}>
           <View style={s.headerLeft}>
-            <AppText style={s.greetingText}>Good morning 👋</AppText>
-            <AppText style={s.headerName}>{user?.displayName || 'Sales Agent'}</AppText>
+            <AppText style={[s.greetingText, { color: mutedCol }]}>Good morning 👋</AppText>
+            <AppText style={[s.headerName, { color: textCol }]}>{user?.displayName || 'Sales Agent'}</AppText>
             <AppText style={s.headerSub}>NFC Global Sales · Today</AppText>
           </View>
           <View style={s.headerRight}>
             <Pressable 
-              style={s.bellBtn}
+              style={[s.bellBtn, { backgroundColor: surface, borderColor: borderCol, borderWidth: 1 }]}
               onPress={() => router.push(appRoutes.sales.notifications as any)}
             >
-              <BellBoldDuotone size={24} color={INK} />
+              <BellBoldDuotone size={24} color={textCol} />
               <View style={s.bellDot} />
             </Pressable>
             <Pressable onPress={() => router.push(appRoutes.sales.me as any)}>
               {user?.telegramPhotoUrl ? (
                 <Image source={{ uri: user.telegramPhotoUrl }} style={s.smallAvatar} />
               ) : (
-                <View style={s.smallAvatarFallback}>
-                  <UserBoldDuotone size={16} color={PRIMARY} />
+                <View style={[s.smallAvatarFallback, { backgroundColor: surface }]}>
+                  <UserBoldDuotone size={16} color="#007AFF" />
                 </View>
               )}
             </Pressable>
@@ -132,47 +138,47 @@ export default function SalesDashboardScreen() {
           </View>
 
           {/* ── Quick Actions ── */}
-          <AppText style={s.sectionTitle}>Quick Actions</AppText>
-          <View style={s.quickActionsCard}>
+          <AppText style={[s.sectionTitle, { color: textCol }]}>Quick Actions</AppText>
+          <View style={[s.quickActionsCard, { backgroundColor: surface, borderColor: borderCol, borderWidth: 1 }]}>
             <QuickActionItem
-              icon={<PenBoldDuotone size={24} color={PRIMARY} />}
+              icon={<PenBoldDuotone size={24} color="#007AFF" />}
               label="Add Order"
-              bgColor="#EBF5FA"
+              bgColor={isDark ? 'rgba(0, 122, 255, 0.15)' : '#EBF5FA'}
               onPress={() => router.push(appRoutes.sales.newOrder as any)}
             />
             <QuickActionItem
               icon={<UserBoldDuotone size={24} color="#5856D6" />}
               label="CRM Leads"
-              bgColor="#EAE9FA"
+              bgColor={isDark ? 'rgba(88, 86, 214, 0.15)' : '#EAE9FA'}
               onPress={() => router.push(appRoutes.sales.customers as any)}
             />
             <QuickActionItem
               icon={<DocumentBoldDuotone size={24} color="#007AFF" />}
               label="Orders"
-              bgColor="#E5F1FF"
+              bgColor={isDark ? 'rgba(0, 122, 255, 0.15)' : '#E5F1FF'}
               onPress={() => router.push(appRoutes.sales.orders as any)}
             />
             <QuickActionItem
               icon={<WalletBoldDuotone size={24} color="#FF9500" />}
               label="Commission"
-              bgColor="#FFF4E5"
+              bgColor={isDark ? 'rgba(255, 149, 0, 0.15)' : '#FFF4E5'}
               onPress={() => router.push(appRoutes.sales.payouts as any)}
             />
           </View>
 
           {/* ── Smart Tasks (Apple Reminders Style) ── */}
-          <AppText style={s.sectionTitle}>Smart Tasks</AppText>
-          <View style={s.listCard}>
+          <AppText style={[s.sectionTitle, { color: textCol }]}>Smart Tasks</AppText>
+          <View style={[s.listCard, { backgroundColor: surface, borderColor: borderCol, borderWidth: 1 }]}>
             <TaskRow
               icon={<FireBoldDuotone size={22} color="#FF2D55" />}
-              iconBg="#FFEAEF"
+              iconBg={isDark ? 'rgba(255, 45, 85, 0.15)' : '#FFEAEF'}
               title="Post on TikTok today"
               onPress={() => Linking.openURL('https://www.tiktok.com/business/en-US/blog/tiktok-viral-tips')}
             />
-            <View style={s.hairlineDivider} />
+            <View style={[s.hairlineDivider, { backgroundColor: borderCol }]} />
             <TaskRow
               icon={<StarsBoldDuotone size={22} color="#5856D6" />}
-              iconBg="#EAE9FA"
+              iconBg={isDark ? 'rgba(88, 86, 214, 0.15)' : '#EAE9FA'}
               title="Follow up 3 pending orders"
               onPress={() => Alert.alert('Follow Up', 'Message 3 customers.')}
             />
@@ -260,30 +266,39 @@ function BigActionCard({ title, subtitle, icon, bgColor, iconBg, onPress }: any)
 }
 
 function QuickActionItem({ icon, label, bgColor, onPress }: any) {
+  const { colors } = usePreferences();
   return (
     <Pressable style={({ pressed }) => [s.quickItem, pressed && s.pressed]} onPress={onPress}>
       <View style={[s.quickIconBox, { backgroundColor: bgColor }]}>{icon}</View>
-      <AppText style={s.quickLabel} numberOfLines={1}>{label}</AppText>
+      <AppText style={[s.quickLabel, { color: colors.textPrimary }]} numberOfLines={1}>{label}</AppText>
     </Pressable>
   );
 }
 
 function TaskRow({ icon, iconBg, title, onPress }: any) {
+  const { colors } = usePreferences();
   return (
-    <Pressable style={({ pressed }) => [s.taskRow, pressed && s.pressedBg]} onPress={onPress}>
+    <Pressable style={({ pressed }) => [s.taskRow, pressed && { opacity: 0.7 }]} onPress={onPress}>
       <View style={[s.taskIconBox, { backgroundColor: iconBg }]}>{icon}</View>
       <View style={s.taskTextCol}>
-        <AppText style={s.taskTitle}>{title}</AppText>
+        <AppText style={[s.taskTitle, { color: colors.textPrimary }]}>{title}</AppText>
       </View>
-      <AppIcon name="ChevronRight" size={16} color="#C7C7CC" />
+      <AppIcon name="ChevronRight" size={16} color={colors.textMuted} />
     </Pressable>
   );
 }
 
 function ReferralCard({ referralCode }: { referralCode: string }) {
+  const { colors } = usePreferences();
   return (
     <Pressable 
-      style={({ pressed }) => [s.listCard, s.taskRow, pressed && s.pressedBg, { marginBottom: 24 }]}
+      style={({ pressed }) => [
+        s.listCard, 
+        s.taskRow, 
+        { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }, 
+        pressed && { opacity: 0.7 }, 
+        { marginBottom: 24 }
+      ]}
       onPress={async () => {
         try {
           await Share.share({
@@ -292,35 +307,40 @@ function ReferralCard({ referralCode }: { referralCode: string }) {
         } catch {}
       }}
     >
-      <View style={[s.taskIconBox, { backgroundColor: '#FFEAEF' }]}>
+      <View style={[s.taskIconBox, { backgroundColor: colors.surfaceElevated }]}>
         <FireBoldDuotone size={22} color="#FF2D55" />
       </View>
       <View style={s.taskTextCol}>
-        <AppText style={s.taskTitle}>Share my code</AppText>
+        <AppText style={[s.taskTitle, { color: colors.textPrimary }]}>Share my code</AppText>
       </View>
-      <AppIcon name="Share2" size={20} color={PRIMARY} />
+      <AppIcon name="Share2" size={20} color={colors.primary} />
     </Pressable>
   );
 }
 
 function RecentOrderCard({ order }: { order: Order }) {
+  const { colors } = usePreferences();
   const total = formatOrderTotal(order);
   return (
     <Pressable 
-      style={({ pressed }) => [s.orderCardCompact, pressed && s.pressedBg]}
+      style={({ pressed }) => [
+        s.orderCardCompact, 
+        { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 },
+        pressed && { opacity: 0.7 }
+      ]}
       onPress={() => router.push(`/orders/detail/${order.id}` as any)}
     >
-      <View style={s.orderIconWrap}>
-        <DocumentBoldDuotone size={24} color={PRIMARY} />
+      <View style={[s.orderIconWrap, { backgroundColor: colors.surfaceElevated }]}>
+        <DocumentBoldDuotone size={24} color={colors.primary} />
       </View>
       <View style={s.orderInfoCol}>
         <View style={s.orderTitleRow}>
-          <AppText style={s.orderNameCompact} numberOfLines={1}>{order.customerName ?? 'Guest'}</AppText>
-          <AppText style={s.orderPriceCompact}>{total}</AppText>
+          <AppText style={[s.orderNameCompact, { color: colors.textPrimary }]} numberOfLines={1}>{order.customerName ?? 'Guest'}</AppText>
+          <AppText style={[s.orderPriceCompact, { color: colors.textPrimary }]}>{total}</AppText>
         </View>
-        <AppText style={s.orderIdCompact}>#{order.id.slice(0, 8).toUpperCase()}</AppText>
+        <AppText style={[s.orderIdCompact, { color: colors.textMuted }]}>#{order.id.slice(0, 8).toUpperCase()}</AppText>
       </View>
-      <AppIcon name="ChevronRight" size={16} color="#C7C7CC" />
+      <AppIcon name="ChevronRight" size={16} color={colors.textMuted} />
     </Pressable>
   );
 }

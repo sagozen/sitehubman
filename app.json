@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "GEN DIGITAL",
+    "name": "AVIO",
     "slug": "bio-cloud-native",
     "version": "1.0.0",
-    "description": "SiteHub Man lets you create premium NFC digital business cards, share your bio instantly via tap or QR code, and track every card interaction in real time. Go paperless. Go smart.",
-    "keywords": "NFC card, digital business card, smart card, bio link, QR code, contactless sharing, tap to share, NFC tag, networking, profile link",
+    "description": "AVIO lets you create premium NFC digital business cards, share your bio instantly via tap or QR code, and track every card interaction in real time. CONNECT · IDENTIFY · EMPOWER.",
+    "keywords": "AVIO, NFC card, digital business card, smart card, bio link, QR code, contactless sharing, tap to share, NFC tag, networking, profile link",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "biocloud",
+    "scheme": "avio",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -46,9 +46,9 @@
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/icon.png",
-      "name": "SiteHub Man – Smart NFC Digital Business Cards",
-      "shortName": "SiteHub Man",
-      "description": "Create premium NFC digital business cards, share your bio instantly via tap or QR code, and track every interaction. The future of networking.",
+      "name": "AVIO – Smart NFC Digital Business Cards",
+      "shortName": "AVIO",
+      "description": "AVIO lets you create premium NFC digital business cards, share your bio instantly via tap or QR code, and track every interaction. CONNECT · IDENTIFY · EMPOWER.",
       "themeColor": "#0B1220",
       "backgroundColor": "#000000",
       "display": "standalone",
@@ -95,7 +95,7 @@
     },
     "runtimeVersion": "1.0.0",
     "updates": {
-      "url": "https://u.expo.dev/cb54673a-8b20-4939-9332-6e9f312521a5",
+      "url": "https://u.expo.dev/9f82bfc2-ff87-4f0b-9843-b98fba5bf803",
       "enabled": true,
       "checkAutomatically": "ON_ERROR_RECOVERY",
       "fallbackToCacheTimeout": 5000
@@ -103,10 +103,10 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "cb54673a-8b20-4939-9332-6e9f312521a5"
+        "projectId": "9f82bfc2-ff87-4f0b-9843-b98fba5bf803"
       },
       "cloudinaryApiKey": "795664656796712"
     },
-    "owner": "theanthean8888"
+    "owner": "theanthean8888s-organization"
   }
 }

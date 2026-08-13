@@ -31,7 +31,7 @@ interface SeoHeadProps {
   noIndex?: boolean;
 }
 
-const BASE_URL = 'https://sitehubman.vercel.app';
+const BASE_URL = 'https://sitehubman.com';
 const DEFAULT_OG_IMAGE = `${BASE_URL}/og-default.png`;
 const SITE_NAME = 'SiteHub Man';
 
@@ -179,4 +179,24 @@ function injectMeta({ title, description, ogImage, canonicalUrl, type, noIndex, 
     document.head.appendChild(ldScript);
   }
   ldScript.textContent = JSON.stringify(jsonLd);
+
+  if ((jsonLd as any)['@type'] === 'WebApplication') {
+    // Organization schema (always present)
+    let orgScript = document.querySelector('script[data-schema="organization"]') as HTMLScriptElement | null;
+    if (!orgScript) {
+      orgScript = document.createElement('script');
+      orgScript.type = 'application/ld+json';
+      orgScript.setAttribute('data-schema', 'organization');
+      document.head.appendChild(orgScript);
+    }
+    orgScript.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'SiteHub Man',
+      url: 'https://sitehubman.com',
+      logo: 'https://sitehubman.com/og-default.png',
+      description: 'Premium NFC digital business cards — share your bio instantly via tap, QR code, or link.',
+      sameAs: ['https://twitter.com/sitehubman'],
+    });
+  }
 }

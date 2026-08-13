@@ -18,8 +18,10 @@ type PageHeaderProps = {
   compact?: boolean;
 };
 
+import { usePreferences } from '@/src/hooks/usePreferences';
+
 export function PageHeader({
-  theme,
+  theme: themeProp,
   eyebrow,
   title,
   subtitle,
@@ -29,6 +31,15 @@ export function PageHeader({
   right,
   compact = false,
 }: PageHeaderProps) {
+  const { colors } = usePreferences();
+  const theme = {
+    surface: colors?.surface ?? themeProp.surface,
+    border: colors?.border ?? themeProp.border,
+    text: colors?.textPrimary ?? themeProp.text,
+    muted: colors?.textMuted ?? themeProp.muted,
+    accent: colors?.primary ?? themeProp.accent,
+    accentSoft: colors?.primarySoft ?? themeProp.accentSoft,
+  };
   return (
     <View style={[styles.root, compact && styles.rootCompact]}>
       <View style={styles.topRow}>

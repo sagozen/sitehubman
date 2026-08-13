@@ -22,8 +22,7 @@ function TabFallback() {
   );
 }
 
-import { Platform } from 'react-native';
-import Head from 'expo-router/head';
+import { SeoHead } from '@/src/components/SeoHead';
 
 export default function PayoutsProfileTabRoute() {
   const isGuest = useIsGuest();
@@ -35,12 +34,7 @@ export default function PayoutsProfileTabRoute() {
 
   return (
     <>
-      {Platform.OS === 'web' && (
-        <Head>
-          <title>Digital Business Profile | Snap Tap NFC</title>
-          <meta name="description" content="View and customize your digital business card profile, manage links, and update your personal bio." />
-        </Head>
-      )}
+      <SeoHead title="Profile" description="Edit your digital business card profile, update bio, and manage your professional presence." noIndex />
       <Suspense fallback={<TabFallback />}>
         <Screen />
       </Suspense>

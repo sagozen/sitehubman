@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Pressable, Alert } from 'react-native';
+import { SeoHead } from '@/src/components/SeoHead';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { AppIcon } from '@/src/components/AppIcon';
@@ -32,6 +33,7 @@ export default function PromotionalPreviewScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
+      <SeoHead title="Promotional Preview" noIndex />
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <Pressable onPress={() => router.back()} hitSlop={12} style={styles.backButton}>

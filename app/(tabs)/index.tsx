@@ -13,18 +13,12 @@ function TabFallback() {
   );
 }
 
-import { Platform } from 'react-native';
-import Head from 'expo-router/head';
+import { SeoHead } from '@/src/components/SeoHead';
 
 export default function HomeTabRoute() {
   return (
     <>
-      {Platform.OS === 'web' && (
-        <Head>
-          <title>Home | Snap Tap NFC Global</title>
-          <meta name="description" content="Manage your premium contactless identity, order custom NFC business cards, and track your interactions." />
-        </Head>
-      )}
+      <SeoHead title="Dashboard" description="Manage your NFC digital business cards, view recent activity, and track card interactions." noIndex />
       <Suspense fallback={<TabFallback />}>
         <HomeScreen />
       </Suspense>

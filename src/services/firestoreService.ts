@@ -1141,6 +1141,14 @@ export async function getPrinterJobByOrderId(orderId: string): Promise<PrinterJo
   return active ?? jobs[0];
 }
 
+export async function getPrinterJob(jobId: string): Promise<PrinterJob | null> {
+  assertNonEmpty(jobId, 'Job ID is required.');
+  const ref = doc(db, firebaseCollections.printerJobs, jobId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return null;
+  return mapPrinterJob(snap.id, snap.data());
+}
+
 export function subscribePrinterJobs(
   role: UserRole,
   userId: string,

@@ -1,5 +1,11 @@
 import { GuestTrackOrderScreen } from '@/src/features/guest/GuestTrackOrderScreen';
+import { SeoHead } from '@/src/components/SeoHead';
 
 export default function GuestTrackOrderRoute() {
-  return <GuestTrackOrderScreen />;
+  return (
+    <>
+      <SeoHead title="Track Order" noIndex />
+      <GuestTrackOrderScreen />
+    </>
+  );
 }

@@ -1,5 +1,11 @@
 import { Redirect } from 'expo-router';
+import { SeoHead } from '@/src/components/SeoHead';
 
 export default function LegacyGuestDesignRedirect() {
-  return <Redirect href="/cards/design" />;
+  return (
+    <>
+      <SeoHead title="Design Card" noIndex />
+      <Redirect href="/cards/design" />
+    </>
+  );
 }

@@ -20,13 +20,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { HapticTap } from '@/src/utils/haptics';
 import { MotionScale } from '@/src/utils/motion';
 
-const BRAND = '#007AFF';
-const INK = '#111827';
-const INK2 = '#374151';
-const MUTED = '#9CA3AF';
-const SURFACE = '#FFFFFF';
-const BACKGROUND = '#FFFFFF';
-const BORDER = '#E5E7EB';
+const BRAND = '#F59E0B'; // Warm Amber Primary Accent
+const INK = '#FFFFFF';
+const INK2 = '#D1D5DB';
+const MUTED = '#9A9AA0';
+const SURFACE = '#131316'; // Dark Charcoal Surface
+const BACKGROUND = '#0B0B0E'; // Near-Black Textured Canvas
+const BORDER = 'rgba(255, 255, 255, 0.08)';
 
 // ─── Animated Hero Card component ───────────────────────────────────────────
 export function AnimatedHeroCard() {
@@ -38,57 +38,57 @@ export function AnimatedHeroCard() {
     Animated.loop(
       Animated.sequence([
         Animated.timing(floatAnim, {
-          toValue: -12,
-          duration: 2000,
+          toValue: -10,
+          duration: 2200,
           useNativeDriver: true,
         }),
         Animated.timing(floatAnim, {
           toValue: 0,
-          duration: 2000,
+          duration: 2200,
           useNativeDriver: true,
         }),
       ])
     ).start();
 
-    // Soft NFC wave pulse
+    // Soft amber glowing pulse
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
           toValue: 1.05,
-          duration: 1500,
+          duration: 1600,
           useNativeDriver: true,
         }),
         Animated.timing(pulseAnim, {
           toValue: 0.95,
-          duration: 1500,
+          duration: 1600,
           useNativeDriver: true,
         }),
       ])
     ).start();
-  }, []);
+  }, [floatAnim, pulseAnim]);
 
   return (
     <View style={heroStyles.container}>
-      {/* Soft Light ambient background */}
+      {/* Amber ambient background glow */}
       <Animated.View style={[heroStyles.ambientGlow, { transform: [{ scale: pulseAnim }] }]} />
 
       <Animated.View style={[heroStyles.cardFrame, { transform: [{ translateY: floatAnim }] }]}>
         <LinearGradient
-          colors={['#1F2937', '#111827']}
+          colors={['#1E1E24', '#111115']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={heroStyles.cardGradient}
         >
           {/* Card Glass shine line */}
           <View style={heroStyles.cardShine} />
-          
+
           <View style={heroStyles.cardHeader}>
-            <AppIcon name="Nfc" size={24} color="#FFFFFF" />
+            <AppIcon name="Nfc" size={24} color="#F59E0B" />
             <View style={heroStyles.chip} />
           </View>
           <View style={heroStyles.cardFooter}>
-            <AppText style={heroStyles.cardName}>NFC MEMBER</AppText>
-            <AppText style={heroStyles.cardSerial}>GLOBAL IDENTITY</AppText>
+            <AppText style={heroStyles.cardName}>SITEHUB PRO</AppText>
+            <AppText style={heroStyles.cardSerial}>SMART NFC PASS</AppText>
           </View>
         </LinearGradient>
       </Animated.View>
@@ -98,7 +98,7 @@ export function AnimatedHeroCard() {
 
 const heroStyles = StyleSheet.create({
   container: {
-    height: 160,
+    height: 150,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
@@ -107,24 +107,23 @@ const heroStyles = StyleSheet.create({
   } as ViewStyle,
   ambientGlow: {
     position: 'absolute',
-    width: 200,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(0, 122, 255, 0.08)',
-    filter: 'blur(30px)',
+    width: 210,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: 'rgba(245, 158, 11, 0.12)', // Amber Ambient Glow
   } as ViewStyle,
   cardFrame: {
-    width: 200,
-    height: 126,
-    borderRadius: 16,
-    backgroundColor: '#111827',
+    width: 210,
+    height: 130,
+    borderRadius: 20,
+    backgroundColor: '#131316',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.45,
     shadowRadius: 24,
     elevation: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     overflow: 'hidden',
   } as ViewStyle,
   cardGradient: {
@@ -138,7 +137,7 @@ const heroStyles = StyleSheet.create({
     left: 0,
     right: 0,
     height: '60%',
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: 'rgba(255,255,255,0.04)',
     transform: [{ skewY: '-15deg' }, { scaleX: 1.5 }],
   } as ViewStyle,
   cardHeader: {
@@ -147,25 +146,25 @@ const heroStyles = StyleSheet.create({
     alignItems: 'center',
   } as ViewStyle,
   chip: {
-    width: 28,
-    height: 22,
-    borderRadius: 4,
-    backgroundColor: '#F3F4F6',
-    opacity: 0.8,
+    width: 32,
+    height: 24,
+    borderRadius: 6,
+    backgroundColor: '#D4AF37',
+    opacity: 0.9,
   } as ViewStyle,
   cardFooter: {
-    gap: 3,
+    gap: 2,
   } as ViewStyle,
   cardName: {
-    fontSize: 10,
-    fontWeight: '850' as any,
+    fontSize: 11,
+    fontWeight: '800' as any,
     color: '#FFFFFF',
     letterSpacing: 1.2,
   } as TextStyle,
   cardSerial: {
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: '700',
-    color: '#9CA3AF',
+    color: '#F59E0B',
     letterSpacing: 0.8,
   } as TextStyle,
 });
@@ -204,17 +203,15 @@ export function AuthLoginCard({ children }: PropsWithChildren) {
 
 // ─── Headers ──────────────────────────────────────────────────────────────────
 export function AuthWelcomeHeader({
-  title = 'NFC Global',
-  subtitle = 'Create. Share. Connect.\nOne digital identity for every conversation.',
+  title = 'SiteHub NFC',
+  subtitle = 'Create, Share & Tap. One digital identity for every conversation.',
 }: {
   title?: string;
   subtitle?: string;
 }) {
   return (
     <View style={s.headerWrap}>
-      {/* 3D Animated Hero card illustration */}
       <AnimatedHeroCard />
-
       <AppText style={s.headerTitle}>{title}</AppText>
       <AppText style={s.headerSub}>{subtitle}</AppText>
     </View>
@@ -243,7 +240,7 @@ export function AuthIconTextField({
       <View style={s.fieldRow}>
         <TextInput
           style={s.fieldInput}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor="#9A9AA0"
           {...rest}
         />
         {trailing ? <View style={s.fieldTrailing}>{trailing}</View> : null}
@@ -267,7 +264,7 @@ export function AuthTextField({ label, isLast, trailing, ...rest }: TextInputPro
       {label && <AppText style={s.groupFieldLabel}>{label}</AppText>}
       <TextInput
         style={s.groupFieldInput}
-        placeholderTextColor="#C4CFDE"
+        placeholderTextColor="#9A9AA0"
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         {...rest}
@@ -302,7 +299,7 @@ export function AuthPrimaryButton({
       style={({ pressed }) => [s.primaryBtn, off && s.btnOff, pressed && !off && s.btnPressed]}
     >
       {loading
-        ? <ActivityIndicator color="#FFFFFF" size="small" />
+        ? <ActivityIndicator color="#1C1C1F" size="small" />
         : <AppText style={s.primaryBtnT}>{label}</AppText>}
     </Pressable>
   );
@@ -397,46 +394,55 @@ const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BACKGROUND },
   kav: { flex: 1 },
   scroll: { flex: 1 },
-  scrollContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 28, paddingTop: 28, paddingBottom: 40, gap: 22 },
+  scrollContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingTop: 28, paddingBottom: 40, gap: 20 },
 
-  card: { width: '100%', gap: 20 },
+  card: {
+    width: '100%',
+    maxWidth: 420,
+    alignSelf: 'center',
+    backgroundColor: SURFACE,
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: BORDER,
+    padding: 24,
+    gap: 20,
+  },
 
   headerWrap: { gap: 8, marginBottom: 8, alignItems: 'center' },
-  headerTitle: { fontSize: 32, lineHeight: 36, fontWeight: '900', color: INK, letterSpacing: -0.8, textAlign: 'center' },
-  headerSub: { fontSize: 14, lineHeight: 20, fontWeight: '600', color: MUTED, textAlign: 'center' },
+  headerTitle: { fontSize: 30, lineHeight: 34, fontWeight: '900', color: INK, letterSpacing: -0.6, textAlign: 'center' },
+  headerSub: { fontSize: 14, lineHeight: 20, fontWeight: '500', color: MUTED, textAlign: 'center' },
 
   field: { gap: 6 },
-  fieldLabel: { fontSize: 11, fontWeight: '800', color: MUTED, letterSpacing: 0, marginLeft: 2 },
-  fieldRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F9FAFB', borderRadius: 20, borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.03)', paddingHorizontal: 15, minHeight: 56 },
-  fieldInput: { flex: 1, fontSize: 16, fontWeight: '500', color: INK, paddingVertical: Platform.OS === 'ios' ? 15 : 11 },
+  fieldLabel: { fontSize: 11, fontWeight: '800', color: MUTED, letterSpacing: 0.6, textTransform: 'uppercase', marginLeft: 2 },
+  fieldRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#18181C', borderRadius: 16, borderWidth: 1, borderColor: BORDER, paddingHorizontal: 16, minHeight: 54 },
+  fieldInput: { flex: 1, fontSize: 15, fontWeight: '500', color: INK, paddingVertical: Platform.OS === 'ios' ? 14 : 10 },
   fieldTrailing: { alignItems: 'center', justifyContent: 'center', paddingLeft: 4 },
 
-  formGroup: { backgroundColor: '#F9FAFB', borderRadius: 24, overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.04)', shadowColor: '#000000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.01, shadowRadius: 10, elevation: 1 },
+  formGroup: { backgroundColor: '#18181C', borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: BORDER },
   groupField: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, minHeight: 54, borderLeftWidth: 3, borderLeftColor: 'transparent' },
-  groupFieldBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(0,0,0,0.05)' },
-  groupFieldFocused: { borderLeftColor: BRAND, backgroundColor: 'rgba(0,122,255,0.02)' },
-  groupFieldLabel: { fontSize: 15, fontWeight: '750' as any, color: INK, width: 85 },
+  groupFieldBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: BORDER },
+  groupFieldFocused: { borderLeftColor: BRAND, backgroundColor: 'rgba(245,158,11,0.04)' },
+  groupFieldLabel: { fontSize: 14, fontWeight: '700', color: INK, width: 90 },
   groupFieldInput: { flex: 1, fontSize: 15, fontWeight: '600', color: INK, paddingVertical: Platform.OS === 'ios' ? 14 : 10 },
 
-  primaryBtn: { height: 54, borderRadius: 999, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: '#111827' },
-  primaryBtnT: { fontSize: 16, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.3 },
-  textBtn: { height: 52, alignItems: 'center', justifyContent: 'center', borderRadius: 999, borderWidth: 1.5, borderColor: BORDER, backgroundColor: SURFACE },
-  textBtnT: { fontSize: 15, fontWeight: '800', color: INK },
+  primaryBtn: { height: 54, borderRadius: 16, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: BRAND },
+  primaryBtnT: { fontSize: 16, fontWeight: '800', color: '#1C1C1F', letterSpacing: -0.2 },
+  textBtn: { height: 52, alignItems: 'center', justifyContent: 'center', borderRadius: 16, borderWidth: 1, borderColor: BORDER, backgroundColor: SURFACE },
+  textBtnT: { fontSize: 15, fontWeight: '700', color: INK },
   btnOff: { opacity: 0.4 },
-  btnPressed: { opacity: 0.9, transform: [{ scale: MotionScale.pressed }] },
+  btnPressed: { opacity: 0.88, transform: [{ scale: MotionScale.pressed }] },
 
   divider: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  divLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(0,0,0,0.06)' },
+  divLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: BORDER },
   divT: { fontSize: 12, fontWeight: '800', color: MUTED, textTransform: 'uppercase', letterSpacing: 0.5 },
 
   footerRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 6, marginTop: 12 },
-  footerPrompt: { fontSize: 14, fontWeight: '600', color: MUTED },
-  footerAction: { fontSize: 14, fontWeight: '850' as any, color: BRAND },
+  footerPrompt: { fontSize: 14, fontWeight: '500', color: MUTED },
+  footerAction: { fontSize: 14, fontWeight: '800', color: BRAND },
 
-  trust: { alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: 24 },
-  trustT: { fontSize: 12, fontWeight: '800', color: '#059669', letterSpacing: 0.3 },
-  trustSub: { fontSize: 10, fontWeight: '600', color: MUTED },
+  trust: { alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: 20 },
+  trustT: { fontSize: 12, fontWeight: '800', color: '#30D158', letterSpacing: 0.3 },
+  trustSub: { fontSize: 10, fontWeight: '500', color: MUTED },
 
-  sectionLabel: { fontSize: 12, fontWeight: '600', color: MUTED, letterSpacing: 0.3, textTransform: 'uppercase', marginLeft: 2 },
+  sectionLabel: { fontSize: 11, fontWeight: '800', color: MUTED, letterSpacing: 0.8, textTransform: 'uppercase', marginLeft: 2 },
 });
-

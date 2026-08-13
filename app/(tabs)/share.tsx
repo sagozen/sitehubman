@@ -1,16 +1,10 @@
 import { CustomerShareScreen } from '@/src/features/customer/CustomerShareScreen';
-import { Platform } from 'react-native';
-import Head from 'expo-router/head';
+import { SeoHead } from '@/src/components/SeoHead';
 
 export default function ShareTabRoute() {
   return (
     <>
-      {Platform.OS === 'web' && (
-        <Head>
-          <title>Share Card & QR | Snap Tap NFC</title>
-          <meta name="description" content="Share your business profile instantly using a QR code scan or NFC tag transmission." />
-        </Head>
-      )}
+      <SeoHead title="Share Your Card" description="Share your NFC digital business card via QR code, link, or NFC tap." noIndex />
       <CustomerShareScreen />
     </>
   );

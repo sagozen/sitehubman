@@ -22,13 +22,14 @@ import { StatusBadge } from '@/src/components/StatusBadge';
 import { FAB } from '@/src/components/FAB';
 import { QuickActionModal } from '@/src/components/QuickActionModal';
 
-// ─── Tokens (Light Theme Pro) ───────────────────────────────────────────────
-const BG = '#F8FAFC';
-const SURFACE = 'rgba(255, 255, 255, 0.86)';
-const SURFACE_LIGHT = '#F1F5F9';
-const BORDER = 'rgba(255, 255, 255, 0.92)';
-const INK = '#020617';
-const MUTED = '#64748B';
+import { usePreferences } from '@/src/hooks/usePreferences';
+
+const BG = '#000000';
+const SURFACE = '#111114';
+const SURFACE_LIGHT = '#1C1C1E';
+const BORDER = 'rgba(255,255,255,0.08)';
+const INK = '#FFFFFF';
+const MUTED = '#9A9AA0';
 const BLUE = '#2563EB';
 
 type FilterType = 'all' | 'pending' | 'approved' | 'printer' | 'done';
@@ -43,17 +44,24 @@ function orderStatusKey(o: Order): FilterType {
 
 function statusStyle(status: string) {
   switch (status) {
-    case 'pending': return { bg: '#fef3c7', text: '#b45309', label: 'Pending' };
-    case 'approved': return { bg: '#dbeafe', text: '#1d4ed8', label: 'Approved' };
-    case 'printer': return { bg: '#ede9fe', text: '#6d28d9', label: 'Printer' };
-    case 'done': return { bg: '#d1fae5', text: '#047857', label: 'Done' };
-    default: return { bg: '#f1f5f9', text: '#475569', label: 'Unknown' };
+    case 'pending': return { bg: 'rgba(245, 158, 11, 0.15)', text: '#f59e0b', label: 'Pending' };
+    case 'approved': return { bg: 'rgba(59, 130, 246, 0.15)', text: '#3b82f6', label: 'Approved' };
+    case 'printer': return { bg: 'rgba(168, 85, 247, 0.15)', text: '#a855f7', label: 'Printer' };
+    case 'done': return { bg: 'rgba(16, 185, 129, 0.15)', text: '#10b981', label: 'Done' };
+    default: return { bg: 'rgba(100, 116, 139, 0.15)', text: '#64748b', label: 'Unknown' };
   }
 }
 
 export default function SalesOrdersScreen() {
   const { user } = useAuth();
+  const { colors, isDark } = usePreferences();
   const { orders, isLoading, refresh } = useOrders('sales', user?.id ?? '');
+
+  const BG = colors.background;
+  const SURFACE = colors.surface;
+  const INK = colors.textPrimary;
+  const MUTED = colors.textMuted;
+  const BORDER = colors.border;
 
   const [filter, setFilter] = useState<FilterType>('all');
   const [search, setSearch] = useState('');

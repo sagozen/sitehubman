@@ -878,7 +878,7 @@ const styles = StyleSheet.create({
   logoSquare: {
     width: 22,
     height: 22,
-    borderRadius: 0,
+    borderRadius: 6,
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: '#FFFFFF',

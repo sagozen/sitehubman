@@ -57,6 +57,8 @@ function resolveFamily(weight: MonoWeight): string {
   }
 }
 
+import { usePreferences } from '@/src/hooks/usePreferences';
+
 function MonoTextRaw({
   children,
   variant = 'body',
@@ -70,13 +72,25 @@ function MonoTextRaw({
   style,
   ...rest
 }: PropsWithChildren<MonoTextProps>) {
+  const { colors, isDark } = usePreferences();
   const variantStyle = monoType[variant];
   const resolvedWeight = weight ?? (variantStyle.fontWeight as MonoWeight | undefined) ?? 'regular';
   const fontFamily = resolveFamily(resolvedWeight);
 
+  const primaryColor = isDark ? '#FAFAFA' : '#09090B';
+  const mutedColor = isDark ? '#A1A1AA' : '#6E6E73';
+  const tertiaryColor = isDark ? '#71717A' : '#A1A1AA';
+  const inverseColor = isDark ? '#09090B' : '#FFFFFF';
+
   const toneColor =
     color ??
-    (tone === 'inverse' ? '#FFFFFF' : undefined);
+    (tone === 'primary'
+      ? colors?.textPrimary ?? primaryColor
+      : tone === 'muted'
+      ? colors?.textMuted ?? mutedColor
+      : tone === 'tertiary'
+      ? colors?.textTertiary ?? tertiaryColor
+      : colors?.textInverse ?? inverseColor);
 
   return (
     <Text
@@ -86,17 +100,11 @@ function MonoTextRaw({
         styles.base,
         variantStyle,
         { fontFamily, fontWeight: weightMap[resolvedWeight] },
-        // Color resolution — explicit color wins, then tone, else fallback
-        !color && tone === 'primary' && { color: '#27272A' },
-        !color && tone === 'muted' && { color: '#52525B' },
-        !color && tone === 'tertiary' && { color: '#A1A1AA' },
-        !color && tone === 'inverse' && { color: toneColor ?? '#FFFFFF' },
-        color && { color },
+        { color: toneColor },
         uppercase && { textTransform: 'uppercase' },
         underline && { textDecorationLine: 'underline' },
         strike && { textDecorationLine: 'line-through' },
         align && { textAlign: align },
-        // Strip duplicate fontWeight/fontFamily from caller
         style,
       ]}
       {...rest}

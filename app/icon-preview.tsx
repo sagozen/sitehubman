@@ -1,6 +1,7 @@
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SeoHead } from '@/src/components/SeoHead';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { CustomerFlowHub } from '@/src/components/CustomerFlowHub';
@@ -12,6 +13,7 @@ import { theme } from '@/src/constants/theme';
 export default function IconPreviewScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+      <SeoHead title="Icon Preview" noIndex />
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
           <AppIcon name="ChevronLeft" size={22} color={theme.colors.textPrimary} />
