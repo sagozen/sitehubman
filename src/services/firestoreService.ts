@@ -1783,3 +1783,11 @@ export async function reassignStaffOrders(fromStaffId: string, toStaffId: string
   await batch.commit();
   return snapshot.docs.length;
 }
+
+export async function updateUserActiveProfile(userId: string, activeProfileId: string): Promise<void> {
+  if (!userId.trim()) return;
+  await updateDoc(doc(db, firebaseCollections.users, userId), {
+    activeProfileId,
+    updatedAt: serverTimestamp(),
+  }).catch(() => undefined);
+}

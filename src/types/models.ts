@@ -42,6 +42,7 @@ export interface AppUser {
   createdAt: string;
   updatedAt: string;
   isGuest?: boolean;
+  activeProfileId?: string;
 }
 
 /**
@@ -585,6 +586,9 @@ export interface BioPage {
   coverImage?: string;
   avatar?: string;
   headline?: string;
+  directModeEnabled?: boolean;
+  directModeUrl?: string;
+  webhookUrl?: string;
   updatedAt: string;
 }
 
@@ -617,6 +621,7 @@ export interface UiPreferences {
   typographyColor: TypographyColorKey;
   primaryCardId?: string;
   hiddenCardIds?: string[];
+  activeProfileId?: string;
   cardDraft?: any;
 }
 
