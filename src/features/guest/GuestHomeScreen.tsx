@@ -3,6 +3,7 @@ import {
   Animated,
   Image,
   InteractionManager,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -464,6 +465,36 @@ export function GuestHomeScreen() {
                   <AppText style={styles.ctaSecondaryText} weight="bold">Edit Design</AppText>
                 </Pressable>
               </View>
+
+              {/* ── 5. Order Physical NFC Hardware Bento ── */}
+              <Pressable
+                onPress={() => {
+                  HapticTap.medium();
+                  const cardId = cloudCard?.cardId || 'new';
+                  const handle = bioPage?.slug || '';
+                  const claimUrl = `https://shop.aviobrand.com/?claimId=${encodeURIComponent(cardId)}&name=${encodeURIComponent(heroName || '')}&email=${encodeURIComponent(heroEmail || '')}&handle=${encodeURIComponent(handle)}`;
+                  Linking.openURL(claimUrl);
+                }}
+                style={({ pressed }) => [styles.orderHardwareBento, pressed && styles.pressed]}
+              >
+                <View style={styles.orderHardwareLeft}>
+                  <View style={styles.nfcIconWrap}>
+                    <AppIcon name="CreditCard" size={20} color="#2997FF" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <AppText style={styles.orderHardwareTitle} weight="extrabold">Order Physical NFC Card</AppText>
+                      <View style={styles.laserPill}>
+                        <AppText style={styles.laserPillText} weight="bold">LASER ENGRAVED</AppText>
+                      </View>
+                    </View>
+                    <AppText style={styles.orderHardwareSub}>
+                      Get your matte black or brushed metal NFC card. Auto-synced to this profile.
+                    </AppText>
+                  </View>
+                </View>
+                <AppIcon name="ArrowUpRight" size={18} color="rgba(255,255,255,0.7)" />
+              </Pressable>
             </>
 
           )}
@@ -785,6 +816,56 @@ const styles = StyleSheet.create({
   bentoTitle: {
     color: '#FFFFFF',
     fontSize: 14,
+  },
+  orderHardwareBento: {
+    width: '100%',
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  orderHardwareLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  nfcIconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0, 102, 255, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 102, 255, 0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  orderHardwareTitle: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
+  },
+  laserPill: {
+    backgroundColor: 'rgba(0, 102, 255, 0.18)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  laserPillText: {
+    fontSize: 9,
+    color: '#2997FF',
+    letterSpacing: 0.5,
+  },
+  orderHardwareSub: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.5)',
+    marginTop: 2,
+    lineHeight: 16,
   },
   fbAvatarBtn: {
     width: 40,
