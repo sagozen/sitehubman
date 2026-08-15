@@ -15,8 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { AvioLogo } from '@/src/components/AvioLogo';
-import { HapticTap, HapticPattern } from '@/src/utils/haptics';
-import { ensureCardIdentity } from '@/src/services/firestoreService';
+import { Haptics, HapticTap } from '@/src/utils/haptics';
+import { ensureCardIdentity } from '@/src/services/cardIdentityService';
 import { useAuth } from '@/src/hooks/useAuth';
 
 export default function InstantCardActivationRoute() {
@@ -35,7 +35,7 @@ export default function InstantCardActivationRoute() {
 
   const handleActivate = async () => {
     if (!fullName.trim()) {
-      HapticPattern.warning();
+      Haptics.warning();
       return;
     }
 
@@ -67,10 +67,10 @@ export default function InstantCardActivationRoute() {
         },
       });
 
-      HapticPattern.success();
+      Haptics.success();
       setActivated(true);
     } catch {
-      HapticPattern.error();
+      Haptics.error();
     } finally {
       setLoading(false);
     }

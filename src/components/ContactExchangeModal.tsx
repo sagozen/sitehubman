@@ -6,17 +6,12 @@ import {
   View,
   TextInput,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { MonoText } from '@/src/components/MonoText';
-import { tokens } from '@/src/design-system/tokens';
-import { getColor, getTypography, type ColorMode } from '@/src/design-system/utilities';
-import { usePreferences } from '@/src/hooks/usePreferences';
-import { HapticTap, HapticPattern } from '@/src/utils/haptics';
+import { Haptics } from '@/src/utils/haptics';
 
 export interface ContactExchangeModalProps {
   visible: boolean;
@@ -32,8 +27,6 @@ function ContactExchangeModalRaw({
   onSubmit,
 }: ContactExchangeModalProps) {
   const insets = useSafeAreaInsets();
-  const { isDark } = usePreferences();
-  const mode: ColorMode = isDark ? 'dark' : 'light';
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -44,7 +37,7 @@ function ContactExchangeModalRaw({
 
   const handleSubmit = async () => {
     if (!name.trim() || (!phone.trim() && !email.trim())) {
-      HapticPattern.warning();
+      Haptics.warning();
       return;
     }
 
@@ -56,7 +49,7 @@ function ContactExchangeModalRaw({
         email: email.trim(),
         note: note.trim(),
       });
-      HapticPattern.success();
+      Haptics.success();
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);
@@ -67,7 +60,7 @@ function ContactExchangeModalRaw({
         onClose();
       }, 1800);
     } catch {
-      HapticPattern.error();
+      Haptics.error();
     } finally {
       setLoading(false);
     }
