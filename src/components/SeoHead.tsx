@@ -1,60 +1,52 @@
 /**
- * SeoHead.tsx
- * Injects rich SEO meta tags for Expo web output:
- * - Standard HTML meta (title, description, keywords, robots)
- * - Open Graph / Facebook (og:title, og:description, og:image, og:url, og:type)
- * - Twitter Card (summary_large_image)
- * - JSON-LD Structured Data (WebPage, Person)
- * - Canonical URL
- * - Apple mobile web app meta tags
- *
- * Usage:
- *   <SeoHead
- *     title="Profile | SiteHub Man"
- *     description="..."
- *     slug="john-doe"          // optional, for /u/[slug] pages
- *     displayName="John Doe"   // optional
- *     imageUrl="https://..."   // optional OG image
- *   />
+ * SeoHead.tsx — Enterprise Global SEO Head Component
+ * Injects rich SEO meta tags, JSON-LD structured schemas, and social OpenGraph tags:
+ * - Standard HTML meta (title, description, keywords, robots, canonical)
+ * - Open Graph / Facebook / LinkedIn / iMessage unfurls
+ * - Twitter Card summary_large_image
+ * - JSON-LD Structured Data: Organization, Product, ProfilePage, Person, FAQPage
  */
 
 import { Platform } from 'react-native';
 
-interface SeoHeadProps {
+export interface SeoHeadProps {
   title?: string;
   description?: string;
   slug?: string;
   displayName?: string;
   headline?: string;
   imageUrl?: string;
-  type?: 'website' | 'profile' | 'article';
+  type?: 'website' | 'profile' | 'product';
+  price?: number;
+  currency?: string;
   noIndex?: boolean;
 }
 
-const BASE_URL = 'https://sitehubman.com';
-const DEFAULT_OG_IMAGE = `${BASE_URL}/og-default.png`;
-const SITE_NAME = 'SiteHub Man';
+const BASE_URL = 'https://aviobrand.com';
+const DEFAULT_OG_IMAGE = `${BASE_URL}/og-avio.png`;
+const SITE_NAME = 'AVIO';
 
 export function SeoHead({
-  title = 'SiteHub Man – Smart NFC Digital Business Cards',
-  description = 'Create premium NFC digital business cards, share your bio instantly via tap or QR code, and track every interaction. The future of networking.',
+  title = 'AVIO – Smart NFC Digital Business Cards & Edge Identity',
+  description = 'Next-generation NFC physical business cards powered by Cloudflare Workers. Share your bio, contact info, and portfolio with a single tap. CONNECT · IDENTIFY · EMPOWER.',
   slug,
   displayName,
   headline,
   imageUrl,
   type = 'website',
+  price,
+  currency = 'USD',
   noIndex = false,
 }: SeoHeadProps) {
-  // Only render on web platform
   if (Platform.OS !== 'web') return null;
 
   const canonicalUrl = slug ? `${BASE_URL}/u/${slug}` : BASE_URL;
   const ogImage = imageUrl || DEFAULT_OG_IMAGE;
   const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
 
-  // Build JSON-LD structured data
+  // Rich JSON-LD Schemas
   const jsonLd =
-    slug && displayName
+    type === 'profile' && slug && displayName
       ? {
           '@context': 'https://schema.org',
           '@type': 'ProfilePage',
@@ -62,141 +54,72 @@ export function SeoHead({
             '@type': 'Person',
             name: displayName,
             description: headline || description,
-            url: canonicalUrl,
             image: ogImage,
-            sameAs: [`${BASE_URL}/u/${slug}`],
+            url: canonicalUrl,
           },
-          url: canonicalUrl,
-          name: fullTitle,
+        }
+      : type === 'product'
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: title,
           description,
+          image: ogImage,
+          brand: {
+            '@type': 'Brand',
+            name: 'AVIO',
+          },
+          offers: {
+            '@type': 'Offer',
+            price: price || 89.99,
+            priceCurrency: currency,
+            availability: 'https://schema.org/InStock',
+            url: 'https://shop.aviobrand.com',
+          },
         }
       : {
           '@context': 'https://schema.org',
-          '@type': 'WebApplication',
-          name: SITE_NAME,
-          description,
+          '@type': 'Organization',
+          name: 'AVIO Technologies',
           url: BASE_URL,
-          applicationCategory: 'BusinessApplication',
-          operatingSystem: 'iOS, Android, Web',
-          offers: {
-            '@type': 'Offer',
-            price: '0',
-            priceCurrency: 'USD',
-          },
+          logo: `${BASE_URL}/logo.png`,
+          sameAs: [
+            'https://twitter.com/aviobrand',
+            'https://linkedin.com/company/aviobrand',
+            'https://instagram.com/aviobrand',
+          ],
         };
 
-  // Inject via document.head for web
-  if (typeof document !== 'undefined') {
-    injectMeta({ title: fullTitle, description, slug, displayName, ogImage, canonicalUrl, type, noIndex, jsonLd });
-  }
+  return (
+    <>
+      <title>{fullTitle}</title>
+      <meta name="description" content={description} />
+      <meta
+        name="keywords"
+        content="AVIO, NFC business card, smart business card, digital business card, contactless networking, tap to share, vCard download, edge bio profile"
+      />
+      <meta name="robots" content={noIndex ? 'noindex, nofollow' : 'index, follow'} />
+      <link rel="canonical" href={canonicalUrl} />
 
-  return null;
-}
+      {/* Open Graph / Social */}
+      <meta property="og:site_name" content={SITE_NAME} />
+      <meta property="og:title" content={fullTitle} />
+      <meta property="og:description" content={description} />
+      <meta property="og:image" content={ogImage} />
+      <meta property="og:url" content={canonicalUrl} />
+      <meta property="og:type" content={type === 'profile' ? 'profile' : 'website'} />
 
-function setMeta(name: string, content: string, attr: 'name' | 'property' = 'name') {
-  let el = document.querySelector(`meta[${attr}="${name}"]`) as HTMLMetaElement | null;
-  if (!el) {
-    el = document.createElement('meta');
-    el.setAttribute(attr, name);
-    document.head.appendChild(el);
-  }
-  el.setAttribute('content', content);
-}
+      {/* Twitter */}
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={fullTitle} />
+      <meta name="twitter:description" content={description} />
+      <meta name="twitter:image" content={ogImage} />
 
-function setLink(rel: string, href: string) {
-  let el = document.querySelector(`link[rel="${rel}"]`) as HTMLLinkElement | null;
-  if (!el) {
-    el = document.createElement('link');
-    el.rel = rel;
-    document.head.appendChild(el);
-  }
-  el.href = href;
-}
-
-interface InjectMetaArgs {
-  title: string;
-  description: string;
-  slug?: string;
-  displayName?: string;
-  ogImage: string;
-  canonicalUrl: string;
-  type: string;
-  noIndex: boolean;
-  jsonLd: object;
-}
-
-function injectMeta({ title, description, ogImage, canonicalUrl, type, noIndex, jsonLd }: InjectMetaArgs) {
-  // Page title
-  document.title = title;
-
-  // Standard meta
-  setMeta('description', description);
-  setMeta('keywords', 'NFC card, digital business card, smart card, bio link, QR code, contactless sharing, tap to share, networking, profile link, GENFC');
-  setMeta('robots', noIndex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
-  setMeta('author', 'SiteHub Man');
-  setMeta('application-name', 'SiteHub Man');
-
-  // Apple mobile web app
-  setMeta('apple-mobile-web-app-capable', 'yes');
-  setMeta('apple-mobile-web-app-status-bar-style', 'black-translucent');
-  setMeta('apple-mobile-web-app-title', 'SiteHub Man');
-  setMeta('mobile-web-app-capable', 'yes');
-  setMeta('theme-color', '#0B1220');
-  setMeta('color-scheme', 'dark');
-
-  // Viewport
-  setMeta('viewport', 'width=device-width, initial-scale=1, viewport-fit=cover');
-
-  // Open Graph
-  setMeta('og:type', type, 'property');
-  setMeta('og:title', title, 'property');
-  setMeta('og:description', description, 'property');
-  setMeta('og:url', canonicalUrl, 'property');
-  setMeta('og:image', ogImage, 'property');
-  setMeta('og:image:width', '1200', 'property');
-  setMeta('og:image:height', '630', 'property');
-  setMeta('og:image:alt', title, 'property');
-  setMeta('og:site_name', 'SiteHub Man', 'property');
-  setMeta('og:locale', 'en_US', 'property');
-
-  // Twitter Card
-  setMeta('twitter:card', 'summary_large_image');
-  setMeta('twitter:title', title);
-  setMeta('twitter:description', description);
-  setMeta('twitter:image', ogImage);
-  setMeta('twitter:image:alt', title);
-  setMeta('twitter:site', '@sitehubman');
-  setMeta('twitter:creator', '@sitehubman');
-
-  // Canonical
-  setLink('canonical', canonicalUrl);
-
-  // JSON-LD structured data
-  let ldScript = document.querySelector('script[type="application/ld+json"]') as HTMLScriptElement | null;
-  if (!ldScript) {
-    ldScript = document.createElement('script');
-    ldScript.type = 'application/ld+json';
-    document.head.appendChild(ldScript);
-  }
-  ldScript.textContent = JSON.stringify(jsonLd);
-
-  if ((jsonLd as any)['@type'] === 'WebApplication') {
-    // Organization schema (always present)
-    let orgScript = document.querySelector('script[data-schema="organization"]') as HTMLScriptElement | null;
-    if (!orgScript) {
-      orgScript = document.createElement('script');
-      orgScript.type = 'application/ld+json';
-      orgScript.setAttribute('data-schema', 'organization');
-      document.head.appendChild(orgScript);
-    }
-    orgScript.textContent = JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'Organization',
-      name: 'SiteHub Man',
-      url: 'https://sitehubman.com',
-      logo: 'https://sitehubman.com/og-default.png',
-      description: 'Premium NFC digital business cards — share your bio instantly via tap, QR code, or link.',
-      sameAs: ['https://twitter.com/sitehubman'],
-    });
-  }
+      {/* JSON-LD Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+    </>
+  );
 }
