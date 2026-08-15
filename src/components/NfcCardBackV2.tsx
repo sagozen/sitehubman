@@ -57,8 +57,8 @@ export const NfcCardBackV2 = memo(function NfcCardBackV2({
         {/* Left Side: Metadata */}
         <View style={styles.metadataContainer}>
           <AppText style={[styles.legalText, compact && styles.legalTextCompact, { color: textColor }]}>
-            This card is issued by GENNFC. Use of this card is subject to the terms and conditions 
-            of the issuer. If found, please return to the nearest GENNFC representative.
+            This smart card is issued by AVIO Technologies. Use of this card is subject to the terms and conditions 
+            of the issuer. CONNECT · IDENTIFY · EMPOWER.
           </AppText>
 
           <View style={styles.signatureBox}>

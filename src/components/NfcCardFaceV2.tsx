@@ -16,6 +16,7 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { AppText } from '@/src/components/AppText';
+import { AvioLogo } from '@/src/components/AvioLogo';
 import { HolographicShimmer } from '@/src/components/HolographicShimmer';
 import { tokens } from '@/src/design-system/tokens';
 import { createShadow } from '@/src/utils/shadows';
@@ -110,15 +111,11 @@ export const NfcCardFaceV2 = memo(function NfcCardFaceV2({
 
       {/* Top Header Row */}
       <View style={styles.topRow}>
-        <AppText
-          style={[
-            styles.brandTitle,
-            compact && styles.brandTitleCompact,
-            { color: textColor },
-          ]}
-        >
-          GENNFC
-        </AppText>
+        <AvioLogo
+          size={compact ? 80 : 105}
+          theme={isLight ? 'light' : 'dark'}
+          showTagline={false}
+        />
 
         <View style={styles.dotGrid}>
           {[...Array(9)].map((_, i) => (

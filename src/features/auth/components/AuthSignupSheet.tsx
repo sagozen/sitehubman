@@ -15,8 +15,9 @@ import {
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
+import { AvioLogo } from '@/src/components/AvioLogo';
+import { AppIcon } from '@/src/components/AppIcon';
 import { SocialAuthSection } from '@/src/features/auth/SocialAuthSection';
 import { useAuth } from '@/src/hooks/useAuth';
 import { getAuthErrorMessage } from '@/src/services/authService';
@@ -175,9 +176,9 @@ export function AuthSignupSheet({
               contentContainerStyle={viewStyles.scrollContent}
             >
               <View style={viewStyles.hero}>
-                <AppText style={textStyles.logoTitle} weight="extrabold">
-                  GENNFC
-                </AppText>
+                <View style={{ marginBottom: 12, alignItems: 'center' }}>
+                  <AvioLogo size="sm" theme="dark" showTagline={false} />
+                </View>
                 <AppText style={textStyles.heroTitle} weight="bold">
                   {title}
                 </AppText>

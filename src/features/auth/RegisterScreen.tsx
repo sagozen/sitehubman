@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
 import { AppText } from '@/src/components/AppText';
+import { AvioLogo } from '@/src/components/AvioLogo';
 import { useAuth } from '@/src/hooks/useAuth';
 import { getAuthErrorMessage } from '@/src/services/authService';
 import { getPostAuthDestination } from '@/src/utils/guestAuthRedirect';
@@ -110,7 +111,9 @@ export function RegisterScreen() {
         >
           <View style={styles.mainContent}>
             <View style={styles.formWrap}>
-              <AppText style={styles.logoTitleForm} weight="extrabold">GENNFC</AppText>
+              <View style={{ marginBottom: 16 }}>
+                <AvioLogo size="md" theme="dark" showTagline />
+              </View>
               
               <AppText style={styles.subtitleText} weight="medium">
                 Save your card, profile, orders, and customer moments to the cloud.
@@ -206,21 +209,14 @@ export function RegisterScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Styled Brand Footer "GENNFC curated by M GENNFC" */}
+      {/* Styled Brand Footer "AVIO Technologies" */}
       <View style={[styles.brandFooter, { paddingBottom: Math.max(insets.bottom, 12) }]}>
         <View style={styles.brandFooterLeft}>
-          <View style={styles.logoSquare}>
-            <AppText style={styles.logoSquareLetter}>G</AppText>
-          </View>
-          <AppText style={styles.brandFooterText} weight="bold">GENNFC</AppText>
+          <AppText style={styles.brandFooterText} weight="bold">AVIO Technologies</AppText>
         </View>
         
         <View style={styles.brandFooterRight}>
-          <AppText style={styles.brandFooterSubText} weight="medium">curated by </AppText>
-          <View style={[styles.logoSquare, { marginLeft: 4, marginRight: 6 }]}>
-            <AppText style={styles.logoSquareLetter}>M</AppText>
-          </View>
-          <AppText style={styles.brandFooterBoldText} weight="extrabold">GENNFC</AppText>
+          <AppText style={styles.brandFooterSubText} weight="medium">CONNECT • IDENTIFY • EMPOWER</AppText>
         </View>
       </View>
     </View>

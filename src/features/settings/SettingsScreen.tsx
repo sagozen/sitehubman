@@ -139,7 +139,7 @@ export function SettingsScreen() {
 
         if (loadedCard) {
           setCardProfile({
-            name: loadedCard.fullName || loadedCard.profile?.fullName || 'My GENNFC Card',
+            name: loadedCard.fullName || loadedCard.profile?.fullName || 'My AVIO Card',
             cardId: loadedCard.cardId || 'gennfc-01',
           });
         }
@@ -375,7 +375,7 @@ export function SettingsScreen() {
             icon="Card"
             iconColor="#EC4899"
             title="Active NFC Card"
-            subtitle={cardProfile ? cardProfile.name : 'GENNFC Digital Pass'}
+            subtitle={cardProfile ? cardProfile.name : 'AVIO Digital Pass'}
             valueText={cardProfile ? cardProfile.cardId : 'Active'}
             onPress={() => router.push('/(tabs)/share')}
           />
@@ -403,8 +403,8 @@ export function SettingsScreen() {
 
         {/* ─── FOOTER INFO ─── */}
         <View style={styles.footer}>
-          <AppText style={styles.footerBrand}>GEN DIGITAL • GENNFC</AppText>
-          <AppText style={styles.footerVersion}>Version 1.0.0 (Build 21)</AppText>
+          <AppText style={styles.footerBrand}>AVIO Technologies • CONNECT · IDENTIFY · EMPOWER</AppText>
+          <AppText style={styles.footerVersion}>Version 1.0.0 (Build 27)</AppText>
         </View>
       </ScrollView>
     </SafeAreaView>

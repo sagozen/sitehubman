@@ -84,7 +84,7 @@ export const NfcGlobalCardBack = memo(function NfcGlobalCardBack({
                 isLight && styles.textDark,
               ]}
             >
-              GENNFC
+              AVIO
             </AppText>
             <AppText
               style={[
@@ -125,7 +125,7 @@ export const NfcGlobalCardBack = memo(function NfcGlobalCardBack({
             ]}
             numberOfLines={1}
           >
-            GENNFC • ENCRYPTED NFC PROTOCOL • 2028 EDITION
+            AVIO • ENCRYPTED NFC PROTOCOL • 2026 EDITION
           </AppText>
         </View>
 

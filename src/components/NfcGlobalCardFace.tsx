@@ -3,6 +3,7 @@ import { Animated, Platform, StyleSheet, View, type StyleProp, type ViewStyle } 
 import { createShadow } from '@/src/utils/shadows';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppText } from '@/src/components/AppText';
+import { AvioLogo } from '@/src/components/AvioLogo';
 import { HolographicShimmer } from '@/src/components/HolographicShimmer';
 
 const CARD_GRADIENTS = [
@@ -130,15 +131,11 @@ export const NfcGlobalCardFace = memo(function NfcGlobalCardFace({
 
       {/* Top Header Row */}
       <View style={styles.top}>
-        <AppText
-          style={[
-            styles.brandTitle,
-            compact && styles.brandTitleCompact,
-            isLight && styles.textDark,
-          ]}
-        >
-          GENNFC
-        </AppText>
+        <AvioLogo
+          size={compact ? 80 : 105}
+          theme={isLight ? 'light' : 'dark'}
+          showTagline={false}
+        />
 
         {/* Top Right Dot Grid Pattern */}
         <View style={styles.dotGrid}>
