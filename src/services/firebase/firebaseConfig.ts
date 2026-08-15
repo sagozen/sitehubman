@@ -18,6 +18,15 @@ function hasValue(value: string | undefined) {
   return Boolean(value?.trim());
 }
 
+const FIREBASE_FALLBACKS: Record<string, string> = {
+  EXPO_PUBLIC_FIREBASE_API_KEY: 'AIzaSyBJZa1RLcbZtFsfizGJadlLNnNgUVsUByw',
+  EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN: 'sitehub-8dd56.firebaseapp.com',
+  EXPO_PUBLIC_FIREBASE_PROJECT_ID: 'sitehub-8dd56',
+  EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET: 'sitehub-8dd56.firebasestorage.app',
+  EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '145010162726',
+  EXPO_PUBLIC_FIREBASE_APP_ID: '1:145010162726:web:8a7accc56cdc4e1fd23ae7',
+};
+
 function readPublicEnv(name: string): string | undefined {
   const fromProcess = FIREBASE_PUBLIC_ENV[name];
   if (hasValue(fromProcess)) return fromProcess!.trim();
@@ -26,7 +35,7 @@ function readPublicEnv(name: string): string | undefined {
   const fromExtra = extra?.[name];
   if (hasValue(fromExtra)) return fromExtra!.trim();
 
-  return undefined;
+  return FIREBASE_FALLBACKS[name];
 }
 
 export function getFirebaseConfig() {

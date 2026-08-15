@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Text, type ViewStyle } from 'react-native';
-import Svg, { Path, Line, Defs, LinearGradient, Stop, G } from 'react-native-svg';
+import Svg, { Path, Rect, Defs, LinearGradient, Stop, G } from 'react-native-svg';
 
 interface AvioLogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl' | number;
@@ -34,6 +34,7 @@ export function AvioLogo({
   const height = (showTagline ? 85 : 60) * baseScale;
 
   const strokeRef = isLight ? 'url(#lightChromeGrad)' : 'url(#darkSilverGrad)';
+  const fillRef = isLight ? 'url(#lightChromeGrad)' : 'url(#darkSilverGrad)';
   const tagColor = isLight ? '#1C1C1E' : '#D1D1D6';
 
   return (
@@ -41,7 +42,7 @@ export function AvioLogo({
       <Svg
         width={width}
         height={height}
-        viewBox="0 0 900 240"
+        viewBox="0 0 850 210"
         style={styles.svg}
       >
         <Defs>
@@ -63,51 +64,49 @@ export function AvioLogo({
           </LinearGradient>
         </Defs>
 
-        {/* ── Letter A ── */}
+        {/* ── Letter A (Sharp Chevron Apex) ── */}
         <Path
-          d="M 50 160 L 140 25 L 230 160"
-          stroke={strokeRef}
-          strokeWidth="22"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-
-        {/* ── Letter V ── */}
-        <Path
-          d="M 275 25 L 365 160 L 455 25"
-          stroke={strokeRef}
-          strokeWidth="22"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-
-        {/* ── Letter I (Pillar) ── */}
-        <Line
-          x1="520"
-          y1="25"
-          x2="520"
-          y2="160"
+          d="M 40 155 L 125 25 L 210 155"
           stroke={strokeRef}
           strokeWidth="24"
-          strokeLinecap="round"
+          strokeLinecap="butt"
+          strokeLinejoin="miter"
+          fill="none"
         />
 
-        {/* ── Letter O (Ring) ── */}
+        {/* ── Letter V (Symmetrical Vertex) ── */}
         <Path
-          d="M 725 45 A 68 68 0 1 0 725 140"
+          d="M 255 25 L 340 155 L 425 25"
           stroke={strokeRef}
-          strokeWidth="22"
-          strokeLinecap="round"
+          strokeWidth="24"
+          strokeLinecap="butt"
+          strokeLinejoin="miter"
+          fill="none"
+        />
+
+        {/* ── Letter I (Solid Monolithic Vertical Pillar) ── */}
+        <Rect
+          x="480"
+          y="25"
+          width="24"
+          height="130"
+          fill={fillRef}
+        />
+
+        {/* ── Letter O (Ring with Aperture) ── */}
+        <Path
+          d="M 685 45 A 65 65 0 1 0 685 135"
+          stroke={strokeRef}
+          strokeWidth="24"
+          strokeLinecap="butt"
           fill="none"
         />
 
         {/* ── 3 NFC Waves ── */}
-        <G stroke="url(#blueSignal)" strokeWidth="9" strokeLinecap="round" fill="none">
-          <Path d="M 732 70 A 24 24 0 0 1 732 115" />
-          <Path d="M 750 56 A 42 42 0 0 1 750 129" />
-          <Path d="M 768 42 A 60 60 0 0 1 768 143" />
+        <G stroke="url(#blueSignal)" strokeWidth="10" strokeLinecap="round" fill="none">
+          <Path d="M 690 68 A 22 22 0 0 1 690 112" />
+          <Path d="M 708 54 A 40 40 0 0 1 708 126" />
+          <Path d="M 726 40 A 58 58 0 0 1 726 140" />
         </G>
       </Svg>
 

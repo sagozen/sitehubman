@@ -1,10 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   Animated,
-  Image,
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -20,11 +18,11 @@ import * as Crypto from 'expo-crypto';
 import { sendPasswordResetEmail } from 'firebase/auth';
 
 import { AppText } from '@/src/components/AppText';
+import { AvioLogo } from '@/src/components/AvioLogo';
 import { useAuth } from '@/src/hooks/useAuth';
 import { getAuthErrorMessage } from '@/src/services/authService';
 import { getPostAuthDestination } from '@/src/utils/guestAuthRedirect';
 import { finalizeGuestAccountUpgrade } from '@/src/utils/guestAccountUpgrade';
-import { isGuestUser } from '@/src/utils/authFlow';
 import { useGoogleSignIn } from '@/src/hooks/useGoogleSignIn';
 import { getGoogleOAuthSetupHint } from '@/src/utils/googleAuthConfig';
 import {
@@ -33,99 +31,67 @@ import {
   signInWithGoogleIdToken,
 } from '@/src/services/socialAuthService';
 import { auth } from '@/src/services/firebaseClient';
-import { HapticTap } from '@/src/utils/haptics';
+import { Haptics, HapticTap } from '@/src/utils/haptics';
 
 type AuthStep = 'LANDING' | 'EMAIL' | 'PASSWORD' | 'CHECK_EMAIL';
 
 export function LoginScreen() {
-  const { user, isLoading, signIn, signInAsGuest, signUp } = useAuth();
-  
+  const { isLoading, signIn, signInAsGuest, signUp } = useAuth();
+  const insets = useSafeAreaInsets();
+
   const [authStep, setAuthStep] = useState<AuthStep>('LANDING');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
-  
-  // Custom Splash overlay state
-  const [showSplash, setShowSplash] = useState(true);
-  
-  // Animation values for G, E, N, F, C characters
-  const charAnims = useRef([
-    new Animated.Value(0), // G
-    new Animated.Value(0), // E
-    new Animated.Value(0), // N
-    new Animated.Value(0), // F
-    new Animated.Value(0), // C
-  ]).current;
 
-  // Animation value for overlay fadeout
+  const [showSplash, setShowSplash] = useState(true);
   const splashOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    const splashFallback = setTimeout(() => {
-      setShowSplash(false);
-    }, 1600);
-
-    // Short brand beat only; the fallback above keeps first launch from feeling stuck.
-    Animated.sequence([
-      Animated.stagger(150, charAnims.map(anim =>
-        Animated.timing(anim, {
-          toValue: 1,
-          duration: 180,
-          useNativeDriver: Platform.OS !== 'web',
-        })
-      )),
-      Animated.delay(350),
+    const splashTimer = setTimeout(() => {
       Animated.timing(splashOpacity, {
         toValue: 0,
-        duration: 220,
+        duration: 350,
         useNativeDriver: Platform.OS !== 'web',
-      })
-    ]).start(() => {
-      clearTimeout(splashFallback);
-      setShowSplash(false);
-    });
+      }).start(() => setShowSplash(false));
+    }, 900);
 
-    return () => clearTimeout(splashFallback);
-  }, [charAnims, splashOpacity]);
-  
+    return () => clearTimeout(splashTimer);
+  }, [splashOpacity]);
+
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGuestLoading, setIsGuestLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isAppleLoading, setIsAppleLoading] = useState(false);
   const [appleAvailable, setAppleAvailable] = useState(false);
 
-  const insets = useSafeAreaInsets();
-  const { promptAsync, isConfigured, isReady } = useGoogleSignIn();
-
-  // Redirect if already logged in and not a guest
   useEffect(() => {
-    if (!isLoading && user && !isGuestUser(user)) {
-      void getPostAuthDestination(user).then((dest) => router.replace(dest));
-    }
-  }, [isLoading, user]);
-
-  // Check if Apple Sign-In is available
-  useEffect(() => {
-    void isAppleSignInAvailable().then(setAppleAvailable);
+    isAppleSignInAvailable().then(setAppleAvailable);
   }, []);
 
-  const busy = isSubmitting || isGuestLoading || isGoogleLoading || isAppleLoading || isLoading;
+  const { isConfigured, isReady, promptAsync } = useGoogleSignIn();
 
-  // Handle standard email/password login or signup
+  const busy =
+    isLoading ||
+    isSubmitting ||
+    isGuestLoading ||
+    isGoogleLoading ||
+    isAppleLoading;
+
+  // Handle email/password sign-in or sign-up
   async function handleContinue() {
-    Keyboard.dismiss();
+    if (busy) return;
     const normalizedEmail = email.trim().toLowerCase();
-    
+
     if (!normalizedEmail) {
-      Alert.alert('Missing details', 'Please enter your email.');
+      Alert.alert('Missing Email', 'Please enter your work or personal email.');
       return;
     }
 
     if (authStep === 'EMAIL') {
-      // Validate email format
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailPattern.test(normalizedEmail)) {
         Alert.alert('Invalid Email', 'Please enter a valid email address.');
@@ -149,7 +115,7 @@ export function LoginScreen() {
         let signedInUser;
         if (isSignUp) {
           if (!displayName.trim()) {
-            Alert.alert('Missing Name', 'Please enter your display name.');
+            Alert.alert('Missing Name', 'Please enter your full name.');
             setIsSubmitting(false);
             return;
           }
@@ -164,8 +130,10 @@ export function LoginScreen() {
 
         await finalizeGuestAccountUpgrade(signedInUser);
         const destination = await getPostAuthDestination(signedInUser);
+        Haptics.success();
         router.replace(destination);
       } catch (error) {
+        Haptics.error();
         Alert.alert(isSignUp ? 'Sign up failed' : 'Sign in failed', getAuthErrorMessage(error));
       } finally {
         setIsSubmitting(false);
@@ -173,36 +141,40 @@ export function LoginScreen() {
     }
   }
 
-  // Handle passwordless request / password reset
+  // Handle password reset
   async function handleSendMagicLink() {
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) {
       Alert.alert('Missing Email', 'Please enter your email.');
       return;
     }
-    
+
     setIsSubmitting(true);
     HapticTap.light();
 
     try {
       await sendPasswordResetEmail(auth, normalizedEmail);
+      Haptics.success();
       setAuthStep('CHECK_EMAIL');
     } catch (error) {
-      Alert.alert('Failed to send link', getAuthErrorMessage(error));
+      Haptics.error();
+      Alert.alert('Failed to send reset link', getAuthErrorMessage(error));
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  // Handle Guest Sign-In
+  // Handle Guest Preview
   async function handleGuest() {
     if (busy) return;
     setIsGuestLoading(true);
     HapticTap.light();
     try {
       await signInAsGuest();
+      Haptics.success();
       router.replace('/');
     } catch (error) {
+      Haptics.error();
       Alert.alert('Guest sign-in failed', getAuthErrorMessage(error));
     } finally {
       setIsGuestLoading(false);
@@ -213,38 +185,31 @@ export function LoginScreen() {
   async function handleGooglePress() {
     if (busy) return;
     if (!isConfigured) {
-      Alert.alert('Google sign-in not configured', getGoogleOAuthSetupHint());
+      Alert.alert('Google Sign-In', getGoogleOAuthSetupHint());
       return;
     }
     if (!isReady) {
-      Alert.alert('Google sign-in', 'Still initializing. Try again in a moment.');
+      Alert.alert('Google Sign-In', 'Initializing, please try again.');
       return;
     }
 
-    setIsGoogleLoading(true);
-    HapticTap.light();
     try {
-      const result = await promptAsync();
-      if (result.type === 'cancel' || result.type === 'dismiss') return;
-      if (result.type === 'error') {
-        const msg = result.error?.message ?? 'Unable to open Google sign-in.';
-        Alert.alert('Google sign-in failed', msg);
-        return;
+      setIsGoogleLoading(true);
+      HapticTap.medium();
+      const response = await promptAsync();
+      if (response?.type === 'success') {
+        const idToken = response.params.id_token;
+        if (idToken) {
+          const signedInUser = await signInWithGoogleIdToken(idToken);
+          await finalizeGuestAccountUpgrade(signedInUser);
+          const destination = await getPostAuthDestination(signedInUser);
+          Haptics.success();
+          router.replace(destination);
+        }
       }
-      if (result.type !== 'success') {
-        Alert.alert('Google sign-in failed', 'Sign-in did not complete. Try again.');
-        return;
-      }
-      const idToken = result.params?.id_token;
-      if (!idToken) {
-        Alert.alert('Google sign-in failed', 'No ID token returned.');
-        return;
-      }
-      const signedInUser = await signInWithGoogleIdToken(idToken);
-      await finalizeGuestAccountUpgrade(signedInUser);
-      router.replace(await getPostAuthDestination(signedInUser));
     } catch (error) {
-      Alert.alert('Google sign-in failed', getAuthErrorMessage(error));
+      Haptics.error();
+      Alert.alert('Google Sign-In Failed', getAuthErrorMessage(error));
     } finally {
       setIsGoogleLoading(false);
     }
@@ -253,55 +218,42 @@ export function LoginScreen() {
   // Handle Apple Sign-In
   async function handleApplePress() {
     if (busy) return;
-
-    if (Platform.OS !== 'ios') {
-      Alert.alert(
-        'Apple Sign-In',
-        'Apple Sign-In is only available on iOS devices.'
-      );
-      return;
-    }
-
-    if (!appleAvailable) {
-      Alert.alert('Apple Sign-In unavailable', 'Sign in with Apple is not available on this device.');
-      return;
-    }
-
-    setIsAppleLoading(true);
-    HapticTap.light();
     try {
-      const AppleAuthentication = await import('expo-apple-authentication');
-      const rawNonce = Crypto.randomUUID();
+      setIsAppleLoading(true);
+      HapticTap.medium();
+
+      const AppleAuth = await import('expo-apple-authentication');
+      const rawNonce = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
       const hashedNonce = await Crypto.digestStringAsync(
         Crypto.CryptoDigestAlgorithm.SHA256,
         rawNonce
       );
 
-      const appleResult = await AppleAuthentication.signInAsync({
+      const appleResult = await AppleAuth.signInAsync({
         requestedScopes: [
-          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+          AppleAuth.AppleAuthenticationScope.FULL_NAME,
+          AppleAuth.AppleAuthenticationScope.EMAIL,
         ],
         nonce: hashedNonce,
       });
 
-      if (!appleResult.identityToken) {
-        throw new Error('Apple sign-in did not return an identity token.');
+      if (appleResult.identityToken) {
+        const signedInUser = await signInWithAppleTokens(appleResult.identityToken, rawNonce);
+        await finalizeGuestAccountUpgrade(signedInUser);
+        const destination = await getPostAuthDestination(signedInUser);
+        Haptics.success();
+        router.replace(destination);
       }
-
-      const signedInUser = await signInWithAppleTokens(appleResult.identityToken, rawNonce);
-      await finalizeGuestAccountUpgrade(signedInUser);
-      router.replace(await getPostAuthDestination(signedInUser));
-    } catch (error: unknown) {
-      const code = typeof error === 'object' && error && 'code' in error ? String((error as { code?: unknown }).code) : '';
-      if (code === 'ERR_REQUEST_CANCELED') return;
-      Alert.alert('Apple sign-in failed', getAuthErrorMessage(error));
+    } catch (error: any) {
+      if (error?.code !== 'ERR_REQUEST_CANCELED') {
+        Haptics.error();
+        Alert.alert('Apple Sign-In Failed', getAuthErrorMessage(error));
+      }
     } finally {
       setIsAppleLoading(false);
     }
   }
 
-  // Navigation back button
   function handleBack() {
     HapticTap.light();
     if (authStep === 'EMAIL') {
@@ -315,28 +267,14 @@ export function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Background collage on landing page */}
-      {authStep === 'LANDING' ? (
-        <View style={StyleSheet.absoluteFillObject}>
-          <Image
-            source={require('@/assets/images/savee_background.png')}
-            style={StyleSheet.absoluteFillObject}
-            resizeMode="cover"
-          />
-          <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0, 0, 0, 0.65)' }]} />
-        </View>
-      ) : (
-        <View style={[StyleSheet.absoluteFillObject, { backgroundColor: '#000000' }]} />
-      )}
-
-      {/* Header bar/Back button */}
+      {/* Back button */}
       {authStep !== 'LANDING' && (
         <Pressable
           onPress={handleBack}
-          style={[styles.backBtn, { top: Math.max(insets.top, 20) }]}
+          style={[styles.backBtn, { top: Math.max(insets.top, 16) }]}
           hitSlop={12}
         >
-          <Ionicons name="chevron-back" size={26} color="#FFFFFF" />
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </Pressable>
       )}
 
@@ -345,163 +283,168 @@ export function LoginScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top + 20, 40) }]}
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.mainContent}>
             {authStep === 'LANDING' ? (
               <View style={styles.landingWrap}>
-                {/* Cyberpunk Glitch Title GENFC */}
-                <View style={styles.glitchLogoRow}>
-                  <AppText style={styles.logoTitleText} weight="black">GE</AppText>
-                  <View style={styles.glitchNWrap}>
-                    <AppText style={[styles.logoTitleText, styles.glitchNCyan]} weight="black">N</AppText>
-                    <AppText style={[styles.logoTitleText, styles.glitchNRed]} weight="black">N</AppText>
-                    <AppText style={[styles.logoTitleText, styles.glitchNMain]} weight="black">N</AppText>
-                  </View>
-                  <AppText style={styles.logoTitleText} weight="black">FC</AppText>
+                {/* 4K Vector AVIO Brand Emblem */}
+                <View style={styles.logoWrap}>
+                  <AvioLogo size="lg" theme="dark" showTagline />
                 </View>
 
-                {/* Clean guest link (no white box, no underline) */}
-                <Pressable
-                  style={({ pressed }) => [styles.guestTextLink, pressed && styles.btnPressed]}
-                  onPress={handleGuest}
-                  disabled={busy}
-                >
-                  {isGuestLoading ? (
-                    <ActivityIndicator color="#FFFFFF" size="small" />
-                  ) : (
-                    <AppText style={styles.guestTextLinkText} weight="semibold">
-                      Preview as guest
-                    </AppText>
-                  )}
-                </Pressable>
-                
-                {/* Social Login Icons Row */}
-                <View style={styles.socialRow}>
+                <AppText style={styles.executiveSub}>
+                  Next-generation contactless identity & NFC hardware for modern professionals.
+                </AppText>
+
+                {/* Primary Auth Actions */}
+                <View style={styles.actionBlock}>
+                  {/* Apple Sign-In */}
                   {Platform.OS === 'ios' && (
                     <Pressable
-                      style={({ pressed }) => [styles.circleBtn, pressed && styles.btnPressed]}
+                      style={({ pressed }) => [styles.appleBtn, pressed && { opacity: 0.85 }]}
                       onPress={handleApplePress}
                       disabled={busy}
                     >
                       {isAppleLoading ? (
-                        <ActivityIndicator color="#FFFFFF" size="small" />
+                        <ActivityIndicator color="#000000" size="small" />
                       ) : (
-                        <Ionicons name="logo-apple" size={24} color="#FFFFFF" />
+                        <>
+                          <Ionicons name="logo-apple" size={20} color="#000000" />
+                          <AppText style={styles.appleBtnText}>Continue with Apple</AppText>
+                        </>
                       )}
                     </Pressable>
                   )}
 
+                  {/* Google Sign-In */}
                   <Pressable
-                    style={({ pressed }) => [styles.circleBtn, pressed && styles.btnPressed]}
+                    style={({ pressed }) => [styles.googleBtn, pressed && { opacity: 0.85 }]}
                     onPress={handleGooglePress}
                     disabled={busy}
                   >
                     {isGoogleLoading ? (
                       <ActivityIndicator color="#FFFFFF" size="small" />
                     ) : (
-                      <Ionicons name="logo-google" size={22} color="#FFFFFF" />
+                      <>
+                        <Ionicons name="logo-google" size={18} color="#FFFFFF" />
+                        <AppText style={styles.googleBtnText}>Continue with Google</AppText>
+                      </>
                     )}
                   </Pressable>
 
+                  {/* Email Sign-In */}
                   <Pressable
-                    style={({ pressed }) => [styles.circleBtn, pressed && styles.btnPressed]}
+                    style={({ pressed }) => [styles.emailBtn, pressed && { opacity: 0.85 }]}
                     onPress={() => {
                       HapticTap.light();
                       setAuthStep('EMAIL');
                     }}
                     disabled={busy}
                   >
-                    <Ionicons name="mail" size={22} color="#FFFFFF" />
+                    <Ionicons name="mail-outline" size={18} color="#FFFFFF" />
+                    <AppText style={styles.emailBtnText}>Continue with Email</AppText>
+                  </Pressable>
+
+                  {/* Guest Explorer */}
+                  <Pressable
+                    style={({ pressed }) => [styles.guestBtn, pressed && { opacity: 0.7 }]}
+                    onPress={handleGuest}
+                    disabled={busy}
+                  >
+                    {isGuestLoading ? (
+                      <ActivityIndicator color="rgba(255,255,255,0.6)" size="small" />
+                    ) : (
+                      <AppText style={styles.guestBtnText}>Explore AVIO Studio as Guest →</AppText>
+                    )}
                   </Pressable>
                 </View>
 
-                {/* Terms of Service & Privacy Policy */}
+                {/* Terms & Privacy */}
                 <View style={styles.termsWrap}>
-                  <AppText style={styles.termsText} tone="muted">
-                    By continuing, you agree to our
+                  <AppText style={styles.termsText}>
+                    By continuing, you agree to AVIO's{' '}
+                    <AppText
+                      style={styles.termsLink}
+                      onPress={() => router.push('/terms-of-service' as any)}
+                    >
+                      Terms
+                    </AppText>{' '}
+                    and{' '}
+                    <AppText
+                      style={styles.termsLink}
+                      onPress={() => router.push('/privacy-policy' as any)}
+                    >
+                      Privacy Policy
+                    </AppText>.
                   </AppText>
-                  <View style={styles.termsLinks}>
-                    <Pressable onPress={() => router.push('/terms-of-service')}>
-                      <AppText style={styles.linkText}>Terms of Service</AppText>
-                    </Pressable>
-                    <AppText style={styles.termsText} tone="muted"> and </AppText>
-                    <Pressable onPress={() => router.push('/privacy-policy')}>
-                      <AppText style={styles.linkText}>Privacy Policy</AppText>
-                    </Pressable>
-                  </View>
                 </View>
               </View>
             ) : authStep === 'EMAIL' ? (
               <View style={styles.formWrap}>
-                <AppText style={styles.logoTitleForm} weight="extrabold">GENFC</AppText>
+                <View style={styles.formLogoWrap}>
+                  <AvioLogo size="sm" theme="dark" showTagline={false} />
+                </View>
+
+                <AppText style={styles.formTitle}>Enter your email</AppText>
+                <AppText style={styles.formSub}>We'll check if you have an active AVIO account.</AppText>
 
                 <View style={styles.inputContainer}>
                   <TextInput
-                    style={styles.underlineInput}
-                    placeholder="Email or Username"
-                    placeholderTextColor="#555555"
+                    style={styles.input}
+                    placeholder="Work or personal email"
+                    placeholderTextColor="rgba(255,255,255,0.4)"
                     value={email}
                     onChangeText={setEmail}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoCorrect={false}
                     editable={!busy}
-                    textContentType="emailAddress"
-                    autoComplete="email"
                   />
                 </View>
 
                 <Pressable
-                  style={({ pressed }) => [styles.pillBtn, pressed && styles.btnPressed]}
+                  style={({ pressed }) => [styles.primaryPillBtn, pressed && { opacity: 0.85 }]}
                   onPress={handleContinue}
                   disabled={busy}
                 >
-                  <AppText style={styles.pillBtnText} weight="bold">Continue</AppText>
-                </Pressable>
-
-                {/* Guest access option */}
-                <Pressable
-                  style={({ pressed }) => [styles.guestLink, pressed && styles.btnPressed]}
-                  onPress={handleGuest}
-                  disabled={busy}
-                >
-                  <AppText style={styles.guestLinkText} weight="semibold">
-                    {isGuestLoading ? 'Loading...' : 'Preview as guest'}
-                  </AppText>
+                  <AppText style={styles.primaryPillBtnText}>Continue</AppText>
                 </Pressable>
               </View>
             ) : authStep === 'PASSWORD' ? (
               <View style={styles.formWrap}>
-                <AppText style={styles.logoTitleForm} weight="extrabold">GENFC</AppText>
+                <View style={styles.formLogoWrap}>
+                  <AvioLogo size="sm" theme="dark" showTagline={false} />
+                </View>
 
-                <View style={styles.inputContainer}>
+                <AppText style={styles.formTitle}>
+                  {isSignUp ? 'Create your profile' : 'Enter your password'}
+                </AppText>
+                <AppText style={styles.formSub}>{email}</AppText>
+
+                <View style={styles.inputStack}>
                   {isSignUp && (
                     <TextInput
-                      style={[styles.underlineInput, { marginBottom: 24 }]}
-                      placeholder="Display Name"
-                      placeholderTextColor="#555555"
+                      style={styles.input}
+                      placeholder="Full Name (e.g. Johnathan Vance)"
+                      placeholderTextColor="rgba(255,255,255,0.4)"
                       value={displayName}
                       onChangeText={setDisplayName}
                       autoCapitalize="words"
                       editable={!busy}
-                      textContentType="name"
-                      autoComplete="name"
                     />
                   )}
-                  
+
                   <View style={styles.passwordInputWrap}>
                     <TextInput
-                      style={[styles.underlineInput, { flex: 1 }]}
-                      placeholder="Password"
-                      placeholderTextColor="#555555"
+                      style={[styles.input, { flex: 1, borderWidth: 0 }]}
+                      placeholder="Password (min 6 characters)"
+                      placeholderTextColor="rgba(255,255,255,0.4)"
                       value={password}
                       onChangeText={setPassword}
                       secureTextEntry={!showPassword}
                       editable={!busy}
-                      textContentType={isSignUp ? 'newPassword' : 'password'}
-                      autoComplete={isSignUp ? 'password-new' : 'password'}
                     />
                     <Pressable
                       style={styles.eyeBtn}
@@ -511,72 +454,71 @@ export function LoginScreen() {
                       <Ionicons
                         name={showPassword ? 'eye-off' : 'eye'}
                         size={20}
-                        color="#8E8E93"
+                        color="rgba(255,255,255,0.5)"
                       />
                     </Pressable>
                   </View>
                 </View>
 
                 <Pressable
-                  style={({ pressed }) => [styles.pillBtn, pressed && styles.btnPressed]}
+                  style={({ pressed }) => [styles.primaryPillBtn, pressed && { opacity: 0.85 }]}
                   onPress={handleContinue}
                   disabled={busy}
                 >
                   {isSubmitting ? (
                     <ActivityIndicator color="#000000" size="small" />
                   ) : (
-                    <AppText style={styles.pillBtnText} weight="bold">
-                      {isSignUp ? 'Create Account' : 'Continue'}
+                    <AppText style={styles.primaryPillBtnText}>
+                      {isSignUp ? 'Create Account' : 'Sign In'}
                     </AppText>
                   )}
                 </Pressable>
 
-                {/* Support actions: Switch login/signup or send login reset link */}
-                <View style={styles.authLinksWrap}>
+                <View style={styles.switchAuthWrap}>
                   {!isSignUp && (
-                    <Pressable
-                      style={styles.subLinkBtn}
-                      onPress={handleSendMagicLink}
-                      disabled={busy}
-                    >
-                      <AppText style={styles.subLinkText} weight="semibold">
-                        Send login link to email
-                      </AppText>
+                    <Pressable onPress={handleSendMagicLink} disabled={busy}>
+                      <AppText style={styles.switchAuthText}>Forgot password? Reset here</AppText>
                     </Pressable>
                   )}
-
                   <Pressable
-                    style={styles.subLinkBtn}
                     onPress={() => {
                       HapticTap.light();
                       setIsSignUp((v) => !v);
                     }}
                     disabled={busy}
+                    style={{ marginTop: 12 }}
                   >
-                    <AppText style={styles.subLinkTextHighlight} weight="bold">
-                      {isSignUp ? 'Already have an account? Sign in' : 'Create a new account instead'}
+                    <AppText style={styles.switchAuthHighlight}>
+                      {isSignUp
+                        ? 'Already have an AVIO account? Sign In'
+                        : "Don't have an account? Sign Up"}
                     </AppText>
                   </Pressable>
                 </View>
               </View>
             ) : (
               <View style={styles.formWrap}>
-                <AppText style={styles.logoTitleForm} weight="extrabold">GENFC</AppText>
-                
-                <View style={styles.checkEmailWrap}>
-                  <AppText style={styles.checkEmailText} weight="medium">
-                    Check your email for a login link.
-                  </AppText>
+                <View style={styles.formLogoWrap}>
+                  <AvioLogo size="sm" theme="dark" showTagline={false} />
                 </View>
 
+                <View style={styles.emailSentIcon}>
+                  <Ionicons name="mail-unread-outline" size={48} color="#0066FF" />
+                </View>
+
+                <AppText style={styles.formTitle}>Check your inbox</AppText>
+                <AppText style={styles.formSub}>
+                  We sent password reset instructions to {email}.
+                </AppText>
+
                 <Pressable
-                  style={({ pressed }) => [styles.pillBtn, pressed && styles.btnPressed]}
+                  style={({ pressed }) => [styles.primaryPillBtn, pressed && { opacity: 0.85 }]}
                   onPress={() => {
                     HapticTap.light();
                     setAuthStep('EMAIL');
                   }}
                 >
-                  <AppText style={styles.pillBtnText} weight="bold">Back to Sign In</AppText>
+                  <AppText style={styles.primaryPillBtnText}>Back to Sign In</AppText>
                 </Pressable>
               </View>
             )}
@@ -584,51 +526,10 @@ export function LoginScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Styled Brand Footer "GENFC curated by M GENFC" */}
-      <View style={[styles.brandFooter, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-        <View style={styles.brandFooterLeft}>
-          <View style={styles.logoSquare}>
-            <AppText style={styles.logoSquareLetter}>G</AppText>
-          </View>
-          <AppText style={styles.brandFooterText} weight="bold">GENFC</AppText>
-        </View>
-        
-        <View style={styles.brandFooterRight}>
-          <AppText style={styles.brandFooterSubText} weight="medium">curated by </AppText>
-          <View style={[styles.logoSquare, { marginLeft: 4, marginRight: 6 }]}>
-            <AppText style={styles.logoSquareLetter}>M</AppText>
-          </View>
-          <AppText style={styles.brandFooterBoldText} weight="extrabold">GENFC</AppText>
-        </View>
-      </View>
-
-      {/* Cinematic Splash Overlay */}
+      {/* Splash Transition Overlay */}
       {showSplash && (
         <Animated.View style={[styles.splashOverlay, { opacity: splashOpacity }]} pointerEvents="none">
-          <View style={styles.splashTextContainer}>
-            {['G', 'E', 'N', 'F', 'C'].map((char, index) => {
-              const anim = charAnims[index];
-              const scale = anim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0.75, 1],
-              });
-
-              return (
-                <Animated.View
-                  key={index}
-                  style={{
-                    opacity: anim,
-                    transform: [{ scale }],
-                    marginHorizontal: 4,
-                  }}
-                >
-                  <AppText style={styles.splashChar} weight="black">
-                    {char}
-                  </AppText>
-                </Animated.View>
-              );
-            })}
-          </View>
+          <AvioLogo size="lg" theme="dark" showTagline />
         </Animated.View>
       )}
     </View>
@@ -640,290 +541,211 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000000',
   },
+  splashOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 999,
+  },
+  backBtn: {
+    position: 'absolute',
+    left: 20,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   keyboardView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingBottom: 40,
   },
   mainContent: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-  },
-  backBtn: {
-    position: 'absolute',
-    left: 20,
-    zIndex: 10,
-    padding: 8,
-    borderRadius: 99,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  btnPressed: {
-    opacity: 0.75,
-    transform: [{ scale: 0.96 }],
+    width: '100%',
+    maxWidth: 440,
+    alignSelf: 'center',
   },
   landingWrap: {
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 40,
   },
-  glitchLogoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
+  logoWrap: {
+    marginBottom: 16,
   },
-  logoTitleText: {
-    fontSize: 52,
-    lineHeight: 60,
-    color: '#FFFFFF',
-    letterSpacing: 1,
-  },
-  glitchNWrap: {
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  glitchNMain: {
-    color: '#FFFFFF',
-  },
-  glitchNCyan: {
-    position: 'absolute',
-    left: -2,
-    top: 1,
-    color: '#00F0FF',
-    opacity: 0.8,
-  },
-  glitchNRed: {
-    position: 'absolute',
-    left: 2,
-    top: -1,
-    color: '#FF0055',
-    opacity: 0.8,
-  },
-  guestTextLink: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    marginBottom: 24,
-  },
-  guestTextLinkText: {
-    fontSize: 14,
-    color: '#A1A1AA',
+  executiveSub: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.55)',
     textAlign: 'center',
+    lineHeight: 18,
+    maxWidth: 320,
+    marginBottom: 36,
   },
-  valuePillRow: {
+  actionBlock: {
+    width: '100%',
+    gap: 12,
+  },
+  appleBtn: {
+    width: '100%',
+    height: 52,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    marginBottom: 26,
   },
-  valuePill: {
-    minHeight: 30,
-    borderRadius: 999,
-    paddingHorizontal: 11,
+  appleBtnText: {
+    color: '#000000',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  googleBtn: {
+    width: '100%',
+    height: 52,
+    backgroundColor: '#16161A',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  valuePillText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-  },
-  logoTitleForm: {
-    fontSize: 54,
-    lineHeight: 64,
-    color: '#FFFFFF',
-    letterSpacing: 0,
-    marginBottom: 48,
-    textAlign: 'center',
-  },
-  socialRow: {
+    borderColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 24,
-    width: '100%',
+    gap: 8,
   },
-  circleBtn: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  googleBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  emailBtn: {
+    width: '100%',
+    height: 52,
+    backgroundColor: 'rgba(255,255,255,0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
-    justifyContent: 'center',
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 14,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  emailBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  guestBtn: {
+    marginTop: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  guestBtnText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
   termsWrap: {
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginTop: 20,
+    marginTop: 32,
+    paddingHorizontal: 16,
   },
   termsText: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: 'rgba(255,255,255,0.4)',
     textAlign: 'center',
+    lineHeight: 17,
   },
-  termsLinks: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    marginTop: 4,
-  },
-  linkText: {
-    fontSize: 12,
-    color: '#FFFFFF',
+  termsLink: {
+    color: 'rgba(255,255,255,0.8)',
     textDecorationLine: 'underline',
   },
   formWrap: {
-    width: '100%',
     alignItems: 'center',
-    justifyContent: 'center',
+  },
+  formLogoWrap: {
+    marginBottom: 20,
+  },
+  formTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.5,
+    textAlign: 'center',
+  },
+  formSub: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: 6,
+    marginBottom: 24,
+    textAlign: 'center',
   },
   inputContainer: {
     width: '100%',
-    marginBottom: 36,
-  },
-  underlineInput: {
-    width: '100%',
-    height: 50,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333333',
-    color: '#FFFFFF',
-    fontSize: 16,
-    paddingVertical: 10,
-  },
-  passwordInputWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-  },
-  eyeBtn: {
-    padding: 10,
-  },
-  pillBtn: {
-    width: '100%',
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
     marginBottom: 16,
   },
-  pillBtnText: {
-    color: '#000000',
-    fontSize: 16,
-  },
-  guestLink: {
-    paddingVertical: 8,
-    alignItems: 'center',
-  },
-  guestLinkText: {
-    color: '#8E8E93',
-    fontSize: 14,
-  },
-  authLinksWrap: {
-    alignItems: 'center',
+  inputStack: {
     width: '100%',
-    marginTop: 10,
     gap: 12,
+    marginBottom: 20,
   },
-  subLinkBtn: {
-    paddingVertical: 4,
-  },
-  subLinkText: {
-    color: '#8E8E93',
-    fontSize: 14,
-  },
-  subLinkTextHighlight: {
-    color: '#FFFFFF',
-    fontSize: 14,
-  },
-  checkEmailWrap: {
+  input: {
     width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 44,
-  },
-  checkEmailText: {
-    fontSize: 16,
-    color: '#8E8E93',
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  brandFooter: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 64,
-    backgroundColor: '#111111',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#222222',
-  },
-  brandFooterLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logoSquare: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    backgroundColor: 'transparent',
+    height: 52,
+    backgroundColor: '#111114',
     borderWidth: 1,
-    borderColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  logoSquareLetter: {
+    borderColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 14,
+    paddingHorizontal: 16,
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 15,
   },
-  brandFooterText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    letterSpacing: 0,
-  },
-  brandFooterRight: {
+  passwordInputWrap: {
+    width: '100%',
+    height: 52,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 'auto',
+    paddingRight: 12,
   },
-  brandFooterSubText: {
-    color: '#8E8E93',
-    fontSize: 13,
+  eyeBtn: {
+    padding: 6,
   },
-  brandFooterBoldText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-  },
-  splashOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#000000',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 99999,
-  },
-  splashTextContainer: {
-    flexDirection: 'row',
+  primaryPillBtn: {
+    width: '100%',
+    height: 52,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  splashChar: {
-    fontSize: 48,
-    lineHeight: 58,
-    color: '#FFFFFF',
-    letterSpacing: 0,
+  primaryPillBtnText: {
+    color: '#000000',
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  switchAuthWrap: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  switchAuthText: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.5)',
+  },
+  switchAuthHighlight: {
+    fontSize: 13,
+    color: '#007AFF',
+    fontWeight: '600',
+  },
+  emailSentIcon: {
+    marginBottom: 16,
   },
 });
