@@ -1,21 +1,6 @@
-/**
- * AVIO 4K Vector Logo & Brand Mark Component
- *
- * Supports both official brand variants:
- * - "dark": Metallic silver-white fill on deep dark canvases
- * - "light": Chrome platinum/silver bevel fill with dark outlines on light canvases
- *
- * Geometry:
- * - A: Chevron apex without crossbar
- * - V: Sharp symmetrical vertex
- * - I: Monolithic pillar
- * - O: Open circular loop with 3 vibrant blue NFC wireless signal waves (#0066FF / #007AFF)
- * - Subtitle: "CONNECT • IDENTIFY • EMPOWER"
- */
-
 import React from 'react';
 import { StyleSheet, View, Text, type ViewStyle } from 'react-native';
-import Svg, { Path, Defs, LinearGradient, Stop, G } from 'react-native-svg';
+import Svg, { Path, Line, Defs, LinearGradient, Stop, G } from 'react-native-svg';
 
 interface AvioLogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl' | number;
@@ -34,23 +19,21 @@ export function AvioLogo({
 }: AvioLogoProps) {
   const isLight = theme === 'light';
 
-  // Sizing scale calculation
   const baseScale =
     typeof size === 'number'
-      ? size / 200
+      ? size / 240
       : size === 'sm'
-      ? 0.65
+      ? 0.7
       : size === 'md'
       ? 1.0
       : size === 'lg'
-      ? 1.5
-      : 2.2;
+      ? 1.45
+      : 2.0;
 
-  const width = 280 * baseScale;
-  const height = (showTagline ? 100 : 70) * baseScale;
+  const width = 260 * baseScale;
+  const height = (showTagline ? 85 : 60) * baseScale;
 
   const strokeRef = isLight ? 'url(#lightChromeGrad)' : 'url(#darkSilverGrad)';
-  const borderStroke = isLight ? '#1C1C1E' : 'transparent';
   const tagColor = isLight ? '#1C1C1E' : '#D1D1D6';
 
   return (
@@ -58,25 +41,22 @@ export function AvioLogo({
       <Svg
         width={width}
         height={height}
-        viewBox="0 0 600 200"
+        viewBox="0 0 900 240"
         style={styles.svg}
       >
         <Defs>
-          {/* Dark theme specular silver gradient */}
           <LinearGradient id="darkSilverGrad" x1="0%" y1="0%" x2="0%" y2="100%">
             <Stop offset="0%" stopColor="#FFFFFF" />
-            <Stop offset="60%" stopColor="#E2E2E8" />
+            <Stop offset="50%" stopColor="#E2E2E8" />
             <Stop offset="100%" stopColor="#A8A8B2" />
           </LinearGradient>
 
-          {/* Light theme platinum chrome gradient */}
           <LinearGradient id="lightChromeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
             <Stop offset="0%" stopColor="#FFFFFF" />
             <Stop offset="50%" stopColor="#E4E4EB" />
-            <Stop offset="100%" stopColor="#B4B4C0" />
+            <Stop offset="100%" stopColor="#9C9CA8" />
           </LinearGradient>
 
-          {/* Electric Blue Signal Gradient */}
           <LinearGradient id="blueSignal" x1="0%" y1="0%" x2="100%" y2="100%">
             <Stop offset="0%" stopColor="#2997FF" />
             <Stop offset="100%" stopColor="#0066FF" />
@@ -85,54 +65,53 @@ export function AvioLogo({
 
         {/* ── Letter A ── */}
         <Path
-          d="M 40 145 L 95 25 L 150 145"
+          d="M 50 160 L 140 25 L 230 160"
           stroke={strokeRef}
-          strokeWidth="20"
-          strokeLinecap="butt"
-          strokeLinejoin="miter"
+          strokeWidth="22"
+          strokeLinecap="round"
+          strokeLinejoin="round"
           fill="none"
         />
 
         {/* ── Letter V ── */}
         <Path
-          d="M 185 25 L 240 145 L 295 25"
+          d="M 275 25 L 365 160 L 455 25"
           stroke={strokeRef}
-          strokeWidth="20"
-          strokeLinecap="butt"
-          strokeLinejoin="miter"
+          strokeWidth="22"
+          strokeLinecap="round"
+          strokeLinejoin="round"
           fill="none"
         />
 
-        {/* ── Letter I ── */}
+        {/* ── Letter I (Pillar) ── */}
+        <Line
+          x1="520"
+          y1="25"
+          x2="520"
+          y2="160"
+          stroke={strokeRef}
+          strokeWidth="24"
+          strokeLinecap="round"
+        />
+
+        {/* ── Letter O (Ring) ── */}
         <Path
-          d="M 345 25 L 345 145"
+          d="M 725 45 A 68 68 0 1 0 725 140"
           stroke={strokeRef}
-          strokeWidth="20"
-          strokeLinecap="butt"
+          strokeWidth="22"
+          strokeLinecap="round"
           fill="none"
         />
 
-        {/* ── Letter O (Ring with opening on right) ── */}
-        <Path
-          d="M 505 50 A 62 62 0 1 0 505 120"
-          stroke={strokeRef}
-          strokeWidth="20"
-          strokeLinecap="butt"
-          fill="none"
-        />
-
-        {/* ── 3 NFC Waves emerging from O opening ── */}
-        <G stroke="url(#blueSignal)" strokeWidth="10" strokeLinecap="round" fill="none">
-          {/* Inner Wave */}
-          <Path d="M 508 72 A 20 20 0 0 1 508 98" />
-          {/* Middle Wave */}
-          <Path d="M 522 62 A 34 34 0 0 1 522 108" />
-          {/* Outer Wave */}
-          <Path d="M 536 52 A 48 48 0 0 1 536 118" />
+        {/* ── 3 NFC Waves ── */}
+        <G stroke="url(#blueSignal)" strokeWidth="9" strokeLinecap="round" fill="none">
+          <Path d="M 732 70 A 24 24 0 0 1 732 115" />
+          <Path d="M 750 56 A 42 42 0 0 1 750 129" />
+          <Path d="M 768 42 A 60 60 0 0 1 768 143" />
         </G>
       </Svg>
 
-      {/* ── Tagline: CONNECT • IDENTIFY • EMPOWER ── */}
+      {/* ── Tagline ── */}
       {showTagline && (
         <View style={styles.taglineBox}>
           <Text style={[styles.tagline, { fontSize: Math.max(9 * baseScale, 8), color: tagColor }]}>
