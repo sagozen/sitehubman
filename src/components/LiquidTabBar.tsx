@@ -341,34 +341,17 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
     );
   }
 
-  const ink = '#FFFFFF';
-  const surface = 'rgba(18, 18, 22, 0.94)';
-  const hairline = 'rgba(255, 255, 255, 0.12)';
-  const pillBg = 'rgba(255, 255, 255, 0.12)';
+  const surface = 'rgba(10, 10, 12, 0.96)';
+  const hairline = 'rgba(255, 255, 255, 0.08)';
 
   return (
-    <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-      <View style={[styles.capsuleBar, { backgroundColor: surface, borderColor: hairline }]}>
-        {/* Animated Sliding Background Pill */}
-        {activeIndex !== -1 && (
-          <Animated.View
-            style={[
-              styles.slidingActivePill,
-              { backgroundColor: pillBg },
-              {
-                width: capsuleWidth,
-                height: capsuleHeight,
-                transform: [{ translateX: animCenterX }],
-              },
-            ]}
-          />
-        )}
-
+    <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+      <View style={[styles.dockBar, { backgroundColor: surface, borderTopColor: hairline }]}>
         {items.map((item) => {
           const route = item.route;
           const isActive = activeRoute?.name === route.name;
           const isLegacyAttendance = route.name === 'attendance';
-          const muted = isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.42)';
+          const iconColor = isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.38)';
 
           return (
             <Pressable
@@ -386,16 +369,17 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
             >
               <View style={styles.iconContainer}>
                 {route.name === 'index' ? (
-                  <Ionicons name={isActive ? 'home' : 'home-outline'} size={21} color={muted} />
+                  <Ionicons name={isActive ? 'home' : 'home-outline'} size={22} color={iconColor} />
                 ) : route.name === 'connections' || isLegacyAttendance ? (
-                  <Ionicons name={isActive ? 'people' : 'people-outline'} size={21} color={muted} />
+                  <Ionicons name={isActive ? 'people' : 'people-outline'} size={22} color={iconColor} />
                 ) : route.name === 'share' ? (
-                  <Ionicons name={isActive ? 'qr-code' : 'qr-code-outline'} size={21} color={muted} />
+                  <Ionicons name={isActive ? 'qr-code' : 'qr-code-outline'} size={22} color={iconColor} />
                 ) : route.name === 'profile' ? (
-                  <Ionicons name={isActive ? 'person' : 'person-outline'} size={21} color={muted} />
+                  <Ionicons name={isActive ? 'person' : 'person-outline'} size={22} color={iconColor} />
                 ) : route.name === 'settings' ? (
-                  <Ionicons name={isActive ? 'settings-sharp' : 'settings-outline'} size={21} color={muted} />
+                  <Ionicons name={isActive ? 'settings-sharp' : 'settings-outline'} size={22} color={iconColor} />
                 ) : null}
+                {isActive && <View style={styles.activeDot} />}
               </View>
             </Pressable>
           );
@@ -417,39 +401,37 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center',
-    pointerEvents: 'box-none',
+    backgroundColor: 'rgba(10, 10, 12, 0.96)',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
   },
-  capsuleBar: {
-    width: 360,
-    height: 58,
-    borderRadius: 29,
-    borderWidth: 0.5,
+  dockBar: {
+    width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
+    height: 52,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    justifyContent: 'space-between',
-    ...createShadow({ color: '#000000', offset: { width: 0, height: 12 }, opacity: 0.16, radius: 32, elevation: 16 }),
+    justifyContent: 'space-around',
+    paddingHorizontal: 16,
   },
   tabItem: {
-    width: 68,
+    flex: 1,
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 2,
   },
   iconContainer: {
-    width: '100%',
-    height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+    height: 38,
+    position: 'relative',
+    gap: 4,
   },
-  slidingActivePill: {
-    position: 'absolute',
-    top: 6,
-    borderRadius: 22,
-    zIndex: 1,
+  activeDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#FFFFFF',
   },
 });

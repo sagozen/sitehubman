@@ -282,7 +282,7 @@ export function SettingsScreen() {
             </Pressable>
           ) : (
             <Pressable style={styles.shareIconBtn} onPress={handleCopyProfileUrl}>
-              <AppIcon name="Share" size={18} color="#00F0FF" />
+              <AppIcon name="Share" size={18} color="#FFFFFF" />
             </Pressable>
           )}
         </View>
@@ -292,7 +292,7 @@ export function SettingsScreen() {
         <View style={styles.groupCard}>
           <SettingRow
             icon="Global"
-            iconColor="#00F0FF"
+            iconColor="#FFFFFF"
             title="Language"
             subtitle="Change display language"
             valueText={currentLangLabel}
@@ -301,7 +301,7 @@ export function SettingsScreen() {
           <View style={styles.divider} />
           <SettingRow
             icon="Sun"
-            iconColor="#A855F7"
+            iconColor="#FFFFFF"
             title="Theme Mode"
             subtitle="Dark, Light, or System"
             valueText={
@@ -316,30 +316,30 @@ export function SettingsScreen() {
           <View style={styles.divider} />
           <SettingRow
             icon="Bell"
-            iconColor="#3B82F6"
+            iconColor="#FFFFFF"
             title="Push Notifications"
             subtitle="Order updates & tap alerts"
             rightElement={
               <Switch
                 value={notificationsEnabled}
                 onValueChange={handleToggleNotifications}
-                trackColor={{ false: '#26262A', true: '#00F0FF' }}
-                thumbColor="#FFFFFF"
+                trackColor={{ false: '#26262A', true: '#FFFFFF' }}
+                thumbColor={notificationsEnabled ? '#000000' : '#FFFFFF'}
               />
             }
           />
           <View style={styles.divider} />
           <SettingRow
             icon="Smartphone"
-            iconColor="#10B981"
+            iconColor="#FFFFFF"
             title="Haptic Feedback"
             subtitle="Vibrate on tap interactions"
             rightElement={
               <Switch
                 value={hapticsEnabled}
                 onValueChange={handleToggleHaptics}
-                trackColor={{ false: '#26262A', true: '#10B981' }}
-                thumbColor="#FFFFFF"
+                trackColor={{ false: '#26262A', true: '#FFFFFF' }}
+                thumbColor={hapticsEnabled ? '#000000' : '#FFFFFF'}
               />
             }
           />
@@ -350,22 +350,22 @@ export function SettingsScreen() {
         <View style={styles.groupCard}>
           <SettingRow
             icon="LockKeyhole"
-            iconColor="#F59E0B"
+            iconColor="#FFFFFF"
             title="Passcode Lock"
             subtitle="Require PIN on app launch"
             rightElement={
               <Switch
                 value={securityPinEnabled}
                 onValueChange={handleTogglePin}
-                trackColor={{ false: '#26262A', true: '#F59E0B' }}
-                thumbColor="#FFFFFF"
+                trackColor={{ false: '#26262A', true: '#FFFFFF' }}
+                thumbColor={securityPinEnabled ? '#000000' : '#FFFFFF'}
               />
             }
           />
           <View style={styles.divider} />
           <SettingRow
             icon="Share"
-            iconColor="#38BDF8"
+            iconColor="#FFFFFF"
             title="Share Public Profile"
             subtitle="Share sitehub.app link"
             onPress={handleCopyProfileUrl}
@@ -373,7 +373,7 @@ export function SettingsScreen() {
           <View style={styles.divider} />
           <SettingRow
             icon="CreditCard"
-            iconColor="#EC4899"
+            iconColor="#FFFFFF"
             title="Active NFC Card"
             subtitle={cardProfile ? cardProfile.name : 'AVIO Digital Pass'}
             valueText={cardProfile ? cardProfile.cardId : 'Active'}
@@ -385,15 +385,15 @@ export function SettingsScreen() {
         <AppText style={styles.sectionHeader}>ACCOUNT ACTIONS</AppText>
         <View style={styles.groupCard}>
           <SettingRow
-            icon="Restart"
-            iconColor="#64748B"
+            icon="Refresh"
+            iconColor="#FFFFFF"
             title="Reset App Settings"
             subtitle="Restore default preferences"
             onPress={handleResetPreferences}
           />
           <View style={styles.divider} />
           <SettingRow
-            icon="Logout"
+            icon="LogOut"
             title={isGuest ? 'Exit Guest Mode' : 'Sign Out'}
             subtitle={user?.email || 'Sign out of current session'}
             onPress={handleSignOut}
@@ -404,7 +404,7 @@ export function SettingsScreen() {
         {/* ─── FOOTER INFO ─── */}
         <View style={styles.footer}>
           <AppText style={styles.footerBrand}>AVIO Technologies • CONNECT · IDENTIFY · EMPOWER</AppText>
-          <AppText style={styles.footerVersion}>Version 1.0.0 (Build 27)</AppText>
+          <AppText style={styles.footerVersion}>Version 1.0.0 (Build 32)</AppText>
         </View>
       </ScrollView>
     </SafeAreaView>
