@@ -383,7 +383,7 @@ export function GuestHomeScreen() {
             <ErrorBanner message={error} onRetry={() => setIsLoading(true)} />
           ) : (
             <>
-              {/* ── 1. Top Greeting Bar ── */}
+              {/* ── 1. Executive Top Header ── */}
               <View style={styles.topGreetingRow}>
                 <Pressable
                   onPress={() => { HapticTap.light(); router.push('/profile' as any); }}
@@ -392,31 +392,37 @@ export function GuestHomeScreen() {
                   {bioPage?.photoUrl ? (
                     <Image source={{ uri: bioPage.photoUrl }} style={styles.greetingAvatarImg} />
                   ) : (
-                    <LinearGradient
-                      colors={getTelegramColors(heroName || 'Creator')}
-                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                      style={styles.greetingAvatarCircle}
-                    >
-                      <AppText style={styles.greetingAvatarLetter} weight="extrabold">
-                        {(heroName?.[0] || 'C').toUpperCase()}
+                    <View style={styles.executiveAvatarSeal}>
+                      <AppText style={styles.executiveAvatarLetter} weight="extrabold">
+                        {(heroName?.[0] || 'A').toUpperCase()}
                       </AppText>
-                    </LinearGradient>
+                    </View>
                   )}
-                  <View>
-                    <AppText style={styles.greetingSub}>Good day,</AppText>
+                  <View style={styles.executiveTitles}>
+                    <AppText style={styles.executiveEyebrow} weight="bold">EXECUTIVE WORKSPACE</AppText>
                     <AppText style={styles.greetingName} weight="extrabold">
-                      {heroName?.split(' ')[0] || 'Creator'}
+                      {heroName || 'Executive Member'}
                     </AppText>
                   </View>
                 </Pressable>
 
-                <Pressable
-                  onPress={() => { HapticTap.light(); router.push(appRoutes.guestDesign as Href); }}
-                  style={styles.notifBtn}
-                >
-                  <AppIcon name="Bell" size={20} color="#FFFFFF" />
-                  {unreadCount > 0 && <View style={styles.notifDot} />}
-                </Pressable>
+                <View style={styles.headerRightActions}>
+                  <Pressable
+                    onPress={() => { HapticTap.light(); router.push('/scan' as any); }}
+                    style={styles.notifBtn}
+                    hitSlop={8}
+                  >
+                    <AppIcon name="Scan" size={18} color="#FFFFFF" />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => { HapticTap.light(); router.push(appRoutes.guestDesign as Href); }}
+                    style={styles.notifBtn}
+                    hitSlop={8}
+                  >
+                    <AppIcon name="Bell" size={18} color="#FFFFFF" />
+                    {unreadCount > 0 && <View style={styles.notifDot} />}
+                  </Pressable>
+                </View>
               </View>
 
               {/* ── 2. NFC Smart Card Hero ── */}
@@ -430,57 +436,69 @@ export function GuestHomeScreen() {
                   width={cardWidth}
                   cardId={cloudCard?.cardId ?? 'BC-NFC_JEWDVONG'}
                 />
-                <AppText style={styles.subtleFlipHint}>Tap to flip</AppText>
+                <AppText style={styles.subtleFlipHint}>Tap to flip card</AppText>
               </View>
 
-              {/* ── 3. Primary CTA: Share Card (Sleek, Refined Height) ── */}
+              {/* ── 3. Primary Executive CTA: Share Card & Beam ── */}
               <Pressable
                 onPress={() => { HapticTap.medium(); handleShare(); }}
                 style={({ pressed }) => [styles.refinedShareBtn, pressed && styles.pressed]}
               >
                 <AppIcon name="ExternalLink" size={16} color="#000000" />
-                <AppText style={styles.refinedShareText} weight="bold">
-                  Share Card
+                <AppText style={styles.refinedShareText} weight="extrabold">
+                  Share Card & NFC Beam
                 </AppText>
               </Pressable>
 
-              {/* ── 4. Secondary CTAs (Visually Quieter) ── */}
+              {/* ── 4. Executive Command Trio (Quiet & Refined) ── */}
               <View style={styles.secondaryActionRow}>
                 <Pressable
                   onPress={() => { HapticTap.medium(); router.push('/profile' as any); }}
                   style={({ pressed }) => [styles.secondaryActionBtn, pressed && styles.pressed]}
                 >
-                  <AppIcon name="User" size={14} color="rgba(255,255,255,0.7)" />
-                  <AppText style={styles.secondaryActionText} weight="bold">View Profile</AppText>
+                  <AppIcon name="User" size={14} color="rgba(255,255,255,0.8)" />
+                  <AppText style={styles.secondaryActionText} weight="bold">Executive Bio</AppText>
                 </Pressable>
                 <Pressable
                   onPress={() => { HapticTap.medium(); router.push(appRoutes.guestDesign as Href); }}
                   style={({ pressed }) => [styles.secondaryActionBtn, pressed && styles.pressed]}
                 >
-                  <AppIcon name="Sparkles" size={14} color="rgba(255,255,255,0.7)" />
-                  <AppText style={styles.secondaryActionText} weight="bold">Edit Design</AppText>
+                  <AppIcon name="Sparkles" size={14} color="rgba(255,255,255,0.8)" />
+                  <AppText style={styles.secondaryActionText} weight="bold">Card Studio</AppText>
+                </Pressable>
+                <Pressable
+                  onPress={() => { HapticTap.medium(); router.push('/connections' as any); }}
+                  style={({ pressed }) => [styles.secondaryActionBtn, pressed && styles.pressed]}
+                >
+                  <AppIcon name="Users" size={14} color="rgba(255,255,255,0.8)" />
+                  <AppText style={styles.secondaryActionText} weight="bold">CRM Leads</AppText>
                 </Pressable>
               </View>
 
               {/* ── Divider ── */}
               <View style={styles.hairlineDivider} />
 
-              {/* ── 5. Information Section (Borderless) ── */}
+              {/* ── 5. Executive Presence & Analytics Intelligence ── */}
               <View style={styles.infoSection}>
                 <View style={styles.infoHeader}>
-                  <AppText style={styles.infoTitle} weight="bold">Your AVIO Card</AppText>
-                  <AppText style={styles.infoCardCode}>Active · {cloudCard?.cardId ?? 'BC-NFC_JEWDVONG'}</AppText>
+                  <AppText style={styles.infoTitle} weight="extrabold">Executive Presence & Intelligence</AppText>
+                  <AppText style={styles.infoCardCode}>Active Smart Pass · {cloudCard?.cardId ?? 'BC-NFC_JEWDVONG'}</AppText>
                 </View>
 
                 <View style={styles.metricsRow}>
                   <View style={styles.metricItem}>
-                    <AppText style={styles.metricLabel}>NFC taps</AppText>
                     <AppText style={styles.metricValue} weight="extrabold">48</AppText>
+                    <AppText style={styles.metricLabel}>NFC Taps</AppText>
                   </View>
 
                   <View style={styles.metricItem}>
-                    <AppText style={styles.metricLabel}>Profile views</AppText>
                     <AppText style={styles.metricValue} weight="extrabold">12</AppText>
+                    <AppText style={styles.metricLabel}>Bio Views</AppText>
+                  </View>
+
+                  <View style={styles.metricItem}>
+                    <AppText style={styles.metricValue} weight="extrabold">7</AppText>
+                    <AppText style={styles.metricLabel}>Leads Saved</AppText>
                   </View>
                 </View>
               </View>
@@ -488,7 +506,7 @@ export function GuestHomeScreen() {
               {/* ── Divider ── */}
               <View style={styles.hairlineDivider} />
 
-              {/* ── 6. Optional Commerce (Clean, Unboxed) ── */}
+              {/* ── 6. Bespoke Hardware Concierge ── */}
               <Pressable
                 onPress={() => {
                   HapticTap.medium();
@@ -500,11 +518,11 @@ export function GuestHomeScreen() {
                 style={({ pressed }) => [styles.commerceRow, pressed && styles.pressed]}
               >
                 <View style={styles.commerceLeft}>
-                  <AppText style={styles.commerceTitle} weight="bold">Get a physical AVIO card</AppText>
-                  <AppText style={styles.commerceSub}>Matte Black · Brushed Metal</AppText>
+                  <AppText style={styles.commerceTitle} weight="extrabold">Bespoke Metal NFC Card</AppText>
+                  <AppText style={styles.commerceSub}>Laser-Engraved Titanium · 24K Gold</AppText>
                 </View>
                 <View style={styles.commerceRight}>
-                  <AppText style={styles.commerceLink} weight="bold">Explore designs →</AppText>
+                  <AppText style={styles.commerceLink} weight="bold">Concierge Request →</AppText>
                 </View>
               </Pressable>
             </>
@@ -573,51 +591,57 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  greetingAvatarCircle: {
+  executiveAvatarSeal: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#1E1E22',
-    borderWidth: 0,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  executiveAvatarLetter: {
+    color: '#000000',
+    fontSize: 18,
+  },
+  executiveTitles: {
+    gap: 1,
+  },
+  executiveEyebrow: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 10,
+    letterSpacing: 1.2,
   },
   greetingAvatarImg: {
     width: 44,
     height: 44,
     borderRadius: 22,
   },
-  greetingAvatarLetter: {
-    color: '#FFFFFF',
-    fontSize: 18,
-  },
-  greetingSub: {
-    color: MUTED,
-    fontSize: 12,
-    fontWeight: '600',
-  },
   greetingName: {
     color: '#FFFFFF',
     fontSize: 18,
     lineHeight: 22,
   },
+  headerRightActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
   notifBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#121214',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   notifDot: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    top: 6,
+    right: 6,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
     backgroundColor: '#FF3B30',
     borderWidth: 1,
     borderColor: '#000000',
