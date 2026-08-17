@@ -341,10 +341,10 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
     );
   }
 
-  const ink = isDark ? '#FFFFFF' : '#000000';
-  const surface = isDark ? 'rgba(20,20,22,0.92)' : 'rgba(255,255,255,0.92)';
-  const hairline = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(10,10,11,0.08)';
-  const pillBg = isDark ? '#26262B' : '#F4F4F5';
+  const ink = '#FFFFFF';
+  const surface = 'rgba(18, 18, 22, 0.94)';
+  const hairline = 'rgba(255, 255, 255, 0.12)';
+  const pillBg = 'rgba(255, 255, 255, 0.12)';
 
   return (
     <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 12) }]}>
@@ -368,7 +368,7 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
           const route = item.route;
           const isActive = activeRoute?.name === route.name;
           const isLegacyAttendance = route.name === 'attendance';
-          const muted = isActive ? ink : (isDark ? 'rgba(255,255,255,0.45)' : 'rgba(60,60,67,0.45)');
+          const muted = isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.42)';
 
           return (
             <Pressable
@@ -386,15 +386,15 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
             >
               <View style={styles.iconContainer}>
                 {route.name === 'index' ? (
-                  <Ionicons name={isActive ? 'home' : 'home-outline'} size={22} color={muted} />
+                  <Ionicons name={isActive ? 'home' : 'home-outline'} size={21} color={muted} />
                 ) : route.name === 'connections' || isLegacyAttendance ? (
-                  <Ionicons name={isActive ? 'people' : 'people-outline'} size={22} color={muted} />
+                  <Ionicons name={isActive ? 'people' : 'people-outline'} size={21} color={muted} />
                 ) : route.name === 'share' ? (
-                  <Ionicons name={isActive ? 'qr-code' : 'qr-code-outline'} size={22} color={muted} />
+                  <Ionicons name={isActive ? 'qr-code' : 'qr-code-outline'} size={21} color={muted} />
                 ) : route.name === 'profile' ? (
-                  <Ionicons name={isActive ? 'heart' : 'heart-outline'} size={22} color={muted} />
+                  <Ionicons name={isActive ? 'person' : 'person-outline'} size={21} color={muted} />
                 ) : route.name === 'settings' ? (
-                  <Ionicons name={isActive ? 'settings' : 'settings-outline'} size={22} color={muted} />
+                  <Ionicons name={isActive ? 'settings-sharp' : 'settings-outline'} size={21} color={muted} />
                 ) : null}
               </View>
             </Pressable>

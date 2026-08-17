@@ -330,7 +330,7 @@ export function SettingsScreen() {
           />
           <View style={styles.divider} />
           <SettingRow
-            icon="Vibration"
+            icon="Smartphone"
             iconColor="#10B981"
             title="Haptic Feedback"
             subtitle="Vibrate on tap interactions"
@@ -349,7 +349,7 @@ export function SettingsScreen() {
         <AppText style={styles.sectionHeader}>CARD & SECURITY</AppText>
         <View style={styles.groupCard}>
           <SettingRow
-            icon="ShieldCheck"
+            icon="LockKeyhole"
             iconColor="#F59E0B"
             title="Passcode Lock"
             subtitle="Require PIN on app launch"
@@ -372,7 +372,7 @@ export function SettingsScreen() {
           />
           <View style={styles.divider} />
           <SettingRow
-            icon="Card"
+            icon="CreditCard"
             iconColor="#EC4899"
             title="Active NFC Card"
             subtitle={cardProfile ? cardProfile.name : 'AVIO Digital Pass'}
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 40,
+    paddingBottom: 130,
     maxWidth: 640,
     width: '100%',
     alignSelf: 'center',

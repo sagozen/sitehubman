@@ -8,7 +8,7 @@ import {
   useWindowDimensions,
   TextInput,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { ConnectionCardV2 } from '@/src/components/ConnectionCardV2';
@@ -21,20 +21,8 @@ import { HapticTap } from '@/src/utils/haptics';
 
 const THEME = pageThemes.leads;
 const CARD_GAP = 8;
-const CARD_RATIO = 1.0; // Square 1:1 blocks like the 3x3 reference image
-const HEADER_ESTIMATE = 170;
-
-const BLOCK_COLORS = [
-  { bg: '#E2F16D', fg: '#111111', sub: '#444444' }, // Lime Yellow
-  { bg: '#E57A65', fg: '#FFFFFF', sub: 'rgba(255,255,255,0.85)' }, // Terracotta
-  { bg: '#FFFFFF', fg: '#111111', sub: '#666666' }, // Crisp White
-  { bg: '#FF5733', fg: '#FFFFFF', sub: 'rgba(255,255,255,0.85)' }, // Coral Red
-  { bg: '#1E3A34', fg: '#E2F16D', sub: 'rgba(226,241,109,0.75)' }, // Dark Emerald
-  { bg: '#2563EB', fg: '#FFFFFF', sub: 'rgba(255,255,255,0.85)' }, // Sapphire Blue
-  { bg: '#18181B', fg: '#FFFFFF', sub: '#A1A1AA' }, // Dark Charcoal
-  { bg: '#D97706', fg: '#FFFFFF', sub: 'rgba(255,255,255,0.85)' }, // Warm Amber
-  { bg: '#0F766E', fg: '#FFFFFF', sub: 'rgba(255,255,255,0.85)' }, // Deep Teal
-] as const;
+const CARD_RATIO = 1.0;
+const HEADER_ESTIMATE = 190;
 
 export function GuestConnectionsScreen() {
   const { width: sw } = useWindowDimensions();
@@ -42,11 +30,10 @@ export function GuestConnectionsScreen() {
   const { openPreview } = useGuestActionStats();
 
   // Custom Popup Modal state
-  const [selectedContact, setSelectedContact] = useState<TapMoment | null>(
-    null,
-  );
+  const [selectedContact, setSelectedContact] = useState<TapMoment | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [query, setQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState<'all' | 'recent' | 'vip' | 'followup'>('all');
 
   const scaleAnim = useRef(new Animated.Value(0.85)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -58,14 +45,20 @@ export function GuestConnectionsScreen() {
   const debouncedSearch = useDebounce(query, 300);
 
   const filteredMoments = useMemo(() => {
-    if (!debouncedSearch.trim()) return allMoments;
+    let result = allMoments;
+    if (activeCategory === 'vip') {
+      result = result.filter(m => (m.name || '').includes('CEO') || (m.subtitle || '').toLowerCase().includes('founder') || (m.subtitle || '').toLowerCase().includes('director') || (m.subtitle || '').toLowerCase().includes('head'));
+    } else if (activeCategory === 'recent') {
+      result = result.slice(0, 5);
+    }
+    if (!debouncedSearch.trim()) return result;
     const lower = debouncedSearch.toLowerCase();
-    return allMoments.filter((moment) =>
+    return result.filter((moment) =>
       `${moment.name} ${moment.subtitle ?? ''}`
         .toLowerCase()
         .includes(lower),
     );
-  }, [allMoments, debouncedSearch]);
+  }, [allMoments, activeCategory, debouncedSearch]);
 
   // Open custom popup with hardware-accelerated animated overlay
   const handleOpenPopup = useCallback((contact: TapMoment) => {
@@ -110,7 +103,7 @@ export function GuestConnectionsScreen() {
   }, [fadeAnim, scaleAnim]);
 
   const renderGridItem = useCallback(
-    ({ item, index }: { item: TapMoment; index: number }) => (
+    ({ item }: { item: TapMoment; index: number }) => (
       <ConnectionCardV2 
         name={item.name || ''} 
         title={item.subtitle} 
@@ -129,7 +122,7 @@ export function GuestConnectionsScreen() {
           <View style={styles.searchBar}>
             <AppIcon name="Search" size={16} color={THEME.muted} />
             <TextInput
-              placeholder="Search leads..."
+              placeholder="Search leads & contacts..."
               placeholderTextColor={THEME.muted}
               style={styles.searchInput}
               value={query}
@@ -156,59 +149,72 @@ export function GuestConnectionsScreen() {
               HapticTap.light();
             }}
           >
-            <AppIcon name="Calendar" size={15} color={THEME.accent} />
+            <AppIcon name="Calendar" size={14} color={THEME.accent} />
             <AppText style={styles.yearText} weight="bold">2026</AppText>
-            <AppIcon name="ChevronDown" size={13} color={THEME.accent} />
           </Pressable>
+        </View>
+
+        {/* Quick Category Chips */}
+        <View style={styles.categoryRow}>
+          {[
+            { id: 'all', label: 'All Leads' },
+            { id: 'recent', label: 'Recent' },
+            { id: 'vip', label: 'VIP / Exec' },
+          ].map((cat) => (
+            <Pressable
+              key={cat.id}
+              onPress={() => { HapticTap.selection(); setActiveCategory(cat.id as any); }}
+              style={[styles.categoryChip, activeCategory === cat.id && styles.categoryChipActive]}
+            >
+              <AppText style={[styles.categoryChipText, activeCategory === cat.id && styles.categoryChipTextActive]} weight="bold">
+                {cat.label}
+              </AppText>
+            </Pressable>
+          ))}
         </View>
 
         {/* Subtitle count below */}
         <AppText style={styles.momentsCountText} weight="bold">
-          {filteredMoments.length} moments captured.
+          {filteredMoments.length} moments captured · 60FPS Contact OS
         </AppText>
       </View>
     ),
-    [filteredMoments.length, query],
+    [activeCategory, filteredMoments.length, query],
   );
 
   return (
-    <View style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.content}>
         {/* Responsive Grid with FlatList optimizations */}
         <FlatList
-        key={`list-cols-${numColumns}`}
-        data={filteredMoments}
-        keyExtractor={(item) => item.id}
-        renderItem={renderGridItem}
-        ListHeaderComponent={renderHeader}
-        contentContainerStyle={[
-          styles.gridContent,
-          { paddingTop: Math.max(insets.top, 0) },
-        ]}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        getItemLayout={(_, index) => ({
-          length: rowHeight,
-          offset: HEADER_ESTIMATE + Math.floor(index / 2) * rowHeight,
-          index,
-        })}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <AppIcon name="Search" size={28} color={THEME.accent} />
-            <AppText style={styles.emptyTitle}>No matching leads</AppText>
-            <AppText style={styles.emptySubtitle}>
-              Try a name or company keyword.
-            </AppText>
-          </View>
-        }
-
-        // FlatList rendering performance optimizations
-        initialNumToRender={8}
-        maxToRenderPerBatch={4}
-        updateCellsBatchingPeriod={60}
-        windowSize={4}
-        removeClippedSubviews={true}
-      />
+          key={`list-cols-${numColumns}`}
+          data={filteredMoments}
+          keyExtractor={(item) => item.id}
+          renderItem={renderGridItem}
+          ListHeaderComponent={renderHeader}
+          contentContainerStyle={styles.gridContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          getItemLayout={(_, index) => ({
+            length: rowHeight,
+            offset: HEADER_ESTIMATE + Math.floor(index / 2) * rowHeight,
+            index,
+          })}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <AppIcon name="Search" size={28} color={THEME.accent} />
+              <AppText style={styles.emptyTitle}>No matching leads</AppText>
+              <AppText style={styles.emptySubtitle}>
+                Try a name or company keyword.
+              </AppText>
+            </View>
+          }
+          initialNumToRender={8}
+          maxToRenderPerBatch={4}
+          updateCellsBatchingPeriod={60}
+          windowSize={4}
+          removeClippedSubviews={true}
+        />
 
       {/* Custom Absolute Animated Overlay Popup */}
       {modalVisible && (
@@ -279,7 +285,7 @@ export function GuestConnectionsScreen() {
         </Animated.View>
       )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -296,7 +302,7 @@ const styles = StyleSheet.create({
   },
   gridContent: {
     paddingHorizontal: 16,
-    paddingBottom: 110,
+    paddingBottom: 140,
   },
   pressed: {
     opacity: 0.8,
@@ -307,10 +313,10 @@ const styles = StyleSheet.create({
     width: '100%',
     marginHorizontal: -16,
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 18,
+    paddingTop: 12,
+    paddingBottom: 16,
     backgroundColor: THEME.canvas,
-    gap: 16,
+    gap: 12,
   },
   controlsRow: {
     flexDirection: 'row',
@@ -339,23 +345,46 @@ const styles = StyleSheet.create({
   yearSelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: THEME.accentSoft,
+    backgroundColor: '#16161A',
     borderRadius: 22,
     paddingHorizontal: 14,
     height: 44,
     gap: 6,
     borderWidth: 1,
-    borderColor: THEME.border,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   yearText: {
-    color: THEME.accent,
+    color: '#FFFFFF',
     fontSize: 13,
   },
+  categoryRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  categoryChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: '#16161A',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  categoryChipActive: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
+  },
+  categoryChipText: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 12,
+  },
+  categoryChipTextActive: {
+    color: '#000000',
+  },
   momentsCountText: {
-    color: THEME.muted,
-    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 12,
     fontFamily: 'SF-Pro-Display-Regular',
-    marginTop: 4,
+    marginTop: 2,
   },
   emptyState: { alignItems: 'center', gap: 8, paddingVertical: 56 },
   emptyTitle: { color: THEME.text, fontSize: 17, fontWeight: '800' },

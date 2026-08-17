@@ -31,14 +31,14 @@ export function PageHeader({
   right,
   compact = false,
 }: PageHeaderProps) {
-  const { colors } = usePreferences();
+  const { colors, isDark } = usePreferences();
   const theme = {
-    surface: colors?.surface ?? themeProp.surface,
-    border: colors?.border ?? themeProp.border,
-    text: colors?.textPrimary ?? themeProp.text,
-    muted: colors?.textMuted ?? themeProp.muted,
-    accent: colors?.primary ?? themeProp.accent,
-    accentSoft: colors?.primarySoft ?? themeProp.accentSoft,
+    surface: themeProp.surface || colors?.surface || '#111114',
+    border: themeProp.border || colors?.border || 'rgba(255,255,255,0.09)',
+    text: themeProp.text || (isDark ? '#FFFFFF' : '#FFFFFF'),
+    muted: themeProp.muted || 'rgba(255,255,255,0.6)',
+    accent: themeProp.accent || colors?.primary || '#FFFFFF',
+    accentSoft: themeProp.accentSoft || colors?.primarySoft || 'rgba(255,255,255,0.08)',
   };
   return (
     <View style={[styles.root, compact && styles.rootCompact]}>
