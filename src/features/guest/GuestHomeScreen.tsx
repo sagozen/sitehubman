@@ -7,6 +7,7 @@ import {
   Modal,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   TextInput,
   View,
@@ -610,6 +611,40 @@ export function GuestHomeScreen() {
                 </View>
                 <View style={styles.proNudgeArrow}>
                   <AppIcon name="ChevronRight" size={16} color="#000000" />
+                </View>
+              </Pressable>
+
+              {/* ── 8. Viral Referral Invite (Free Pro Incentive) ── */}
+              <Pressable
+                onPress={async () => {
+                  HapticTap.medium();
+                  const slug = bioPage?.slug || 'join';
+                  const shareUrl = `https://aviobrand.com/?ref=${encodeURIComponent(slug)}`;
+                  try {
+                    await Share.share({
+                      message: `Get your own executive AVIO Smart Pass NFC business card for free! Use my invite link: ${shareUrl}`,
+                      url: shareUrl,
+                      title: 'Invite to AVIO Smart Pass',
+                    });
+                  } catch {
+                    // ignore
+                  }
+                }}
+                style={({ pressed }) => [styles.referralCard, pressed && styles.pressed]}
+              >
+                <View style={styles.referralIconBox}>
+                  <AppIcon name="Gift" size={20} color="#FFFFFF" />
+                </View>
+                <View style={styles.referralContent}>
+                  <AppText style={styles.referralTitle} weight="extrabold">
+                    Give Free Card, Get 1 Mo Pro
+                  </AppText>
+                  <AppText style={styles.referralSub}>
+                    Share your invite link with a colleague or friend.
+                  </AppText>
+                </View>
+                <View style={styles.referralShareBtn}>
+                  <AppText style={styles.referralShareBtnText} weight="bold">Invite →</AppText>
                 </View>
               </Pressable>
             </>
@@ -1872,5 +1907,50 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     opacity: 0.4,
   },
+
+  // ── Viral Referral Card ──
+  referralCard: {
+    borderRadius: 16,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  referralIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#18181C',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  referralContent: {
+    flex: 1,
+    gap: 2,
+  },
+  referralTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  referralSub: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 12,
+  },
+  referralShareBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  referralShareBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+  },
 });
+
 
