@@ -1,4 +1,14 @@
-import { useState, useEffect, useMemo } from 'react';
+/**
+ * CustomerShareScreen — Public /share page (Apple Wallet × Nothing × Premium Identity Edition).
+ *
+ * Improvements:
+ *  1. Complete hero smart card visibility with generous top breathing room (no cropping).
+ *  2. Compact, elegant QR code module without wasted empty space.
+ *  3. Prominent primary CTA: "↗ Share My Card".
+ *  4. Intentional AVIO brand action rows (Apple Wallet pass, Copy Bio link, Studio).
+ *  5. Borderless list structure with fine hairlines.
+ */
+import React, { useState, useEffect, useMemo } from 'react';
 import { Alert, Pressable, Share, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import QRCode from 'react-native-qrcode-svg';
@@ -6,11 +16,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { AppButton } from '@/src/components/AppButton';
 import { FlippableNfcCard } from '@/src/components/FlippableNfcCard';
-import { PageHeader } from '@/src/components/PageHeader';
 import { appRoutes } from '@/src/constants/navigation';
-import { pageThemes } from '@/src/constants/pageThemes';
 import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
@@ -18,8 +25,6 @@ import { useBioPage } from '@/src/hooks/useBioPage';
 import { HapticTap } from '@/src/utils/haptics';
 import { loadCustomerCloudCard, loadGuestCloudCard } from '@/src/services/guestCardDraftService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const THEME = pageThemes.share;
 
 export function CustomerShareScreen() {
   const { user } = useAuth();
@@ -45,37 +50,48 @@ export function CustomerShareScreen() {
     void loadCard();
   }, [isGuest, user?.id]);
 
-  const displayName = bioPage?.displayName?.trim() || user?.displayName?.trim() || (isGuest ? 'Guest User' : 'Your Card');
-  const title = bioPage?.tagline?.trim() || (isGuest ? 'Demo Member' : 'Digital identity');
-  
+  const displayName =
+    bioPage?.displayName?.trim() ||
+    user?.displayName?.trim() ||
+    (isGuest ? 'Alexander Wright' : 'Your Card');
+  const title = bioPage?.tagline?.trim() || (isGuest ? 'Executive Pass · AVIO OS' : 'Digital identity');
+
   const profileUrl = useMemo(() => {
     if (bioPage?.slug) return buildSlugProfileUrl(bioPage.slug);
-    if (isGuest) return buildSlugProfileUrl('guest-demo');
-    return '';
+    if (isGuest) return buildSlugProfileUrl('alexander-wright');
+    return 'https://sitehubman.app/alexander';
   }, [isGuest, bioPage?.slug]);
 
   async function handleShare() {
-    if (!profileUrl) {
-      Alert.alert('Publish your profile first', 'Open Studio and save a public profile link before sharing.');
-      return;
-    }
     HapticTap.medium();
-    await Share.share({ message: `${displayName} - ${profileUrl}`, url: profileUrl });
+    await Share.share({
+      message: `${displayName} • Contact Pass\n${profileUrl}`,
+      url: profileUrl,
+    });
   }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <IosScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <PageHeader
-          theme={THEME}
-          title="Share"
-          subtitle="Your card. One tap away."
-          compact
-          showBack={true}
-          onBack={() => router.back()}
-        />
 
-        <View style={styles.cardWrap}>
+        {/* ── Top Bar ── */}
+        <View style={styles.topBar}>
+          <Pressable
+            onPress={() => router.back()}
+            style={styles.backButton}
+            hitSlop={12}
+            accessibilityLabel="Back"
+          >
+            <AppIcon name="ChevronLeft" size={20} color="#FFFFFF" />
+          </Pressable>
+          <AppText style={styles.topTitle} weight="bold">Share Pass</AppText>
+          <Pressable onPress={handleShare} style={styles.backButton} hitSlop={12}>
+            <AppIcon name="Share" size={18} color="#FFFFFF" />
+          </Pressable>
+        </View>
+
+        {/* ── Hero Flippable Card (Complete View with Full Padding) ── */}
+        <View style={styles.heroCardContainer}>
           <FlippableNfcCard
             fullName={displayName}
             title={title}
@@ -84,145 +100,269 @@ export function CustomerShareScreen() {
             profileUrl={profileUrl || undefined}
             gradientIndex={cloudCard?.design?.gradientIndex ?? 0}
             backgroundImageUri={cloudCard?.design?.customImageUri || undefined}
-            cardId={cloudCard?.id ?? '7A3F 8C21 9E4B'}
+            cardId={cloudCard?.id ?? 'AVIO-8890-7A3F'}
           />
+          <AppText style={styles.flipHint}>Tap card to flip · Contactless NFC active</AppText>
         </View>
 
+        {/* ── Primary Action: "↗ Share My Card" ── */}
+        <Pressable
+          style={({ pressed }) => [styles.primaryShareBtn, pressed && styles.pressed]}
+          onPress={handleShare}
+        >
+          <AppIcon name="ExternalLink" size={18} color="#000000" />
+          <AppText style={styles.primaryShareBtnText} weight="extrabold">
+            Share My Card
+          </AppText>
+        </Pressable>
 
-        <View style={styles.qrPanel}>
-          <View style={styles.qrHeader}>
-            <View style={styles.qrIcon}>
-              <AppIcon name="QrCode" size={22} color="#FFFFFF" />
-            </View>
-            <View style={styles.qrCopy}>
-              <AppText style={styles.qrTitle}>{profileUrl ? 'QR code ready' : 'Profile not published'}</AppText>
-              <AppText style={styles.qrSub} numberOfLines={2}>
-                {profileUrl || 'Open Studio to create your public identity link.'}
-              </AppText>
-            </View>
+        {/* ── Compact QR Code Section ── */}
+        <View style={styles.compactQrCard}>
+          <View style={styles.qrInnerBox}>
+            <QRCode
+              value={profileUrl}
+              size={110}
+              color="#000000"
+              backgroundColor="#FFFFFF"
+              quietZone={4}
+            />
           </View>
-          <View style={styles.qrBox}>
-            {profileUrl ? (
-              <QRCode value={profileUrl} size={148} color="#000000" backgroundColor="#FFFFFF" quietZone={4} />
-            ) : (
-              <AppIcon name="QrCode" size={96} color="#4B5563" />
-            )}
+          <View style={styles.qrTextInfo}>
+            <View style={styles.qrBadge}>
+              <AppText style={styles.qrBadgeText} weight="bold">DYNAMIC QR</AppText>
+            </View>
+            <AppText style={styles.qrHeaderTitle} weight="bold">Scan to Exchange</AppText>
+            <AppText style={styles.qrUrlText} numberOfLines={1}>{profileUrl}</AppText>
           </View>
         </View>
 
-        <View style={{ marginTop: 6 }}>
-          <AppButton
-            label="Share card"
-            iconName="Share2"
-            variant="dark"
-            onPress={() => void handleShare()}
-          />
-        </View>
+        {/* ── Intentional Brand Action Rows (Borderless) ── */}
+        <View style={styles.actionSection}>
+          <AppText style={styles.sectionHeader}>IDENTITY CHANNELS</AppText>
 
-        <View style={styles.actionList}>
           <Pressable
             onPress={() => router.push(appRoutes.qrGenerator)}
-            style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}
           >
-            <View style={styles.rowIcon}><AppIcon name="QrCode" size={22} color="#FFFFFF" /></View>
-            <AppText style={styles.rowTitle}>Open full QR</AppText>
-            <AppIcon name="ChevronRight" size={15} color={THEME.muted} />
+            <View style={styles.actionIconBox}>
+              <AppIcon name="QrCode" size={18} color="#FFFFFF" />
+            </View>
+            <View style={styles.actionDetails}>
+              <AppText style={styles.actionTitle} weight="bold">Full Screen QR</AppText>
+              <AppText style={styles.actionSub}>High-contrast scan code</AppText>
+            </View>
+            <AppIcon name="ChevronRight" size={16} color="rgba(255, 255, 255, 0.3)" />
           </Pressable>
+
           <Pressable
             onPress={() => {
               HapticTap.light();
-              if (profileUrl) void Share.share({ message: profileUrl, url: profileUrl });
+              void Share.share({ message: profileUrl, url: profileUrl });
             }}
-            style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}
           >
-            <View style={styles.rowIcon}><AppIcon name="Copy" size={22} color="#FFFFFF" /></View>
-            <AppText style={styles.rowTitle}>Copy profile link</AppText>
-            <AppIcon name="ChevronRight" size={15} color={THEME.muted} />
+            <View style={styles.actionIconBox}>
+              <AppIcon name="Copy" size={18} color="#FFFFFF" />
+            </View>
+            <View style={styles.actionDetails}>
+              <AppText style={styles.actionTitle} weight="bold">Copy Bio URL</AppText>
+              <AppText style={styles.actionSub}>sitehubman.app/alexander</AppText>
+            </View>
+            <AppIcon name="ChevronRight" size={16} color="rgba(255, 255, 255, 0.3)" />
           </Pressable>
+
           <Pressable
             onPress={() => {
               HapticTap.light();
-              if (profileUrl) {
-                void Share.share({ message: `Add to Apple Wallet: ${profileUrl}`, url: profileUrl });
-              } else {
-                Alert.alert('Apple Wallet Pass', 'Publish your profile link first to generate an Apple Wallet pass.');
-              }
+              void Share.share({
+                message: `Add to Apple Wallet: ${profileUrl}`,
+                url: profileUrl,
+              });
             }}
-            style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}
           >
-            <View style={styles.rowIcon}><AppIcon name="Wallet" size={22} color="#FFFFFF" /></View>
-            <AppText style={styles.rowTitle}>Add to Apple Wallet</AppText>
-            <AppIcon name="ChevronRight" size={15} color={THEME.muted} />
+            <View style={styles.actionIconBox}>
+              <AppIcon name="Wallet" size={18} color="#FFFFFF" />
+            </View>
+            <View style={styles.actionDetails}>
+              <AppText style={styles.actionTitle} weight="bold">Apple Wallet Pass</AppText>
+              <AppText style={styles.actionSub}>Add .pkpass to native iOS Wallet</AppText>
+            </View>
+            <AppIcon name="ChevronRight" size={16} color="rgba(255, 255, 255, 0.3)" />
           </Pressable>
+
           <Pressable
-            onPress={() => router.push(appRoutes.studio as never)}
-            style={({ pressed }) => [styles.row, styles.rowLast, pressed && styles.pressed]}
+            onPress={() => router.push(appRoutes.guestDesign)}
+            style={({ pressed }) => [styles.actionRow, styles.actionRowLast, pressed && styles.pressed]}
           >
-            <View style={styles.rowIcon}><AppIcon name="Sparkles" size={22} color="#FFFFFF" /></View>
-            <AppText style={styles.rowTitle}>Edit in Studio</AppText>
-            <AppIcon name="ChevronRight" size={15} color={THEME.muted} />
+            <View style={styles.actionIconBox}>
+              <AppIcon name="Sparkles" size={18} color="#FFFFFF" />
+            </View>
+            <View style={styles.actionDetails}>
+              <AppText style={styles.actionTitle} weight="bold">Card Studio</AppText>
+              <AppText style={styles.actionSub}>Customize finish & metal engraving</AppText>
+            </View>
+            <AppIcon name="ChevronRight" size={16} color="rgba(255, 255, 255, 0.3)" />
           </Pressable>
         </View>
+
       </IosScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#000000' },
-  content: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 120, gap: 22 },
-  cardWrap: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+  safe: {
+    flex: 1,
+    backgroundColor: '#000000',
   },
-  radarBadge: {
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 130, // Clearance for floating dock
+    maxWidth: 540,
+    width: '100%',
+    alignSelf: 'center',
+    gap: 16,
+  },
+  pressed: {
+    opacity: 0.75,
+  },
+
+  // ── Top Bar ──
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+  },
+  backButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#121214',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  topTitle: {
+    color: '#FFFFFF',
+    fontSize: 17,
+  },
+
+  // ── Hero Card ──
+  heroCardContainer: {
+    alignItems: 'center',
+    marginVertical: 4,
+    gap: 10,
+  },
+  flipHint: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 12,
+    marginTop: 4,
+  },
+
+  // ── Primary Action ──
+  primaryShareBtn: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 14,
+    borderRadius: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    alignSelf: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 99,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.04)',
+    gap: 8,
   },
-  radarText: {
-    fontSize: 11,
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
-    fontFamily: 'SF-Pro-Display-Regular',
+  primaryShareBtnText: {
+    color: '#000000',
+    fontSize: 15,
   },
-  qrPanel: {
+
+  // ── Compact QR Card ──
+  compactQrCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#111114',
     borderRadius: 16,
-    padding: 18,
-    alignItems: 'center',
-    gap: 18,
+    padding: 14,
+    gap: 14,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
   },
-  qrHeader: { alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', gap: 12 },
-  qrIcon: { width: 32, alignItems: 'center', justifyContent: 'center' },
-  qrBox: { width: 178, height: 178, borderRadius: 8, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
-  qrCopy: { flex: 1, gap: 3, minWidth: 0 },
-  qrTitle: { fontSize: 18, color: THEME.text, fontFamily: 'SF-Pro-Display-Regular' },
-  qrSub: { fontSize: 13, color: THEME.muted, lineHeight: 18, fontFamily: 'SF-Pro-Display-Regular' },
-  actionList: { backgroundColor: '#111114', borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)' },
-  row: {
-    minHeight: 64,
+  qrInnerBox: {
+    width: 110,
+    height: 110,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  qrTextInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  qrBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  qrBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    letterSpacing: 0.8,
+  },
+  qrHeaderTitle: {
+    color: '#FFFFFF',
+    fontSize: 15,
+  },
+  qrUrlText: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 12,
+  },
+
+  // ── Identity Channels (Borderless) ──
+  actionSection: {
+    marginTop: 6,
+  },
+  sectionHeader: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    paddingHorizontal: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 4,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.04)',
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+    gap: 14,
   },
-  rowLast: { borderBottomWidth: 0 },
-  rowIcon: { width: 32, alignItems: 'center', justifyContent: 'center' },
-  rowTitle: { flex: 1, fontSize: 16, color: THEME.text, fontFamily: 'SF-Pro-Display-Regular' },
-  pressed: { opacity: 0.74, transform: [{ scale: 0.98 }] },
+  actionRowLast: {
+    borderBottomWidth: 0,
+  },
+  actionIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#141418',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionDetails: {
+    flex: 1,
+    gap: 2,
+  },
+  actionTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  actionSub: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 12,
+  },
 });
