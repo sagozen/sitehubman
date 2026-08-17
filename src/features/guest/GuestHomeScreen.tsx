@@ -533,6 +533,40 @@ export function GuestHomeScreen() {
                   <AppText style={styles.commerceLink} weight="bold">Join Waitlist →</AppText>
                 </View>
               </Pressable>
+
+              {/* ── 7. Pro Upgrade Nudge ── */}
+              <Pressable
+                onPress={() => {
+                  HapticTap.medium();
+                  router.push('/pricing' as any);
+                }}
+                style={({ pressed }) => [styles.proNudgeCard, pressed && styles.pressed]}
+              >
+                <View style={styles.proNudgeBadge}>
+                  <AppText style={styles.proNudgeBadgeText} weight="extrabold">PRO</AppText>
+                </View>
+                <View style={styles.proNudgeContent}>
+                  <AppText style={styles.proNudgeTitle} weight="extrabold">
+                    Unlock your full identity
+                  </AppText>
+                  <View style={styles.proFeatureList}>
+                    {[
+                      'Unlimited bio links & social channels',
+                      'Analytics: views, taps & saves',
+                      'Custom domain  (you.com)',
+                      'Priority card production',
+                    ].map((f) => (
+                      <View key={f} style={styles.proFeatureRow}>
+                        <AppIcon name="Check" size={12} color="#000000" />
+                        <AppText style={styles.proFeatureText} weight="bold">{f}</AppText>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+                <View style={styles.proNudgeArrow}>
+                  <AppIcon name="ChevronRight" size={16} color="#000000" />
+                </View>
+              </Pressable>
             </>
 
           )}
@@ -1703,4 +1737,52 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.4)',
     fontSize: 14,
   },
+
+  // ── Pro Upgrade Nudge ──
+  proNudgeCard: {
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    padding: 18,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+  },
+  proNudgeBadge: {
+    backgroundColor: '#000000',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    alignSelf: 'flex-start',
+  },
+  proNudgeBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    letterSpacing: 1.5,
+  },
+  proNudgeContent: {
+    flex: 1,
+    gap: 8,
+  },
+  proNudgeTitle: {
+    color: '#000000',
+    fontSize: 15,
+  },
+  proFeatureList: {
+    gap: 4,
+  },
+  proFeatureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  proFeatureText: {
+    color: 'rgba(0, 0, 0, 0.65)',
+    fontSize: 12,
+    flex: 1,
+  },
+  proNudgeArrow: {
+    alignSelf: 'center',
+    opacity: 0.4,
+  },
 });
+

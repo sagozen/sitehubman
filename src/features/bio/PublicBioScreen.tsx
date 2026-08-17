@@ -36,6 +36,10 @@ import {
   resolvePublicProfileBySlug,
 } from '@/src/services/nfcProfileService';
 import { trackPublicBioTap, trackPublicBioView } from '@/src/services/firestoreService';
+import {
+  notifyCardOwnerOfView,
+  notifyCardOwnerOfSave,
+} from '@/src/services/cardViewNotificationService';
 import type { BioPage } from '@/src/types/models';
 import { HapticTap } from '@/src/utils/haptics';
 
@@ -136,16 +140,21 @@ export function PublicBioScreen({ slug, cardId }: Props) {
     };
   }, [slug, cardId]);
 
-  // Track view & tap
+  // Track view, tap & fire push notification to card owner
   useEffect(() => {
     if (!bioPage?.id) return;
+    // Increment view counter
     void trackPublicBioView(bioPage.id, resolvedCardId).catch(() => undefined);
+    // Push notification to card owner (non-blocking, silent fail)
+    if (bioPage.userId && bioPage.userId !== 'guest') {
+      void notifyCardOwnerOfView(bioPage.userId).catch(() => undefined);
+    }
     if (resolvedCardId) {
       void recordTapEvent({ profileId: bioPage.id, cardId: resolvedCardId, source: 'nfc_card' }).catch(() => undefined);
     } else if (slug) {
       void recordTapEvent({ profileId: bioPage.id, source: 'slug' }).catch(() => undefined);
     }
-  }, [bioPage?.id, resolvedCardId, slug]);
+  }, [bioPage?.id, bioPage?.userId, resolvedCardId, slug]);
 
   function trackTap() {
     if (bioPage?.id) void trackPublicBioTap(bioPage.id, resolvedCardId).catch(() => undefined);
@@ -179,6 +188,10 @@ export function PublicBioScreen({ slug, cardId }: Props) {
       .filter(Boolean)
       .join('\n');
     await Share.share({ message: vcard, title: `${bioPage!.displayName} Contact` });
+    // Notify card owner their contact was saved (non-blocking)
+    if (bioPage?.userId && bioPage.userId !== 'guest') {
+      void notifyCardOwnerOfSave(bioPage.userId).catch(() => undefined);
+    }
   }
 
   if (isLoading) {
