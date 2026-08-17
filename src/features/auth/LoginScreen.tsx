@@ -291,7 +291,7 @@ export function LoginScreen() {
               <View style={styles.landingWrap}>
                 {/* 4K Vector AVIO Brand Emblem */}
                 <View style={styles.logoWrap}>
-                  <AvioLogo size="lg" theme="dark" showTagline />
+                  <AvioLogo size="md" theme="dark" showTagline />
                 </View>
 
                 <AppText style={styles.executiveSub}>
@@ -529,7 +529,7 @@ export function LoginScreen() {
       {/* Splash Transition Overlay */}
       {showSplash && (
         <Animated.View style={[styles.splashOverlay, { opacity: splashOpacity }]} pointerEvents="none">
-          <AvioLogo size="lg" theme="dark" showTagline />
+          <AvioLogo size="md" theme="dark" showTagline />
         </Animated.View>
       )}
     </View>

@@ -23,12 +23,12 @@ export function AvioLogo({
     typeof size === 'number'
       ? size / 240
       : size === 'sm'
-      ? 0.7
+      ? 0.45
       : size === 'md'
-      ? 1.0
+      ? 0.6
       : size === 'lg'
-      ? 1.45
-      : 2.0;
+      ? 0.75
+      : 0.9;
 
   const width = 260 * baseScale;
   const height = (showTagline ? 85 : 60) * baseScale;
