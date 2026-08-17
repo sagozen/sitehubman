@@ -4,9 +4,11 @@ import {
   Image,
   InteractionManager,
   Linking,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
+  TextInput,
   View,
   useWindowDimensions,
 } from 'react-native';
@@ -280,6 +282,9 @@ export function GuestHomeScreen() {
     useState<Awaited<ReturnType<typeof loadCustomerCloudCard>>>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [fabOpen, setFabOpen] = useState(false);
+  const [showWaitlist, setShowWaitlist] = useState(false);
+  const [waitlistEmail, setWaitlistEmail] = useState('');
+  const [waitlistSent, setWaitlistSent] = useState(false);
 
   const cardWidth = Math.min(screenWidth - 40, 380);
 
@@ -487,18 +492,24 @@ export function GuestHomeScreen() {
 
                 <View style={styles.metricsRow}>
                   <View style={styles.metricItem}>
-                    <AppText style={styles.metricValue} weight="extrabold">48</AppText>
+                    <AppText style={styles.metricValue} weight="extrabold">
+                      {bioPage?.taps ?? 0}
+                    </AppText>
                     <AppText style={styles.metricLabel}>NFC Taps</AppText>
                   </View>
 
                   <View style={styles.metricItem}>
-                    <AppText style={styles.metricValue} weight="extrabold">12</AppText>
+                    <AppText style={styles.metricValue} weight="extrabold">
+                      {bioPage?.views ?? 0}
+                    </AppText>
                     <AppText style={styles.metricLabel}>Bio Views</AppText>
                   </View>
 
                   <View style={styles.metricItem}>
-                    <AppText style={styles.metricValue} weight="extrabold">7</AppText>
-                    <AppText style={styles.metricLabel}>Leads Saved</AppText>
+                    <AppText style={styles.metricValue} weight="extrabold">
+                      {insights?.totalOrders ?? 0}
+                    </AppText>
+                    <AppText style={styles.metricLabel}>Orders</AppText>
                   </View>
                 </View>
               </View>
@@ -510,16 +521,16 @@ export function GuestHomeScreen() {
               <Pressable
                 onPress={() => {
                   HapticTap.medium();
-                  router.push(appRoutes.guestDesign as Href);
+                  setShowWaitlist(true);
                 }}
                 style={({ pressed }) => [styles.commerceRow, pressed && styles.pressed]}
               >
                 <View style={styles.commerceLeft}>
                   <AppText style={styles.commerceTitle} weight="extrabold">Bespoke Metal NFC Card</AppText>
-                  <AppText style={styles.commerceSub}>Laser-Engraved Titanium · 24K Gold</AppText>
+                  <AppText style={styles.commerceSub}>Laser-Engraved Titanium · 24K Gold · Limited</AppText>
                 </View>
                 <View style={styles.commerceRight}>
-                  <AppText style={styles.commerceLink} weight="bold">Explore Studio →</AppText>
+                  <AppText style={styles.commerceLink} weight="bold">Join Waitlist →</AppText>
                 </View>
               </Pressable>
             </>
@@ -536,6 +547,71 @@ export function GuestHomeScreen() {
         }}
       />
       <QuickActionModal visible={fabOpen} onClose={() => setFabOpen(false)} />
+
+      {/* ── Physical Card Waitlist Modal ── */}
+      <Modal visible={showWaitlist} animationType="slide" transparent>
+        <Pressable style={styles.waitlistOverlay} onPress={() => setShowWaitlist(false)}>
+          <Pressable style={styles.waitlistCard} onPress={() => {}}>
+            <View style={styles.waitlistHandle} />
+            <View style={styles.waitlistIconSeal}>
+              <AppIcon name="CreditCard" size={22} color="#FFFFFF" />
+            </View>
+            <AppText style={styles.waitlistTitle} weight="extrabold">
+              Bespoke Metal NFC Card
+            </AppText>
+            <AppText style={styles.waitlistSub}>
+              Laser-engraved titanium or 24K gold plated. Limited production runs. Drop your email and we will notify you first.
+            </AppText>
+            {!waitlistSent ? (
+              <>
+                <TextInput
+                  style={styles.waitlistInput}
+                  value={waitlistEmail}
+                  onChangeText={setWaitlistEmail}
+                  placeholder="your@email.com"
+                  placeholderTextColor="rgba(255,255,255,0.3)"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                <Pressable
+                  style={({ pressed }) => [styles.waitlistBtn, pressed && { opacity: 0.85 }]}
+                  onPress={() => {
+                    if (!waitlistEmail.includes('@')) return;
+                    HapticTap.heavy();
+                    // Store in Firestore waitlist collection
+                    import('@/src/services/firebaseClient').then(({ db }) => {
+                      import('firebase/firestore').then(({ collection, addDoc, serverTimestamp }) => {
+                        addDoc(collection(db, 'metal_card_waitlist'), {
+                          email: waitlistEmail.trim().toLowerCase(),
+                          userId: user?.id ?? 'guest',
+                          name: heroName ?? '',
+                          createdAt: serverTimestamp(),
+                        }).catch(() => undefined);
+                      });
+                    });
+                    setWaitlistSent(true);
+                  }}
+                >
+                  <AppText style={styles.waitlistBtnText} weight="extrabold">
+                    Reserve My Spot
+                  </AppText>
+                </Pressable>
+              </>
+            ) : (
+              <View style={styles.waitlistSuccess}>
+                <AppIcon name="Check" size={20} color="#FFFFFF" />
+                <AppText style={styles.waitlistSuccessText} weight="bold">
+                  You're on the list! We'll be in touch.
+                </AppText>
+              </View>
+            )}
+            <Pressable onPress={() => { setShowWaitlist(false); setWaitlistSent(false); }} style={styles.waitlistClose} hitSlop={12}>
+              <AppText style={styles.waitlistCloseText} weight="bold">Close</AppText>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -1539,6 +1615,92 @@ const styles = StyleSheet.create({
   },
   ctaSecondaryText: {
     color: '#FFFFFF',
+    fontSize: 14,
+  },
+  // ── Waitlist Modal ──
+  waitlistOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    justifyContent: 'flex-end',
+  },
+  waitlistCard: {
+    backgroundColor: '#111114',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 24,
+    gap: 14,
+    paddingBottom: 40,
+  },
+  waitlistHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignSelf: 'center',
+    marginBottom: 4,
+  },
+  waitlistIconSeal: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  waitlistTitle: {
+    color: '#FFFFFF',
+    fontSize: 20,
+  },
+  waitlistSub: {
+    color: 'rgba(255, 255, 255, 0.55)',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  waitlistInput: {
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: '#18181C',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 16,
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'System',
+  },
+  waitlistBtn: {
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  waitlistBtnText: {
+    color: '#000000',
+    fontSize: 15,
+  },
+  waitlistSuccess: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 16,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  waitlistSuccessText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    flex: 1,
+  },
+  waitlistClose: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  waitlistCloseText: {
+    color: 'rgba(255, 255, 255, 0.4)',
     fontSize: 14,
   },
 });
