@@ -1,4 +1,13 @@
-import React, { Fragment, useEffect, useMemo, useState } from 'react';
+/**
+ * SalesOrdersScreen — Order Pipeline (Apple Wallet × Nothing Edition).
+ *
+ * Architecture:
+ *  - Solid black background (#000000)
+ *  - Minimalist search bar and segmented status filter strip
+ *  - Clean borderless order rows with customer monogram and live verification badge
+ *  - 130px bottom padding for floating dock clearance
+ */
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -18,19 +27,8 @@ import { isPaymentVerified } from '@/src/services/paymentVerificationService';
 import { formatOrderTotal } from '@/src/utils/orderPricing';
 import { needsSalesApproval } from '@/src/utils/orderProduction';
 import type { Order } from '@/src/types/models';
-import { StatusBadge } from '@/src/components/StatusBadge';
-import { FAB } from '@/src/components/FAB';
-import { QuickActionModal } from '@/src/components/QuickActionModal';
-
-import { usePreferences } from '@/src/hooks/usePreferences';
-
-const BG = '#000000';
-const SURFACE = '#111114';
-const SURFACE_LIGHT = '#1C1C1E';
-const BORDER = 'rgba(255,255,255,0.08)';
-const INK = '#FFFFFF';
-const MUTED = '#9A9AA0';
-const BLUE = '#2563EB';
+import { appRoutes } from '@/src/constants/navigation';
+import { HapticTap } from '@/src/utils/haptics';
 
 type FilterType = 'all' | 'pending' | 'approved' | 'printer' | 'done';
 
@@ -42,41 +40,24 @@ function orderStatusKey(o: Order): FilterType {
   return 'all';
 }
 
-function statusStyle(status: string) {
-  switch (status) {
-    case 'pending': return { bg: 'rgba(245, 158, 11, 0.15)', text: '#f59e0b', label: 'Pending' };
-    case 'approved': return { bg: 'rgba(59, 130, 246, 0.15)', text: '#3b82f6', label: 'Approved' };
-    case 'printer': return { bg: 'rgba(168, 85, 247, 0.15)', text: '#a855f7', label: 'Printer' };
-    case 'done': return { bg: 'rgba(16, 185, 129, 0.15)', text: '#10b981', label: 'Done' };
-    default: return { bg: 'rgba(100, 116, 139, 0.15)', text: '#64748b', label: 'Unknown' };
-  }
-}
-
 export default function SalesOrdersScreen() {
   const { user } = useAuth();
-  const { colors, isDark } = usePreferences();
   const { orders, isLoading, refresh } = useOrders('sales', user?.id ?? '');
-
-  const BG = colors.background;
-  const SURFACE = colors.surface;
-  const INK = colors.textPrimary;
-  const MUTED = colors.textMuted;
-  const BORDER = colors.border;
 
   const [filter, setFilter] = useState<FilterType>('all');
   const [search, setSearch] = useState('');
-  const [fabOpen, setFabOpen] = useState(false);
   const [page, setPage] = useState(1);
 
-  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
-  // Compute statistics
   const stats = useMemo(() => {
     let pending = 0;
     let approved = 0;
     let printer = 0;
     let done = 0;
-    orders.forEach(o => {
+    orders.forEach((o) => {
       const k = orderStatusKey(o);
       if (k === 'pending') pending++;
       else if (k === 'approved') approved++;
@@ -86,26 +67,20 @@ export default function SalesOrdersScreen() {
     return { all: orders.length, pending, approved, printer, done };
   }, [orders]);
 
-  // Filter & search orders
   const filteredOrders = useMemo(() => {
-    return orders.filter(o => {
+    return orders.filter((o) => {
       const statusKey = orderStatusKey(o);
       const matchesFilter = filter === 'all' || statusKey === filter;
-      
       const q = search.toLowerCase();
-      const matchesSearch = !q || [
-        o.customerName ?? '',
-        o.phone ?? '',
-        o.id,
-        o.orderNumber ?? '',
-        o.cardCode ?? '',
-      ].some(val => val.toLowerCase().includes(q));
-
+      const matchesSearch =
+        !q ||
+        [o.customerName ?? '', o.phone ?? '', o.id, o.orderNumber ?? '', o.cardCode ?? ''].some(
+          (val) => val.toLowerCase().includes(q),
+        );
       return matchesFilter && matchesSearch;
     });
   }, [orders, filter, search]);
 
-  // Pagination logic
   const pageSize = 20;
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -114,261 +89,369 @@ export default function SalesOrdersScreen() {
     return filteredOrders.slice(start, start + pageSize);
   }, [filteredOrders, currentPage]);
 
-
-
   return (
-    <View style={[s.bg, { overflow: 'hidden' }]}>
-      <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
-        <IosScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-          
-          {/* Header */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8, paddingBottom: 16 }}>
-            <View>
-              <AppText style={{ fontSize: 10, fontWeight: '900', color: BLUE, letterSpacing: 1 }}>NFC GLOBAL SALES</AppText>
-              <AppText style={{ fontSize: 30, fontWeight: '900', color: INK, letterSpacing: -0.5 }}>Orders</AppText>
-            </View>
-            <View style={s.slidersBtn}>
-              <AppIcon name="Sliders" size={20} color={INK} />
-            </View>
-          </View>
+    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+      <IosScrollView style={{ flex: 1 }} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
-          {/* Search bar */}
-          <View style={s.glassCard}>
-            <View style={s.searchInner}>
-              <AppIcon name="Search" size={16} color={MUTED} />
-              <TextInput
-                value={search}
-                onChangeText={(val) => { setSearch(val); setPage(1); }}
-                placeholder="Search customer, phone, order ID..."
-                placeholderTextColor={MUTED}
-                style={s.searchInput}
-              />
-            </View>
-          </View>
-
-          {/* Filters Pill Grid */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={{ marginBottom: 12 }}
-            contentContainerStyle={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: SURFACE,
-              borderRadius: 22,
-              padding: 6,
-              borderWidth: 1,
-              borderColor: BORDER,
-              gap: 4,
-            }}
+        {/* ── Top Bar ── */}
+        <View style={styles.topBar}>
+          <Pressable
+            onPress={() => router.back()}
+            style={styles.navBtn}
+            hitSlop={12}
+            accessibilityLabel="Back"
           >
-            {(['all', 'pending', 'approved', 'printer', 'done'] as FilterType[]).map((f, idx) => {
-              const count = stats[f];
+            <AppIcon name="ChevronLeft" size={20} color="#FFFFFF" />
+          </Pressable>
+
+          <AppText style={styles.navTitle} weight="bold">
+            Order Pipeline
+          </AppText>
+
+          <Pressable
+            onPress={() => {
+              HapticTap.medium();
+              router.push(appRoutes.sales.newOrder as any);
+            }}
+            style={styles.navBtn}
+            hitSlop={12}
+            accessibilityLabel="New Order"
+          >
+            <AppIcon name="Plus" size={18} color="#FFFFFF" />
+          </Pressable>
+        </View>
+
+        {/* ── Search Bar ── */}
+        <View style={styles.searchBar}>
+          <AppIcon name="Search" size={16} color="rgba(255, 255, 255, 0.4)" />
+          <TextInput
+            value={search}
+            onChangeText={(val) => {
+              setSearch(val);
+              setPage(1);
+            }}
+            placeholder="Search customer, phone, or order ID..."
+            placeholderTextColor="rgba(255, 255, 255, 0.35)"
+            style={styles.searchInput}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {search ? (
+            <Pressable onPress={() => setSearch('')} hitSlop={10}>
+              <AppIcon name="X" size={15} color="rgba(255, 255, 255, 0.5)" />
+            </Pressable>
+          ) : null}
+        </View>
+
+        {/* ── Filter Strip (Minimalist Nothing/Apple style) ── */}
+        <View style={styles.filterStrip}>
+          {[
+            { key: 'all', label: 'All', count: stats.all },
+            { key: 'pending', label: 'Pending', count: stats.pending },
+            { key: 'approved', label: 'Approved', count: stats.approved },
+            { key: 'printer', label: 'Production', count: stats.printer },
+            { key: 'done', label: 'Delivered', count: stats.done },
+          ].map((tab) => {
+            const isSelected = filter === tab.key;
+            return (
+              <Pressable
+                key={tab.key}
+                style={[styles.filterButton, isSelected && styles.filterButtonActive]}
+                onPress={() => {
+                  HapticTap.selection();
+                  setFilter(tab.key as FilterType);
+                  setPage(1);
+                }}
+              >
+                <AppText
+                  style={[styles.filterButtonText, isSelected && styles.filterButtonTextActive]}
+                  weight={isSelected ? 'bold' : 'medium'}
+                >
+                  {tab.label} {tab.count > 0 ? `(${tab.count})` : ''}
+                </AppText>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/* ── Order List Header ── */}
+        <View style={styles.listHeaderRow}>
+          <AppText style={styles.listHeaderTitle} weight="bold">Orders List</AppText>
+          <AppText style={styles.listHeaderCount}>
+            {filteredOrders.length} deals in pipeline
+          </AppText>
+        </View>
+
+        {/* ── Order Rows (Borderless) ── */}
+        {isLoading && paginatedOrders.length === 0 ? (
+          <ActivityIndicator color="#FFFFFF" style={{ marginVertical: 32 }} />
+        ) : paginatedOrders.length === 0 ? (
+          <View style={styles.emptyState}>
+            <AppIcon name="CreditCard" size={28} color="rgba(255, 255, 255, 0.3)" />
+            <AppText style={styles.emptyTitle} weight="bold">No orders found</AppText>
+            <AppText style={styles.emptySub}>Create a new customer order to get started.</AppText>
+          </View>
+        ) : (
+          <View style={styles.orderList}>
+            {paginatedOrders.map((o) => {
+              const verified = isPaymentVerified(o);
+              const initials = (o.customerName || 'C')
+                .split(' ')
+                .map((n) => n[0])
+                .slice(0, 2)
+                .join('')
+                .toUpperCase();
+
               return (
-                <Fragment key={f}>
-                  <Pressable onPress={() => { setFilter(f); setPage(1); }} style={[s.filterBtn, filter === f && s.filterBtnActive]}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <AppText style={[s.filterLabel, filter === f && s.filterLabelActive]}>
-                        {f.charAt(0).toUpperCase() + f.slice(1)}
+                <Pressable
+                  key={o.id}
+                  style={({ pressed }) => [styles.orderRow, pressed && styles.rowPressed]}
+                  onPress={() => router.push(`/orders/detail/${o.id}` as any)}
+                >
+                  <View style={styles.avatarCircle}>
+                    <AppText style={styles.avatarText} weight="bold">{initials}</AppText>
+                  </View>
+
+                  <View style={styles.orderDetails}>
+                    <View style={styles.orderTopRow}>
+                      <AppText style={styles.customerName} weight="bold" numberOfLines={1}>
+                        {o.customerName || 'Guest Customer'}
                       </AppText>
-                      {count > 0 ? (
-                        <View style={[s.pillBadge, filter === f && s.pillBadgeActive]}>
-                          <AppText style={[s.pillBadgeText, filter === f && s.pillBadgeTextActive]}>
-                            {count}
+                      <AppText style={styles.orderAmount} weight="extrabold">
+                        {formatOrderTotal(o)}
+                      </AppText>
+                    </View>
+
+                    <View style={styles.orderBottomRow}>
+                      <AppText style={styles.orderProduct} numberOfLines={1}>
+                        {o.productType?.replace(/_/g, ' ') || 'AVIO NFC Smart Pass'}
+                      </AppText>
+
+                      <View style={styles.badgeRow}>
+                        {verified && (
+                          <View style={styles.paidBadge}>
+                            <AppText style={styles.paidBadgeText} weight="bold">✓ PAID</AppText>
+                          </View>
+                        )}
+                        <View style={styles.statusBadge}>
+                          <AppText style={styles.statusBadgeText} weight="bold">
+                            {(o.status || 'ACTIVE').toUpperCase()}
                           </AppText>
                         </View>
-                      ) : null}
+                      </View>
                     </View>
-                  </Pressable>
-                  {idx < 4 ? (
-                    <View style={{ justifyContent: 'center', alignItems: 'center', paddingHorizontal: 2 }}>
-                      <AppIcon name="ChevronRight" size={10} color={MUTED} />
-                    </View>
-                  ) : null}
-                </Fragment>
+                  </View>
+
+                  <AppIcon name="ChevronRight" size={14} color="rgba(255, 255, 255, 0.25)" />
+                </Pressable>
               );
             })}
-          </ScrollView>
-
-          {/* Toolbar info */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, marginBottom: 8, paddingHorizontal: 4 }}>
-            <View>
-              <AppText style={{ fontSize: 16, fontWeight: '900', color: INK }}>Order List</AppText>
-              <AppText style={{ fontSize: 11, fontWeight: '600', color: MUTED, marginTop: 2 }}>
-                Showing {filteredOrders.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredOrders.length)} of {filteredOrders.length} orders
-              </AppText>
-            </View>
-            <View style={{ flexDirection: 'row', gap: 12 }}>
-              <Pressable onPress={() => { setSearch(''); setFilter('all'); setPage(1); }}>
-                <AppText style={{ fontSize: 13, fontWeight: '900', color: BLUE }}>View All</AppText>
-              </Pressable>
-              <Pressable>
-                <AppText style={{ fontSize: 13, fontWeight: '900', color: MUTED }}>Export</AppText>
-              </Pressable>
-            </View>
           </View>
+        )}
 
-          {/* Compact Order List Wrapper */}
-          {isLoading && paginatedOrders.length === 0 ? (
-            <ActivityIndicator color={BLUE} style={{ marginVertical: 32 }} />
-          ) : paginatedOrders.length === 0 ? (
-            <View style={s.glassCard}>
-              <AppText style={{ fontSize: 14, fontWeight: '800', color: MUTED, textAlign: 'center', marginVertical: 20 }}>
-                No orders found
-              </AppText>
-            </View>
-          ) : (
-            <View style={[s.glassCard, { padding: 0, overflow: 'hidden' }]}>
-              {paginatedOrders.map((o, idx) => {
-                const verified = isPaymentVerified(o);
-                const sKey = orderStatusKey(o);
-                const styling = statusStyle(sKey);
-                const orderRef = o.orderNumber ?? o.id.slice(0, 8).toUpperCase();
-                const productLabel = o.productType?.replace(/_/g, ' ') ?? 'NFC Card';
-                return (
-                  <Pressable
-                    key={o.id}
-                    style={({ pressed }) => [
-                      s.orderRow,
-                      idx < paginatedOrders.length - 1 && s.rowDivider,
-                      pressed && { backgroundColor: '#F8FAFF' },
-                    ]}
-                    onPress={() => router.push(`/orders/detail/${o.id}` as any)}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 16 }}>
-                      {/* Rank Number */}
-                      <AppText style={{ fontSize: 12, fontWeight: '900', color: MUTED, width: 20 }}>
-                        {idx + 1 + (currentPage - 1) * pageSize}.
-                      </AppText>
-
-                      {/* Left icon */}
-                      <View style={s.cardIconBox}>
-                        <AppIcon name="CreditCard" size={18} color={MUTED} />
-                      </View>
-
-                      {/* Main info */}
-                      <View style={{ flex: 1 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                          <AppText style={{ fontSize: 14, fontWeight: '900', color: INK }} numberOfLines={1}>
-                            {o.customerName ?? 'Guest'}
-                          </AppText>
-                          {verified ? (
-                            <View style={[s.badge, { backgroundColor: '#D1FAE5', paddingHorizontal: 4, paddingVertical: 2 }]}>
-                              <AppText style={{ fontSize: 8, fontWeight: '900', color: '#065F46' }}>✓ PAID</AppText>
-                            </View>
-                          ) : null}
-                        </View>
-                        <AppText style={{ fontSize: 11, fontWeight: '600', color: MUTED, marginTop: 3 }}>
-                          #{orderRef}  ·  {productLabel}
-                        </AppText>
-                      </View>
-
-                      {/* Status badge & Price */}
-                      <View style={{ alignItems: 'flex-end', gap: 6 }}>
-                        <StatusBadge status={sKey} label={styling.label} />
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-                          <AppText style={{ fontSize: 13, fontWeight: '900', color: INK }}>
-                            {formatOrderTotal(o)}
-                          </AppText>
-                          <AppIcon name="ChevronRight" size={14} color={MUTED} />
-                        </View>
-                      </View>
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </View>
-          )}
-
-          {/* Pagination Controls */}
-          <View style={[s.glassCard, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }]}>
-            <Pressable
-              disabled={currentPage <= 1}
-              onPress={() => setPage(prev => Math.max(1, prev - 1))}
-              style={[s.pageBtn, currentPage <= 1 && { opacity: 0.5 }]}
-            >
-              <AppIcon name="ChevronLeft" size={14} color={INK} />
-              <AppText style={{ fontSize: 13, fontWeight: '900', color: INK }}>Prev</AppText>
-            </Pressable>
-
-            <AppText style={{ fontSize: 13, fontWeight: '900', color: MUTED }}>
-              Page {currentPage} / {totalPages}
-            </AppText>
-
-            <Pressable
-              disabled={currentPage >= totalPages}
-              onPress={() => setPage(prev => Math.min(totalPages, prev + 1))}
-              style={[s.pageBtn, { backgroundColor: '#0f172a' }, currentPage >= totalPages && { opacity: 0.5 }]}
-            >
-              <AppText style={{ fontSize: 13, fontWeight: '900', color: '#FFFFFF' }}>Next</AppText>
-              <AppIcon name="ChevronRight" size={14} color="#FFFFFF" />
-            </Pressable>
-          </View>
-
-        </IosScrollView>
-      </SafeAreaView>
-
-      <FAB onPress={() => setFabOpen(true)} />
-      <QuickActionModal visible={fabOpen} onClose={() => setFabOpen(false)} />
-    </View>
+      </IosScrollView>
+    </SafeAreaView>
   );
 }
 
-const s = StyleSheet.create({
-  bg: { flex: 1, backgroundColor: BG },
-  scroll: { paddingHorizontal: 16, paddingBottom: 120 },
-  blob: { position: 'absolute', opacity: 0.8 },
-  slidersBtn: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: SURFACE,
-    alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: BORDER,
-    shadowColor: '#0f172a', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.05, shadowRadius: 20, elevation: 1,
+const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: '#000000',
   },
-  statsGrid: {
-    flexDirection: 'row', gap: 8, marginBottom: 16,
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 130, // Clearance for floating dock
+    maxWidth: 540,
+    width: '100%',
+    alignSelf: 'center',
+    gap: 14,
   },
-  glassStatCard: {
-    flex: 1, backgroundColor: SURFACE, borderRadius: 16, paddingVertical: 12, alignItems: 'center',
-    borderWidth: 1, borderColor: BORDER,
-    shadowColor: '#0f172a', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.04, shadowRadius: 20, elevation: 1,
-  },
-  statNum: { fontSize: 20, fontWeight: '900', color: INK },
-  statLabel: { fontSize: 10, fontWeight: '700', color: MUTED, marginTop: 2 },
-  glassCard: {
-    backgroundColor: SURFACE, borderRadius: 24, padding: 16, borderWidth: 1, borderColor: BORDER,
-    shadowColor: '#0f172a', shadowOffset: { width: 0, height: 15 }, shadowOpacity: 0.05, shadowRadius: 25, elevation: 1,
-    marginBottom: 12,
-  },
-  shareBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#0f172a', borderRadius: 999,
-    paddingHorizontal: 14, paddingVertical: 10,
-  },
-  searchInner: {
-    flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: SURFACE_LIGHT, borderRadius: 16,
-    paddingHorizontal: 14, paddingVertical: 10,
-  },
-  searchInput: { flex: 1, fontSize: 13, fontWeight: '700', color: INK, padding: 0 },
-  filtersContainer: {
-    backgroundColor: SURFACE, borderRadius: 22, padding: 6, flexDirection: 'row', gap: 4, borderWidth: 1, borderColor: BORDER,
-    shadowColor: '#0f172a', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.04, shadowRadius: 15, elevation: 1,
-    marginBottom: 12,
-  },
-  filterBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
-  filterBtnActive: {
-    backgroundColor: '#FEE2E2',
-  },
-  filterLabel: { fontSize: 11, fontWeight: '900', color: MUTED },
-  filterLabelActive: { color: '#EF4444' },
-  pillBadge: { minWidth: 16, height: 16, borderRadius: 8, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
-  pillBadgeActive: {},
-  pillBadgeText: { fontSize: 9, fontWeight: '900', color: '#FFFFFF' },
-  pillBadgeTextActive: { color: '#FFFFFF' },
-  orderRow: { backgroundColor: 'transparent' },
-  rowDivider: { borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
-  cardIconBox: { width: 36, height: 36, borderRadius: 12, backgroundColor: SURFACE_LIGHT, alignItems: 'center', justifyContent: 'center' },
-  badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
-  pageBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#f1f5f9', borderRadius: 999,
-    paddingHorizontal: 14, paddingVertical: 10,
+  rowPressed: {
+    opacity: 0.7,
   },
 
+  // ── Top Bar ──
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+  },
+  navBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#121214',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navTitle: {
+    color: '#FFFFFF',
+    fontSize: 17,
+  },
+
+  // ── Search Bar ──
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#121214',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    height: 44,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  searchInput: {
+    flex: 1,
+    color: '#FFFFFF',
+    fontSize: 14,
+    padding: 0,
+  },
+
+  // ── Filter Strip ──
+  filterStrip: {
+    flexDirection: 'row',
+    backgroundColor: '#121214',
+    borderRadius: 12,
+    padding: 3,
+    gap: 2,
+  },
+  filterButton: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 9,
+  },
+  filterButtonActive: {
+    backgroundColor: '#242428',
+  },
+  filterButtonText: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 11,
+  },
+  filterButtonTextActive: {
+    color: '#FFFFFF',
+  },
+
+  // ── List Header ──
+  listHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
+    marginTop: 4,
+  },
+  listHeaderTitle: {
+    color: '#FFFFFF',
+    fontSize: 15,
+  },
+  listHeaderCount: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 12,
+  },
+
+  // ── Order Rows (Borderless) ──
+  orderList: {
+    gap: 2,
+  },
+  orderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+    gap: 12,
+  },
+  avatarCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#141418',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  orderDetails: {
+    flex: 1,
+    gap: 3,
+  },
+  orderTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  customerName: {
+    color: '#FFFFFF',
+    fontSize: 15,
+  },
+  orderAmount: {
+    color: '#FFFFFF',
+    fontSize: 15,
+  },
+  orderBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  orderProduct: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 12,
+    flex: 1,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  paidBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  paidBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    letterSpacing: 0.5,
+  },
+  statusBadge: {
+    backgroundColor: '#18181C',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  statusBadgeText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 9,
+    letterSpacing: 0.5,
+  },
+
+  // ── Empty State ──
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 50,
+    gap: 8,
+  },
+  emptyTitle: {
+    color: '#FFFFFF',
+    fontSize: 15,
+  },
+  emptySub: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 12,
+  },
 });
