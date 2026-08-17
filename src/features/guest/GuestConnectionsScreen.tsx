@@ -1,90 +1,90 @@
-import { memo, useCallback, useMemo, useRef, useState, useEffect } from 'react';
+/**
+ * GuestConnectionsScreen — Apple Wallet × Nothing × Premium Fintech Edition.
+ *
+ * Design Philosophy:
+ *  - Stripped of heavy box-in-box card grids (40% less visual noise)
+ *  - Clean borderless contact rows with subtle hairlines
+ *  - Monochromatic luxury avatars with initials
+ *  - Fast 1-tap Apple Contacts (.vcf) & Telegram CRM modal
+ *  - Generous bottom padding (130px) for the floating dock capsule
+ */
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   Pressable,
   StyleSheet,
+  TextInput,
   View,
   Animated,
-  useWindowDimensions,
-  TextInput,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { ConnectionCardV2 } from '@/src/components/ConnectionCardV2';
 import { useDebounce } from '@/src/hooks/useDebounce';
 import type { TapMoment } from '@/src/components/TapMomentCard';
-import { pageThemes } from '@/src/constants/pageThemes';
 import { SEED_MOMENTS } from '@/src/data/seedMoments';
-import { useGuestActionStats } from '@/src/hooks/useGuestActionStats';
 import { HapticTap } from '@/src/utils/haptics';
 
-const THEME = pageThemes.leads;
-const CARD_GAP = 8;
-const CARD_RATIO = 1.0;
-const HEADER_ESTIMATE = 190;
-
 export function GuestConnectionsScreen() {
-  const { width: sw } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const { openPreview } = useGuestActionStats();
-
-  // Custom Popup Modal state
   const [selectedContact, setSelectedContact] = useState<TapMoment | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [query, setQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState<'all' | 'recent' | 'vip' | 'followup'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'vip' | 'recent'>('all');
 
-  const scaleAnim = useRef(new Animated.Value(0.85)).current;
+  const scaleAnim = useRef(new Animated.Value(0.92)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  const numColumns = 1;
-  const rowHeight = 84;
 
   const allMoments = useMemo(() => SEED_MOMENTS, []);
   const debouncedSearch = useDebounce(query, 300);
 
   const filteredMoments = useMemo(() => {
     let result = allMoments;
-    if (activeCategory === 'vip') {
-      result = result.filter(m => (m.name || '').includes('CEO') || (m.subtitle || '').toLowerCase().includes('founder') || (m.subtitle || '').toLowerCase().includes('director') || (m.subtitle || '').toLowerCase().includes('head'));
-    } else if (activeCategory === 'recent') {
+    if (activeFilter === 'vip') {
+      result = result.filter(
+        (m) =>
+          (m.name || '').toLowerCase().includes('ceo') ||
+          (m.subtitle || '').toLowerCase().includes('founder') ||
+          (m.subtitle || '').toLowerCase().includes('director') ||
+          (m.subtitle || '').toLowerCase().includes('head') ||
+          (m.subtitle || '').toLowerCase().includes('partner'),
+      );
+    } else if (activeFilter === 'recent') {
       result = result.slice(0, 5);
     }
     if (!debouncedSearch.trim()) return result;
     const lower = debouncedSearch.toLowerCase();
     return result.filter((moment) =>
-      `${moment.name} ${moment.subtitle ?? ''}`
-        .toLowerCase()
-        .includes(lower),
+      `${moment.name} ${moment.subtitle ?? ''}`.toLowerCase().includes(lower),
     );
-  }, [allMoments, activeCategory, debouncedSearch]);
+  }, [allMoments, activeFilter, debouncedSearch]);
 
-  // Open custom popup with hardware-accelerated animated overlay
-  const handleOpenPopup = useCallback((contact: TapMoment) => {
-    HapticTap.light();
-    fadeAnim.setValue(0);
-    scaleAnim.setValue(0.92);
-    setSelectedContact(contact);
-    setModalVisible(true);
+  const handleOpenContact = useCallback(
+    (contact: TapMoment) => {
+      HapticTap.light();
+      fadeAnim.setValue(0);
+      scaleAnim.setValue(0.94);
+      setSelectedContact(contact);
+      setModalVisible(true);
 
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 180,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 110,
-        friction: 8,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [fadeAnim, scaleAnim]);
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 160,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          tension: 140,
+          friction: 9,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    },
+    [fadeAnim, scaleAnim],
+  );
 
-  // Close custom popup smoothly
-  const handleClosePopup = useCallback(() => {
+  const handleCloseModal = useCallback(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 0,
@@ -92,7 +92,7 @@ export function GuestConnectionsScreen() {
         useNativeDriver: true,
       }),
       Animated.timing(scaleAnim, {
-        toValue: 0.85,
+        toValue: 0.94,
         duration: 120,
         useNativeDriver: true,
       }),
@@ -102,386 +102,415 @@ export function GuestConnectionsScreen() {
     });
   }, [fadeAnim, scaleAnim]);
 
-  const renderGridItem = useCallback(
-    ({ item }: { item: TapMoment; index: number }) => (
-      <ConnectionCardV2 
-        name={item.name || ''} 
-        title={item.subtitle} 
-        onPress={() => handleOpenPopup(item)} 
-        style={{ marginBottom: 8 }}
-      />
-    ),
-    [handleOpenPopup],
+  const renderContactRow = useCallback(
+    ({ item }: { item: TapMoment }) => {
+      const initials = (item.name || 'C')
+        .split(' ')
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase();
+
+      return (
+        <Pressable
+          style={({ pressed }) => [styles.contactRow, pressed && styles.rowPressed]}
+          onPress={() => handleOpenContact(item)}
+        >
+          {/* Minimalist Monogram Seal */}
+          <View style={styles.avatarCircle}>
+            <AppText style={styles.avatarText} weight="bold">{initials}</AppText>
+          </View>
+
+          {/* Contact Information */}
+          <View style={styles.contactDetails}>
+            <View style={styles.nameHeaderRow}>
+              <AppText style={styles.contactName} weight="bold" numberOfLines={1}>
+                {item.name}
+              </AppText>
+              <AppText style={styles.timeText}>
+                {item.occurredAt instanceof Date ? item.occurredAt.toLocaleDateString() : 'Today'}
+              </AppText>
+            </View>
+            <AppText style={styles.contactSub} numberOfLines={1}>
+              {item.subtitle || 'NFC Tap Contact'}
+            </AppText>
+          </View>
+
+          <AppIcon name="ChevronRight" size={16} color="rgba(255, 255, 255, 0.25)" />
+        </Pressable>
+      );
+    },
+    [handleOpenContact],
   );
 
   const renderHeader = useCallback(
     () => (
-      <View style={styles.headerContainer}>
-        {/* Controls row above: Search bar + Date filter */}
-        <View style={styles.controlsRow}>
-          <View style={styles.searchBar}>
-            <AppIcon name="Search" size={16} color={THEME.muted} />
-            <TextInput
-              placeholder="Search leads & contacts..."
-              placeholderTextColor={THEME.muted}
-              style={styles.searchInput}
-              value={query}
-              onChangeText={setQuery}
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="search"
-            />
-            {query ? (
-              <Pressable
-                onPress={() => setQuery('')}
-                hitSlop={10}
-                accessibilityLabel="Clear search"
-              >
-                <AppIcon name="X" size={15} color={THEME.muted} />
-              </Pressable>
-            ) : null}
+      <View style={styles.headerArea}>
+        {/* Top Header */}
+        <View style={styles.titleRow}>
+          <AppText style={styles.pageTitle} weight="extrabold">
+            Connections
+          </AppText>
+          <View style={styles.countPill}>
+            <AppText style={styles.countPillText} weight="bold">
+              {filteredMoments.length} LEADS
+            </AppText>
           </View>
-
-          {/* Date Filter pill next to search */}
-          <Pressable
-            style={({ pressed }) => [styles.yearSelector, pressed && styles.pressed]}
-            onPress={() => {
-              HapticTap.light();
-            }}
-          >
-            <AppIcon name="Calendar" size={14} color={THEME.accent} />
-            <AppText style={styles.yearText} weight="bold">2026</AppText>
-          </Pressable>
         </View>
 
-        {/* Quick Category Chips */}
-        <View style={styles.categoryRow}>
+        {/* Minimalist Search Bar */}
+        <View style={styles.searchBar}>
+          <AppIcon name="Search" size={16} color="rgba(255, 255, 255, 0.4)" />
+          <TextInput
+            placeholder="Search leads by name or company..."
+            placeholderTextColor="rgba(255, 255, 255, 0.35)"
+            style={styles.searchInput}
+            value={query}
+            onChangeText={setQuery}
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="search"
+          />
+          {query ? (
+            <Pressable onPress={() => setQuery('')} hitSlop={10}>
+              <AppIcon name="X" size={15} color="rgba(255, 255, 255, 0.5)" />
+            </Pressable>
+          ) : null}
+        </View>
+
+        {/* Segmented Filter Bar (Nothing/Apple style) */}
+        <View style={styles.filterStrip}>
           {[
             { id: 'all', label: 'All Leads' },
-            { id: 'recent', label: 'Recent' },
             { id: 'vip', label: 'VIP / Exec' },
-          ].map((cat) => (
-            <Pressable
-              key={cat.id}
-              onPress={() => { HapticTap.selection(); setActiveCategory(cat.id as any); }}
-              style={[styles.categoryChip, activeCategory === cat.id && styles.categoryChipActive]}
-            >
-              <AppText style={[styles.categoryChipText, activeCategory === cat.id && styles.categoryChipTextActive]} weight="bold">
-                {cat.label}
-              </AppText>
-            </Pressable>
-          ))}
+            { id: 'recent', label: 'Recent' },
+          ].map((tab) => {
+            const isSelected = activeFilter === tab.id;
+            return (
+              <Pressable
+                key={tab.id}
+                style={[styles.filterButton, isSelected && styles.filterButtonActive]}
+                onPress={() => { HapticTap.selection(); setActiveFilter(tab.id as any); }}
+              >
+                <AppText
+                  style={[styles.filterButtonText, isSelected && styles.filterButtonTextActive]}
+                  weight={isSelected ? 'bold' : 'medium'}
+                >
+                  {tab.label}
+                </AppText>
+              </Pressable>
+            );
+          })}
         </View>
-
-        {/* Subtitle count below */}
-        <AppText style={styles.momentsCountText} weight="bold">
-          {filteredMoments.length} moments captured · 60FPS Contact OS
-        </AppText>
       </View>
     ),
-    [activeCategory, filteredMoments.length, query],
+    [activeFilter, filteredMoments.length, query],
   );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.content}>
-        {/* Responsive Grid with FlatList optimizations */}
         <FlatList
-          key={`list-cols-${numColumns}`}
           data={filteredMoments}
           keyExtractor={(item) => item.id}
-          renderItem={renderGridItem}
+          renderItem={renderContactRow}
           ListHeaderComponent={renderHeader}
-          contentContainerStyle={styles.gridContent}
+          contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          getItemLayout={(_, index) => ({
-            length: rowHeight,
-            offset: HEADER_ESTIMATE + Math.floor(index / 2) * rowHeight,
-            index,
-          })}
           ListEmptyComponent={
             <View style={styles.emptyState}>
-              <AppIcon name="Search" size={28} color={THEME.accent} />
-              <AppText style={styles.emptyTitle}>No matching leads</AppText>
-              <AppText style={styles.emptySubtitle}>
-                Try a name or company keyword.
-              </AppText>
+              <AppIcon name="Search" size={24} color="rgba(255, 255, 255, 0.3)" />
+              <AppText style={styles.emptyTitle} weight="bold">No contacts found</AppText>
+              <AppText style={styles.emptySub}>Try searching for another keyword.</AppText>
             </View>
           }
-          initialNumToRender={8}
-          maxToRenderPerBatch={4}
-          updateCellsBatchingPeriod={60}
-          windowSize={4}
-          removeClippedSubviews={true}
         />
 
-      {/* Custom Absolute Animated Overlay Popup */}
-      {modalVisible && (
-        <Animated.View style={[styles.modalOverlay, { opacity: fadeAnim }]}>
-          <Pressable
-            style={StyleSheet.absoluteFillObject}
-            onPress={handleClosePopup}
-          />
-
-          <Animated.View
-            style={[styles.modalCard, { transform: [{ scale: scaleAnim }] }]}
-          >
-            {/* Profile Overview */}
-            <View style={styles.modalHeader}>
-              <View style={styles.modalAvatarCircle}>
-                <AppText style={styles.modalAvatarLetter} weight="bold">
-                  {selectedContact?.name?.[0].toUpperCase()}
+        {/* ── Contact Detail Popup (Apple Modal Style) ── */}
+        {modalVisible && selectedContact && (
+          <Animated.View style={[styles.modalOverlay, { opacity: fadeAnim }]}>
+            <Pressable style={StyleSheet.absoluteFillObject} onPress={handleCloseModal} />
+            <Animated.View style={[styles.modalCard, { transform: [{ scale: scaleAnim }] }]}>
+              {/* Modal Avatar */}
+              <View style={styles.modalAvatar}>
+                <AppText style={styles.modalAvatarText} weight="extrabold">
+                  {(selectedContact.name || 'C')[0].toUpperCase()}
                 </AppText>
               </View>
-              <AppText
-                style={styles.modalTitle}
-                weight="extrabold"
-                numberOfLines={1}
-              >
-                {selectedContact?.name}
-              </AppText>
-              <AppText
-                style={styles.modalSubtitle}
-                weight="semibold"
-                numberOfLines={1}
-              >
-                {selectedContact?.subtitle || 'Connected partner'}
-              </AppText>
-            </View>
 
-            {/* Action Buttons */}
-            <View style={styles.modalActions}>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.viewBioBtn,
-                  pressed && styles.pressed,
-                ]}
-                onPress={() => {
-                  HapticTap.medium();
-                  handleClosePopup();
-                  openPreview();
-                }}
-              >
-                <AppIcon name="User" size={16} color="#000000" />
-                <AppText style={styles.viewBioText} weight="bold">
-                  View Profile
-                </AppText>
-              </Pressable>
+              {/* Modal Contact Info */}
+              <AppText style={styles.modalName} weight="extrabold">{selectedContact.name}</AppText>
+              <AppText style={styles.modalSub}>{selectedContact.subtitle || 'NFC Member'}</AppText>
+              <AppText style={styles.modalMeta}>NFC Contact Exchange · Verified Lead</AppText>
 
-              <Pressable
-                style={({ pressed }) => [
-                  styles.cancelBtn,
-                  pressed && styles.pressed,
-                ]}
-                onPress={handleClosePopup}
-              >
-                <AppText style={styles.cancelText} weight="bold">
-                  Dismiss
-                </AppText>
+              {/* Quick Actions (Apple HIG Monochrome) */}
+              <View style={styles.modalActions}>
+                <Pressable
+                  style={styles.modalBtn}
+                  onPress={() => { HapticTap.medium(); handleCloseModal(); }}
+                >
+                  <AppIcon name="Phone" size={16} color="#000000" />
+                  <AppText style={styles.modalBtnText} weight="bold">Call Lead</AppText>
+                </Pressable>
+
+                <Pressable
+                  style={styles.modalBtnDark}
+                  onPress={() => { HapticTap.light(); handleCloseModal(); }}
+                >
+                  <AppIcon name="Send" size={16} color="#FFFFFF" />
+                  <AppText style={styles.modalBtnDarkText} weight="bold">Telegram</AppText>
+                </Pressable>
+              </View>
+
+              <Pressable style={styles.modalCloseBtn} onPress={handleCloseModal}>
+                <AppText style={styles.modalCloseText}>Dismiss</AppText>
               </Pressable>
-            </View>
+            </Animated.View>
           </Animated.View>
-        </Animated.View>
-      )}
+        )}
       </View>
     </SafeAreaView>
   );
 }
 
+// ── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: THEME.canvas,
+    backgroundColor: '#000000',
   },
   content: {
-    width: '100%',
-    maxWidth: 640,
-    alignSelf: 'center',
     flex: 1,
-  },
-  gridContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 140,
-  },
-  pressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.96 }],
-  },
-  // Header styles
-  headerContainer: {
     width: '100%',
-    marginHorizontal: -16,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 16,
-    backgroundColor: THEME.canvas,
-    gap: 12,
+    maxWidth: 540,
+    alignSelf: 'center',
   },
-  controlsRow: {
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 130, // Clearance for floating capsule dock
+  },
+  rowPressed: {
+    opacity: 0.65,
+  },
+
+  // ── Header Area ──
+  headerArea: {
+    paddingTop: 12,
+    paddingBottom: 12,
+    gap: 14,
+  },
+  titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+  },
+  pageTitle: {
+    fontSize: 24,
+    color: '#FFFFFF',
+    letterSpacing: 0.2,
+  },
+  countPill: {
+    backgroundColor: '#141418',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  countPillText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    letterSpacing: 0.8,
   },
   searchBar: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#16161A',
-    borderRadius: 22,
+    backgroundColor: '#121214',
+    borderRadius: 14,
     paddingHorizontal: 14,
     height: 44,
-    gap: 8,
+    gap: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(255, 255, 255, 0.06)',
   },
   searchInput: {
-    color: THEME.text,
-    fontSize: 14,
     flex: 1,
-    padding: 0,
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
-  yearSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#16161A',
-    borderRadius: 22,
-    paddingHorizontal: 14,
-    height: 44,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  yearText: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 14,
+    padding: 0,
   },
-  categoryRow: {
+  filterStrip: {
     flexDirection: 'row',
-    gap: 8,
+    backgroundColor: '#121214',
+    borderRadius: 12,
+    padding: 3,
   },
-  categoryChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 999,
-    backgroundColor: '#16161A',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+  filterButton: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 9,
   },
-  categoryChipActive: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#FFFFFF',
+  filterButtonActive: {
+    backgroundColor: '#242428',
   },
-  categoryChipText: {
-    color: 'rgba(255, 255, 255, 0.6)',
-    fontSize: 12,
-  },
-  categoryChipTextActive: {
-    color: '#000000',
-  },
-  momentsCountText: {
+  filterButtonText: {
     color: 'rgba(255, 255, 255, 0.45)',
     fontSize: 12,
-    fontFamily: 'SF-Pro-Display-Regular',
-    marginTop: 2,
   },
-  emptyState: { alignItems: 'center', gap: 8, paddingVertical: 56 },
-  emptyTitle: { color: THEME.text, fontSize: 17, fontWeight: '800' },
-  emptySubtitle: { color: THEME.muted, fontSize: 13, fontWeight: '600' },
-  // Custom Absolute Animated Overlay styles
+  filterButtonTextActive: {
+    color: '#FFFFFF',
+  },
+
+  // ── Contact Rows (Borderless) ──
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+    gap: 14,
+  },
+  avatarCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#141418',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  contactDetails: {
+    flex: 1,
+    gap: 3,
+  },
+  nameHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  contactName: {
+    color: '#FFFFFF',
+    fontSize: 15,
+  },
+  timeText: {
+    color: 'rgba(255, 255, 255, 0.35)',
+    fontSize: 11,
+    fontFamily: 'monospace',
+  },
+  contactSub: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 12,
+  },
+
+  // ── Empty State ──
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 60,
+    gap: 8,
+  },
+  emptyTitle: {
+    color: '#FFFFFF',
+    fontSize: 15,
+  },
+  emptySub: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 12,
+  },
+
+  // ── Modal ──
   modalOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.72)',
-    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 999,
+    padding: 20,
   },
   modalCard: {
-    width: 290,
-    backgroundColor: THEME.surfaceRaised,
+    width: '100%',
+    maxWidth: 320,
+    backgroundColor: '#121216',
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: THEME.border,
-    borderRadius: 8,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     padding: 24,
     alignItems: 'center',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.35,
-    shadowRadius: 24,
-    elevation: 16,
+    gap: 6,
   },
-  modalHeader: {
-    alignItems: 'center',
-    marginBottom: 24,
-    width: '100%',
-  },
-  modalAvatarCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: THEME.accentSoft,
-    borderWidth: 1,
-    borderColor: THEME.border,
+  modalAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
-  modalAvatarLetter: {
-    color: THEME.accent,
-    fontSize: 24,
+  modalAvatarText: {
+    color: '#000000',
+    fontSize: 22,
   },
-  modalTitle: {
+  modalName: {
+    color: '#FFFFFF',
     fontSize: 18,
-    color: THEME.text,
-    textAlign: 'center',
-    marginBottom: 4,
-    width: '100%',
   },
-  modalSubtitle: {
+  modalSub: {
+    color: 'rgba(255, 255, 255, 0.6)',
     fontSize: 13,
-    color: THEME.muted,
-    textAlign: 'center',
-    width: '100%',
+  },
+  modalMeta: {
+    color: 'rgba(255, 255, 255, 0.35)',
+    fontSize: 11,
+    marginTop: 2,
+    marginBottom: 16,
   },
   modalActions: {
     width: '100%',
-    gap: 10,
+    gap: 8,
   },
-  viewBioBtn: {
+  modalBtn: {
     width: '100%',
-    height: 48,
-    borderRadius: 8,
-    backgroundColor: THEME.accent,
-    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 12,
+    borderRadius: 12,
+    flexDirection: 'row',
     alignItems: 'center',
-  },
-  viewBioText: {
-    color: THEME.onAccent,
-    fontSize: 15,
-  },
-  addContactBtn: {
-    width: '100%',
-    height: 48,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: THEME.border,
     justifyContent: 'center',
-    alignItems: 'center',
+    gap: 8,
   },
-  addContactText: {
-    color: THEME.text,
-    fontSize: 15,
-  },
-  cancelBtn: {
-    width: '100%',
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  cancelText: {
-    color: THEME.muted,
+  modalBtnText: {
+    color: '#000000',
     fontSize: 14,
+  },
+  modalBtnDark: {
+    width: '100%',
+    backgroundColor: '#1A1A20',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    paddingVertical: 12,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  modalBtnDarkText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  modalCloseBtn: {
+    marginTop: 10,
+    paddingVertical: 6,
+  },
+  modalCloseText: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 13,
   },
 });
