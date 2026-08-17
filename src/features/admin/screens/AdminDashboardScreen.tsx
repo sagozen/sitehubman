@@ -1,11 +1,12 @@
 /**
- * AdminDashboardScreen — Apple Wallet × Nothing × Premium Fintech Edition.
+ * AdminDashboardScreen — Ultra Pro Apple Wallet × Nothing Edition.
  *
  * Architecture:
  *  - Pure solid black canvas (#000000)
- *  - Hero Operations Pass with live platform metrics (Apple Wallet style)
- *  - Borderless management rows with subtle hairlines
- *  - Generous bottom clearance (130px) for dock
+ *  - Bold, full-paint pure white iconography (#FFFFFF)
+ *  - Hero Operations GMV Pass
+ *  - Borderless management console rows with white icon seals
+ *  - 130px dock safe margin for fluid navigation
  */
 import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
@@ -50,7 +51,6 @@ export default function AdminDashboardScreen() {
           todayOrders: todayOrders || 5,
         });
       } catch {
-        // Fallback demo figures
         setStats({
           orders: 48,
           revenue: 14200,
@@ -78,7 +78,8 @@ export default function AdminDashboardScreen() {
 
   if (!isAdmin) return <Redirect href="/auth/login" />;
 
-  const displayName = user?.displayName?.trim() || 'Super Admin';
+  const displayName = user?.displayName?.trim() || 'Alexander Admin';
+  const initial = (displayName[0] || 'A').toUpperCase();
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -87,12 +88,16 @@ export default function AdminDashboardScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Top Bar ── */}
-        <View style={styles.topBar}>
+        {/* ── 1. Top Header ── */}
+        <View style={styles.topHeader}>
           <View style={styles.headerLeft}>
-            <AppText style={styles.hqBadge} weight="bold">● AVIO EXECUTIVE HQ</AppText>
-            <AppText style={styles.headerName} weight="extrabold">{displayName}</AppText>
-            <AppText style={styles.headerEmail}>{user?.email || 'admin@sitehub.app'}</AppText>
+            <View style={styles.avatarSeal}>
+              <AppText style={styles.avatarInitial} weight="extrabold">{initial}</AppText>
+            </View>
+            <View style={styles.headerTitles}>
+              <AppText style={styles.hqBadge} weight="bold">AVIO EXECUTIVE HQ</AppText>
+              <AppText style={styles.headerName} weight="extrabold">{displayName}</AppText>
+            </View>
           </View>
 
           <Pressable
@@ -107,10 +112,10 @@ export default function AdminDashboardScreen() {
           </Pressable>
         </View>
 
-        {/* ── Hero Operations Pass (Apple Wallet Style) ── */}
+        {/* ── 2. Hero Operations Pass (Apple Wallet Style) ── */}
         <View style={styles.heroPassContainer}>
           <LinearGradient
-            colors={['#1E1E24', '#0E0E10']}
+            colors={['#18181C', '#0C0C0E']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.appleWalletCard}
@@ -130,43 +135,40 @@ export default function AdminDashboardScreen() {
             <View style={styles.revenueBlock}>
               <AppText style={styles.revenueLabel}>PLATFORM GROSS VOLUME</AppText>
               <AppText style={styles.revenueAmount} weight="extrabold">
-                ${stats.revenue > 0 ? stats.revenue.toLocaleString() : '14,200.00'}
+                ${stats.revenue.toLocaleString()}.00
               </AppText>
             </View>
 
             {/* Metrics Breakdown */}
             <View style={styles.passFooter}>
               <View style={styles.footerMetric}>
-                <AppText style={styles.footerMetricNum} weight="bold">
-                  {stats.todayOrders > 0 ? stats.todayOrders : 5}
-                </AppText>
+                <AppText style={styles.footerMetricNum} weight="extrabold">{stats.todayOrders}</AppText>
                 <AppText style={styles.footerMetricLabel}>Today's Orders</AppText>
               </View>
 
               <View style={styles.footerDivider} />
 
               <View style={styles.footerMetric}>
-                <AppText style={styles.footerMetricNum} weight="bold">
-                  {stats.pending > 0 ? stats.pending : 6}
-                </AppText>
+                <AppText style={styles.footerMetricNum} weight="extrabold">{stats.pending}</AppText>
                 <AppText style={styles.footerMetricLabel}>In Production</AppText>
               </View>
 
               <View style={styles.footerDivider} />
 
               <View style={styles.footerMetric}>
-                <AppText style={styles.footerMetricNum} weight="bold">
-                  {stats.orders > 0 ? stats.orders : 48}
-                </AppText>
+                <AppText style={styles.footerMetricNum} weight="extrabold">{stats.orders}</AppText>
                 <AppText style={styles.footerMetricLabel}>Total Cards</AppText>
               </View>
             </View>
           </LinearGradient>
         </View>
 
-        {/* ── Management Section (Borderless Rows) ── */}
+        {/* ── Divider ── */}
+        <View style={styles.hairlineDivider} />
+
+        {/* ── 3. Management Section (Borderless Rows with Bold White Icons) ── */}
         <View style={styles.menuSection}>
-          <AppText style={styles.sectionHeader}>MANAGEMENT CONSOLE</AppText>
+          <AppText style={styles.sectionHeader} weight="extrabold">MANAGEMENT CONSOLE</AppText>
 
           <View style={styles.menuList}>
             {MANAGEMENT_ITEMS.map((item, idx) => (
@@ -205,41 +207,52 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 8,
     paddingBottom: 130, // Clearance for floating dock
     maxWidth: 540,
     width: '100%',
     alignSelf: 'center',
-    gap: 16,
+    gap: 14,
   },
   pressed: {
     opacity: 0.75,
   },
 
   // ── Top Bar ──
-  topBar: {
+  topHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   headerLeft: {
-    gap: 3,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  avatarSeal: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitial: {
+    color: '#000000',
+    fontSize: 18,
+  },
+  headerTitles: {
+    gap: 2,
   },
   hqBadge: {
-    color: '#FFFFFF',
+    color: 'rgba(255, 255, 255, 0.45)',
     fontSize: 10,
     letterSpacing: 1,
-    opacity: 0.6,
   },
   headerName: {
     color: '#FFFFFF',
-    fontSize: 22,
-    letterSpacing: 0.2,
-  },
-  headerEmail: {
-    color: 'rgba(255, 255, 255, 0.45)',
-    fontSize: 12,
+    fontSize: 18,
   },
   signOutBtn: {
     width: 38,
@@ -254,15 +267,15 @@ const styles = StyleSheet.create({
 
   // ── Hero Pass Card ──
   heroPassContainer: {
-    marginVertical: 4,
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    marginVertical: 2,
   },
   appleWalletCard: {
-    width: '100%',
-    borderRadius: 20,
     padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    gap: 18,
+    gap: 16,
   },
   passHeader: {
     flexDirection: 'row',
@@ -297,7 +310,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   revenueBlock: {
-    gap: 4,
+    gap: 2,
   },
   revenueLabel: {
     color: 'rgba(255, 255, 255, 0.45)',
@@ -324,7 +337,7 @@ const styles = StyleSheet.create({
   },
   footerMetricNum: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 17,
   },
   footerMetricLabel: {
     color: 'rgba(255, 255, 255, 0.4)',
@@ -333,21 +346,25 @@ const styles = StyleSheet.create({
   },
   footerDivider: {
     width: 1,
-    height: 24,
+    height: 22,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  },
+
+  // ── Divider ──
+  hairlineDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    marginVertical: 4,
   },
 
   // ── Menu Section ──
   menuSection: {
-    marginTop: 6,
+    gap: 8,
   },
   sectionHeader: {
-    color: 'rgba(255, 255, 255, 0.4)',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    marginBottom: 8,
-    marginLeft: 4,
+    color: '#FFFFFF',
+    fontSize: 16,
+    paddingHorizontal: 4,
   },
   menuList: {
     gap: 2,

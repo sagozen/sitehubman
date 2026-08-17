@@ -1,20 +1,16 @@
 /**
- * SalesDashboardScreen — Apple Wallet × Nothing × Premium Fintech Edition.
+ * SalesDashboardScreen — Ultra Pro Apple Wallet × Nothing Edition.
  *
  * Design Architecture:
- *  1. Solid black canvas (#000000) with atmospheric dark gray & crisp white typography
- *  2. Hero Revenue & Pipeline Pass (Apple Wallet style)
- *  3. Minimalist 1-tap quick actions (New Order, CRM Leads, Pipeline, Payouts)
- *  4. Borderless Recent Deals Stream with monogram seals and live status badges
- *  5. Generous bottom padding (130px) for floating dock clearance
+ *  - Pure solid black canvas (#000000)
+ *  - Bold, full-paint pure white monochrome iconography (#FFFFFF)
+ *  - Hero Apple Wallet GMV Revenue Pass
+ *  - Sleek 48px primary action CTA: [ ↗ Create Customer Order ]
+ *  - Borderless recent deals stream with customer monogram seals
+ *  - Swift-level 120fps fluid responsiveness & 130px dock safe margin
  */
-import React, { useEffect, useMemo, useState } from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  View,
-  Share,
-} from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { Pressable, StyleSheet, View, Share } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,7 +21,6 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { useOrders } from '@/src/hooks/useOrders';
 import { appRoutes } from '@/src/constants/navigation';
 import { formatOrderTotal } from '@/src/utils/orderPricing';
-import type { Order } from '@/src/types/models';
 import { HapticTap } from '@/src/utils/haptics';
 
 export default function SalesDashboardScreen() {
@@ -36,12 +31,13 @@ export default function SalesDashboardScreen() {
     refresh();
   }, [refresh]);
 
-  const firstName = (user?.displayName ?? 'Sales Partner').split(' ')[0] || 'Sales';
+  const displayName = user?.displayName || 'Alexander Wright';
+  const firstName = displayName.split(' ')[0] || 'Sales';
   const referralCode = user?.email
     ? `SALE-${user.email.replace(/[@.]/g, '').slice(0, 8).toUpperCase()}`
     : `SALE-${firstName.toUpperCase()}26`;
 
-  // Dashboard calculations
+  // Calculated Stats
   const stats = useMemo(() => {
     const today = new Date().toDateString();
     let todayOrders = 0;
@@ -57,7 +53,12 @@ export default function SalesDashboardScreen() {
       }
     });
 
-    return { todayOrders, todayRevenue, totalPipeline, totalDeals: orders.length };
+    return {
+      todayOrders: todayOrders || 3,
+      todayRevenue: todayRevenue || 1420.0,
+      totalPipeline: totalPipeline || 12450.0,
+      totalDeals: orders.length || 8,
+    };
   }, [orders]);
 
   const recentOrders = useMemo(() => {
@@ -75,6 +76,8 @@ export default function SalesDashboardScreen() {
     });
   };
 
+  const initial = (displayName[0] || 'S').toUpperCase();
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <IosScrollView
@@ -82,14 +85,16 @@ export default function SalesDashboardScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Top Header ── */}
+        {/* ── 1. Top Header ── */}
         <View style={styles.topHeader}>
           <View style={styles.headerLeft}>
-            <AppText style={styles.partnerBadge} weight="bold">● AVIO SALES HUB</AppText>
-            <AppText style={styles.headerName} weight="extrabold">
-              {user?.displayName || 'Alexander Wright'}
-            </AppText>
-            <AppText style={styles.headerSub}>Executive Sales Partner · Live Pipeline</AppText>
+            <View style={styles.avatarSeal}>
+              <AppText style={styles.avatarInitial} weight="extrabold">{initial}</AppText>
+            </View>
+            <View style={styles.headerTitles}>
+              <AppText style={styles.headerRole} weight="bold">AVIO SALES PARTNER</AppText>
+              <AppText style={styles.headerName} weight="extrabold">{displayName}</AppText>
+            </View>
           </View>
 
           <View style={styles.headerRight}>
@@ -99,7 +104,7 @@ export default function SalesDashboardScreen() {
                 HapticTap.light();
                 router.push(appRoutes.sales.notifications as any);
               }}
-              hitSlop={12}
+              hitSlop={10}
             >
               <AppIcon name="Bell" size={18} color="#FFFFFF" />
             </Pressable>
@@ -110,27 +115,28 @@ export default function SalesDashboardScreen() {
                 HapticTap.light();
                 router.push(appRoutes.sales.me as any);
               }}
-              hitSlop={12}
+              hitSlop={10}
             >
               <AppIcon name="User" size={18} color="#FFFFFF" />
             </Pressable>
           </View>
         </View>
 
-        {/* ── Hero Revenue Pass (Apple Wallet Style) ── */}
-        <View style={styles.heroPassContainer}>
+        {/* ── 2. Hero GMV Revenue Pass (Apple Wallet Style) ── */}
+        <View style={styles.heroPassCard}>
           <LinearGradient
-            colors={['#1E1E24', '#0E0E10']}
+            colors={['#18181C', '#0C0C0E']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.appleWalletCard}
+            style={styles.passGradient}
           >
-            {/* Card Header */}
-            <View style={styles.passHeader}>
-              <View style={styles.passBrand}>
-                <View style={styles.nfcDot} />
-                <AppText style={styles.passBrandText} weight="extrabold">AVIO GMV PASS</AppText>
+            {/* Pass Top Bar */}
+            <View style={styles.passTopRow}>
+              <View style={styles.passBrandTag}>
+                <View style={styles.nfcWhiteDot} />
+                <AppText style={styles.passBrandTitle} weight="extrabold">AVIO GMV PASS</AppText>
               </View>
+
               <Pressable onPress={handleShareReferral} style={styles.refPill}>
                 <AppText style={styles.refPillText} weight="bold">{referralCode}</AppText>
                 <AppIcon name="Share" size={12} color="#FFFFFF" />
@@ -139,155 +145,131 @@ export default function SalesDashboardScreen() {
 
             {/* Revenue Figure */}
             <View style={styles.revenueBlock}>
-              <AppText style={styles.revenueLabel}>{"TODAY'S REVENUE"}</AppText>
+              <AppText style={styles.revenueLabel}>TODAY'S REVENUE</AppText>
               <AppText style={styles.revenueAmount} weight="extrabold">
-                ${stats.todayRevenue > 0 ? stats.todayRevenue.toFixed(2) : '1,420.00'}
+                ${stats.todayRevenue.toFixed(2)}
               </AppText>
             </View>
 
-            {/* Card Footer Metrics */}
-            <View style={styles.passFooter}>
-              <View style={styles.footerMetric}>
-                <AppText style={styles.footerMetricNum} weight="bold">
-                  {stats.todayOrders > 0 ? stats.todayOrders : 3}
-                </AppText>
-                <AppText style={styles.footerMetricLabel}>Deals Today</AppText>
+            {/* Metrics Breakdown */}
+            <View style={styles.passFooterRow}>
+              <View style={styles.metricCol}>
+                <AppText style={styles.metricNum} weight="extrabold">{stats.todayOrders}</AppText>
+                <AppText style={styles.metricLabel}>Deals Today</AppText>
               </View>
 
-              <View style={styles.footerDivider} />
+              <View style={styles.footerSep} />
 
-              <View style={styles.footerMetric}>
-                <AppText style={styles.footerMetricNum} weight="bold">
-                  ${stats.totalPipeline > 0 ? stats.totalPipeline.toFixed(0) : '12,450'}
+              <View style={styles.metricCol}>
+                <AppText style={styles.metricNum} weight="extrabold">
+                  ${stats.totalPipeline.toFixed(0)}
                 </AppText>
-                <AppText style={styles.footerMetricLabel}>Total Pipeline</AppText>
+                <AppText style={styles.metricLabel}>Total Pipeline</AppText>
               </View>
 
-              <View style={styles.footerDivider} />
+              <View style={styles.footerSep} />
 
-              <View style={styles.footerMetric}>
-                <AppText style={styles.footerMetricNum} weight="bold">15%</AppText>
-                <AppText style={styles.footerMetricLabel}>Commission</AppText>
+              <View style={styles.metricCol}>
+                <AppText style={styles.metricNum} weight="extrabold">15%</AppText>
+                <AppText style={styles.metricLabel}>Commission</AppText>
               </View>
             </View>
           </LinearGradient>
         </View>
 
-        {/* ── Primary Action: "↗ Create Customer Order" ── */}
+        {/* ── 3. Primary CTA: Create Customer Order ── */}
         <Pressable
-          style={({ pressed }) => [styles.primaryActionBtn, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.refinedPrimaryBtn, pressed && styles.pressed]}
           onPress={() => {
             HapticTap.medium();
             router.push(appRoutes.sales.newOrder as any);
           }}
         >
-          <AppIcon name="Plus" size={18} color="#000000" />
-          <AppText style={styles.primaryActionBtnText} weight="extrabold">
+          <AppIcon name="Plus" size={16} color="#000000" />
+          <AppText style={styles.refinedPrimaryBtnText} weight="extrabold">
             Create Customer Order
           </AppText>
         </Pressable>
 
-        {/* ── Quick Pipeline Action Tiles ── */}
-        <View style={styles.quickActionStrip}>
+        {/* ── 4. Secondary Action Strip ── */}
+        <View style={styles.secondaryActionRow}>
           {[
-            { icon: 'Users', label: 'CRM Leads', count: '24 Leads', route: appRoutes.sales.customers },
-            { icon: 'CreditCard', label: 'Orders Pipeline', count: `${stats.totalDeals || 8} Active`, route: appRoutes.sales.orders },
-            { icon: 'Wallet', label: 'Commission Payouts', count: '$1,860 Ready', route: appRoutes.sales.payouts },
+            { label: 'Pipeline', icon: 'CreditCard', count: `${stats.totalDeals} Deals`, route: appRoutes.sales.orders },
+            { label: 'CRM Leads', icon: 'Users', count: '24 Leads', route: appRoutes.sales.customers },
+            { label: 'Payouts', icon: 'Wallet', count: '$1,860', route: appRoutes.sales.payouts },
           ].map((item, idx) => (
             <Pressable
               key={idx}
-              style={({ pressed }) => [styles.actionTile, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.secondaryActionBtn, pressed && styles.pressed]}
               onPress={() => {
                 HapticTap.light();
                 router.push(item.route as any);
               }}
             >
-              <View style={styles.actionTileIcon}>
-                <AppIcon name={item.icon} size={18} color="#FFFFFF" />
+              <View style={styles.actionIconBox}>
+                <AppIcon name={item.icon as any} size={15} color="#FFFFFF" />
               </View>
-              <AppText style={styles.actionTileLabel} weight="bold">{item.label}</AppText>
-              <AppText style={styles.actionTileCount}>{item.count}</AppText>
+              <View style={styles.actionTextWrap}>
+                <AppText style={styles.actionLabel} weight="bold">{item.label}</AppText>
+                <AppText style={styles.actionCount}>{item.count}</AppText>
+              </View>
             </Pressable>
           ))}
         </View>
 
-        {/* ── Recent Orders Stream (Borderless) ── */}
-        <View style={styles.recentSection}>
+        {/* ── Divider ── */}
+        <View style={styles.hairlineDivider} />
+
+        {/* ── 5. Borderless Recent Deals Stream ── */}
+        <View style={styles.dealsSection}>
           <View style={styles.sectionHeaderRow}>
-            <AppText style={styles.sectionTitle} weight="extrabold">Recent Orders</AppText>
-            <Pressable
-              onPress={() => router.push(appRoutes.sales.orders as any)}
-              hitSlop={10}
-            >
-              <AppText style={styles.seeAllText} weight="bold">View Pipeline →</AppText>
+            <AppText style={styles.sectionHeaderTitle} weight="extrabold">Recent Deals</AppText>
+            <Pressable onPress={() => router.push(appRoutes.sales.orders as any)} hitSlop={10}>
+              <AppText style={styles.viewPipelineLink} weight="bold">View Pipeline →</AppText>
             </Pressable>
           </View>
 
-          <View style={styles.orderStream}>
-            {recentOrders.length === 0 ? (
-              // Luxury seed placeholder rows if no live orders
-              [
-                { name: 'Marcus Sterling', item: 'Matte Black Steel Card · 24K Gold', amount: '$120.00', status: 'PAID' },
-                { name: 'Elena Rostova', item: 'Executive 316L Stainless Pass', amount: '$95.00', status: 'PRODUCTION' },
-                { name: 'Dr. James Thorne', item: 'Dual-Band NFC Smart Pass', amount: '$65.00', status: 'DELIVERED' },
-              ].map((deal, idx) => {
-                const initials = deal.name.split(' ').map(n => n[0]).join('');
-                return (
-                  <Pressable
-                    key={idx}
-                    style={({ pressed }) => [styles.dealRow, pressed && styles.pressed]}
-                    onPress={() => router.push(appRoutes.sales.orders as any)}
-                  >
-                    <View style={styles.dealAvatar}>
-                      <AppText style={styles.dealAvatarText} weight="bold">{initials}</AppText>
+          <View style={styles.dealsList}>
+            {(recentOrders.length > 0
+              ? recentOrders.map((o) => ({
+                  name: o.customerName || 'Customer',
+                  item: o.productType?.replace(/_/g, ' ') || 'NFC Smart Card',
+                  amount: formatOrderTotal(o),
+                  status: (o.status || 'ACTIVE').toUpperCase(),
+                  id: o.id,
+                }))
+              : [
+                  { name: 'Marcus Sterling', item: 'Matte Black Steel · 24K Gold', amount: '$120.00', status: 'PAID', id: '1' },
+                  { name: 'Elena Rostova', item: 'Executive 316L Stainless Pass', amount: '$95.00', status: 'PRODUCTION', id: '2' },
+                  { name: 'Dr. James Thorne', item: 'Dual-Band NFC Smart Pass', amount: '$65.00', status: 'DELIVERED', id: '3' },
+                ]
+            ).map((deal, idx) => {
+              const initials = deal.name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
+              return (
+                <Pressable
+                  key={deal.id || idx}
+                  style={({ pressed }) => [styles.dealRow, pressed && styles.pressed]}
+                  onPress={() => router.push(appRoutes.sales.orders as any)}
+                >
+                  <View style={styles.dealAvatar}>
+                    <AppText style={styles.dealAvatarText} weight="extrabold">{initials}</AppText>
+                  </View>
+
+                  <View style={styles.dealDetails}>
+                    <View style={styles.dealTop}>
+                      <AppText style={styles.dealClientName} weight="bold">{deal.name}</AppText>
+                      <AppText style={styles.dealAmountText} weight="extrabold">{deal.amount}</AppText>
                     </View>
-                    <View style={styles.dealInfo}>
-                      <View style={styles.dealTopRow}>
-                        <AppText style={styles.dealName} weight="bold">{deal.name}</AppText>
-                        <AppText style={styles.dealAmount} weight="extrabold">{deal.amount}</AppText>
-                      </View>
-                      <View style={styles.dealBottomRow}>
-                        <AppText style={styles.dealItem} numberOfLines={1}>{deal.item}</AppText>
-                        <View style={styles.statusPill}>
-                          <AppText style={styles.statusPillText} weight="bold">{deal.status}</AppText>
-                        </View>
-                      </View>
-                    </View>
-                  </Pressable>
-                );
-              })
-            ) : (
-              recentOrders.map((o) => {
-                const initials = (o.customerName || 'C').split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
-                return (
-                  <Pressable
-                    key={o.id}
-                    style={({ pressed }) => [styles.dealRow, pressed && styles.pressed]}
-                    onPress={() => router.push(`/orders/detail/${o.id}` as any)}
-                  >
-                    <View style={styles.dealAvatar}>
-                      <AppText style={styles.dealAvatarText} weight="bold">{initials}</AppText>
-                    </View>
-                    <View style={styles.dealInfo}>
-                      <View style={styles.dealTopRow}>
-                        <AppText style={styles.dealName} weight="bold">{o.customerName || 'Customer'}</AppText>
-                        <AppText style={styles.dealAmount} weight="extrabold">{formatOrderTotal(o)}</AppText>
-                      </View>
-                      <View style={styles.dealBottomRow}>
-                        <AppText style={styles.dealItem} numberOfLines={1}>
-                          {o.productType?.replace(/_/g, ' ') || 'NFC Smart Card'}
-                        </AppText>
-                        <View style={styles.statusPill}>
-                          <AppText style={styles.statusPillText} weight="bold">
-                            {(o.status || 'ACTIVE').toUpperCase()}
-                          </AppText>
-                        </View>
+                    <View style={styles.dealBottom}>
+                      <AppText style={styles.dealItemText} numberOfLines={1}>{deal.item}</AppText>
+                      <View style={styles.statusPill}>
+                        <AppText style={styles.statusPillText} weight="bold">{deal.status}</AppText>
                       </View>
                     </View>
-                  </Pressable>
-                );
-              })
-            )}
+                  </View>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
 
@@ -303,12 +285,12 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 130, // Clearance for floating dock
+    paddingTop: 8,
+    paddingBottom: 130, // Clearance for floating capsule dock
     maxWidth: 540,
     width: '100%',
     alignSelf: 'center',
-    gap: 16,
+    gap: 14,
   },
   pressed: {
     opacity: 0.75,
@@ -319,25 +301,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   headerLeft: {
-    gap: 3,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  partnerBadge: {
-    color: '#FFFFFF',
+  avatarSeal: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitial: {
+    color: '#000000',
+    fontSize: 18,
+  },
+  headerTitles: {
+    gap: 2,
+  },
+  headerRole: {
+    color: 'rgba(255, 255, 255, 0.45)',
     fontSize: 10,
     letterSpacing: 1,
-    opacity: 0.6,
   },
   headerName: {
     color: '#FFFFFF',
-    fontSize: 22,
-    letterSpacing: 0.2,
-  },
-  headerSub: {
-    color: 'rgba(255, 255, 255, 0.45)',
-    fontSize: 12,
+    fontSize: 18,
   },
   headerRight: {
     flexDirection: 'row',
@@ -354,35 +347,35 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // ── Hero Revenue Pass ──
-  heroPassContainer: {
-    marginVertical: 4,
-  },
-  appleWalletCard: {
-    width: '100%',
+  // ── Hero GMV Pass ──
+  heroPassCard: {
     borderRadius: 20,
-    padding: 20,
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    gap: 18,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    marginVertical: 2,
   },
-  passHeader: {
+  passGradient: {
+    padding: 20,
+    gap: 16,
+  },
+  passTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  passBrand: {
+  passBrandTag: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  nfcDot: {
+  nfcWhiteDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: '#FFFFFF',
   },
-  passBrandText: {
+  passBrandTitle: {
     color: '#FFFFFF',
     fontSize: 13,
     letterSpacing: 1.2,
@@ -402,7 +395,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   revenueBlock: {
-    gap: 4,
+    gap: 2,
   },
   revenueLabel: {
     color: 'rgba(255, 255, 255, 0.45)',
@@ -415,7 +408,7 @@ const styles = StyleSheet.create({
     fontSize: 34,
     letterSpacing: -0.5,
   },
-  passFooter: {
+  passFooterRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -423,98 +416,111 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(255, 255, 255, 0.08)',
     paddingTop: 14,
   },
-  footerMetric: {
+  metricCol: {
     flex: 1,
     alignItems: 'center',
   },
-  footerMetricNum: {
+  metricNum: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 17,
   },
-  footerMetricLabel: {
+  metricLabel: {
     color: 'rgba(255, 255, 255, 0.4)',
     fontSize: 11,
     marginTop: 2,
   },
-  footerDivider: {
+  footerSep: {
     width: 1,
-    height: 24,
+    height: 22,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
 
-  // ── Primary Button ──
-  primaryActionBtn: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 15,
+  // ── Primary Action ──
+  refinedPrimaryBtn: {
+    height: 48,
     borderRadius: 14,
+    backgroundColor: '#FFFFFF',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    marginTop: 2,
   },
-  primaryActionBtnText: {
+  refinedPrimaryBtnText: {
     color: '#000000',
     fontSize: 15,
   },
 
-  // ── Quick Action Strip ──
-  quickActionStrip: {
+  // ── Secondary Action Strip ──
+  secondaryActionRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
   },
-  actionTile: {
+  secondaryActionBtn: {
     flex: 1,
+    height: 52,
+    borderRadius: 12,
     backgroundColor: '#121214',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 14,
-    padding: 14,
-    gap: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    gap: 8,
   },
-  actionTileIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
+  actionIconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 7,
     backgroundColor: '#18181C',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 4,
   },
-  actionTileLabel: {
+  actionTextWrap: {
+    flex: 1,
+    gap: 1,
+  },
+  actionLabel: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 12,
   },
-  actionTileCount: {
+  actionCount: {
     color: 'rgba(255, 255, 255, 0.45)',
-    fontSize: 11,
+    fontSize: 10,
   },
 
-  // ── Recent Orders ──
-  recentSection: {
-    marginTop: 6,
+  // ── Divider ──
+  hairlineDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    marginVertical: 4,
+  },
+
+  // ── Deals Section ──
+  dealsSection: {
+    gap: 10,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
     paddingHorizontal: 4,
   },
-  sectionTitle: {
+  sectionHeaderTitle: {
     color: '#FFFFFF',
-    fontSize: 17,
+    fontSize: 16,
   },
-  seeAllText: {
-    color: 'rgba(255, 255, 255, 0.6)',
+  viewPipelineLink: {
+    color: 'rgba(255, 255, 255, 0.65)',
     fontSize: 13,
   },
-  orderStream: {
+  dealsList: {
     gap: 2,
   },
   dealRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 12,
     paddingHorizontal: 4,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.05)',
@@ -534,29 +540,29 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
   },
-  dealInfo: {
+  dealDetails: {
     flex: 1,
     gap: 3,
   },
-  dealTopRow: {
+  dealTop: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  dealName: {
+  dealClientName: {
     color: '#FFFFFF',
     fontSize: 15,
   },
-  dealAmount: {
+  dealAmountText: {
     color: '#FFFFFF',
     fontSize: 15,
   },
-  dealBottomRow: {
+  dealBottom: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  dealItem: {
+  dealItemText: {
     color: 'rgba(255, 255, 255, 0.45)',
     fontSize: 12,
     flex: 1,
