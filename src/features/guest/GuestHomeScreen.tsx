@@ -419,7 +419,7 @@ export function GuestHomeScreen() {
                 </Pressable>
               </View>
 
-              {/* ── 2. NFC 3D Card Hero (Flippable Front & Back) ── */}
+              {/* ── 2. NFC Smart Card Hero ── */}
               <View style={styles.cardContainer}>
                 <FlippableNfcCard
                   fullName={heroName || undefined}
@@ -428,45 +428,67 @@ export function GuestHomeScreen() {
                   email={heroEmail || undefined}
                   gradientIndex={cloudCard?.design?.gradientIndex ?? 0}
                   width={cardWidth}
-                  cardId={cloudCard?.cardId ?? '7A3F 8C21 9E4B'}
+                  cardId={cloudCard?.cardId ?? 'BC-NFC_JEWDVONG'}
                 />
-                <View style={styles.cardHintBadge}>
-                  <AppIcon name="RotateCcw" size={14} color="#FFFFFF" />
-                  <AppText style={styles.cardHintText} weight="bold">Tap card to flip preview (3D)</AppText>
-                </View>
+                <AppText style={styles.subtleFlipHint}>Tap to flip</AppText>
               </View>
 
-              {/* ── 3. Primary CTA: Share Card (Primary Focus) ── */}
+              {/* ── 3. Primary CTA: Share Card (Sleek, Refined Height) ── */}
               <Pressable
                 onPress={() => { HapticTap.medium(); handleShare(); }}
-                style={({ pressed }) => [styles.widePrimaryShareBtn, pressed && styles.pressed]}
+                style={({ pressed }) => [styles.refinedShareBtn, pressed && styles.pressed]}
               >
-                <AppIcon name="Share2" size={20} color="#000000" />
-                <AppText style={styles.widePrimaryShareText} weight="extrabold">
+                <AppIcon name="ExternalLink" size={16} color="#000000" />
+                <AppText style={styles.refinedShareText} weight="bold">
                   Share Card
                 </AppText>
-                <AppIcon name="ArrowRight" size={18} color="#000000" />
               </Pressable>
 
-              {/* ── 4. Secondary CTAs: View Bio Profile + Edit Design ── */}
-              <View style={styles.primaryCtaRow}>
+              {/* ── 4. Secondary CTAs (Visually Quieter) ── */}
+              <View style={styles.secondaryActionRow}>
                 <Pressable
                   onPress={() => { HapticTap.medium(); router.push('/profile' as any); }}
-                  style={({ pressed }) => [styles.ctaSecondaryBtn, pressed && styles.pressed]}
+                  style={({ pressed }) => [styles.secondaryActionBtn, pressed && styles.pressed]}
                 >
-                  <AppIcon name="User" size={16} color="#FFFFFF" />
-                  <AppText style={styles.ctaSecondaryText} weight="bold">View Bio Profile</AppText>
+                  <AppIcon name="User" size={14} color="rgba(255,255,255,0.7)" />
+                  <AppText style={styles.secondaryActionText} weight="bold">View Profile</AppText>
                 </Pressable>
                 <Pressable
                   onPress={() => { HapticTap.medium(); router.push(appRoutes.guestDesign as Href); }}
-                  style={({ pressed }) => [styles.ctaSecondaryBtn, pressed && styles.pressed]}
+                  style={({ pressed }) => [styles.secondaryActionBtn, pressed && styles.pressed]}
                 >
-                  <AppIcon name="PenLine" size={16} color="#FFFFFF" />
-                  <AppText style={styles.ctaSecondaryText} weight="bold">Edit Design</AppText>
+                  <AppIcon name="Sparkles" size={14} color="rgba(255,255,255,0.7)" />
+                  <AppText style={styles.secondaryActionText} weight="bold">Edit Design</AppText>
                 </Pressable>
               </View>
 
-              {/* ── 5. Order Physical NFC Hardware Bento ── */}
+              {/* ── Divider ── */}
+              <View style={styles.hairlineDivider} />
+
+              {/* ── 5. Information Section (Borderless) ── */}
+              <View style={styles.infoSection}>
+                <View style={styles.infoHeader}>
+                  <AppText style={styles.infoTitle} weight="bold">Your AVIO Card</AppText>
+                  <AppText style={styles.infoCardCode}>Active · {cloudCard?.cardId ?? 'BC-NFC_JEWDVONG'}</AppText>
+                </View>
+
+                <View style={styles.metricsRow}>
+                  <View style={styles.metricItem}>
+                    <AppText style={styles.metricLabel}>NFC taps</AppText>
+                    <AppText style={styles.metricValue} weight="extrabold">48</AppText>
+                  </View>
+
+                  <View style={styles.metricItem}>
+                    <AppText style={styles.metricLabel}>Profile views</AppText>
+                    <AppText style={styles.metricValue} weight="extrabold">12</AppText>
+                  </View>
+                </View>
+              </View>
+
+              {/* ── Divider ── */}
+              <View style={styles.hairlineDivider} />
+
+              {/* ── 6. Optional Commerce (Clean, Unboxed) ── */}
               <Pressable
                 onPress={() => {
                   HapticTap.medium();
@@ -475,25 +497,15 @@ export function GuestHomeScreen() {
                   const claimUrl = `https://shop.aviobrand.com/?claimId=${encodeURIComponent(cardId)}&name=${encodeURIComponent(heroName || '')}&email=${encodeURIComponent(heroEmail || '')}&handle=${encodeURIComponent(handle)}`;
                   Linking.openURL(claimUrl);
                 }}
-                style={({ pressed }) => [styles.orderHardwareBento, pressed && styles.pressed]}
+                style={({ pressed }) => [styles.commerceRow, pressed && styles.pressed]}
               >
-                <View style={styles.orderHardwareLeft}>
-                  <View style={styles.nfcIconWrap}>
-                    <AppIcon name="CreditCard" size={20} color="#2997FF" />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <AppText style={styles.orderHardwareTitle} weight="extrabold">Order Physical NFC Card</AppText>
-                      <View style={styles.laserPill}>
-                        <AppText style={styles.laserPillText} weight="bold">LASER ENGRAVED</AppText>
-                      </View>
-                    </View>
-                    <AppText style={styles.orderHardwareSub}>
-                      Get your matte black or brushed metal NFC card. Auto-synced to this profile.
-                    </AppText>
-                  </View>
+                <View style={styles.commerceLeft}>
+                  <AppText style={styles.commerceTitle} weight="bold">Get a physical AVIO card</AppText>
+                  <AppText style={styles.commerceSub}>Matte Black · Brushed Metal</AppText>
                 </View>
-                <AppIcon name="ArrowUpRight" size={18} color="rgba(255,255,255,0.7)" />
+                <View style={styles.commerceRight}>
+                  <AppText style={styles.commerceLink} weight="bold">Explore designs →</AppText>
+                </View>
               </Pressable>
             </>
 
@@ -544,8 +556,8 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: SPACING.base,
     paddingTop: SPACING.xs,
-    paddingBottom: 80,
-    gap: SPACING.base,
+    paddingBottom: 130, // Clearance for floating capsule dock
+    gap: 14,
     maxWidth: 640,
     width: '100%',
     alignSelf: 'center',
@@ -589,20 +601,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 22,
   },
-  addPillBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#FF5722',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-  },
-  addPillText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-  },
-  // ── Notification bell ─────────────────────────────────────────
   notifBtn: {
     width: 44,
     height: 44,
@@ -624,13 +622,107 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#000000',
   },
-  // ── Card hint ─────────────────────────────────────────────────
-  cardHint: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.3)',
+
+  // ── Refined Unboxed Elements ──
+  subtleFlipHint: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.4)',
     textAlign: 'center',
     marginTop: 8,
-    letterSpacing: 0.3,
+  },
+  refinedShareBtn: {
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 2,
+  },
+  refinedShareText: {
+    color: '#000000',
+    fontSize: 15,
+  },
+  secondaryActionRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  secondaryActionBtn: {
+    flex: 1,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: '#121214',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  secondaryActionText: {
+    color: 'rgba(255, 255, 255, 0.85)',
+    fontSize: 13,
+  },
+  hairlineDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    marginVertical: 4,
+  },
+  infoSection: {
+    gap: 12,
+    paddingHorizontal: 4,
+  },
+  infoHeader: {
+    gap: 2,
+  },
+  infoTitle: {
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+  infoCardCode: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 12,
+  },
+  metricsRow: {
+    flexDirection: 'row',
+    gap: 48,
+    marginTop: 2,
+  },
+  metricItem: {
+    gap: 2,
+  },
+  metricLabel: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 12,
+  },
+  metricValue: {
+    color: '#FFFFFF',
+    fontSize: 26,
+    letterSpacing: -0.5,
+  },
+  commerceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+  },
+  commerceLeft: {
+    gap: 2,
+  },
+  commerceTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  commerceSub: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 12,
+  },
+  commerceRight: {},
+  commerceLink: {
+    color: 'rgba(255, 255, 255, 0.75)',
+    fontSize: 13,
   },
   // ── Stats row ─────────────────────────────────────────────────
   statsRow: {
