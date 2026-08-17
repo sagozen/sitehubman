@@ -76,6 +76,30 @@ export function OnboardingScreen() {
     if (displayName.trim()) {
       await AsyncStorage.setItem('@avio_onboarding_name', displayName.trim());
       await AsyncStorage.setItem('@avio_onboarding_title', jobTitle.trim());
+
+      // ── Wire directly into the card draft so the card shows their name ──
+      try {
+        const { loadGuestCardDraft, saveGuestCardDraft } = await import(
+          '@/src/services/guestDraftService'
+        );
+        const existing = await loadGuestCardDraft();
+        await saveGuestCardDraft({
+          displayName: displayName.trim(),
+          jobTitle: jobTitle.trim(),
+          company: existing?.company ?? '',
+          email: existing?.email ?? '',
+          phone: existing?.phone ?? '',
+          telegram: existing?.telegram ?? '',
+          product: existing?.product ?? 'pvc_card',
+          cardDesign: existing?.cardDesign ?? 'classic_black',
+          gradientIndex: existing?.gradientIndex ?? 0,
+          customImageUri: existing?.customImageUri ?? null,
+          designBackground: existing?.designBackground,
+          cardChoice: existing?.cardChoice ?? 'physical',
+        });
+      } catch {
+        // silent — onboarding must not crash on this
+      }
     }
     // Mark onboarding as complete
     await AsyncStorage.setItem('@avio_onboarding_done', '1');

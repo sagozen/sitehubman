@@ -364,6 +364,23 @@ export function GuestHomeScreen() {
     }
   };
 
+  // ── Profile Completion Score ──────────────────────────────────────
+  const profileSteps = useMemo(() => [
+    { label: 'Add your name', done: !!(bioPage?.displayName || heroName) },
+    { label: 'Add a photo', done: !!bioPage?.photoUrl },
+    { label: 'Add your title', done: !!(bioPage?.tagline || bioPage?.headline) },
+    { label: 'Add email or WhatsApp', done: !!(bioPage?.email || bioPage?.whatsapp) },
+    { label: 'Share your card', done: !!(bioPage?.taps && bioPage.taps > 0) },
+  ], [bioPage, heroName]);
+
+  const profileScore = useMemo(() => {
+    const done = profileSteps.filter((s) => s.done).length;
+    return Math.round((done / profileSteps.length) * 100);
+  }, [profileSteps]);
+
+  const nextStep = useMemo(() => profileSteps.find((s) => !s.done), [profileSteps]);
+  const profileComplete = profileScore === 100;
+
   return (
     <View style={styles.root}>
       {/* Low opacity ambient brand collage background */}
@@ -444,7 +461,35 @@ export function GuestHomeScreen() {
                 <AppText style={styles.subtleFlipHint}>Tap to flip card</AppText>
               </View>
 
-              {/* ── 3. Primary Executive CTA: Share Card & Beam ── */}
+              {/* ── 3. Profile Completion Bar (hidden when 100%) ── */}
+              {!profileComplete && !isGuest && (
+                <Pressable
+                  onPress={() => { HapticTap.light(); router.push('/edit-bio' as any); }}
+                  style={({ pressed }) => [styles.completionCard, pressed && styles.pressed]}
+                >
+                  <View style={styles.completionHeader}>
+                    <AppText style={styles.completionTitle} weight="extrabold">
+                      Complete your profile
+                    </AppText>
+                    <AppText style={styles.completionScore} weight="extrabold">
+                      {profileScore}%
+                    </AppText>
+                  </View>
+                  <View style={styles.completionTrack}>
+                    <View style={[styles.completionFill, { width: `${profileScore}%` as any }]} />
+                  </View>
+                  {nextStep && (
+                    <View style={styles.completionNextRow}>
+                      <AppIcon name="ArrowRight" size={12} color="rgba(255,255,255,0.5)" />
+                      <AppText style={styles.completionNextText} weight="bold">
+                        Next: {nextStep.label}
+                      </AppText>
+                    </View>
+                  )}
+                </Pressable>
+              )}
+
+              {/* ── 4. Primary Executive CTA: Share Card & Beam ── */}
               <Pressable
                 onPress={() => { HapticTap.medium(); handleShare(); }}
                 style={({ pressed }) => [styles.refinedShareBtn, pressed && styles.pressed]}
@@ -1594,6 +1639,49 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.5,
+  },
+
+  // ── Profile Completion Bar ──
+  completionCard: {
+    borderRadius: 14,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    padding: 14,
+    gap: 10,
+  },
+  completionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  completionTitle: {
+    color: '#FFFFFF',
+    fontSize: 13,
+  },
+  completionScore: {
+    color: '#FFFFFF',
+    fontSize: 13,
+  },
+  completionTrack: {
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    overflow: 'hidden',
+  },
+  completionFill: {
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: '#FFFFFF',
+  },
+  completionNextRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  completionNextText: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 12,
   },
 
   cardHintBadge: {
