@@ -161,6 +161,36 @@ export function PublicBioScreen({ slug, cardId }: Props) {
           setBioPage(resolved.bioPage);
           setPublicUrl(resolved.publicUrl);
           setResolvedCardId(resolved.cardId);
+        } else {
+          // Direct local draft fallback for instant activation
+          try {
+            const { loadGuestCardDraft } = await import('@/src/services/guestDraftService');
+            const draft = await loadGuestCardDraft();
+            if (draft && draft.displayName) {
+              const activeSlug = slug || cardId || 'mycard';
+              setBioPage({
+                id: activeSlug,
+                userId: 'guest',
+                slug: activeSlug,
+                publicSlug: activeSlug,
+                status: 'active',
+                displayName: draft.displayName,
+                tagline: draft.jobTitle ? `${draft.jobTitle}${draft.company ? ` · ${draft.company}` : ''}` : draft.company || 'Verified Member · AVIO',
+                email: draft.email || undefined,
+                whatsapp: draft.phone || undefined,
+                telegram: draft.telegram || undefined,
+                customLinks: [],
+                theme: 'tech_noir',
+                views: 1,
+                taps: 0,
+                updatedAt: new Date().toISOString(),
+              });
+              setPublicUrl(buildSlugProfileUrl(activeSlug));
+              setResolvedCardId(cardId || slug);
+            }
+          } catch {
+            // ignore
+          }
         }
       } finally {
         if (!cancelled) setIsLoading(false);
