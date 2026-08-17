@@ -510,10 +510,7 @@ export function GuestHomeScreen() {
               <Pressable
                 onPress={() => {
                   HapticTap.medium();
-                  const cardId = cloudCard?.cardId || 'new';
-                  const handle = bioPage?.slug || '';
-                  const claimUrl = `https://shop.aviobrand.com/?claimId=${encodeURIComponent(cardId)}&name=${encodeURIComponent(heroName || '')}&email=${encodeURIComponent(heroEmail || '')}&handle=${encodeURIComponent(handle)}`;
-                  Linking.openURL(claimUrl);
+                  router.push(appRoutes.guestDesign as Href);
                 }}
                 style={({ pressed }) => [styles.commerceRow, pressed && styles.pressed]}
               >
@@ -522,7 +519,7 @@ export function GuestHomeScreen() {
                   <AppText style={styles.commerceSub}>Laser-Engraved Titanium · 24K Gold</AppText>
                 </View>
                 <View style={styles.commerceRight}>
-                  <AppText style={styles.commerceLink} weight="bold">Concierge Request →</AppText>
+                  <AppText style={styles.commerceLink} weight="bold">Explore Studio →</AppText>
                 </View>
               </Pressable>
             </>

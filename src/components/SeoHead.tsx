@@ -74,7 +74,7 @@ export function SeoHead({
             price: price || 89.99,
             priceCurrency: currency,
             availability: 'https://schema.org/InStock',
-            url: 'https://shop.aviobrand.com',
+            url: canonicalUrl || BASE_URL,
           },
         }
       : {
