@@ -120,9 +120,14 @@ export const FlippableNfcCard = memo(function FlippableNfcCard(props: FlippableN
 
 const styles = StyleSheet.create({
   container: {
+    width: '100%',
+    aspectRatio: 1.586,
     position: 'relative',
+    alignSelf: 'center',
   },
   cardSide: {
+    width: '100%',
+    height: '100%',
     backfaceVisibility: 'hidden',
   },
   backSide: {

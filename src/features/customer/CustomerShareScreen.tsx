@@ -90,7 +90,7 @@ export function CustomerShareScreen() {
           </Pressable>
         </View>
 
-        {/* ── Hero Flippable Card (Complete View with Full Padding) ── */}
+        {/* ── Hero Flippable Card (Complete View with Full Width) ── */}
         <View style={styles.heroCardContainer}>
           <FlippableNfcCard
             fullName={displayName}
@@ -101,6 +101,7 @@ export function CustomerShareScreen() {
             gradientIndex={cloudCard?.design?.gradientIndex ?? 0}
             backgroundImageUri={cloudCard?.design?.customImageUri || undefined}
             cardId={cloudCard?.id ?? 'AVIO-8890-7A3F'}
+            style={styles.heroCard}
           />
           <AppText style={styles.flipHint}>Tap card to flip · Contactless NFC active</AppText>
         </View>
@@ -251,14 +252,19 @@ const styles = StyleSheet.create({
 
   // ── Hero Card ──
   heroCardContainer: {
+    width: '100%',
     alignItems: 'center',
-    marginVertical: 4,
-    gap: 10,
+    marginVertical: 6,
+    gap: 8,
+  },
+  heroCard: {
+    width: '100%',
+    maxWidth: 440,
   },
   flipHint: {
     color: 'rgba(255, 255, 255, 0.4)',
     fontSize: 12,
-    marginTop: 4,
+    marginTop: 2,
   },
 
   // ── Primary Action ──

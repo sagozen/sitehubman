@@ -26,6 +26,7 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
+import { AppleToggle } from '@/src/components/AppleToggle';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { usePreferences } from '@/src/hooks/usePreferences';
@@ -248,11 +249,10 @@ export function SettingsScreen() {
             title="Push Notifications"
             subtitle="NFC tap alerts and order status"
             rightElement={
-              <Switch
+              <AppleToggle
                 value={notificationsEnabled}
                 onValueChange={handleToggleNotifications}
-                trackColor={{ false: '#26262A', true: '#FFFFFF' }}
-                thumbColor={notificationsEnabled ? '#000000' : '#FFFFFF'}
+                accessibilityLabel="Push notifications toggle"
               />
             }
           />
@@ -262,11 +262,10 @@ export function SettingsScreen() {
             title="Haptic Feedback"
             subtitle="Tactile vibrations on tap"
             rightElement={
-              <Switch
+              <AppleToggle
                 value={hapticsEnabled}
                 onValueChange={handleToggleHaptics}
-                trackColor={{ false: '#26262A', true: '#FFFFFF' }}
-                thumbColor={hapticsEnabled ? '#000000' : '#FFFFFF'}
+                accessibilityLabel="Haptic feedback toggle"
               />
             }
           />
@@ -280,11 +279,10 @@ export function SettingsScreen() {
             title="Passcode Lock"
             subtitle="Require PIN on app launch"
             rightElement={
-              <Switch
+              <AppleToggle
                 value={securityPinEnabled}
                 onValueChange={handleTogglePin}
-                trackColor={{ false: '#26262A', true: '#FFFFFF' }}
-                thumbColor={securityPinEnabled ? '#000000' : '#FFFFFF'}
+                accessibilityLabel="Passcode lock toggle"
               />
             }
           />
