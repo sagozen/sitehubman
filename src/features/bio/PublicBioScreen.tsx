@@ -383,7 +383,36 @@ export function PublicBioScreen({ slug, cardId }: Props) {
             </View>
           </View>
 
-          {/* ── 5. NFC Verified Footer ── */}
+          {/* ── 5. VIRAL GROWTH CARD: Get Your Own AVIO Card ── */}
+          <Pressable
+            style={({ pressed }) => [styles.viralCard, pressed && styles.pressed]}
+            onPress={() => {
+              HapticTap.medium();
+              Linking.openURL('https://aviobrand.com').catch(() => undefined);
+            }}
+          >
+            <View style={styles.viralCardInner}>
+              <View style={styles.viralAvatarSeal}>
+                <AppText style={styles.viralAvatarLetter} weight="extrabold">A</AppText>
+              </View>
+              <View style={styles.viralTextBlock}>
+                <AppText style={styles.viralTitle} weight="extrabold">
+                  Want your own card like this?
+                </AppText>
+                <AppText style={styles.viralSub}>
+                  Create a free AVIO Smart Pass in 60 seconds.
+                </AppText>
+              </View>
+              <AppIcon name="ArrowUpRight" size={18} color="#FFFFFF" />
+            </View>
+            <View style={styles.viralPillRow}>
+              <View style={styles.viralPill}><AppText style={styles.viralPillText} weight="bold">Free to start</AppText></View>
+              <View style={styles.viralPill}><AppText style={styles.viralPillText} weight="bold">NFC ready</AppText></View>
+              <View style={styles.viralPill}><AppText style={styles.viralPillText} weight="bold">No app needed</AppText></View>
+            </View>
+          </Pressable>
+
+          {/* ── 6. NFC Verified Footer ── */}
           <View style={styles.nfcVerifiedFooter}>
             <View style={styles.nfcDot} />
             <AppText style={styles.nfcFooterText}>
@@ -631,6 +660,61 @@ const styles = StyleSheet.create({
   channelSub: {
     color: 'rgba(255, 255, 255, 0.45)',
     fontSize: 12,
+  },
+
+  // ── Viral Growth Card ──
+  viralCard: {
+    borderRadius: 16,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 16,
+    gap: 12,
+  },
+  viralCardInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  viralAvatarSeal: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  viralAvatarLetter: {
+    fontSize: 18,
+    color: '#000000',
+  },
+  viralTextBlock: {
+    flex: 1,
+    gap: 2,
+  },
+  viralTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  viralSub: {
+    color: 'rgba(255, 255, 255, 0.55)',
+    fontSize: 12,
+  },
+  viralPillRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  viralPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  viralPillText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 11,
   },
 
   // ── NFC Footer ──
