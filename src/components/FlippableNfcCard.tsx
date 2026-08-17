@@ -35,26 +35,26 @@ export const FlippableNfcCard = memo(function FlippableNfcCard(props: FlippableN
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const handleFlip = useCallback(() => {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setIsFlipped((prev) => {
       const toValue = prev ? 0 : 1;
       Animated.sequence([
         Animated.timing(scaleAnim, {
-          toValue: 0.94,
-          duration: 80,
+          toValue: 0.96,
+          duration: 40,
           useNativeDriver: true,
         }),
         Animated.parallel([
           Animated.spring(flipAnim, {
             toValue,
-            friction: 8,
-            tension: 10,
+            friction: 7,
+            tension: 40,
             useNativeDriver: true,
           }),
           Animated.spring(scaleAnim, {
             toValue: 1.0,
-            friction: 6,
-            tension: 12,
+            friction: 7,
+            tension: 40,
             useNativeDriver: true,
           }),
         ]),

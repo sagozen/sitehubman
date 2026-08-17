@@ -44,7 +44,8 @@ function IosFlatListInner<ItemT>(
       overScrollMode={Platform.OS === 'android' ? (overScrollMode ?? 'always') : overScrollMode}
       contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
       contentContainerStyle={mergedContentStyle}
-      removeClippedSubviews={true}
+      canCancelContentTouches={true}
+      removeClippedSubviews={Platform.OS === 'android'}
       scrollEventThrottle={16}
       maxToRenderPerBatch={10}
       windowSize={10}

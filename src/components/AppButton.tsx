@@ -193,7 +193,8 @@ function AppButtonRaw({
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         disabled={disabled || loading}
-        hitSlop={hitSlop}
+        hitSlop={hitSlop ?? 12}
+        unstable_pressDelay={0}
         android_ripple={null}
         accessibilityRole="button"
         accessibilityLabel={label || rest.accessibilityLabel || 'Action'}
