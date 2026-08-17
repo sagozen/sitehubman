@@ -1,5 +1,14 @@
-import { IosScrollView } from '@/src/components/IosScrollView';
-import { useEffect, useRef, useState } from 'react';
+/**
+ * EditBioScreen — Apple Wallet × Nothing × Premium Fintech Edition.
+ *
+ * Architecture:
+ *  - Solid black background (#000000)
+ *  - Minimalist live phone identity preview (deep obsidian & frosted monochrome)
+ *  - Clean borderless input rows separated by fine hairlines
+ *  - High-contrast Apple-style save button
+ *  - 130px bottom clearance for floating navigation dock
+ */
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Image,
@@ -17,26 +26,18 @@ import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
+import { IosScrollView } from '@/src/components/IosScrollView';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useBioPage } from '@/src/hooks/useBioPage';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { uploadProfilePhoto } from '@/src/services/profilePhotoService';
 import type { BioPage } from '@/src/types/models';
-import { LinearGradient } from 'expo-linear-gradient';
-import { StarsBoldDuotone, CopyBoldDuotone, AddCircleBoldDuotone } from '@solar-icons/react-native';
-
-const BRAND = '#007AFF';
-const INK = '#0A0A0F';
-const INK2 = '#1C1C1E';
-const MUTED = '#8E8E93';
-const BG = '#F5F5F7';
-const SURFACE = '#FFFFFF';
-const BORDER = 'rgba(60,60,67,0.08)';
+import { HapticTap } from '@/src/utils/haptics';
 
 type CustomLinkDraft = BioPage['customLinks'][number];
 
-// ─── Field row — iOS Settings style ──────────────────────────────────────────
+// ─── Field Row (Borderless with hairline) ───────────────────────────────────
 function FieldRow({
   icon,
   label,
@@ -57,51 +58,37 @@ function FieldRow({
   return (
     <Pressable
       onPress={() => inputRef.current?.focus()}
-      style={[fr.row, last && fr.rowLast] as ViewStyle[]}
+      style={[styles.fieldRow, last && styles.fieldRowLast]}
     >
-      <View style={fr.iconBox}>
-        <AppIcon name={icon} size={16} color={BRAND} />
+      <View style={styles.fieldIconBox}>
+        <AppIcon name={icon} size={16} color="rgba(255, 255, 255, 0.7)" />
       </View>
-      <View style={fr.labelCol}>
-        <AppText style={fr.label}>{label}</AppText>
-      </View>
+      <AppText style={styles.fieldLabel} weight="bold">{label}</AppText>
       <TextInput
         ref={inputRef}
-        style={fr.input}
+        style={styles.fieldInput}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="#C4CFDE"
+        placeholderTextColor="rgba(255, 255, 255, 0.3)"
         {...inputProps}
       />
     </Pressable>
   );
 }
 
-const fr = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', minHeight: 56, gap: 12, paddingHorizontal: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: BORDER } as ViewStyle,
-  rowLast: { borderBottomWidth: 0 } as ViewStyle,
-  iconBox: { width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(0,122,255,0.08)', alignItems: 'center', justifyContent: 'center' } as ViewStyle,
-  labelCol: { width: 90 } as ViewStyle,
-  label: { fontSize: 14, fontWeight: '700', color: INK2 } as TextStyle,
-  input: { flex: 1, fontSize: 14, fontWeight: '600', color: INK, paddingVertical: 0, textAlign: 'right' } as TextStyle,
-});
-
-function Group({ children }: { children: React.ReactNode }) {
-  return <View style={grp.card}>{children}</View>;
-}
-const grp = StyleSheet.create({
-  card: { backgroundColor: SURFACE, borderRadius: 24, borderWidth: 1, borderColor: BORDER, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 12, elevation: 2 } as ViewStyle,
-});
-
 function SectionLabel({ text }: { text: string }) {
-  return <AppText style={sl.text}>{text}</AppText>;
+  return (
+    <AppText style={styles.sectionLabel} weight="bold">
+      {text}
+    </AppText>
+  );
 }
-const sl = StyleSheet.create({
-  text: { fontSize: 11, fontWeight: '800', color: MUTED, letterSpacing: 0.8, textTransform: 'uppercase', paddingHorizontal: 4 } as TextStyle,
-});
 
-// ─── Main screen ─────────────────────────────────────────────────────────────
+function FieldGroup({ children }: { children: React.ReactNode }) {
+  return <View style={styles.fieldGroup}>{children}</View>;
+}
+
 export function EditBioScreen() {
   const { user } = useAuth();
   const isGuest = useIsGuest();
@@ -141,50 +128,44 @@ export function EditBioScreen() {
     setPhotoUrl(bioPage.photoUrl);
   }, [bioPage]);
 
-  // Calculate current progress percentage
-  const getCompletionPercent = () => {
-    let score = 0;
-    if (displayName.trim()) score += 25;
-    if (photoUrl) score += 25;
-    if (slug.trim()) score += 15;
-    if (email.trim() || whatsapp.trim()) score += 15;
-    if (telegram.trim() || instagram.trim() || linkedin.trim()) score += 10;
-    if (customLinks.length > 0) score += 10;
-    return score;
-  };
-
-  const pct = getCompletionPercent();
-
   function updateCustomLink(index: number, next: Partial<CustomLinkDraft>) {
-    setCustomLinks((links) => links.map((link, i) => i === index ? { ...link, ...next } : link));
+    setCustomLinks((links) => links.map((link, i) => (i === index ? { ...link, ...next } : link)));
   }
 
   function addCustomLink(label = '', url = '') {
+    HapticTap.light();
     setCustomLinks((links) => [...links, { label, url }]);
   }
 
   function removeCustomLink(index: number) {
+    HapticTap.light();
     setCustomLinks((links) => links.filter((_, i) => i !== index));
   }
 
-  async function pickImage(fromCamera: boolean) {
+  async function pickImage() {
     if (!requireAccount(undefined, { message: 'Create an account to upload a profile photo.' })) return;
     if (!user?.id) return;
     try {
-      const perm = fromCamera
-        ? await ImagePicker.requestCameraPermissionsAsync()
-        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) {
-        Alert.alert('Permission needed', fromCamera ? 'Camera access required.' : 'Photo library access required.');
+        Alert.alert('Permission needed', 'Photo library access required.');
         return;
       }
-      const result = fromCamera
-        ? await ImagePicker.launchCameraAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.85 })
-        : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.85 });
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.85,
+      });
       if (result.canceled || !result.assets[0]) return;
       setIsUploadingPhoto(true);
       try {
-        const res = await uploadProfilePhoto({ uri: result.assets[0].uri, userId: user.id, fileName: result.assets[0].fileName, mimeType: result.assets[0].mimeType });
+        const res = await uploadProfilePhoto({
+          uri: result.assets[0].uri,
+          userId: user.id,
+          fileName: result.assets[0].fileName,
+          mimeType: result.assets[0].mimeType,
+        });
         setPhotoUrl(res.url);
       } catch (err) {
         Alert.alert('Upload failed', err instanceof Error ? err.message : 'Try again.');
@@ -198,10 +179,16 @@ export function EditBioScreen() {
 
   async function handleSave() {
     if (!requireAccount(undefined, { message: 'Create an account to save your profile.' })) return;
-    if (!displayName.trim()) { Alert.alert('Required', 'Display name is required.'); return; }
-    if (slug.trim() && !/^[a-z0-9-]{3,40}$/i.test(slug.trim())) { Alert.alert('Invalid slug', 'Use 3–40 letters, numbers, or hyphens.'); return; }
-    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { Alert.alert('Invalid email', 'Enter a valid email.'); return; }
+    if (!displayName.trim()) {
+      Alert.alert('Required', 'Display name is required.');
+      return;
+    }
+    if (slug.trim() && !/^[a-z0-9-]{3,40}$/i.test(slug.trim())) {
+      Alert.alert('Invalid slug', 'Use 3–40 letters, numbers, or hyphens.');
+      return;
+    }
     setIsSaving(true);
+    HapticTap.medium();
     try {
       await saveBioPage({
         slug: slug.trim().toLowerCase() || (user?.id ?? ''),
@@ -215,11 +202,11 @@ export function EditBioScreen() {
         linkedin: linkedin.trim() || undefined,
         twitter: twitter.trim() || undefined,
         facebook: facebook.trim() || undefined,
-        customLinks: customLinks.filter(l => l.label.trim() && l.url.trim()),
-        theme: bioPage?.theme ?? 'vibrant_pink',
+        customLinks: customLinks.filter((l) => l.label.trim() && l.url.trim()),
+        theme: bioPage?.theme ?? 'tech_noir',
         photoUrl,
       });
-      Alert.alert('Saved', 'Your profile has been updated.');
+      Alert.alert('Saved', 'Your digital profile has been updated.');
     } catch (err) {
       Alert.alert('Save failed', (err as Error).message);
     } finally {
@@ -227,212 +214,252 @@ export function EditBioScreen() {
     }
   }
 
-  const initial = (displayName || user?.displayName || '?')[0].toUpperCase();
+  const initial = (displayName || user?.displayName || 'A')[0].toUpperCase();
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+      {/* ── Top Header ── */}
       <View style={styles.header}>
-        <View style={styles.navRow}>
-          <Pressable onPress={() => router.back()} style={styles.headerBtn} hitSlop={10}>
-            <AppIcon name="ChevronLeft" size={22} color={INK2} />
-          </Pressable>
-          <Pressable
-            onPress={() => void handleSave()}
-            disabled={isSaving}
-            style={styles.navSaveBtn}
-            hitSlop={10}
-          >
-            <AppText style={styles.navSaveText}>{isSaving ? 'Saving...' : 'Done'}</AppText>
-          </Pressable>
-        </View>
-        <AppText style={styles.headerSub}>Customize what people see.</AppText>
+        <Pressable onPress={() => router.back()} style={styles.navBtn} hitSlop={12}>
+          <AppIcon name="ChevronLeft" size={20} color="#FFFFFF" />
+        </Pressable>
+
+        <AppText style={styles.navTitle} weight="bold">
+          Edit Bio Profile
+        </AppText>
+
+        <Pressable
+          onPress={() => void handleSave()}
+          disabled={isSaving}
+          style={styles.doneBtn}
+          hitSlop={10}
+        >
+          <AppText style={styles.doneBtnText} weight="extrabold">
+            {isSaving ? 'Saving' : 'Save'}
+          </AppText>
+        </Pressable>
       </View>
 
-      <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Gen Z Interactive Progress Card */}
-        <LinearGradient
-          colors={['#1F2937', '#111827']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.progressCard}
-        >
-          <View style={styles.progHeader}>
-            <StarsBoldDuotone size={24} color="#38BDF8" />
-            <AppText style={styles.progTitle}>Profile Completion</AppText>
-            <AppText style={styles.progPct}>{pct}%</AppText>
-          </View>
-          <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: `${pct}%` }]} />
-          </View>
-          <AppText style={styles.progHint}>
-            {pct < 100 ? '🔥 Tip: Add a Profile Photo to reach 100% completion!' : '🎉 All set! Your bio is fully optimized.'}
-          </AppText>
-        </LinearGradient>
-
-        {/* ── Gen Z Live Phone Screen Preview ── */}
+      <IosScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── Live Phone Identity Preview (Apple Wallet Style) ── */}
         <View style={styles.previewContainer}>
           <View style={styles.phoneFrame}>
-            <LinearGradient
-              colors={['#7C3AED', '#C084FC', '#6366F1']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFillObject}
-            />
-            {/* Gloss shine filter */}
-            <View style={styles.phoneShine} />
-            
             <View style={styles.phoneContent}>
-              <Pressable onPress={() => void pickImage(false)} style={styles.avatarWrap}>
+              <Pressable onPress={() => void pickImage()} style={styles.avatarWrap}>
                 {photoUrl ? (
                   <Image source={{ uri: photoUrl }} style={styles.avatar} />
                 ) : (
                   <View style={[styles.avatar, styles.avatarFallback]}>
-                    <AppText style={styles.avatarInitial}>{initial}</AppText>
+                    <AppText style={styles.avatarInitial} weight="extrabold">{initial}</AppText>
                   </View>
                 )}
                 <View style={styles.avatarBadge}>
-                  <AppIcon name={isUploadingPhoto ? 'Loader' : 'Camera'} size={12} color="#FFFFFF" />
+                  <AppIcon name={isUploadingPhoto ? 'Loader' : 'Camera'} size={12} color="#000000" />
                 </View>
               </Pressable>
-              
+
               <View style={styles.avatarMeta}>
-                <AppText style={styles.avatarName}>{displayName || 'Your Display Name'}</AppText>
-                <AppText style={styles.avatarSub}>{tagline || 'No tagline set yet'}</AppText>
-                {slug ? (
-                  <AppText style={styles.previewSlug}>sitehub.app/{slug.toLowerCase()}</AppText>
-                ) : null}
+                <AppText style={styles.avatarName} weight="extrabold">
+                  {displayName || 'Alexander Wright'}
+                </AppText>
+                <AppText style={styles.avatarSub}>
+                  {tagline || 'Founder & Managing Director · AVIO'}
+                </AppText>
+                <AppText style={styles.previewSlug}>
+                  sitehubman.app/{slug.toLowerCase() || 'alexander'}
+                </AppText>
               </View>
 
-              {/* Dynamic custom link preview pills */}
+              {/* Dynamic Link Preview Pills */}
               <View style={styles.previewLinksContainer}>
                 {customLinks.length > 0 ? (
-                  customLinks.slice(0, 3).map((link, idx) => (
+                  customLinks.slice(0, 2).map((link, idx) => (
                     <View key={`prev-${idx}`} style={styles.previewLinkPill}>
                       <AppIcon name="Link" size={12} color="#FFFFFF" />
-                      <AppText style={styles.previewLinkText} numberOfLines={1}>
-                        {link.label || 'Platform Link'}
+                      <AppText style={styles.previewLinkText} weight="bold" numberOfLines={1}>
+                        {link.label || 'Digital Portfolio'}
                       </AppText>
                     </View>
                   ))
                 ) : (
-                  <View style={styles.previewLinkPillPlaceholder}>
-                    <AppText style={styles.previewPlaceholderT}>Add custom links below</AppText>
+                  <View style={styles.previewLinkPill}>
+                    <AppIcon name="Send" size={12} color="#FFFFFF" />
+                    <AppText style={styles.previewLinkText} weight="bold">Direct Message · Telegram</AppText>
                   </View>
                 )}
               </View>
             </View>
           </View>
-          
-          <View style={styles.previewActions}>
-            <Pressable onPress={() => void pickImage(false)} style={styles.photoBtn} disabled={isUploadingPhoto}>
-              <AppIcon name="Camera" size={15} color={BRAND} />
-              <AppText style={styles.photoBtnT}>{photoUrl ? 'Change Avatar' : 'Upload Avatar'}</AppText>
-            </Pressable>
-            <Pressable onPress={() => router.push('/theme-picker')} style={styles.previewLink}>
-              <StarsBoldDuotone size={15} color={INK2} />
-              <AppText style={styles.previewLinkTextBtn}>Theme</AppText>
-            </Pressable>
-            {bioPage?.slug ? (
-              <Pressable onPress={() => router.push(`/public/${bioPage.slug}`)} style={styles.previewLink}>
-                <AppIcon name="Eye" size={15} color={INK2} />
-                <AppText style={styles.previewLinkTextBtn}>View Live Profile</AppText>
-              </Pressable>
-            ) : null}
-          </View>
+
+          <Pressable onPress={() => void pickImage()} style={styles.photoBtn}>
+            <AppIcon name="Camera" size={14} color="#FFFFFF" />
+            <AppText style={styles.photoBtnText} weight="bold">
+              {photoUrl ? 'Change Profile Photo' : 'Upload Profile Photo'}
+            </AppText>
+          </Pressable>
         </View>
 
-        {/* ── Identity ── */}
+        {/* ── 1. Identity Fields ── */}
         <SectionLabel text="IDENTITY" />
-        <Group>
-          <FieldRow icon="User" label="Name" value={displayName} onChangeText={setDisplayName} placeholder="Alex Carter" autoCapitalize="words" />
-          <FieldRow icon="Tag" label="Tagline" value={tagline} onChangeText={setTagline} placeholder="Designer · Tech enthusiast" />
-          <FieldRow icon="Link" label="URL slug" value={slug} onChangeText={setSlug} placeholder="alexcarter" autoCapitalize="none" last />
-        </Group>
+        <FieldGroup>
+          <FieldRow
+            icon="User"
+            label="Name"
+            value={displayName}
+            onChangeText={setDisplayName}
+            placeholder="Alexander Wright"
+            autoCapitalize="words"
+          />
+          <FieldRow
+            icon="Tag"
+            label="Tagline"
+            value={tagline}
+            onChangeText={setTagline}
+            placeholder="Founder & Managing Director"
+          />
+          <FieldRow
+            icon="Link"
+            label="Bio URL"
+            value={slug}
+            onChangeText={setSlug}
+            placeholder="alexander"
+            autoCapitalize="none"
+            last
+          />
+        </FieldGroup>
 
-        {/* ── Contact ── */}
-        <SectionLabel text="CONTACT" />
-        <Group>
-          <FieldRow icon="Mail" label="Email" value={email} onChangeText={setEmail} placeholder="alex@gmail.com" keyboardType="email-address" autoCapitalize="none" />
-          <FieldRow icon="Phone" label="WhatsApp" value={whatsapp} onChangeText={setWhatsapp} placeholder="+855 12 345 678" keyboardType="phone-pad" />
-          <FieldRow icon="Globe" label="Website" value={website} onChangeText={setWebsite} placeholder="alexdesign.co" keyboardType="url" autoCapitalize="none" last />
-        </Group>
+        {/* ── 2. Contact Fields ── */}
+        <SectionLabel text="DIRECT CONTACT" />
+        <FieldGroup>
+          <FieldRow
+            icon="Mail"
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            placeholder="alexander@sitehub.app"
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <FieldRow
+            icon="Phone"
+            label="WhatsApp"
+            value={whatsapp}
+            onChangeText={setWhatsapp}
+            placeholder="+1 555 019 2834"
+            keyboardType="phone-pad"
+          />
+          <FieldRow
+            icon="Globe"
+            label="Website"
+            value={website}
+            onChangeText={setWebsite}
+            placeholder="sitehubman.app"
+            keyboardType="url"
+            autoCapitalize="none"
+            last
+          />
+        </FieldGroup>
 
-        {/* ── Social Media ── */}
-        <SectionLabel text="SOCIAL CHANNELS" />
-        <Group>
-          <FieldRow icon="Send" label="Telegram" value={telegram} onChangeText={setTelegram} placeholder="@alex_tg" autoCapitalize="none" />
-          <FieldRow icon="Instagram" label="Instagram" value={instagram} onChangeText={setInstagram} placeholder="@alex_ig" autoCapitalize="none" />
-          <FieldRow icon="Linkedin" label="LinkedIn" value={linkedin} onChangeText={setLinkedin} placeholder="alexprofile" autoCapitalize="none" last />
-        </Group>
+        {/* ── 3. Social Channels ── */}
+        <SectionLabel text="SOCIAL NETWORKS" />
+        <FieldGroup>
+          <FieldRow
+            icon="Send"
+            label="Telegram"
+            value={telegram}
+            onChangeText={setTelegram}
+            placeholder="@alexander_tg"
+            autoCapitalize="none"
+          />
+          <FieldRow
+            icon="Instagram"
+            label="Instagram"
+            value={instagram}
+            onChangeText={setInstagram}
+            placeholder="@alexander_ig"
+            autoCapitalize="none"
+          />
+          <FieldRow
+            icon="Linkedin"
+            label="LinkedIn"
+            value={linkedin}
+            onChangeText={setLinkedin}
+            placeholder="alexander-wright"
+            autoCapitalize="none"
+            last
+          />
+        </FieldGroup>
 
-        {/* Gen Z Quick Add Platform Chips */}
+        {/* ── 4. Quick Add Platform Chips ── */}
         <View style={styles.chipSection}>
-          <AppText style={styles.chipHeader}>⚡ GEN Z QUICK LINKS</AppText>
+          <AppText style={styles.sectionLabel} weight="bold">QUICK CHANNELS</AppText>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipScroll}>
             {[
-              { label: 'TikTok', url: 'tiktok.com/@' },
-              { label: 'Spotify', url: 'open.spotify.com/user/' },
-              { label: 'YouTube', url: 'youtube.com/c/' },
-              { label: 'BeReal', url: 'bere.al/' },
+              { label: 'Telegram Channel', url: 't.me/' },
+              { label: 'LinkedIn Page', url: 'linkedin.com/in/' },
+              { label: 'Instagram', url: 'instagram.com/' },
+              { label: 'Portfolio URL', url: 'https://' },
             ].map((chip) => (
               <Pressable
                 key={chip.label}
                 onPress={() => addCustomLink(chip.label, chip.url)}
                 style={styles.chipBtn}
               >
-                <AddCircleBoldDuotone size={16} color="#007AFF" />
-                <AppText style={styles.chipText}>{chip.label}</AppText>
+                <AppIcon name="Plus" size={13} color="#FFFFFF" />
+                <AppText style={styles.chipText} weight="bold">{chip.label}</AppText>
               </Pressable>
             ))}
           </ScrollView>
         </View>
 
-        {/* ── Custom Links List ── */}
+        {/* ── 5. Custom Links List ── */}
         <View style={styles.sectionHeaderRow}>
-          <SectionLabel text="CUSTOM BIO LINKS" />
+          <SectionLabel text="CUSTOM LINKS" />
           <Pressable onPress={() => addCustomLink()} style={styles.addLinkBtn}>
-            <AppText style={styles.addLinkText}>+ Add Link</AppText>
+            <AppText style={styles.addLinkText} weight="bold">+ Add Link</AppText>
           </Pressable>
         </View>
+
         {customLinks.length > 0 ? (
-          <Group>
+          <FieldGroup>
             {customLinks.map((link, index) => (
-              <View key={`custom-link-${index}`} style={[styles.customLinkBlock, index === customLinks.length - 1 && styles.customLinkBlockLast]}>
+              <View
+                key={`custom-link-${index}`}
+                style={[
+                  styles.customLinkBlock,
+                  index === customLinks.length - 1 && styles.customLinkBlockLast,
+                ]}
+              >
                 <View style={styles.customLinkTop}>
-                  <AppText style={styles.customLinkTitle}>Link #{index + 1}</AppText>
+                  <AppText style={styles.customLinkTitle} weight="bold">Link #{index + 1}</AppText>
                   <Pressable onPress={() => removeCustomLink(index)} hitSlop={10}>
-                    <AppIcon name="X" size={17} color="#FF3B30" />
+                    <AppIcon name="X" size={16} color="rgba(255, 255, 255, 0.45)" />
                   </Pressable>
                 </View>
                 <TextInput
                   style={styles.customLinkInput}
                   value={link.label}
                   onChangeText={(value) => updateCustomLink(index, { label: value })}
-                  placeholder="Platform Name (e.g. TikTok, Portfolio)"
-                  placeholderTextColor="#C4CFDE"
+                  placeholder="Link Title (e.g. Schedule Call, Company Deck)"
+                  placeholderTextColor="rgba(255, 255, 255, 0.3)"
                 />
                 <TextInput
                   style={styles.customLinkInput}
                   value={link.url}
                   onChangeText={(value) => updateCustomLink(index, { url: value })}
-                  placeholder="URL link (e.g. tiktok.com/@yourprofile)"
-                  placeholderTextColor="#C4CFDE"
+                  placeholder="URL link (e.g. calendly.com/alexander)"
+                  placeholderTextColor="rgba(255, 255, 255, 0.3)"
                   keyboardType="url"
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
               </View>
             ))}
-          </Group>
-        ) : (
-          <Pressable onPress={() => addCustomLink()} style={styles.emptyLinkCard}>
-            <CopyBoldDuotone size={24} color="#007AFF" />
-            <View style={styles.emptyLinkCopy}>
-              <AppText style={styles.emptyLinkTitle}>Link Tree & Portfolio links</AppText>
-              <AppText style={styles.emptyLinkSub}>Tap to connect TikTok, portfolio booking, shop, or music feeds.</AppText>
-            </View>
-          </Pressable>
-        )}
+          </FieldGroup>
+        ) : null}
 
       </IosScrollView>
     </SafeAreaView>
@@ -440,74 +467,279 @@ export function EditBioScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, width: '100%', minHeight: '100vh' as any, backgroundColor: BG } as ViewStyle,
+  safe: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  scroll: {
+    paddingHorizontal: 20,
+    paddingTop: 6,
+    paddingBottom: 130, // Clearance for floating capsule dock
+    maxWidth: 540,
+    width: '100%',
+    alignSelf: 'center',
+    gap: 14,
+  },
 
-  header: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16, backgroundColor: BG } as ViewStyle,
-  navRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } as ViewStyle,
-  headerBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2 } as ViewStyle,
-  navSaveBtn: { minHeight: 36, justifyContent: 'center', paddingHorizontal: 4 } as ViewStyle,
-  navSaveText: { fontSize: 17, fontWeight: '800', color: '#007AFF' } as TextStyle,
-  largeTitle: { marginTop: 8, fontSize: 32, fontWeight: '900', color: INK, letterSpacing: -0.6 } as TextStyle,
-  headerSub: { marginTop: 4, fontSize: 14, fontWeight: '500', color: MUTED, lineHeight: 20 } as TextStyle,
+  // ── Header ──
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  navBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#121214',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navTitle: {
+    color: '#FFFFFF',
+    fontSize: 17,
+  },
+  doneBtn: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
+  doneBtnText: {
+    color: '#000000',
+    fontSize: 13,
+  },
 
-  scroll: { flexGrow: 1, width: '100%', maxWidth: 900, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 4, paddingBottom: 60, gap: 18 } as ViewStyle,
+  // ── Preview Container ──
+  previewContainer: {
+    width: '100%',
+    padding: 16,
+    borderRadius: 20,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    alignItems: 'center',
+    gap: 14,
+    marginVertical: 4,
+  },
+  phoneFrame: {
+    width: '100%',
+    borderRadius: 16,
+    backgroundColor: '#16161A',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 20,
+    alignItems: 'center',
+  },
+  phoneContent: {
+    width: '100%',
+    alignItems: 'center',
+    gap: 12,
+  },
+  avatarWrap: {
+    position: 'relative',
+  },
+  avatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  avatarFallback: {
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitial: {
+    fontSize: 28,
+    color: '#000000',
+  },
+  avatarBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarMeta: {
+    alignItems: 'center',
+    gap: 3,
+  },
+  avatarName: {
+    fontSize: 18,
+    color: '#FFFFFF',
+  },
+  avatarSub: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.55)',
+    textAlign: 'center',
+  },
+  previewSlug: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.4)',
+    letterSpacing: 0.5,
+    marginTop: 2,
+  },
+  previewLinksContainer: {
+    width: '100%',
+    gap: 6,
+    marginTop: 4,
+  },
+  previewLinkPill: {
+    width: '100%',
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: '#1C1C22',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+  },
+  previewLinkText: {
+    fontSize: 12,
+    color: '#FFFFFF',
+  },
+  photoBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#18181C',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  photoBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+  },
 
-  // Gen Z interactive completion progress card
-  progressCard: { padding: 20, borderRadius: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.1, shadowRadius: 18, elevation: 4 } as ViewStyle,
-  progHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 } as ViewStyle,
-  progTitle: { flex: 1, fontSize: 15, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.3 } as TextStyle,
-  progPct: { fontSize: 20, fontWeight: '900', color: '#38BDF8' } as TextStyle,
-  progressBarBg: { height: 6, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 99, marginVertical: 14, overflow: 'hidden' } as ViewStyle,
-  progressBarFill: { height: '100%', backgroundColor: '#38BDF8', borderRadius: 99 } as ViewStyle,
-  progHint: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.7)' } as TextStyle,
+  // ── Sections & Fields ──
+  sectionLabel: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 11,
+    letterSpacing: 1.2,
+    marginTop: 10,
+    marginLeft: 4,
+  },
+  fieldGroup: {
+    backgroundColor: '#111114',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    paddingHorizontal: 14,
+  },
+  fieldRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 13,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    gap: 12,
+  },
+  fieldRowLast: {
+    borderBottomWidth: 0,
+  },
+  fieldIconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: '#18181C',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fieldLabel: {
+    width: 80,
+    color: '#FFFFFF',
+    fontSize: 13,
+  },
+  fieldInput: {
+    flex: 1,
+    color: '#FFFFFF',
+    fontSize: 14,
+    padding: 0,
+  },
 
-  // Gen Z Live Phone Screen Mockup Container
-  previewContainer: { width: '100%', maxWidth: 840, alignSelf: 'center', padding: 18, borderRadius: 28, backgroundColor: SURFACE, borderWidth: 1, borderColor: BORDER, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 12, elevation: 2, alignItems: 'center', gap: 16 } as ViewStyle,
-  phoneFrame: { width: '100%', maxWidth: 520, minWidth: 0, alignSelf: 'center', minHeight: 280, borderRadius: 24, overflow: 'hidden', borderWidth: 3, borderColor: '#1F2937', position: 'relative', shadowColor: '#000000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.08, shadowRadius: 16, elevation: 4 } as ViewStyle,
-  phoneShine: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.06)', transform: [{ skewX: '-30deg' }, { scaleX: 1.5 }] } as ViewStyle,
-  phoneContent: { width: '100%', minWidth: 0, flex: 1, alignItems: 'center', padding: 24, gap: 14, justifyContent: 'center' } as ViewStyle,
-  previewSlug: { fontSize: 11, fontWeight: '800', color: 'rgba(255,255,255,0.85)', letterSpacing: 0.5, marginTop: 4 } as TextStyle,
-  previewLinksContainer: { width: '100%', gap: 8, marginTop: 8 } as ViewStyle,
-  previewLinkPill: { width: '100%', height: 38, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 16 } as ViewStyle,
-  previewLinkText: { fontSize: 12, fontWeight: '800', color: '#FFFFFF' } as TextStyle,
-  previewLinkPillPlaceholder: { width: '100%', height: 38, borderRadius: 999, borderStyle: 'dashed', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', alignItems: 'center', justifyContent: 'center' } as ViewStyle,
-  previewPlaceholderT: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.6)' } as TextStyle,
+  // ── Chips ──
+  chipSection: {
+    gap: 8,
+  },
+  chipScroll: {
+    gap: 8,
+  },
+  chipBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
+    backgroundColor: '#141418',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  chipText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+  },
 
-  // Avatar styles inside phone
-  avatarWrap: { position: 'relative' } as ViewStyle,
-  avatar: { width: 80, height: 80, borderRadius: 40, borderWidth: 3, borderColor: SURFACE, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 4 } as any,
-  avatarFallback: { backgroundColor: BRAND, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
-  avatarInitial: { fontSize: 32, fontWeight: '900', color: '#FFFFFF' } as TextStyle,
-  avatarBadge: { position: 'absolute', bottom: 0, right: 0, width: 26, height: 26, borderRadius: 13, backgroundColor: INK2, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#7C3AED' } as ViewStyle,
-  avatarMeta: { alignItems: 'center', gap: 2 } as ViewStyle,
-  avatarName: { fontSize: 20, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5 } as TextStyle,
-  avatarSub: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.8)', textAlign: 'center' } as TextStyle,
-  
-  // Actions under preview
-  previewActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, width: '100%', justifyContent: 'center' } as ViewStyle,
-  photoBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, backgroundColor: 'rgba(0,122,255,0.08)' } as ViewStyle,
-  photoBtnT: { fontSize: 13, fontWeight: '800', color: BRAND } as TextStyle,
-  previewLink: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, backgroundColor: '#F3F4F6', borderWidth: 1, borderColor: 'rgba(0,0,0,0.03)' } as ViewStyle,
-  previewLinkTextBtn: { fontSize: 13, fontWeight: '800', color: INK2 } as TextStyle,
-
-  chipSection: { gap: 10 } as ViewStyle,
-  chipHeader: { fontSize: 11, fontWeight: '800', color: MUTED, letterSpacing: 0.8 } as TextStyle,
-  chipScroll: { gap: 8 } as ViewStyle,
-  chipBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: SURFACE, borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)' } as ViewStyle,
-  chipText: { fontSize: 12, fontWeight: '800', color: INK2 } as TextStyle,
-
-  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 } as ViewStyle,
-  addLinkBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: 'rgba(0,122,255,0.08)' } as ViewStyle,
-  addLinkText: { fontSize: 12, fontWeight: '800', color: BRAND } as TextStyle,
-
-  customLinkBlock: { padding: 16, gap: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: BORDER } as ViewStyle,
-  customLinkBlockLast: { borderBottomWidth: 0 } as ViewStyle,
-  customLinkTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } as ViewStyle,
-  customLinkTitle: { fontSize: 13, fontWeight: '800', color: INK2 } as TextStyle,
-  customLinkInput: { minHeight: 44, borderRadius: 12, backgroundColor: '#F3F4F6', paddingHorizontal: 14, fontSize: 14, fontWeight: '600', color: INK } as TextStyle,
-
-  emptyLinkCard: { minHeight: 76, borderRadius: 24, backgroundColor: SURFACE, borderWidth: 1, borderColor: BORDER, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 } as ViewStyle,
-  emptyLinkCopy: { flex: 1, gap: 2 } as ViewStyle,
-  emptyLinkTitle: { fontSize: 15, fontWeight: '800', color: INK2, letterSpacing: -0.2 } as TextStyle,
-  emptyLinkSub: { fontSize: 12, fontWeight: '600', color: MUTED, lineHeight: 17 } as TextStyle,
+  // ── Custom Links ──
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
+    marginTop: 6,
+  },
+  addLinkBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  addLinkText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+  },
+  customLinkBlock: {
+    paddingVertical: 14,
+    gap: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  customLinkBlockLast: {
+    borderBottomWidth: 0,
+  },
+  customLinkTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  customLinkTitle: {
+    color: '#FFFFFF',
+    fontSize: 13,
+  },
+  customLinkInput: {
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#16161A',
+    paddingHorizontal: 12,
+    fontSize: 13,
+    color: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
 });
