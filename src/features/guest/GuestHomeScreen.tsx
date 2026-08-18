@@ -41,6 +41,7 @@ import { useBioPage } from '@/src/hooks/useBioPage';
 import type { Order } from '@/src/types/models';
 import { FAB } from '@/src/components/FAB';
 import { QuickActionModal } from '@/src/components/QuickActionModal';
+import { NfcBeamModal } from '@/src/components/NfcBeamModal';
 import { pageThemes } from '@/src/constants/pageThemes';
 
 // ─── Telegram-style Avatar Gradient helper ──────────────────────────────────
@@ -286,6 +287,7 @@ export function GuestHomeScreen() {
   const [showWaitlist, setShowWaitlist] = useState(false);
   const [waitlistEmail, setWaitlistEmail] = useState('');
   const [waitlistSent, setWaitlistSent] = useState(false);
+  const [showBeamModal, setShowBeamModal] = useState(false);
 
   const cardWidth = Math.min(screenWidth - 40, 380);
 
@@ -492,12 +494,15 @@ export function GuestHomeScreen() {
 
               {/* ── 4. Primary Executive CTA: Share Card & Beam ── */}
               <Pressable
-                onPress={() => { HapticTap.medium(); handleShare(); }}
+                onPress={() => {
+                  HapticTap.medium();
+                  setShowBeamModal(true);
+                }}
                 style={({ pressed }) => [styles.refinedShareBtn, pressed && styles.pressed]}
               >
-                <AppIcon name="ExternalLink" size={16} color="#000000" />
+                <AppIcon name="Nfc" size={18} color="#000000" />
                 <AppText style={styles.refinedShareText} weight="extrabold">
-                  Share Card & NFC Beam
+                  NFC Beam & Share Card
                 </AppText>
               </Pressable>
 
@@ -726,6 +731,20 @@ export function GuestHomeScreen() {
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* ── Immersive Fullscreen NFC Beam Mode ── */}
+      <NfcBeamModal
+        visible={showBeamModal}
+        onClose={() => setShowBeamModal(false)}
+        fullName={heroName || 'Alexander Wright'}
+        title={heroTitle || 'Founder & CEO · AVIO'}
+        cardId={cloudCard?.cardId ?? 'BC-NFC_JEWDVONG'}
+        url={
+          bioPage?.slug
+            ? `https://aviobrand.com/u/${bioPage.slug}`
+            : 'https://aviobrand.com/u/demo'
+        }
+      />
     </View>
   );
 }

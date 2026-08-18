@@ -13,6 +13,7 @@ export const appRoutes = {
   nfcDemo: '/nfc-demo',
   qrGenerator: '/qr-generator',
   studio: '/studio',
+  walletPass: '/wallet-pass',
   guestAnalytics: '/guest-analytics',
   guestDesign: '/cards/design',
   guestCardPreview: '/cards/preview/[cardId]',

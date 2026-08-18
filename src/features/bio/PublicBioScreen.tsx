@@ -19,6 +19,7 @@ import {
   Pressable,
   Share,
   StyleSheet,
+  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -39,7 +40,9 @@ import { trackPublicBioTap, trackPublicBioView } from '@/src/services/firestoreS
 import {
   notifyCardOwnerOfView,
   notifyCardOwnerOfSave,
+  notifyCardOwnerOfLeadCapture,
 } from '@/src/services/cardViewNotificationService';
+import { captureLead } from '@/src/services/leadService';
 import type { BioPage } from '@/src/types/models';
 import { HapticTap } from '@/src/utils/haptics';
 
@@ -81,6 +84,14 @@ export function PublicBioScreen({ slug, cardId }: Props) {
   const [resolvedCardId, setResolvedCardId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(true);
   const [showQrModal, setShowQrModal] = useState(false);
+  const [showExchangeModal, setShowExchangeModal] = useState(false);
+  const [leadName, setLeadName] = useState('');
+  const [leadEmail, setLeadEmail] = useState('');
+  const [leadPhone, setLeadPhone] = useState('');
+  const [leadCompany, setLeadCompany] = useState('');
+  const [leadNote, setLeadNote] = useState('');
+  const [leadSubmitting, setLeadSubmitting] = useState(false);
+  const [leadSuccess, setLeadSuccess] = useState(false);
 
   // Load bio data with multi-layer fallback
   useEffect(() => {
@@ -191,6 +202,44 @@ export function PublicBioScreen({ slug, cardId }: Props) {
     // Notify card owner their contact was saved (non-blocking)
     if (bioPage?.userId && bioPage.userId !== 'guest') {
       void notifyCardOwnerOfSave(bioPage.userId).catch(() => undefined);
+    }
+  }
+
+  async function handleExchangeContactSubmit() {
+    if (!leadName.trim()) return;
+    setLeadSubmitting(true);
+    try {
+      const ownerId = bioPage?.userId || 'guest';
+      await captureLead({
+        profileId: bioPage?.id || slug || 'unknown',
+        ownerUserId: ownerId,
+        name: leadName.trim(),
+        email: leadEmail.trim() || undefined,
+        phone: leadPhone.trim() || undefined,
+        company: leadCompany.trim() || undefined,
+        note: leadNote.trim() || undefined,
+      });
+
+      // Send instant push notification to card owner
+      if (ownerId !== 'guest') {
+        void notifyCardOwnerOfLeadCapture(ownerId, leadName.trim(), leadCompany.trim() || undefined);
+      }
+
+      setLeadSuccess(true);
+      HapticTap.heavy();
+      setTimeout(() => {
+        setShowExchangeModal(false);
+        setLeadSuccess(false);
+        setLeadName('');
+        setLeadEmail('');
+        setLeadPhone('');
+        setLeadCompany('');
+        setLeadNote('');
+      }, 2500);
+    } catch (err) {
+      console.error('Failed to submit contact exchange:', err);
+    } finally {
+      setLeadSubmitting(false);
     }
   }
 
@@ -312,16 +361,31 @@ export function PublicBioScreen({ slug, cardId }: Props) {
               </AppText>
             </View>
 
-            {/* ── 2. Primary Executive Action: Save Contact ── */}
-            <Pressable
-              onPress={() => void handleSaveContact()}
-              style={({ pressed }) => [styles.saveContactBtn, pressed && styles.pressed]}
-            >
-              <AppIcon name="UserPlus" size={17} color="#000000" />
-              <AppText style={styles.saveContactBtnText} weight="extrabold">
-                Save to Contacts
-              </AppText>
-            </Pressable>
+            {/* ── 2. Primary Executive Actions: Save Contact & Exchange Contact ── */}
+            <View style={styles.actionButtonsCol}>
+              <Pressable
+                onPress={() => void handleSaveContact()}
+                style={({ pressed }) => [styles.saveContactBtn, pressed && styles.pressed]}
+              >
+                <AppIcon name="UserPlus" size={17} color="#000000" />
+                <AppText style={styles.saveContactBtnText} weight="extrabold">
+                  Save to Contacts
+                </AppText>
+              </Pressable>
+
+              <Pressable
+                onPress={() => {
+                  HapticTap.medium();
+                  setShowExchangeModal(true);
+                }}
+                style={({ pressed }) => [styles.exchangeContactBtn, pressed && styles.pressed]}
+              >
+                <AppIcon name="Users" size={16} color="#FFFFFF" />
+                <AppText style={styles.exchangeContactBtnText} weight="extrabold">
+                  Exchange Contact with {bioPage.displayName.split(' ')[0]}
+                </AppText>
+              </Pressable>
+            </View>
 
             {/* ── 3. Quick Connect Action Bar ── */}
             <View style={styles.quickConnectRow}>
@@ -453,6 +517,116 @@ export function PublicBioScreen({ slug, cardId }: Props) {
             <AppText style={styles.qrSubText}>Scan with phone camera to connect</AppText>
           </View>
         </View>
+      </Modal>
+
+      {/* ── Exchange Contact Bottom Sheet Modal ── */}
+      <Modal visible={showExchangeModal} animationType="slide" transparent>
+        <Pressable style={styles.exchangeOverlay} onPress={() => setShowExchangeModal(false)}>
+          <Pressable style={styles.exchangeCard} onPress={() => {}}>
+            <View style={styles.exchangeHandle} />
+            
+            <View style={styles.exchangeHeaderRow}>
+              <View style={styles.exchangeIconBox}>
+                <AppIcon name="Users" size={20} color="#FFFFFF" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <AppText style={styles.exchangeModalTitle} weight="extrabold">
+                  Exchange Contact
+                </AppText>
+                <AppText style={styles.exchangeModalSub}>
+                  Send your details directly to {bioPage.displayName.split(' ')[0]}
+                </AppText>
+              </View>
+              <Pressable onPress={() => setShowExchangeModal(false)} style={styles.closeBtn} hitSlop={10}>
+                <AppIcon name="X" size={18} color="rgba(255,255,255,0.6)" />
+              </Pressable>
+            </View>
+
+            {leadSuccess ? (
+              <View style={styles.exchangeSuccessBox}>
+                <View style={styles.exchangeSuccessIcon}>
+                  <AppIcon name="Check" size={24} color="#000000" />
+                </View>
+                <AppText style={styles.exchangeSuccessTitle} weight="extrabold">
+                  Contact Exchanged!
+                </AppText>
+                <AppText style={styles.exchangeSuccessSub}>
+                  Your info was sent directly to {bioPage.displayName.split(' ')[0]}'s private CRM.
+                </AppText>
+              </View>
+            ) : (
+              <View style={styles.exchangeForm}>
+                <View style={styles.inputWrap}>
+                  <AppText style={styles.inputLabel} weight="bold">Full Name *</AppText>
+                  <TextInput
+                    style={styles.textInput}
+                    value={leadName}
+                    onChangeText={setLeadName}
+                    placeholder="e.g. Sarah Jenkins"
+                    placeholderTextColor="rgba(255,255,255,0.3)"
+                    autoCapitalize="words"
+                  />
+                </View>
+
+                <View style={styles.inputWrap}>
+                  <AppText style={styles.inputLabel} weight="bold">Email or Phone *</AppText>
+                  <TextInput
+                    style={styles.textInput}
+                    value={leadEmail || leadPhone}
+                    onChangeText={(val) => {
+                      if (val.includes('@')) {
+                        setLeadEmail(val);
+                      } else {
+                        setLeadPhone(val);
+                      }
+                    }}
+                    placeholder="sarah@company.com or +1 555-0199"
+                    placeholderTextColor="rgba(255,255,255,0.3)"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
+
+                <View style={styles.inputWrap}>
+                  <AppText style={styles.inputLabel} weight="bold">Company / Role (Optional)</AppText>
+                  <TextInput
+                    style={styles.textInput}
+                    value={leadCompany}
+                    onChangeText={setLeadCompany}
+                    placeholder="Partner @ Apex Capital"
+                    placeholderTextColor="rgba(255,255,255,0.3)"
+                    autoCapitalize="words"
+                  />
+                </View>
+
+                <View style={styles.inputWrap}>
+                  <AppText style={styles.inputLabel} weight="bold">Quick Note (Optional)</AppText>
+                  <TextInput
+                    style={styles.textInput}
+                    value={leadNote}
+                    onChangeText={setLeadNote}
+                    placeholder="e.g. Met at tech conference"
+                    placeholderTextColor="rgba(255,255,255,0.3)"
+                  />
+                </View>
+
+                <Pressable
+                  onPress={() => void handleExchangeContactSubmit()}
+                  disabled={!leadName.trim() || leadSubmitting}
+                  style={({ pressed }) => [
+                    styles.sendContactBtn,
+                    (!leadName.trim() || leadSubmitting) && styles.btnDisabled,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <AppText style={styles.sendContactBtnText} weight="extrabold">
+                    {leadSubmitting ? 'Sending...' : 'Send My Contact →'}
+                  </AppText>
+                </Pressable>
+              </View>
+            )}
+          </Pressable>
+        </Pressable>
       </Modal>
     </View>
   );
@@ -833,5 +1007,135 @@ const styles = StyleSheet.create({
   backBtnText: {
     color: '#000000',
     fontSize: 14,
+  },
+
+  // ── Executive Action Buttons ──
+  actionButtonsCol: {
+    width: '100%',
+    gap: 8,
+  },
+  exchangeContactBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#18181C',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    paddingVertical: 13,
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  exchangeContactBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+
+  // ── Exchange Modal ──
+  exchangeOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    justifyContent: 'flex-end',
+  },
+  exchangeCard: {
+    backgroundColor: '#111114',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 24,
+    paddingBottom: 40,
+    gap: 16,
+    maxWidth: 540,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  exchangeHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignSelf: 'center',
+  },
+  exchangeHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  exchangeIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  exchangeModalTitle: {
+    color: '#FFFFFF',
+    fontSize: 17,
+  },
+  exchangeModalSub: {
+    color: 'rgba(255, 255, 255, 0.55)',
+    fontSize: 12,
+  },
+  exchangeForm: {
+    gap: 12,
+  },
+  inputWrap: {
+    gap: 6,
+  },
+  inputLabel: {
+    color: 'rgba(255, 255, 255, 0.65)',
+    fontSize: 12,
+  },
+  textInput: {
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#18181C',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 14,
+    color: '#FFFFFF',
+    fontSize: 15,
+  },
+  sendContactBtn: {
+    height: 50,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 6,
+  },
+  sendContactBtnText: {
+    color: '#000000',
+    fontSize: 15,
+  },
+  btnDisabled: {
+    opacity: 0.4,
+  },
+  exchangeSuccessBox: {
+    alignItems: 'center',
+    paddingVertical: 24,
+    gap: 10,
+  },
+  exchangeSuccessIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  exchangeSuccessTitle: {
+    color: '#FFFFFF',
+    fontSize: 19,
+  },
+  exchangeSuccessSub: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 13,
+    textAlign: 'center',
+    paddingHorizontal: 16,
   },
 });

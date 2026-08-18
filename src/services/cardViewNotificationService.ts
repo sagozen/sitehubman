@@ -100,3 +100,35 @@ export async function notifyCardOwnerOfSave(ownerUserId: string): Promise<void> 
     // Silent fail
   }
 }
+
+/**
+ * Call this when a visitor sends their contact details back via Exchange Contact.
+ * High-value alert that notifies the owner of a newly captured warm lead!
+ */
+export async function notifyCardOwnerOfLeadCapture(
+  ownerUserId: string,
+  leadName: string,
+  company?: string
+): Promise<void> {
+  if (!ownerUserId || ownerUserId === 'guest') return;
+
+  try {
+    const userSnap = await getDoc(doc(db, firebaseCollections.users, ownerUserId));
+    if (!userSnap.exists()) return;
+
+    const token = userSnap.data()?.expoPushToken as string | undefined;
+    if (!token || !token.startsWith('ExponentPushToken[')) return;
+
+    const companyPart = company?.trim() ? ` from ${company.trim()}` : '';
+    await sendExpoPush({
+      to: token,
+      title: `⚡ New Lead: ${leadName}`,
+      body: `${leadName}${companyPart} just shared their contact with you! Tap to view details.`,
+      sound: 'default',
+      priority: 'high',
+      data: { screen: 'connections', event: 'lead_captured' },
+    });
+  } catch {
+    // Silent fail
+  }
+}

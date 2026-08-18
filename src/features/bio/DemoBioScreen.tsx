@@ -13,6 +13,7 @@ import {
   Pressable,
   Share,
   StyleSheet,
+  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -35,6 +36,10 @@ const DEMO_SOCIALS = [
 
 export function DemoBioScreen() {
   const [showQrModal, setShowQrModal] = useState(false);
+  const [showExchangeModal, setShowExchangeModal] = useState(false);
+  const [leadName, setLeadName] = useState('');
+  const [leadEmail, setLeadEmail] = useState('');
+  const [leadSuccess, setLeadSuccess] = useState(false);
 
   async function handleSaveContact() {
     HapticTap.medium();
@@ -105,16 +110,31 @@ export function DemoBioScreen() {
               <AppText style={styles.slugBadge}>aviobrand.com/u/demo</AppText>
             </View>
 
-            {/* Save Contact CTA */}
-            <Pressable
-              onPress={() => void handleSaveContact()}
-              style={({ pressed }) => [styles.saveContactBtn, pressed && styles.pressed]}
-            >
-              <AppIcon name="UserPlus" size={17} color="#000000" />
-              <AppText style={styles.saveContactBtnText} weight="extrabold">
-                Save to Contacts
-              </AppText>
-            </Pressable>
+            {/* Save Contact & Exchange Contact CTAs */}
+            <View style={{ width: '100%', gap: 8 }}>
+              <Pressable
+                onPress={() => void handleSaveContact()}
+                style={({ pressed }) => [styles.saveContactBtn, pressed && styles.pressed]}
+              >
+                <AppIcon name="UserPlus" size={17} color="#000000" />
+                <AppText style={styles.saveContactBtnText} weight="extrabold">
+                  Save to Contacts
+                </AppText>
+              </Pressable>
+
+              <Pressable
+                onPress={() => {
+                  HapticTap.medium();
+                  setShowExchangeModal(true);
+                }}
+                style={({ pressed }) => [styles.exchangeBtn, pressed && styles.pressed]}
+              >
+                <AppIcon name="Users" size={16} color="#FFFFFF" />
+                <AppText style={styles.exchangeBtnText} weight="extrabold">
+                  Exchange Contact with Alex
+                </AppText>
+              </Pressable>
+            </View>
 
             {/* Quick Connect Row */}
             <View style={styles.quickRow}>
@@ -209,6 +229,86 @@ export function DemoBioScreen() {
             <AppText style={styles.qrSub}>Scan to connect</AppText>
           </View>
         </View>
+      </Modal>
+
+      {/* Exchange Contact Bottom Sheet Modal */}
+      <Modal visible={showExchangeModal} animationType="slide" transparent>
+        <Pressable style={styles.exchangeOverlay} onPress={() => setShowExchangeModal(false)}>
+          <Pressable style={styles.exchangeCard} onPress={() => {}}>
+            <View style={styles.exchangeHandle} />
+            <View style={styles.exchangeHeader}>
+              <View style={styles.exchangeIconBox}>
+                <AppIcon name="Users" size={20} color="#FFFFFF" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <AppText style={styles.exchangeTitle} weight="extrabold">Exchange Contact</AppText>
+                <AppText style={styles.exchangeSub}>Send your info to Alex's private CRM</AppText>
+              </View>
+              <Pressable onPress={() => setShowExchangeModal(false)} hitSlop={10}>
+                <AppIcon name="X" size={18} color="rgba(255,255,255,0.6)" />
+              </Pressable>
+            </View>
+
+            {leadSuccess ? (
+              <View style={styles.exchangeSuccessBox}>
+                <View style={styles.exchangeSuccessIcon}>
+                  <AppIcon name="Check" size={22} color="#000000" />
+                </View>
+                <AppText style={styles.exchangeSuccessTitle} weight="extrabold">Contact Sent!</AppText>
+                <AppText style={styles.exchangeSuccessSub}>Your details were sent to Alex.</AppText>
+              </View>
+            ) : (
+              <View style={styles.exchangeForm}>
+                <View style={styles.inputWrap}>
+                  <AppText style={styles.inputLabel} weight="bold">Your Name *</AppText>
+                  <TextInput
+                    style={styles.textInput}
+                    value={leadName}
+                    onChangeText={setLeadName}
+                    placeholder="e.g. Sarah Jenkins"
+                    placeholderTextColor="rgba(255,255,255,0.3)"
+                    autoCapitalize="words"
+                  />
+                </View>
+
+                <View style={styles.inputWrap}>
+                  <AppText style={styles.inputLabel} weight="bold">Email or Phone *</AppText>
+                  <TextInput
+                    style={styles.textInput}
+                    value={leadEmail}
+                    onChangeText={setLeadEmail}
+                    placeholder="sarah@company.com"
+                    placeholderTextColor="rgba(255,255,255,0.3)"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
+
+                <Pressable
+                  onPress={() => {
+                    if (!leadName.trim()) return;
+                    HapticTap.heavy();
+                    setLeadSuccess(true);
+                    setTimeout(() => {
+                      setShowExchangeModal(false);
+                      setLeadSuccess(false);
+                      setLeadName('');
+                      setLeadEmail('');
+                    }, 2000);
+                  }}
+                  disabled={!leadName.trim()}
+                  style={({ pressed }) => [
+                    styles.sendBtn,
+                    !leadName.trim() && { opacity: 0.4 },
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <AppText style={styles.sendBtnText} weight="extrabold">Send Contact →</AppText>
+                </Pressable>
+              </View>
+            )}
+          </Pressable>
+        </Pressable>
       </Modal>
     </View>
   );
@@ -319,4 +419,44 @@ const styles = StyleSheet.create({
   },
   qrName: { color: '#FFFFFF', fontSize: 18 },
   qrSub: { color: 'rgba(255,255,255,0.5)', fontSize: 13, paddingBottom: 16 },
+
+  // Exchange styles
+  exchangeBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: '#18181C', borderRadius: 14, borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)', paddingVertical: 13, paddingHorizontal: 20, width: '100%',
+  },
+  exchangeBtnText: { color: '#FFFFFF', fontSize: 14 },
+  exchangeOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'flex-end' },
+  exchangeCard: {
+    backgroundColor: '#111114', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', padding: 24, paddingBottom: 40,
+    gap: 16, maxWidth: 540, width: '100%', alignSelf: 'center',
+  },
+  exchangeHandle: {
+    width: 36, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.2)', alignSelf: 'center',
+  },
+  exchangeHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  exchangeIconBox: {
+    width: 40, height: 40, borderRadius: 12, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center',
+  },
+  exchangeTitle: { color: '#FFFFFF', fontSize: 17 },
+  exchangeSub: { color: 'rgba(255,255,255,0.55)', fontSize: 12 },
+  exchangeForm: { gap: 12 },
+  inputWrap: { gap: 6 },
+  inputLabel: { color: 'rgba(255,255,255,0.65)', fontSize: 12 },
+  textInput: {
+    height: 48, borderRadius: 12, backgroundColor: '#18181C', borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 14, color: '#FFFFFF', fontSize: 15,
+  },
+  sendBtn: {
+    height: 50, borderRadius: 14, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', marginTop: 6,
+  },
+  sendBtnText: { color: '#000000', fontSize: 15 },
+  exchangeSuccessBox: { alignItems: 'center', paddingVertical: 24, gap: 10 },
+  exchangeSuccessIcon: {
+    width: 52, height: 52, borderRadius: 26, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', marginBottom: 6,
+  },
+  exchangeSuccessTitle: { color: '#FFFFFF', fontSize: 19 },
+  exchangeSuccessSub: { color: 'rgba(255,255,255,0.6)', fontSize: 13, textAlign: 'center' },
 });
