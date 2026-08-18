@@ -43,6 +43,9 @@ import { FAB } from '@/src/components/FAB';
 import { QuickActionModal } from '@/src/components/QuickActionModal';
 import { NfcBeamModal } from '@/src/components/NfcBeamModal';
 import { LiveActivityRadar } from '@/src/components/LiveActivityRadar';
+import { LuxuryBentoGrid } from '@/src/components/LuxuryBentoGrid';
+import { WeeklyActivitySparkline } from '@/src/components/WeeklyActivitySparkline';
+import { DailyNetworkingPrompt } from '@/src/components/DailyNetworkingPrompt';
 import { PersonaModeSwitcher, type PersonaMode } from '@/src/components/PersonaModeSwitcher';
 import { TestTapSimulatorCard } from '@/src/components/TestTapSimulatorCard';
 import { computeUserPrestige } from '@/src/services/prestigeTierService';
@@ -524,49 +527,32 @@ export function GuestHomeScreen() {
                 </Pressable>
               )}
 
-              {/* ── 6. Primary Executive CTA: Share Card & Beam ── */}
-              <Pressable
-                onPress={() => {
-                  HapticTap.medium();
+              {/* ── 6. 2x2 High-Contrast Luxury Bento Grid ── */}
+              <LuxuryBentoGrid
+                onPressBeam={() => {
                   setShowBeamModal(true);
                 }}
-                style={({ pressed }) => [styles.refinedShareBtn, pressed && styles.pressed]}
-              >
-                <AppIcon name="Nfc" size={18} color="#000000" />
-                <AppText style={styles.refinedShareText} weight="extrabold">
-                  NFC Beam & Share Card
-                </AppText>
-              </Pressable>
+                onPressWallet={() => {
+                  router.push('/wallet-pass' as any);
+                }}
+                onPressLeads={() => {
+                  router.push('/connections' as any);
+                }}
+                onPressStudio={() => {
+                  router.push(appRoutes.guestDesign as Href);
+                }}
+                leadsCount={insights?.totalOrders ? insights.totalOrders + 2 : 3}
+              />
 
-              {/* ── 4. Executive Command Trio (Quiet & Refined) ── */}
-              <View style={styles.secondaryActionRow}>
-                <Pressable
-                  onPress={() => { HapticTap.medium(); router.push('/profile' as any); }}
-                  style={({ pressed }) => [styles.secondaryActionBtn, pressed && styles.pressed]}
-                >
-                  <AppIcon name="User" size={14} color="rgba(255,255,255,0.8)" />
-                  <AppText style={styles.secondaryActionText} weight="bold">Executive Bio</AppText>
-                </Pressable>
-                <Pressable
-                  onPress={() => { HapticTap.medium(); router.push(appRoutes.guestDesign as Href); }}
-                  style={({ pressed }) => [styles.secondaryActionBtn, pressed && styles.pressed]}
-                >
-                  <AppIcon name="Sparkles" size={14} color="rgba(255,255,255,0.8)" />
-                  <AppText style={styles.secondaryActionText} weight="bold">Card Studio</AppText>
-                </Pressable>
-                <Pressable
-                  onPress={() => { HapticTap.medium(); router.push('/connections' as any); }}
-                  style={({ pressed }) => [styles.secondaryActionBtn, pressed && styles.pressed]}
-                >
-                  <AppIcon name="Users" size={14} color="rgba(255,255,255,0.8)" />
-                  <AppText style={styles.secondaryActionText} weight="bold">CRM Leads</AppText>
-                </Pressable>
-              </View>
+              {/* ── 7. 7-Day Networking Activity Pulse ── */}
+              <WeeklyActivitySparkline
+                totalTaps={bioPage?.taps ?? 0}
+                onPress={() => {
+                  router.push('/connections' as any);
+                }}
+              />
 
-              {/* ── Divider ── */}
-              <View style={styles.hairlineDivider} />
-
-              {/* ── 5. Live Activity Radar Feed (Active Networking Pulse) ── */}
+              {/* ── 8. Live Activity Radar Feed (Active Networking Pulse) ── */}
               <LiveActivityRadar
                 totalTaps={bioPage?.taps ?? 0}
                 totalViews={bioPage?.views ?? 0}
@@ -575,36 +561,12 @@ export function GuestHomeScreen() {
                 }}
               />
 
-              {/* ── 6. Executive Presence & Analytics Intelligence ── */}
-              <View style={styles.infoSection}>
-                <View style={styles.infoHeader}>
-                  <AppText style={styles.infoTitle} weight="extrabold">Executive Presence & Intelligence</AppText>
-                  <AppText style={styles.infoCardCode}>Active Smart Pass · {cloudCard?.cardId ?? 'BC-NFC_JEWDVONG'}</AppText>
-                </View>
-
-                <View style={styles.metricsRow}>
-                  <View style={styles.metricItem}>
-                    <AppText style={styles.metricValue} weight="extrabold">
-                      {bioPage?.taps ?? 0}
-                    </AppText>
-                    <AppText style={styles.metricLabel}>NFC Taps</AppText>
-                  </View>
-
-                  <View style={styles.metricItem}>
-                    <AppText style={styles.metricValue} weight="extrabold">
-                      {bioPage?.views ?? 0}
-                    </AppText>
-                    <AppText style={styles.metricLabel}>Bio Views</AppText>
-                  </View>
-
-                  <View style={styles.metricItem}>
-                    <AppText style={styles.metricValue} weight="extrabold">
-                      {insights?.totalOrders ?? 0}
-                    </AppText>
-                    <AppText style={styles.metricLabel}>Orders</AppText>
-                  </View>
-                </View>
-              </View>
+              {/* ── 9. Daily Executive Networking Focus ── */}
+              <DailyNetworkingPrompt
+                onPress={() => {
+                  setShowBeamModal(true);
+                }}
+              />
 
               {/* ── Divider ── */}
               <View style={styles.hairlineDivider} />
