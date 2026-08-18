@@ -42,6 +42,8 @@ import type { Order } from '@/src/types/models';
 import { FAB } from '@/src/components/FAB';
 import { QuickActionModal } from '@/src/components/QuickActionModal';
 import { NfcBeamModal } from '@/src/components/NfcBeamModal';
+import { LiveActivityRadar } from '@/src/components/LiveActivityRadar';
+import { computeUserPrestige } from '@/src/services/prestigeTierService';
 import { pageThemes } from '@/src/constants/pageThemes';
 
 // ─── Telegram-style Avatar Gradient helper ──────────────────────────────────
@@ -384,6 +386,12 @@ export function GuestHomeScreen() {
   const nextStep = useMemo(() => profileSteps.find((s) => !s.done), [profileSteps]);
   const profileComplete = profileScore === 100;
 
+  // ── Executive Prestige Tier Stats ──────────────────────────────────
+  const prestigeStats = useMemo(() => {
+    const totalCount = (bioPage?.taps || 0) + (insights?.totalOrders || 0);
+    return computeUserPrestige(totalCount);
+  }, [bioPage?.taps, insights?.totalOrders]);
+
   return (
     <View style={styles.root}>
       {/* Low opacity ambient brand collage background */}
@@ -424,7 +432,11 @@ export function GuestHomeScreen() {
                     </View>
                   )}
                   <View style={styles.executiveTitles}>
-                    <AppText style={styles.executiveEyebrow} weight="bold">EXECUTIVE WORKSPACE</AppText>
+                    <View style={styles.prestigePill}>
+                      <AppText style={styles.prestigePillText} weight="bold">
+                        {prestigeStats.currentTier.badge} {prestigeStats.currentTier.name.toUpperCase()}
+                      </AppText>
+                    </View>
                     <AppText style={styles.greetingName} weight="extrabold">
                       {heroName || 'Executive Member'}
                     </AppText>
@@ -534,7 +546,16 @@ export function GuestHomeScreen() {
               {/* ── Divider ── */}
               <View style={styles.hairlineDivider} />
 
-              {/* ── 5. Executive Presence & Analytics Intelligence ── */}
+              {/* ── 5. Live Activity Radar Feed (Active Networking Pulse) ── */}
+              <LiveActivityRadar
+                totalTaps={bioPage?.taps ?? 0}
+                totalViews={bioPage?.views ?? 0}
+                onPressItem={() => {
+                  router.push('/connections' as any);
+                }}
+              />
+
+              {/* ── 6. Executive Presence & Analytics Intelligence ── */}
               <View style={styles.infoSection}>
                 <View style={styles.infoHeader}>
                   <AppText style={styles.infoTitle} weight="extrabold">Executive Presence & Intelligence</AppText>
@@ -816,6 +837,21 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.45)',
     fontSize: 10,
     letterSpacing: 1.2,
+  },
+  prestigePill: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: '#18181C',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    alignSelf: 'flex-start',
+    marginBottom: 2,
+  },
+  prestigePillText: {
+    color: '#E5E5EA',
+    fontSize: 9,
+    letterSpacing: 1,
   },
   greetingAvatarImg: {
     width: 44,
