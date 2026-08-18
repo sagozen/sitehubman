@@ -106,6 +106,8 @@ export function EditBioScreen() {
   const [linkedin, setLinkedin] = useState('');
   const [twitter, setTwitter] = useState('');
   const [facebook, setFacebook] = useState('');
+  const [bookingUrl, setBookingUrl] = useState('');
+  const [selectedTheme, setSelectedTheme] = useState<BioPage['theme']>('tech_noir');
   const [customLinks, setCustomLinks] = useState<CustomLinkDraft[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
@@ -124,6 +126,8 @@ export function EditBioScreen() {
     setLinkedin(bioPage.linkedin ?? '');
     setTwitter(bioPage.twitter ?? '');
     setFacebook(bioPage.facebook ?? '');
+    setBookingUrl(bioPage.bookingUrl ?? '');
+    setSelectedTheme(bioPage.theme ?? 'tech_noir');
     setCustomLinks(bioPage.customLinks?.length ? bioPage.customLinks : []);
     setPhotoUrl(bioPage.photoUrl);
   }, [bioPage]);
@@ -202,8 +206,9 @@ export function EditBioScreen() {
         linkedin: linkedin.trim() || undefined,
         twitter: twitter.trim() || undefined,
         facebook: facebook.trim() || undefined,
+        bookingUrl: bookingUrl.trim() || undefined,
         customLinks: customLinks.filter((l) => l.label.trim() && l.url.trim()),
-        theme: bioPage?.theme ?? 'tech_noir',
+        theme: selectedTheme,
         photoUrl,
       });
       Alert.alert('Saved', 'Your digital profile has been updated.');
@@ -244,6 +249,42 @@ export function EditBioScreen() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
+        {/* ── Theme Selector ── */}
+        <View style={styles.themeSelectorWrap}>
+          <AppText style={styles.sectionLabel} weight="bold">BIO THEME</AppText>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.themeScroll}>
+            {[
+              { id: 'tech_noir' as const, label: 'Tech Noir', emoji: '⚫' },
+              { id: 'editorial' as const, label: 'Editorial', emoji: '📰' },
+              { id: 'ocean_wave' as const, label: 'Ocean Wave', emoji: '🌊' },
+              { id: 'vibrant_pink' as const, label: 'Cyber Pink', emoji: '🌸' },
+            ].map((t) => {
+              const active = selectedTheme === t.id;
+              return (
+                <Pressable
+                  key={t.id}
+                  onPress={() => {
+                    HapticTap.light();
+                    setSelectedTheme(t.id);
+                  }}
+                  style={[
+                    styles.themePill,
+                    active && styles.themePillActive,
+                  ]}
+                >
+                  <AppText style={styles.themeEmoji}>{t.emoji}</AppText>
+                  <AppText
+                    style={[styles.themeLabel, active && styles.themeLabelActive]}
+                    weight="extrabold"
+                  >
+                    {t.label}
+                  </AppText>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
+
         {/* ── Live Phone Identity Preview (Apple Wallet Style) ── */}
         <View style={styles.previewContainer}>
           <View style={styles.phoneFrame}>
@@ -359,6 +400,15 @@ export function EditBioScreen() {
             placeholder="sitehubman.app"
             keyboardType="url"
             autoCapitalize="none"
+          />
+          <FieldRow
+            icon="Calendar"
+            label="Meeting"
+            value={bookingUrl}
+            onChangeText={setBookingUrl}
+            placeholder="calendly.com/your-name"
+            keyboardType="url"
+            autoCapitalize="none"
             last
           />
         </FieldGroup>
@@ -389,6 +439,14 @@ export function EditBioScreen() {
             onChangeText={setLinkedin}
             placeholder="alexander-wright"
             autoCapitalize="none"
+          />
+          <FieldRow
+            icon="Twitter"
+            label="X / Twitter"
+            value={twitter}
+            onChangeText={setTwitter}
+            placeholder="@alexander"
+            autoCapitalize="none"
             last
           />
         </FieldGroup>
@@ -398,9 +456,12 @@ export function EditBioScreen() {
           <AppText style={styles.sectionLabel} weight="bold">QUICK CHANNELS</AppText>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipScroll}>
             {[
-              { label: 'Telegram Channel', url: 't.me/' },
-              { label: 'LinkedIn Page', url: 'linkedin.com/in/' },
-              { label: 'Instagram', url: 'instagram.com/' },
+              { label: 'Telegram Channel', url: 'https://t.me/' },
+              { label: 'LinkedIn Page', url: 'https://linkedin.com/in/' },
+              { label: 'Instagram', url: 'https://instagram.com/' },
+              { label: 'YouTube', url: 'https://youtube.com/@' },
+              { label: 'TikTok', url: 'https://tiktok.com/@' },
+              { label: 'Spotify', url: 'https://open.spotify.com/' },
               { label: 'Portfolio URL', url: 'https://' },
             ].map((chip) => (
               <Pressable
@@ -741,5 +802,44 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+
+  // ── Theme Selector ──
+  themeSelectorWrap: {
+    gap: 8,
+    marginBottom: 6,
+  },
+  themeScroll: {
+    gap: 8,
+    paddingVertical: 4,
+  },
+  themePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 14,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  themePillActive: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+  },
+  themeEmoji: {
+    fontSize: 13,
+  },
+  themeLabel: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 12,
+  },
+  themeLabelActive: {
+    color: '#000000',
   },
 });
