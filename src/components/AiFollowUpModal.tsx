@@ -103,14 +103,19 @@ export function AiFollowUpModal({
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.iconBox}>
-              <AppIcon name="Sparkles" size={20} color="#FFFFFF" />
+              <AppIcon name="Sparkles" size={20} color="#FFD60A" />
             </View>
             <View style={{ flex: 1 }}>
-              <AppText style={styles.title} weight="extrabold">
-                AI 1-Tap Follow-Up
-              </AppText>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <AppText style={styles.title} weight="extrabold">
+                  AI 1-Tap Follow-Up
+                </AppText>
+                <View style={styles.proBadge}>
+                  <AppText style={styles.proBadgeText} weight="extrabold">PREVIEW</AppText>
+                </View>
+              </View>
               <AppText style={styles.subtitle}>
-                Personalized icebreaker for {recipientName}
+                Instant executive icebreaker for {recipientName}
               </AppText>
             </View>
             <Pressable onPress={onClose} style={styles.closeBtn} hitSlop={10}>
@@ -241,6 +246,19 @@ const styles = StyleSheet.create({
   title: {
     color: '#FFFFFF',
     fontSize: 17,
+  },
+  proBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: '#3A2E0E',
+    borderWidth: 1,
+    borderColor: '#FFD60A',
+  },
+  proBadgeText: {
+    color: '#FFD60A',
+    fontSize: 9,
+    letterSpacing: 0.8,
   },
   subtitle: {
     color: 'rgba(255, 255, 255, 0.5)',
