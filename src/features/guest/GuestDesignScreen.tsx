@@ -288,13 +288,54 @@ export function GuestDesignScreen() {
                 company={company || 'NFC Global'}
                 email={email || 'hello@nfcglobal.co'}
                 phone={phone || undefined}
+                gradientIndex={styleIdx}
                 width={cardWidth}
                 height={cardHeight}
               />
             </View>
             <View style={styles.liveRow}>
               <View style={styles.liveDot} />
-              <AppText style={styles.previewHint}>Tap card to preview Back & Front</AppText>
+              <AppText style={styles.previewHint}>Tap card to flip · Real-time material preview</AppText>
+            </View>
+
+            {/* Material & Finish Selector */}
+            <View style={styles.materialSection}>
+              <AppText style={styles.materialHeading} weight="extrabold">CARD MATERIAL & FINISH</AppText>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.materialScroll}>
+                {[
+                  { id: 0, name: 'Matte Obsidian', emoji: '⚫' },
+                  { id: 1, name: 'Brushed Titanium', emoji: '⚙️' },
+                  { id: 2, name: '24K Gold', emoji: '👑' },
+                  { id: 3, name: 'Emerald Green', emoji: '🟢' },
+                  { id: 4, name: 'Royal Violet', emoji: '🟣' },
+                ].map((mat) => {
+                  const active = styleIdx === mat.id;
+                  return (
+                    <Pressable
+                      key={mat.id}
+                      onPress={() => {
+                        HapticTap.medium();
+                        setStyleIdx(mat.id);
+                      }}
+                      style={[
+                        styles.materialPill,
+                        active && styles.materialPillActive,
+                      ]}
+                    >
+                      <AppText style={styles.materialEmoji}>{mat.emoji}</AppText>
+                      <AppText
+                        style={[
+                          styles.materialText,
+                          active && styles.materialTextActive,
+                        ]}
+                        weight="extrabold"
+                      >
+                        {mat.name}
+                      </AppText>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
             </View>
           </View>
 
@@ -502,9 +543,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
   },
-  liveRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 24, backgroundColor: 'rgba(0,0,0,0.4)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 99 },
+  liveRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16, backgroundColor: 'rgba(0,0,0,0.4)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 99 },
   liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FFFFFF' },
   previewHint: { fontSize: 11, color: 'rgba(255, 255, 255, 0.7)', letterSpacing: 0, fontFamily: 'SF-Pro-Display-Regular' },
+
+  materialSection: { width: '100%', marginTop: 20, gap: 10 },
+  materialHeading: { color: 'rgba(255, 255, 255, 0.45)', fontSize: 10, letterSpacing: 1.2 },
+  materialScroll: { gap: 8, paddingVertical: 4 },
+  materialPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14,
+    backgroundColor: '#111114', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  materialPillActive: {
+    backgroundColor: '#FFFFFF', borderColor: '#FFFFFF',
+    shadowColor: '#FFFFFF', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 6,
+  },
+  materialEmoji: { fontSize: 13 },
+  materialText: { color: 'rgba(255, 255, 255, 0.7)', fontSize: 12 },
+  materialTextActive: { color: '#000000' },
 
   sectionsContainer: { paddingHorizontal: 20, paddingTop: 10, gap: 40 },
   section: { gap: 16 },
