@@ -43,6 +43,8 @@ import { FAB } from '@/src/components/FAB';
 import { QuickActionModal } from '@/src/components/QuickActionModal';
 import { NfcBeamModal } from '@/src/components/NfcBeamModal';
 import { LiveActivityRadar } from '@/src/components/LiveActivityRadar';
+import { PersonaModeSwitcher, type PersonaMode } from '@/src/components/PersonaModeSwitcher';
+import { TestTapSimulatorCard } from '@/src/components/TestTapSimulatorCard';
 import { computeUserPrestige } from '@/src/services/prestigeTierService';
 import { pageThemes } from '@/src/constants/pageThemes';
 
@@ -289,7 +291,10 @@ export function GuestHomeScreen() {
   const [showWaitlist, setShowWaitlist] = useState(false);
   const [waitlistEmail, setWaitlistEmail] = useState('');
   const [waitlistSent, setWaitlistSent] = useState(false);
+  const [showQuickModal, setShowQuickModal] = useState(false);
   const [showBeamModal, setShowBeamModal] = useState(false);
+  const [activePersona, setActivePersona] = useState<PersonaMode>('work');
+  const [testTapCompleted, setTestTapCompleted] = useState(false);
 
   const cardWidth = Math.min(screenWidth - 40, 380);
 
@@ -476,7 +481,22 @@ export function GuestHomeScreen() {
                 <AppText style={styles.subtleFlipHint}>Tap to flip card</AppText>
               </View>
 
-              {/* ── 3. Profile Completion Bar (hidden when 100%) ── */}
+              {/* ── 3. Executive 3-Way Persona Switcher ── */}
+              <PersonaModeSwitcher
+                activeMode={activePersona}
+                onChangeMode={setActivePersona}
+              />
+
+              {/* ── 4. Day-1 Test-Tap Quest (Shown when user has 0 taps) ── */}
+              {(bioPage?.taps ?? 0) === 0 && !testTapCompleted && (
+                <TestTapSimulatorCard
+                  onSimulateTap={() => {
+                    setTestTapCompleted(true);
+                  }}
+                />
+              )}
+
+              {/* ── 5. Profile Completion Bar (hidden when 100%) ── */}
               {!profileComplete && !isGuest && (
                 <Pressable
                   onPress={() => { HapticTap.light(); router.push('/edit-bio' as any); }}
@@ -504,7 +524,7 @@ export function GuestHomeScreen() {
                 </Pressable>
               )}
 
-              {/* ── 4. Primary Executive CTA: Share Card & Beam ── */}
+              {/* ── 6. Primary Executive CTA: Share Card & Beam ── */}
               <Pressable
                 onPress={() => {
                   HapticTap.medium();

@@ -385,6 +385,22 @@ export function PublicBioScreen({ slug, cardId }: Props) {
                   Exchange Contact with {bioPage.displayName.split(' ')[0]}
                 </AppText>
               </Pressable>
+
+              {bioPage.bookingUrl ? (
+                <Pressable
+                  onPress={() => {
+                    trackTap();
+                    HapticTap.medium();
+                    Linking.openURL(bioPage.bookingUrl!).catch(() => undefined);
+                  }}
+                  style={({ pressed }) => [styles.bookingBtn, pressed && styles.pressed]}
+                >
+                  <AppIcon name="Calendar" size={16} color="#000000" />
+                  <AppText style={styles.bookingBtnText} weight="extrabold">
+                    Book 15-Min Meeting
+                  </AppText>
+                </Pressable>
+              ) : null}
             </View>
 
             {/* ── 3. Quick Connect Action Bar ── */}
@@ -1029,6 +1045,21 @@ const styles = StyleSheet.create({
   },
   exchangeContactBtnText: {
     color: '#FFFFFF',
+    fontSize: 14,
+  },
+  bookingBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingVertical: 13,
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  bookingBtnText: {
+    color: '#000000',
     fontSize: 14,
   },
 

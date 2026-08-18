@@ -588,6 +588,8 @@ export interface BioPage {
   headline?: string;
   directModeEnabled?: boolean;
   directModeUrl?: string;
+  activePersona?: 'work' | 'personal' | 'creator';
+  bookingUrl?: string;
   webhookUrl?: string;
   updatedAt: string;
 }
