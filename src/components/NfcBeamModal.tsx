@@ -23,7 +23,6 @@ import {
   View,
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
-import * as Clipboard from 'expo-clipboard';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { HapticTap } from '@/src/utils/haptics';
@@ -93,7 +92,15 @@ export function NfcBeamModal({
 
   const handleCopyLink = async () => {
     HapticTap.medium();
-    await Clipboard.setStringAsync(url);
+    try {
+      if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        await Share.share({ message: url, url });
+      }
+    } catch {
+      await Share.share({ message: url, url });
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
