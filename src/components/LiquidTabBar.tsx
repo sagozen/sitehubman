@@ -342,14 +342,16 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
   }
 
   return (
-    <View style={[styles.groundedBarWrap, { paddingBottom: Math.max(insets.bottom, 8) }]}>
-      <View style={styles.groundedBarContent}>
+    <View style={[styles.liquidGlassBarWrap, { paddingBottom: Math.max(insets.bottom, 6) }]}>
+      {/* Top Glass Specular Line */}
+      <View style={styles.glassSpecularLine} />
+
+      <View style={styles.liquidBarContent}>
         {items.map((item) => {
           const route = item.route;
           const isActive = activeRoute?.name === route.name;
           const isLegacyAttendance = route.name === 'attendance';
-          const isCenterBeam = route.name === 'share';
-          const mutedColor = isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.35)';
+          const mutedColor = isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.42)';
 
           let iconName: any = 'home';
           let labelText = 'Home';
@@ -381,20 +383,26 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
                   navigation.navigate(route.name);
                 }
               }}
-              style={styles.groundedTabItem}
+              style={({ pressed }) => [
+                styles.liquidTabItem,
+                pressed && { opacity: 0.7 },
+              ]}
               hitSlop={8}
               accessibilityRole="button"
               accessibilityState={{ selected: isActive }}
             >
               <View style={styles.tabInner}>
-                <Ionicons name={iconName} size={20} color={mutedColor} />
+                <Ionicons
+                  name={iconName}
+                  size={21}
+                  color={mutedColor}
+                />
                 <AppText
-                  style={[styles.groundedTabLabel, { color: mutedColor }]}
+                  style={[styles.liquidTabLabel, { color: mutedColor }]}
                   weight={isActive ? 'extrabold' : 'bold'}
                 >
                   {labelText}
                 </AppText>
-                <View style={isActive ? styles.activeDot : styles.inactiveDot} />
               </View>
             </Pressable>
           );
@@ -411,27 +419,41 @@ function routeLabel(route: any, descriptors?: Record<string, any>) {
 }
 
 const styles = StyleSheet.create({
-  groundedBarWrap: {
+  liquidGlassBarWrap: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#000000',
+    backgroundColor: 'rgba(10, 10, 12, 0.88)',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
     zIndex: 100,
+    ...(Platform.OS === 'web'
+      ? ({
+          backdropFilter: 'blur(28px) saturate(190%)',
+          WebkitBackdropFilter: 'blur(28px) saturate(190%)',
+        } as any)
+      : {}),
   },
-  groundedBarContent: {
+  glassSpecularLine: {
+    position: 'absolute',
+    top: 0,
+    left: '15%',
+    right: '15%',
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+  },
+  liquidBarContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
     width: '100%',
     maxWidth: 640,
     alignSelf: 'center',
-    height: 52,
+    height: 50,
     paddingHorizontal: 8,
   },
-  groundedTabItem: {
+  liquidTabItem: {
     flex: 1,
     height: '100%',
     alignItems: 'center',
@@ -440,40 +462,11 @@ const styles = StyleSheet.create({
   tabInner: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
-    paddingTop: 4,
+    gap: 3,
   },
-  groundedTabLabel: {
+  liquidTabLabel: {
     fontSize: 10,
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
     fontFamily: 'SF-Pro-Display-Regular',
-  },
-  activeDot: {
-    width: 3.5,
-    height: 3.5,
-    borderRadius: 2,
-    backgroundColor: '#FFFFFF',
-    marginTop: 1,
-  },
-  inactiveDot: {
-    width: 3.5,
-    height: 3.5,
-    borderRadius: 2,
-    backgroundColor: 'transparent',
-    marginTop: 1,
-  },
-  centerBeamCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-  },
-  centerBeamCircleActive: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#FFFFFF',
   },
 });
