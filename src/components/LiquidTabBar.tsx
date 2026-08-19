@@ -387,14 +387,8 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
               accessibilityState={{ selected: isActive }}
             >
               {isCenterBeam ? (
-                <View style={[styles.centerBeamPill, isActive && styles.centerBeamPillActive]}>
-                  <Ionicons name={iconName} size={19} color={isActive ? '#000000' : '#FFFFFF'} />
-                  <AppText
-                    style={[styles.centerBeamText, isActive && styles.centerBeamTextActive]}
-                    weight="extrabold"
-                  >
-                    Beam
-                  </AppText>
+                <View style={[styles.centerBeamCircle, isActive && styles.centerBeamCircleActive]}>
+                  <Ionicons name={iconName} size={20} color={isActive ? '#000000' : '#FFFFFF'} />
                 </View>
               ) : (
                 <View style={styles.tabInner}>
@@ -474,27 +468,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     marginTop: 1,
   },
-  centerBeamPill: {
-    flexDirection: 'row',
+  centerBeamCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
+    justifyContent: 'center',
     backgroundColor: '#111114',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.15)',
   },
-  centerBeamPillActive: {
+  centerBeamCircleActive: {
     backgroundColor: '#FFFFFF',
     borderColor: '#FFFFFF',
-  },
-  centerBeamText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    letterSpacing: 0.4,
-  },
-  centerBeamTextActive: {
-    color: '#000000',
   },
 });

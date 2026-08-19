@@ -43,7 +43,7 @@ export function LuxuryBentoGrid({
             </View>
             <View style={styles.liveTag}>
               <View style={styles.liveDot} />
-              <AppText style={styles.liveTagText} weight="extrabold">BEAM</AppText>
+              <AppText style={styles.liveTagText} weight="extrabold">LIVE</AppText>
             </View>
           </View>
           <View style={styles.tileMeta}>
