@@ -342,14 +342,14 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
   }
 
   return (
-    <View style={[styles.telegramBarWrap, { paddingBottom: Math.max(insets.bottom, 4) }]}>
-      <View style={styles.telegramBarContent}>
+    <View style={[styles.floatingDockWrap, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+      <View style={styles.floatingDock}>
         {items.map((item) => {
           const route = item.route;
           const isActive = activeRoute?.name === route.name;
           const isLegacyAttendance = route.name === 'attendance';
           const activeColor = '#FFFFFF';
-          const inactiveColor = 'rgba(255, 255, 255, 0.4)';
+          const inactiveColor = 'rgba(255, 255, 255, 0.38)';
 
           let iconName: any = 'home';
           let labelText = 'Home';
@@ -364,10 +364,10 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
             iconName = isActive ? 'radio' : 'radio-outline';
             labelText = 'Beam';
           } else if (route.name === 'profile') {
-            iconName = isActive ? 'person-circle' : 'person-circle-outline';
+            iconName = isActive ? 'person' : 'person-outline';
             labelText = 'Bio';
           } else if (route.name === 'settings') {
-            iconName = isActive ? 'settings' : 'settings-outline';
+            iconName = isActive ? 'settings-sharp' : 'settings-outline';
             labelText = 'Settings';
           }
 
@@ -382,24 +382,22 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
                 }
               }}
               style={({ pressed }) => [
-                styles.telegramTabItem,
+                styles.dockTabItem,
                 pressed && { opacity: 0.65 },
               ]}
-              hitSlop={8}
+              hitSlop={6}
               accessibilityRole="button"
               accessibilityState={{ selected: isActive }}
             >
-              <View style={styles.telegramTabInner}>
-                <View style={styles.iconWrap}>
-                  <Ionicons
-                    name={iconName}
-                    size={23}
-                    color={isActive ? activeColor : inactiveColor}
-                  />
-                </View>
+              <View style={styles.dockTabInner}>
+                <Ionicons
+                  name={iconName}
+                  size={21}
+                  color={isActive ? activeColor : inactiveColor}
+                />
                 <AppText
                   style={[
-                    styles.telegramTabLabel,
+                    styles.dockTabLabel,
                     { color: isActive ? activeColor : inactiveColor },
                   ]}
                   weight={isActive ? 'extrabold' : 'bold'}
@@ -422,52 +420,48 @@ function routeLabel(route: any, descriptors?: Record<string, any>) {
 }
 
 const styles = StyleSheet.create({
-  telegramBarWrap: {
+  floatingDockWrap: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#0E1621',
-    borderTopWidth: 0.5,
-    borderTopColor: 'rgba(255, 255, 255, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    pointerEvents: 'box-none' as any,
     zIndex: 100,
-    ...(Platform.OS === 'web'
-      ? ({
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-        } as any)
-      : {}),
   },
-  telegramBarContent: {
+  floatingDock: {
+    width: '92%',
+    maxWidth: 360,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    width: '100%',
-    maxWidth: 640,
-    alignSelf: 'center',
-    height: 49,
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 12,
   },
-  telegramTabItem: {
+  dockTabItem: {
     flex: 1,
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  telegramTabInner: {
+  dockTabInner: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 1.5,
+    gap: 2,
   },
-  iconWrap: {
-    position: 'relative',
-    height: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  telegramTabLabel: {
-    fontSize: 10,
-    letterSpacing: -0.1,
+  dockTabLabel: {
+    fontSize: 9.5,
+    letterSpacing: 0.2,
     fontFamily: 'SF-Pro-Display-Regular',
   },
 });
