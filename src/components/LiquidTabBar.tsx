@@ -342,16 +342,14 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
   }
 
   return (
-    <View style={[styles.liquidGlassBarWrap, { paddingBottom: Math.max(insets.bottom, 6) }]}>
-      {/* Top Glass Specular Line */}
-      <View style={styles.glassSpecularLine} />
-
-      <View style={styles.liquidBarContent}>
+    <View style={[styles.telegramBarWrap, { paddingBottom: Math.max(insets.bottom, 4) }]}>
+      <View style={styles.telegramBarContent}>
         {items.map((item) => {
           const route = item.route;
           const isActive = activeRoute?.name === route.name;
           const isLegacyAttendance = route.name === 'attendance';
-          const mutedColor = isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.42)';
+          const activeColor = '#FFFFFF';
+          const inactiveColor = 'rgba(255, 255, 255, 0.4)';
 
           let iconName: any = 'home';
           let labelText = 'Home';
@@ -366,10 +364,10 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
             iconName = isActive ? 'radio' : 'radio-outline';
             labelText = 'Beam';
           } else if (route.name === 'profile') {
-            iconName = isActive ? 'person' : 'person-outline';
+            iconName = isActive ? 'person-circle' : 'person-circle-outline';
             labelText = 'Bio';
           } else if (route.name === 'settings') {
-            iconName = isActive ? 'options' : 'options-outline';
+            iconName = isActive ? 'settings' : 'settings-outline';
             labelText = 'Settings';
           }
 
@@ -384,21 +382,26 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
                 }
               }}
               style={({ pressed }) => [
-                styles.liquidTabItem,
-                pressed && { opacity: 0.7 },
+                styles.telegramTabItem,
+                pressed && { opacity: 0.65 },
               ]}
               hitSlop={8}
               accessibilityRole="button"
               accessibilityState={{ selected: isActive }}
             >
-              <View style={styles.tabInner}>
-                <Ionicons
-                  name={iconName}
-                  size={21}
-                  color={mutedColor}
-                />
+              <View style={styles.telegramTabInner}>
+                <View style={styles.iconWrap}>
+                  <Ionicons
+                    name={iconName}
+                    size={23}
+                    color={isActive ? activeColor : inactiveColor}
+                  />
+                </View>
                 <AppText
-                  style={[styles.liquidTabLabel, { color: mutedColor }]}
+                  style={[
+                    styles.telegramTabLabel,
+                    { color: isActive ? activeColor : inactiveColor },
+                  ]}
                   weight={isActive ? 'extrabold' : 'bold'}
                 >
                   {labelText}
@@ -419,54 +422,52 @@ function routeLabel(route: any, descriptors?: Record<string, any>) {
 }
 
 const styles = StyleSheet.create({
-  liquidGlassBarWrap: {
+  telegramBarWrap: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(10, 10, 12, 0.88)',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#0E1621',
+    borderTopWidth: 0.5,
+    borderTopColor: 'rgba(255, 255, 255, 0.12)',
     zIndex: 100,
     ...(Platform.OS === 'web'
       ? ({
-          backdropFilter: 'blur(28px) saturate(190%)',
-          WebkitBackdropFilter: 'blur(28px) saturate(190%)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
         } as any)
       : {}),
   },
-  glassSpecularLine: {
-    position: 'absolute',
-    top: 0,
-    left: '15%',
-    right: '15%',
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.22)',
-  },
-  liquidBarContent: {
+  telegramBarContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
     width: '100%',
     maxWidth: 640,
     alignSelf: 'center',
-    height: 50,
-    paddingHorizontal: 8,
+    height: 49,
+    paddingHorizontal: 6,
   },
-  liquidTabItem: {
+  telegramTabItem: {
     flex: 1,
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tabInner: {
+  telegramTabInner: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 3,
+    gap: 1.5,
   },
-  liquidTabLabel: {
+  iconWrap: {
+    position: 'relative',
+    height: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  telegramTabLabel: {
     fontSize: 10,
-    letterSpacing: 0.2,
+    letterSpacing: -0.1,
     fontFamily: 'SF-Pro-Display-Regular',
   },
 });
