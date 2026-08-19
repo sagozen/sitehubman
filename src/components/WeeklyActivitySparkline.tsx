@@ -25,28 +25,25 @@ export function WeeklyActivitySparkline({
   totalTaps = 0,
   onPress,
 }: WeeklyActivitySparklineProps) {
+  const [selectedDay, setSelectedDay] = React.useState<number>(6); // Default to today (Sunday)
+
   // Generate realistic 7-day distribution based on total taps
   const baseTaps = Math.max(1, totalTaps);
   const weekData: DayData[] = [
-    { day: 'M', count: Math.round(baseTaps * 0.12) },
-    { day: 'T', count: Math.round(baseTaps * 0.18) },
-    { day: 'W', count: Math.round(baseTaps * 0.25) },
-    { day: 'T', count: Math.round(baseTaps * 0.15) },
-    { day: 'F', count: Math.round(baseTaps * 0.35) },
-    { day: 'S', count: Math.round(baseTaps * 0.45) },
-    { day: 'S', count: Math.round(baseTaps * 0.20), isToday: true },
+    { day: 'Mon', count: Math.round(baseTaps * 0.12) || 4 },
+    { day: 'Tue', count: Math.round(baseTaps * 0.18) || 7 },
+    { day: 'Wed', count: Math.round(baseTaps * 0.25) || 12 },
+    { day: 'Thu', count: Math.round(baseTaps * 0.15) || 6 },
+    { day: 'Fri', count: Math.round(baseTaps * 0.35) || 18 },
+    { day: 'Sat', count: Math.round(baseTaps * 0.45) || 22 },
+    { day: 'Sun', count: Math.round(baseTaps * 0.20) || 9, isToday: true },
   ];
 
   const maxVal = Math.max(...weekData.map((d) => d.count), 1);
+  const activeDay = weekData[selectedDay] || weekData[6];
 
   return (
-    <Pressable
-      onPress={() => {
-        HapticTap.light();
-        onPress?.();
-      }}
-      style={({ pressed }) => [styles.container, pressed && styles.pressed]}
-    >
+    <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
@@ -58,7 +55,7 @@ export function WeeklyActivitySparkline({
               7-Day Network Pulse
             </AppText>
             <AppText style={styles.subtitle}>
-              Top 8% Most Active Profiles
+              {activeDay.day}: {activeDay.count} NFC Taps • +{Math.round(activeDay.count * 0.3)} Leads
             </AppText>
           </View>
         </View>
@@ -73,32 +70,41 @@ export function WeeklyActivitySparkline({
       {/* 7-Day Visual Bar Graph */}
       <View style={styles.barsContainer}>
         {weekData.map((item, index) => {
-          const heightPercent = Math.max(15, Math.round((item.count / maxVal) * 100));
+          const isSelected = selectedDay === index;
+          const heightPercent = Math.max(18, Math.round((item.count / maxVal) * 100));
           return (
-            <View key={index} style={styles.barColumn}>
-              <View style={styles.barTrack}>
+            <Pressable
+              key={index}
+              onPress={() => {
+                HapticTap.selection();
+                setSelectedDay(index);
+              }}
+              style={styles.barColumn}
+              hitSlop={4}
+            >
+              <View style={[styles.barTrack, isSelected && styles.barTrackSelected]}>
                 <View
                   style={[
                     styles.barFill,
                     { height: `${heightPercent}%` as any },
-                    item.isToday ? styles.barFillToday : styles.barFillRegular,
+                    isSelected ? styles.barFillSelected : item.isToday ? styles.barFillToday : styles.barFillRegular,
                   ]}
                 />
               </View>
               <AppText
                 style={[
                   styles.dayLabel,
-                  item.isToday && styles.dayLabelToday,
+                  isSelected ? styles.dayLabelSelected : item.isToday ? styles.dayLabelToday : null,
                 ]}
-                weight={item.isToday ? 'extrabold' : 'bold'}
+                weight={isSelected || item.isToday ? 'extrabold' : 'bold'}
               >
                 {item.day}
               </AppText>
-            </View>
+            </Pressable>
           );
         })}
       </View>
-    </Pressable>
+    </View>
   );
 }
 
@@ -172,6 +178,11 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     overflow: 'hidden',
   },
+  barTrackSelected: {
+    backgroundColor: '#222228',
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+  },
   barFill: {
     width: '100%',
     borderRadius: 7,
@@ -181,10 +192,9 @@ const styles = StyleSheet.create({
   },
   barFillToday: {
     backgroundColor: '#FFFFFF',
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 6,
+  },
+  barFillSelected: {
+    backgroundColor: '#30D158',
   },
   dayLabel: {
     color: 'rgba(255, 255, 255, 0.4)',
@@ -192,6 +202,9 @@ const styles = StyleSheet.create({
   },
   dayLabelToday: {
     color: '#FFFFFF',
+  },
+  dayLabelSelected: {
+    color: '#30D158',
   },
   pressed: {
     opacity: 0.85,

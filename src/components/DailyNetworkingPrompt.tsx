@@ -35,34 +35,69 @@ const DAILY_PROMPTS = [
 ];
 
 export function DailyNetworkingPrompt({ onPress }: { onPress?: () => void }) {
+  const [completed, setCompleted] = React.useState<boolean>(false);
+
   // Rotate based on day of month
   const dayIndex = new Date().getDate() % DAILY_PROMPTS.length;
   const prompt = DAILY_PROMPTS[dayIndex];
 
+  const handleToggleDone = () => {
+    if (!completed) {
+      HapticTap.success();
+      setCompleted(true);
+    } else {
+      HapticTap.selection();
+      setCompleted(false);
+    }
+  };
+
   return (
-    <Pressable
-      onPress={() => {
-        HapticTap.light();
-        onPress?.();
-      }}
-      style={({ pressed }) => [styles.container, pressed && styles.pressed]}
-    >
-      <View style={styles.leftBar} />
+    <View style={[styles.container, completed && styles.containerCompleted]}>
+      <View style={[styles.leftBar, { backgroundColor: completed ? '#30D158' : prompt.accent }]} />
       <View style={styles.content}>
         <View style={styles.tagRow}>
-          <AppIcon name={prompt.icon} size={13} color={prompt.accent} />
-          <AppText style={[styles.tagText, { color: prompt.accent }]} weight="extrabold">
-            {prompt.tag}
-          </AppText>
+          <View style={styles.tagLeft}>
+            <AppIcon
+              name={completed ? 'CheckCircle2' : prompt.icon}
+              size={13}
+              color={completed ? '#30D158' : prompt.accent}
+            />
+            <AppText
+              style={[styles.tagText, { color: completed ? '#30D158' : prompt.accent }]}
+              weight="extrabold"
+            >
+              {completed ? 'GOAL COMPLETED • +50 PTS' : prompt.tag}
+            </AppText>
+          </View>
+
+          <Pressable
+            onPress={handleToggleDone}
+            style={({ pressed }) => [
+              styles.checkBtn,
+              completed && styles.checkBtnCompleted,
+              pressed && { opacity: 0.7 },
+            ]}
+            hitSlop={8}
+          >
+            <AppIcon
+              name={completed ? 'Check' : 'Circle'}
+              size={14}
+              color={completed ? '#000000' : 'rgba(255, 255, 255, 0.4)'}
+            />
+          </Pressable>
         </View>
-        <AppText style={styles.title} weight="bold">
+
+        <AppText
+          style={[styles.title, completed && styles.titleCompleted]}
+          weight="bold"
+        >
           {prompt.title}
         </AppText>
         <AppText style={styles.tip}>
-          {prompt.tip}
+          {completed ? 'Great work! Keep your momentum going today.' : prompt.tip}
         </AppText>
       </View>
-    </Pressable>
+    </View>
   );
 }
 
@@ -75,9 +110,12 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.08)',
     overflow: 'hidden',
   },
+  containerCompleted: {
+    borderColor: 'rgba(48, 209, 88, 0.3)',
+    backgroundColor: 'rgba(48, 209, 88, 0.04)',
+  },
   leftBar: {
     width: 4,
-    backgroundColor: '#FFD60A',
   },
   content: {
     flex: 1,
@@ -87,7 +125,26 @@ const styles = StyleSheet.create({
   tagRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  tagLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
+  },
+  checkBtn: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#18181C',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  checkBtnCompleted: {
+    backgroundColor: '#30D158',
+    borderColor: '#30D158',
   },
   tagText: {
     fontSize: 9,
@@ -97,12 +154,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 13,
   },
+  titleCompleted: {
+    color: 'rgba(255, 255, 255, 0.65)',
+    textDecorationLine: 'line-through',
+  },
   tip: {
     color: 'rgba(255, 255, 255, 0.45)',
     fontSize: 11,
-    lineHeight: 15,
-  },
-  pressed: {
-    opacity: 0.85,
+    lineHeight: 16,
   },
 });
