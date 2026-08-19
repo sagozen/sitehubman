@@ -53,3 +53,7 @@ audit-expo-*.log
 audit-expo-*.err.log
 expo-*.log
 codex-*.log
+
+# disconnected external cloud websites
+avio-cloud/
+
