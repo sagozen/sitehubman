@@ -403,7 +403,7 @@ export function GuestHomeScreen() {
   return (
     <View style={styles.root}>
       {/* Low opacity ambient brand collage background */}
-      <View style={styles.homeBackdropWrap} pointerEvents="none">
+      <View style={[styles.homeBackdropWrap, { pointerEvents: 'none' as any }]}>
         <Image
           source={require('@/assets/images/savee_background.png')}
           style={styles.homeBackdropImg}

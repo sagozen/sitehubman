@@ -386,22 +386,16 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
               accessibilityRole="button"
               accessibilityState={{ selected: isActive }}
             >
-              {isCenterBeam ? (
-                <View style={[styles.centerBeamCircle, isActive && styles.centerBeamCircleActive]}>
-                  <Ionicons name={iconName} size={20} color={isActive ? '#000000' : '#FFFFFF'} />
-                </View>
-              ) : (
-                <View style={styles.tabInner}>
-                  <Ionicons name={iconName} size={20} color={mutedColor} />
-                  <AppText
-                    style={[styles.groundedTabLabel, { color: mutedColor }]}
-                    weight={isActive ? 'extrabold' : 'bold'}
-                  >
-                    {labelText}
-                  </AppText>
-                  <View style={isActive ? styles.activeDot : styles.inactiveDot} />
-                </View>
-              )}
+              <View style={styles.tabInner}>
+                <Ionicons name={iconName} size={20} color={mutedColor} />
+                <AppText
+                  style={[styles.groundedTabLabel, { color: mutedColor }]}
+                  weight={isActive ? 'extrabold' : 'bold'}
+                >
+                  {labelText}
+                </AppText>
+                <View style={isActive ? styles.activeDot : styles.inactiveDot} />
+              </View>
             </Pressable>
           );
         })}

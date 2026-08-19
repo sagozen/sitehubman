@@ -5,7 +5,7 @@ import { useFonts } from 'expo-font';
 import { useRouter } from 'expo-router';
 import { prefetchCloudinaryUrls } from '@/src/services/cloudinaryUrlCache';
 
-const customFonts = {
+const customFonts: Record<string, any> = {
   'SF-Pro-Display-Bold': require('../../assets/fonts/SF-Pro-Display-Bold.otf'),
   'SF-Pro-Display-Medium': require('../../assets/fonts/SF-Pro-Display-Medium.otf'),
   'SF-Pro-Display-Regular': require('../../assets/fonts/SF-Pro-Display-Regular.otf'),
@@ -19,8 +19,8 @@ const customFonts = {
 };
 
 export default function useCachedResources(): boolean {
-  // 1. Load fonts. We use a try-catch approach via the hook's behavior.
-  const [fontsLoaded, fontError] = useFonts(customFonts);
+  // On web, skip native OTF binary font decoding to avoid OTS parsing issues
+  const [fontsLoaded, fontError] = useFonts(Platform.OS === 'web' ? {} : customFonts);
   const [isReady, setReady] = useState(false);
   const router = useRouter();
 
