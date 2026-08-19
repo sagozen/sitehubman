@@ -31,6 +31,9 @@ export function AuthGate({ allowedRoles, requireCustomer, children }: PropsWithC
   }
 
   if (!user) {
+    if (allowedRoles?.includes('guest')) {
+      return <>{children}</>;
+    }
     return <Redirect href="/(auth)/login" />;
   }
 

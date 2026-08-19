@@ -24,5 +24,5 @@ export default function IndexRoute() {
     return <Redirect href={'/onboarding' as any} />;
   }
 
-  return <Redirect href={user ? getDashboardRoute(user) : '/(auth)/login'} />;
+  return <Redirect href={user ? getDashboardRoute(user) : ('/(tabs)' as any)} />;
 }
