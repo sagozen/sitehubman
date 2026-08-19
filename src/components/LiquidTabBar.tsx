@@ -341,33 +341,35 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
     );
   }
 
-  const surface = 'rgba(18, 18, 22, 0.94)';
-  const hairline = 'rgba(255, 255, 255, 0.12)';
-  const pillBg = 'rgba(255, 255, 255, 0.12)';
-
   return (
-    <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-      <View style={[styles.capsuleBar, { backgroundColor: surface, borderColor: hairline }]}>
-        {/* Animated Sliding Background Pill */}
-        {activeIndex !== -1 && (
-          <Animated.View
-            style={[
-              styles.slidingActivePill,
-              { backgroundColor: pillBg },
-              {
-                width: PILL_WIDTH,
-                height: 44,
-                transform: [{ translateX: animCenterX }],
-              },
-            ]}
-          />
-        )}
-
+    <View style={[styles.groundedBarWrap, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+      <View style={styles.groundedBarContent}>
         {items.map((item) => {
           const route = item.route;
           const isActive = activeRoute?.name === route.name;
           const isLegacyAttendance = route.name === 'attendance';
-          const muted = isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.42)';
+          const isCenterBeam = route.name === 'share';
+          const mutedColor = isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.35)';
+
+          let iconName: any = 'home';
+          let labelText = 'Home';
+
+          if (route.name === 'index') {
+            iconName = isActive ? 'home' : 'home-outline';
+            labelText = 'Home';
+          } else if (route.name === 'connections' || isLegacyAttendance) {
+            iconName = isActive ? 'people' : 'people-outline';
+            labelText = 'Contacts';
+          } else if (route.name === 'share') {
+            iconName = isActive ? 'radio' : 'radio-outline';
+            labelText = 'Beam';
+          } else if (route.name === 'profile') {
+            iconName = isActive ? 'person' : 'person-outline';
+            labelText = 'Bio';
+          } else if (route.name === 'settings') {
+            iconName = isActive ? 'options' : 'options-outline';
+            labelText = 'Settings';
+          }
 
           return (
             <Pressable
@@ -379,23 +381,33 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
                   navigation.navigate(route.name);
                 }
               }}
-              style={styles.tabItem}
+              style={styles.groundedTabItem}
+              hitSlop={8}
               accessibilityRole="button"
               accessibilityState={{ selected: isActive }}
             >
-              <View style={styles.iconContainer}>
-                {route.name === 'index' ? (
-                  <Ionicons name={isActive ? 'home' : 'home-outline'} size={21} color={muted} />
-                ) : route.name === 'connections' || isLegacyAttendance ? (
-                  <Ionicons name={isActive ? 'people' : 'people-outline'} size={21} color={muted} />
-                ) : route.name === 'share' ? (
-                  <Ionicons name={isActive ? 'qr-code' : 'qr-code-outline'} size={21} color={muted} />
-                ) : route.name === 'profile' ? (
-                  <Ionicons name={isActive ? 'person' : 'person-outline'} size={21} color={muted} />
-                ) : route.name === 'settings' ? (
-                  <Ionicons name={isActive ? 'settings-sharp' : 'settings-outline'} size={21} color={muted} />
-                ) : null}
-              </View>
+              {isCenterBeam ? (
+                <View style={[styles.centerBeamPill, isActive && styles.centerBeamPillActive]}>
+                  <Ionicons name={iconName} size={19} color={isActive ? '#000000' : '#FFFFFF'} />
+                  <AppText
+                    style={[styles.centerBeamText, isActive && styles.centerBeamTextActive]}
+                    weight="extrabold"
+                  >
+                    Beam
+                  </AppText>
+                </View>
+              ) : (
+                <View style={styles.tabInner}>
+                  <Ionicons name={iconName} size={20} color={mutedColor} />
+                  <AppText
+                    style={[styles.groundedTabLabel, { color: mutedColor }]}
+                    weight={isActive ? 'extrabold' : 'bold'}
+                  >
+                    {labelText}
+                  </AppText>
+                  <View style={isActive ? styles.activeDot : styles.inactiveDot} />
+                </View>
+              )}
             </Pressable>
           );
         })}
@@ -411,48 +423,78 @@ function routeLabel(route: any, descriptors?: Record<string, any>) {
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
+  groundedBarWrap: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center',
-    pointerEvents: 'box-none',
+    backgroundColor: '#000000',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    zIndex: 100,
   },
-  capsuleBar: {
-    width: 360,
-    height: 58,
-    borderRadius: 29,
-    borderWidth: 1,
+  groundedBarContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    justifyContent: 'space-between',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.28,
-    shadowRadius: 24,
-    elevation: 16,
-  },
-  tabItem: {
-    width: 68,
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 2,
-  },
-  iconContainer: {
+    justifyContent: 'space-around',
     width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
+    height: 52,
+    paddingHorizontal: 8,
+  },
+  groundedTabItem: {
+    flex: 1,
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  slidingActivePill: {
-    position: 'absolute',
-    top: 6,
-    borderRadius: 22,
-    zIndex: 1,
+  tabInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    paddingTop: 4,
+  },
+  groundedTabLabel: {
+    fontSize: 10,
+    letterSpacing: 0.3,
+    fontFamily: 'SF-Pro-Display-Regular',
+  },
+  activeDot: {
+    width: 3.5,
+    height: 3.5,
+    borderRadius: 2,
+    backgroundColor: '#FFFFFF',
+    marginTop: 1,
+  },
+  inactiveDot: {
+    width: 3.5,
+    height: 3.5,
+    borderRadius: 2,
+    backgroundColor: 'transparent',
+    marginTop: 1,
+  },
+  centerBeamPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  centerBeamPillActive: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
+  },
+  centerBeamText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    letterSpacing: 0.4,
+  },
+  centerBeamTextActive: {
+    color: '#000000',
   },
 });

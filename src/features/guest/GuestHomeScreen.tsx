@@ -661,13 +661,6 @@ export function GuestHomeScreen() {
         </IosScrollView>
       </SafeAreaView>
 
-      {/* FAB and Overlay Modal */}
-      <FAB
-        onPress={() => {
-          HapticTap.medium();
-          setFabOpen(true);
-        }}
-      />
       <QuickActionModal visible={fabOpen} onClose={() => setFabOpen(false)} />
 
       {/* ── Physical Card Waitlist Modal ── */}
