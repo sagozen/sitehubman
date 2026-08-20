@@ -101,7 +101,7 @@
       "typedRoutes": true
     },
     "updates": {
-      "url": "https://u.expo.dev/c28b516f-d4d0-48cb-bb3b-39a71669a94e",
+      "url": "https://u.expo.dev/9f82bfc2-ff87-4f0b-9843-b98fba5bf803",
       "enabled": true,
       "checkAutomatically": "ON_ERROR_RECOVERY",
       "fallbackToCacheTimeout": 5000
@@ -109,7 +109,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "c28b516f-d4d0-48cb-bb3b-39a71669a94e"
+        "projectId": "9f82bfc2-ff87-4f0b-9843-b98fba5bf803"
       },
       "cloudinaryApiKey": "795664656796712",
       "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyBJZa1RLcbZtFsfizGJadlLNnNgUVsUByw",
@@ -120,6 +120,6 @@
       "EXPO_PUBLIC_FIREBASE_APP_ID": "1:145010162726:web:8a7accc56cdc4e1fd23ae7",
       "EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID": "G-KEC7CH3TF9"
     },
-    "owner": "aviobrand"
+    "owner": "theanthean8888s-organization"
   }
 }
