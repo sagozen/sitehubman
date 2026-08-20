@@ -13,7 +13,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.sagozen.oneapp",
-      "buildNumber": "41",
+      "buildNumber": "42",
       "usesAppleSignIn": true,
       "infoPlist": {
         "NSCameraUsageDescription": "SiteHub needs camera access to scan QR codes on NFC cards.",
@@ -100,8 +100,9 @@
     "experiments": {
       "typedRoutes": true
     },
+    "runtimeVersion": "1.0.0",
     "updates": {
-      "url": "https://u.expo.dev/9f82bfc2-ff87-4f0b-9843-b98fba5bf803",
+      "url": "https://u.expo.dev/5c9466c1-b46a-4339-8dfe-d521e69edd21",
       "enabled": true,
       "checkAutomatically": "ON_ERROR_RECOVERY",
       "fallbackToCacheTimeout": 5000
@@ -109,7 +110,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "9f82bfc2-ff87-4f0b-9843-b98fba5bf803"
+        "projectId": "5c9466c1-b46a-4339-8dfe-d521e69edd21"
       },
       "cloudinaryApiKey": "795664656796712",
       "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyBJZa1RLcbZtFsfizGJadlLNnNgUVsUByw",
@@ -120,6 +121,6 @@
       "EXPO_PUBLIC_FIREBASE_APP_ID": "1:145010162726:web:8a7accc56cdc4e1fd23ae7",
       "EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID": "G-KEC7CH3TF9"
     },
-    "owner": "theanthean8888s-organization"
+    "owner": "tiantian88888"
   }
 }
