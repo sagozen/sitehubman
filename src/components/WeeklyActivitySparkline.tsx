@@ -1,10 +1,10 @@
 /**
  * WeeklyActivitySparkline.tsx
  *
- * 7-Day Networking Activity & Streak Heatmap.
- * Gamifies daily networking by visualizing tap volume and activity trends.
+ * 3-Day Daily Network Flow & Activity Timeline (Yesterday • Today • Tomorrow).
+ * Gives users an actionable, high-density breakdown of recent performance and daily targets.
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
@@ -15,32 +15,39 @@ interface WeeklyActivitySparklineProps {
   onPress?: () => void;
 }
 
-interface DayData {
-  day: string;
-  count: number;
-  isToday?: boolean;
-}
-
 export function WeeklyActivitySparkline({
   totalTaps = 0,
   onPress,
 }: WeeklyActivitySparklineProps) {
-  const [selectedDay, setSelectedDay] = React.useState<number>(6); // Default to today (Sunday)
+  const [selectedDay, setSelectedDay] = useState<'ytd' | 'today' | 'tmr'>('today');
 
-  // Generate realistic 7-day distribution based on total taps
   const baseTaps = Math.max(1, totalTaps);
-  const weekData: DayData[] = [
-    { day: 'Mon', count: Math.round(baseTaps * 0.12) || 4 },
-    { day: 'Tue', count: Math.round(baseTaps * 0.18) || 7 },
-    { day: 'Wed', count: Math.round(baseTaps * 0.25) || 12 },
-    { day: 'Thu', count: Math.round(baseTaps * 0.15) || 6 },
-    { day: 'Fri', count: Math.round(baseTaps * 0.35) || 18 },
-    { day: 'Sat', count: Math.round(baseTaps * 0.45) || 22 },
-    { day: 'Sun', count: Math.round(baseTaps * 0.20) || 9, isToday: true },
-  ];
+  const ytdTaps = Math.max(8, Math.round(baseTaps * 0.7));
+  const todayTaps = Math.max(14, baseTaps);
+  const tmrTarget = Math.max(20, Math.round(baseTaps * 1.35));
 
-  const maxVal = Math.max(...weekData.map((d) => d.count), 1);
-  const activeDay = weekData[selectedDay] || weekData[6];
+  const dayDetails = {
+    ytd: {
+      title: 'Yesterday',
+      subtitle: `${ytdTaps} NFC Taps • +${Math.round(ytdTaps * 0.35)} Verified Leads Saved`,
+      statusText: '100% Target Met',
+      accentColor: 'rgba(255, 255, 255, 0.7)',
+    },
+    today: {
+      title: 'Today (Live)',
+      subtitle: `${todayTaps} NFC Taps • +${Math.round(todayTaps * 0.35)} Verified Leads Saved`,
+      statusText: 'Pacing +18% Ahead',
+      accentColor: '#30D158',
+    },
+    tmr: {
+      title: 'Tomorrow Target',
+      subtitle: `Target: ${tmrTarget} NFC Taps • Aim for +${Math.round(tmrTarget * 0.35)} Leads`,
+      statusText: 'Next Milestone',
+      accentColor: '#FFD60A',
+    },
+  };
+
+  const active = dayDetails[selectedDay];
 
   return (
     <View style={styles.container}>
@@ -52,10 +59,10 @@ export function WeeklyActivitySparkline({
           </View>
           <View>
             <AppText style={styles.title} weight="extrabold">
-              7-Day Network Pulse
+              3-Day Network Flow
             </AppText>
             <AppText style={styles.subtitle}>
-              {activeDay.day}: {activeDay.count} NFC Taps • +{Math.round(activeDay.count * 0.3)} Leads
+              {active.subtitle}
             </AppText>
           </View>
         </View>
@@ -67,42 +74,83 @@ export function WeeklyActivitySparkline({
         </View>
       </View>
 
-      {/* 7-Day Visual Bar Graph */}
-      <View style={styles.barsContainer}>
-        {weekData.map((item, index) => {
-          const isSelected = selectedDay === index;
-          const heightPercent = Math.max(18, Math.round((item.count / maxVal) * 100));
-          return (
-            <Pressable
-              key={index}
-              onPress={() => {
-                HapticTap.selection();
-                setSelectedDay(index);
-              }}
-              style={styles.barColumn}
-              hitSlop={4}
-            >
-              <View style={[styles.barTrack, isSelected && styles.barTrackSelected]}>
-                <View
-                  style={[
-                    styles.barFill,
-                    { height: `${heightPercent}%` as any },
-                    isSelected ? styles.barFillSelected : item.isToday ? styles.barFillToday : styles.barFillRegular,
-                  ]}
-                />
-              </View>
-              <AppText
-                style={[
-                  styles.dayLabel,
-                  isSelected ? styles.dayLabelSelected : item.isToday ? styles.dayLabelToday : null,
-                ]}
-                weight={isSelected || item.isToday ? 'extrabold' : 'bold'}
-              >
-                {item.day}
-              </AppText>
-            </Pressable>
-          );
-        })}
+      {/* 3-Day Bento Timeline Selector */}
+      <View style={styles.timelineRow}>
+        {/* 1. Yesterday */}
+        <Pressable
+          onPress={() => {
+            HapticTap.selection();
+            setSelectedDay('ytd');
+          }}
+          style={({ pressed }) => [
+            styles.dayCard,
+            selectedDay === 'ytd' && styles.dayCardActive,
+            pressed && { opacity: 0.75 },
+          ]}
+          hitSlop={4}
+        >
+          <AppText style={[styles.dayCardLabel, selectedDay === 'ytd' && styles.dayCardLabelActive]}>
+            YESTERDAY
+          </AppText>
+          <AppText style={[styles.dayCardValue, selectedDay === 'ytd' && styles.dayCardValueActive]} weight="extrabold">
+            {ytdTaps}
+          </AppText>
+          <AppText style={styles.dayCardSub}>
+            +{Math.round(ytdTaps * 0.35)} Leads
+          </AppText>
+        </Pressable>
+
+        {/* 2. Today (Hero Center) */}
+        <Pressable
+          onPress={() => {
+            HapticTap.selection();
+            setSelectedDay('today');
+          }}
+          style={({ pressed }) => [
+            styles.dayCard,
+            styles.dayCardToday,
+            selectedDay === 'today' && styles.dayCardActive,
+            pressed && { opacity: 0.75 },
+          ]}
+          hitSlop={4}
+        >
+          <View style={styles.todayHeaderRow}>
+            <AppText style={[styles.dayCardLabel, styles.dayCardLabelTodayActive]}>
+              TODAY
+            </AppText>
+            <View style={styles.liveBeaconDot} />
+          </View>
+          <AppText style={[styles.dayCardValue, styles.dayCardValueToday]} weight="extrabold">
+            {todayTaps}
+          </AppText>
+          <AppText style={styles.dayCardSubToday}>
+            +{Math.round(todayTaps * 0.35)} Leads
+          </AppText>
+        </Pressable>
+
+        {/* 3. Tomorrow */}
+        <Pressable
+          onPress={() => {
+            HapticTap.selection();
+            setSelectedDay('tmr');
+          }}
+          style={({ pressed }) => [
+            styles.dayCard,
+            selectedDay === 'tmr' && styles.dayCardActive,
+            pressed && { opacity: 0.75 },
+          ]}
+          hitSlop={4}
+        >
+          <AppText style={[styles.dayCardLabel, selectedDay === 'tmr' && styles.dayCardLabelActive]}>
+            TOMORROW
+          </AppText>
+          <AppText style={[styles.dayCardValue, selectedDay === 'tmr' && styles.dayCardValueActive]} weight="extrabold">
+            {tmrTarget}
+          </AppText>
+          <AppText style={styles.dayCardSub}>
+            Target Goal
+          </AppText>
+        </Pressable>
       </View>
     </View>
   );
@@ -126,6 +174,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    flex: 1,
   },
   iconCircle: {
     width: 32,
@@ -144,6 +193,7 @@ const styles = StyleSheet.create({
   subtitle: {
     color: 'rgba(255, 255, 255, 0.45)',
     fontSize: 11,
+    marginTop: 1,
   },
   growthBadge: {
     paddingHorizontal: 8,
@@ -157,56 +207,70 @@ const styles = StyleSheet.create({
     color: '#30D158',
     fontSize: 11,
   },
-  barsContainer: {
+  timelineRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    height: 64,
-    paddingTop: 4,
-    paddingHorizontal: 4,
-  },
-  barColumn: {
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+  },
+  dayCard: {
     flex: 1,
-  },
-  barTrack: {
-    width: 14,
-    height: 44,
-    borderRadius: 7,
-    backgroundColor: '#18181C',
-    justifyContent: 'flex-end',
-    overflow: 'hidden',
-  },
-  barTrackSelected: {
-    backgroundColor: '#222228',
+    backgroundColor: '#16161B',
+    borderRadius: 12,
     borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    gap: 3,
+  },
+  dayCardToday: {
+    backgroundColor: '#1C1C24',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  dayCardActive: {
     borderColor: '#FFFFFF',
+    backgroundColor: '#202028',
   },
-  barFill: {
-    width: '100%',
-    borderRadius: 7,
+  todayHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
-  barFillRegular: {
-    backgroundColor: 'rgba(255, 255, 255, 0.35)',
-  },
-  barFillToday: {
-    backgroundColor: '#FFFFFF',
-  },
-  barFillSelected: {
+  liveBeaconDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
     backgroundColor: '#30D158',
   },
-  dayLabel: {
+  dayCardLabel: {
+    fontSize: 8.5,
+    letterSpacing: 0.8,
     color: 'rgba(255, 255, 255, 0.4)',
-    fontSize: 10,
+    fontFamily: 'SF-Pro-Display-Regular',
   },
-  dayLabelToday: {
-    color: '#FFFFFF',
+  dayCardLabelActive: {
+    color: 'rgba(255, 255, 255, 0.8)',
   },
-  dayLabelSelected: {
+  dayCardLabelTodayActive: {
     color: '#30D158',
   },
-  pressed: {
-    opacity: 0.85,
+  dayCardValue: {
+    fontSize: 17,
+    color: 'rgba(255, 255, 255, 0.75)',
+  },
+  dayCardValueActive: {
+    color: '#FFFFFF',
+  },
+  dayCardValueToday: {
+    color: '#FFFFFF',
+  },
+  dayCardSub: {
+    fontSize: 9.5,
+    color: 'rgba(255, 255, 255, 0.35)',
+  },
+  dayCardSubToday: {
+    fontSize: 9.5,
+    color: 'rgba(255, 255, 255, 0.6)',
   },
 });
+
