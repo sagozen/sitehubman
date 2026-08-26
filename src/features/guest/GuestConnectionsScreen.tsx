@@ -64,13 +64,13 @@ export function GuestConnectionsScreen() {
 
   const handleExportCSV = useCallback(async () => {
     HapticTap.medium();
-    const headers = 'Name,Title/Company,Date,Status,Tags\n';
+    const headers = 'Name,Company/Title,Email,Phone,Date,Note\n';
     const rows = filteredMoments
       .map(
         (m) =>
-          `"${m.name}","${m.subtitle || 'Executive Contact'}","${
+          `"${m.name}","${m.subtitle || m.company || 'Executive'}","${m.email || 'N/A'}","${m.phone || 'N/A'}","${
             m.occurredAt instanceof Date ? m.occurredAt.toLocaleDateString() : 'Recent'
-          }","Verified Lead","${m.tags?.join('; ') || 'NFC Tap'}"`,
+          }","${m.note || 'Verified NFC Lead'}"`,
       )
       .join('\n');
     const csvContent = headers + rows;
