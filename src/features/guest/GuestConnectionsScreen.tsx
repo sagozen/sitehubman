@@ -16,6 +16,9 @@ import {
   TextInput,
   View,
   Animated,
+  Share,
+  Linking,
+  Alert,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/src/components/AppIcon';
@@ -58,6 +61,56 @@ export function GuestConnectionsScreen() {
       `${moment.name} ${moment.subtitle ?? ''}`.toLowerCase().includes(lower),
     );
   }, [allMoments, activeFilter, debouncedSearch]);
+
+  const handleExportCSV = useCallback(async () => {
+    HapticTap.medium();
+    const headers = 'Name,Title/Company,Date,Status,Tags\n';
+    const rows = filteredMoments
+      .map(
+        (m) =>
+          `"${m.name}","${m.subtitle || 'Executive Contact'}","${
+            m.occurredAt instanceof Date ? m.occurredAt.toLocaleDateString() : 'Recent'
+          }","Verified Lead","${m.tags?.join('; ') || 'NFC Tap'}"`,
+      )
+      .join('\n');
+    const csvContent = headers + rows;
+    try {
+      await Share.share({
+        title: 'AVIO_Executive_Leads.csv',
+        message: csvContent,
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }, [filteredMoments]);
+
+  const handleWhatsApp = useCallback((contact: TapMoment) => {
+    HapticTap.light();
+    const text = encodeURIComponent(
+      `Hi ${contact.name}, great connecting with you today! Here is my AVIO business card and direct contact info.`,
+    );
+    Linking.openURL(`https://wa.me/?text=${text}`).catch(() => {
+      Alert.alert('Notice', 'Unable to launch WhatsApp on this device.');
+    });
+  }, []);
+
+  const handleEmail = useCallback((contact: TapMoment) => {
+    HapticTap.light();
+    const subject = encodeURIComponent(`Great meeting you - Follow up from AVIO`);
+    const body = encodeURIComponent(
+      `Hi ${contact.name},\n\nIt was a pleasure meeting you today. Looking forward to our conversation.\n\nBest regards,`,
+    );
+    Linking.openURL(`mailto:?subject=${subject}&body=${body}`).catch(() => {
+      Alert.alert('Notice', 'Unable to launch email client.');
+    });
+  }, []);
+
+  const handleCall = useCallback((_contact: TapMoment) => {
+    HapticTap.medium();
+    Linking.openURL(`tel:18005550199`).catch(() => {
+      Alert.alert('Notice', 'Phone dialer not available.');
+    });
+  }, []);
 
   const handleOpenContact = useCallback(
     (contact: TapMoment) => {
@@ -148,21 +201,32 @@ export function GuestConnectionsScreen() {
       <View style={styles.headerArea}>
         {/* Top Header */}
         <View style={styles.titleRow}>
-          <AppText style={styles.pageTitle} weight="extrabold">
-            Connections
-          </AppText>
-          <View style={styles.countPill}>
-            <AppText style={styles.countPillText} weight="bold">
-              {filteredMoments.length} LEADS
+          <View style={styles.titleWithBadge}>
+            <AppText style={styles.pageTitle} weight="extrabold">
+              Lead CRM
             </AppText>
+            <View style={styles.countPill}>
+              <AppText style={styles.countPillText} weight="bold">
+                {filteredMoments.length} CONTACTS
+              </AppText>
+            </View>
           </View>
+          <Pressable
+            style={({ pressed }) => [styles.exportBtn, pressed && styles.exportBtnPressed]}
+            onPress={handleExportCSV}
+          >
+            <AppIcon name="Download" size={13} color="#000000" />
+            <AppText style={styles.exportBtnText} weight="bold">
+              Export CSV
+            </AppText>
+          </Pressable>
         </View>
 
         {/* Minimalist Search Bar */}
         <View style={styles.searchBar}>
           <AppIcon name="Search" size={16} color="rgba(255, 255, 255, 0.4)" />
           <TextInput
-            placeholder="Search leads by name or company..."
+            placeholder="Search leads by name, company, or title..."
             placeholderTextColor="rgba(255, 255, 255, 0.35)"
             style={styles.searchInput}
             value={query}
@@ -204,7 +268,7 @@ export function GuestConnectionsScreen() {
         </View>
       </View>
     ),
-    [activeFilter, filteredMoments.length, query],
+    [activeFilter, filteredMoments.length, handleExportCSV, query],
   );
 
   return (
@@ -241,25 +305,33 @@ export function GuestConnectionsScreen() {
 
               {/* Modal Contact Info */}
               <AppText style={styles.modalName} weight="extrabold">{selectedContact.name}</AppText>
-              <AppText style={styles.modalSub}>{selectedContact.subtitle || 'NFC Member'}</AppText>
-              <AppText style={styles.modalMeta}>NFC Contact Exchange · Verified Lead</AppText>
+              <AppText style={styles.modalSub}>{selectedContact.subtitle || 'Executive Contact'}</AppText>
+              <AppText style={styles.modalMeta}>Verified NFC Exchange · Direct Lead</AppText>
 
-              {/* Quick Actions (Apple HIG Monochrome) */}
+              {/* Executive Follow-Up Actions */}
               <View style={styles.modalActions}>
                 <Pressable
                   style={styles.modalBtn}
-                  onPress={() => { HapticTap.medium(); handleCloseModal(); }}
+                  onPress={() => { handleWhatsApp(selectedContact); handleCloseModal(); }}
                 >
-                  <AppIcon name="Phone" size={16} color="#000000" />
-                  <AppText style={styles.modalBtnText} weight="bold">Call Lead</AppText>
+                  <AppIcon name="MessageSquare" size={16} color="#000000" />
+                  <AppText style={styles.modalBtnText} weight="bold">WhatsApp</AppText>
                 </Pressable>
 
                 <Pressable
                   style={styles.modalBtnDark}
-                  onPress={() => { HapticTap.light(); handleCloseModal(); }}
+                  onPress={() => { handleEmail(selectedContact); handleCloseModal(); }}
                 >
-                  <AppIcon name="Send" size={16} color="#FFFFFF" />
-                  <AppText style={styles.modalBtnDarkText} weight="bold">Telegram</AppText>
+                  <AppIcon name="Mail" size={16} color="#FFFFFF" />
+                  <AppText style={styles.modalBtnDarkText} weight="bold">Follow Up</AppText>
+                </Pressable>
+
+                <Pressable
+                  style={styles.modalBtnDark}
+                  onPress={() => { handleCall(selectedContact); handleCloseModal(); }}
+                >
+                  <AppIcon name="Phone" size={16} color="#FFFFFF" />
+                  <AppText style={styles.modalBtnDarkText} weight="bold">Call</AppText>
                 </Pressable>
               </View>
 
@@ -304,6 +376,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  titleWithBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  exportBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 8,
+    gap: 6,
+  },
+  exportBtnPressed: {
+    opacity: 0.8,
+  },
+  exportBtnText: {
+    color: '#000000',
+    fontSize: 12,
   },
   pageTitle: {
     fontSize: 24,

@@ -58,24 +58,24 @@ export function TestTapSimulatorCard({ onSimulateTap }: TestTapSimulatorCardProp
 
       <View style={styles.meta}>
         <View style={styles.badgeRow}>
-          <AppText style={styles.questBadge} weight="extrabold">
-            {completed ? 'QUEST COMPLETED ✅' : 'NEW MEMBER QUEST ⚡'}
+          <AppText style={[styles.questBadge, completed && styles.questBadgeCompleted]} weight="extrabold">
+            {completed ? 'SMART CARD ACTIVE' : 'EXECUTIVE ONBOARDING'}
           </AppText>
         </View>
         <AppText style={styles.title} weight="extrabold">
-          {completed ? 'First Tap Verified!' : 'Test-Drive Your Smart Pass'}
+          {completed ? 'Card Verified & Ready to Share' : 'Preview 2-Way Contact Exchange'}
         </AppText>
         <AppText style={styles.subtitle}>
           {completed
-            ? 'Your card is active and ready to beam at events.'
-            : 'Tap here to simulate your first live NFC connection.'}
+            ? 'Your digital profile and NFC chip are active and ready for client meetings.'
+            : 'Tap here to simulate how clients receive and save your business profile.'}
         </AppText>
       </View>
 
       {!completed && !simulating && (
         <View style={styles.tapPrompt}>
           <AppText style={styles.tapPromptText} weight="bold">
-            TAP
+            TEST
           </AppText>
         </View>
       )}
@@ -119,6 +119,9 @@ const styles = StyleSheet.create({
     color: '#F59E0B',
     fontSize: 10,
     letterSpacing: 1.1,
+  },
+  questBadgeCompleted: {
+    color: '#30D158',
   },
   title: {
     color: '#FFFFFF',

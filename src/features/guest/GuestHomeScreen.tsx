@@ -88,8 +88,8 @@ const SPACING = {
 // ─── Quick actions ───────────────────────────────────────────────────────────
 const ACTIONS = [
   {
-    label: 'Sample Moments',
-    subtitle: 'Preview captured leads',
+    label: 'Lead CRM',
+    subtitle: 'Manage & export contacts',
     route: appRoutes.customerConnections as Href,
     icon: 'Users' as AppIconName,
     bg: '#E2F16D', // Lime Yellow
@@ -97,8 +97,8 @@ const ACTIONS = [
     image: require('@/assets/images/3d_share_card_v2.png'),
   },
   {
-    label: 'NFC Demo',
-    subtitle: 'Try tap-to-open',
+    label: 'Instant Share',
+    subtitle: 'Live QR & NFC beam',
     route: appRoutes.nfcDemo as Href,
     icon: 'Nfc' as AppIconName,
     bg: '#E57A65', // Terracotta
@@ -106,8 +106,8 @@ const ACTIONS = [
     image: require('@/assets/images/3d_signals_v2.png'),
   },
   {
-    label: 'Track order',
-    subtitle: 'Follow production',
+    label: 'Track Order',
+    subtitle: 'Card production status',
     route: appRoutes.guestTrackOrder as Href,
     icon: 'Truck' as AppIconName,
     bg: '#2563EB', // Sapphire Blue
@@ -115,8 +115,8 @@ const ACTIONS = [
     image: require('@/assets/images/3d_track_card_v2.png'),
   },
   {
-    label: 'New order',
-    subtitle: 'Choose a card design',
+    label: 'Order Cards',
+    subtitle: 'Metal & obsidian fleet',
     route: appRoutes.customer.templates as Href,
     icon: 'Plus' as AppIconName,
     bg: '#FF5733', // Coral Red
@@ -126,9 +126,9 @@ const ACTIONS = [
 ];
 
 const TRUST_POINTS = [
-  { label: 'Public profile', icon: 'UserRound' as AppIconName },
-  { label: 'NFC card order', icon: 'CreditCard' as AppIconName },
-  { label: 'Lead moments', icon: 'Users' as AppIconName },
+  { label: 'Executive Bio', icon: 'UserRound' as AppIconName },
+  { label: 'Smart NFC Card', icon: 'CreditCard' as AppIconName },
+  { label: 'Lead CRM & Export', icon: 'Users' as AppIconName },
 ];
 
 // ─── Order status ────────────────────────────────────────────────────────────
