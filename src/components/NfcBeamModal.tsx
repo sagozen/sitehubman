@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
   beaconCard: {
     width: '100%',
     maxWidth: 340,
-    backgroundColor: '#111114',
+    backgroundColor: '#1C1C1E',
     borderRadius: 24,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.12)',
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#121215',
+    backgroundColor: '#1C1C1E',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',

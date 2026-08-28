@@ -1,15 +1,15 @@
 ﻿/**
- * TestTapSimulatorCard.tsx — 100% Native Apple Cash / Apple Pay Confirmation Edition.
+ * ApplePassConfirmationCard.tsx
  *
- * Modeled directly after Apple Cash & Apple Pay native iOS interface:
- *  - Native slate container (#1C1C1E)
- *  - Floating black Apple Pass card with gold/titanium chip
- *  - Bold Apple Headline: 'Smart Card Active ✓' with Apple Blue Check (#0A84FF)
- *  - Crisp HIG typography & haptic response
+ * 100% Native Apple Cash / Apple Pay Confirmation Card Design.
+ * Features:
+ *  - Pure Apple dark slate canvas (#1C1C1E / #000000)
+ *  - Floating card visual with Apple Cash style layout
+ *  - Bold typography: 'Smart Card Active ✓' with Apple Blue checkmark (#0A84FF)
+ *  - Clean Apple Human Interface Guidelines micro-copy
  */
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  ActivityIndicator,
   Image,
   Pressable,
   StyleSheet,
@@ -17,35 +17,32 @@ import {
 } from 'react-native';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { HapticTap, HapticPattern } from '@/src/utils/haptics';
+import { HapticTap } from '@/src/utils/haptics';
 
-interface TestTapSimulatorCardProps {
-  onSimulateTap: () => void;
+interface ApplePassConfirmationCardProps {
+  cardName?: string;
+  title?: string;
+  subtitle?: string;
+  isCompleted?: boolean;
+  onPress?: () => void;
 }
 
-export function TestTapSimulatorCard({ onSimulateTap }: TestTapSimulatorCardProps) {
-  const [simulating, setSimulating] = useState(false);
-  const [completed, setCompleted] = useState(false);
-
-  const handleTestTap = () => {
-    if (simulating || completed) return;
-    HapticTap.heavy();
-    setSimulating(true);
-
-    setTimeout(() => {
-      HapticPattern.tapSuccess();
-      setSimulating(false);
-      setCompleted(true);
-      onSimulateTap();
-    }, 1200);
-  };
-
+export function ApplePassConfirmationCard({
+  cardName = 'AVIO Smart Pass',
+  title = 'Pass Active ✓',
+  subtitle = 'Your executive profile and NFC chip are ready for instant client contact exchange.',
+  isCompleted = true,
+  onPress,
+}: ApplePassConfirmationCardProps) {
   return (
     <Pressable
-      onPress={handleTestTap}
+      onPress={() => {
+        HapticTap.medium();
+        onPress?.();
+      }}
       style={({ pressed }) => [styles.container, pressed && styles.pressed]}
     >
-      {/* Floating Apple Pass Visual */}
+      {/* ── Apple Cash Floating Mini Card ── */}
       <View style={styles.cardGraphicWrap}>
         <Image
           source={require('@/assets/images/marketing/hero-home.png')}
@@ -68,35 +65,18 @@ export function TestTapSimulatorCard({ onSimulateTap }: TestTapSimulatorCardProp
         </View>
       </View>
 
-      {/* Native Apple Cash Title & Status */}
+      {/* ── Apple Cash Native Title & Body ── */}
       <View style={styles.contentBlock}>
         <View style={styles.titleRow}>
-          {simulating ? (
-            <ActivityIndicator size="small" color="#0A84FF" />
-          ) : (
-            <AppText style={styles.mainTitle} weight="extrabold">
-              {completed ? 'Smart Pass Active' : 'Test NFC Smart Pass'}
-            </AppText>
-          )}
-          <AppIcon
-            name={completed ? 'Check' : 'Nfc'}
-            size={20}
-            color={completed ? '#0A84FF' : 'rgba(255,255,255,0.5)'}
-          />
+          <AppText style={styles.mainTitle} weight="extrabold">
+            {title}
+          </AppText>
+          <AppIcon name="Check" size={20} color="#0A84FF" />
         </View>
         <AppText style={styles.subText}>
-          {completed
-            ? 'Apple Cash style virtual pass is live. Your digital profile & NFC chip are ready for client meetings.'
-            : 'Tap here to simulate how clients scan & save your executive profile.'}
+          {subtitle}
         </AppText>
       </View>
-
-      {/* Action Button */}
-      {!completed && !simulating && (
-        <View style={styles.ctaPill}>
-          <AppText style={styles.ctaText} weight="extrabold">Tap to Test Drive →</AppText>
-        </View>
-      )}
     </Pressable>
   );
 }
@@ -107,18 +87,18 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
-    padding: 20,
+    padding: 24,
     alignItems: 'center',
-    gap: 16,
+    gap: 20,
   },
   cardGraphicWrap: {
-    width: 200,
-    height: 120,
+    width: 220,
+    height: 135,
     borderRadius: 14,
     overflow: 'hidden',
     backgroundColor: '#111114',
     position: 'relative',
-    padding: 12,
+    padding: 14,
     justifyContent: 'space-between',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 6 },
@@ -150,8 +130,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   nfcChipSeal: {
-    width: 22,
-    height: 22,
+    width: 24,
+    height: 24,
     borderRadius: 6,
     backgroundColor: 'rgba(255,255,255,0.12)',
     alignItems: 'center',
@@ -164,7 +144,7 @@ const styles = StyleSheet.create({
   },
   cardHolderName: {
     color: 'rgba(255,255,255,0.85)',
-    fontSize: 9,
+    fontSize: 10,
     letterSpacing: 0.8,
   },
   cardPassType: {
@@ -174,7 +154,7 @@ const styles = StyleSheet.create({
   },
   contentBlock: {
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   titleRow: {
     flexDirection: 'row',
@@ -183,26 +163,15 @@ const styles = StyleSheet.create({
   },
   mainTitle: {
     color: '#FFFFFF',
-    fontSize: 20,
+    fontSize: 22,
     letterSpacing: -0.3,
   },
   subText: {
     color: 'rgba(255, 255, 255, 0.65)',
-    fontSize: 12,
+    fontSize: 13,
     textAlign: 'center',
-    lineHeight: 17,
-    maxWidth: 290,
-  },
-  ctaPill: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginTop: 2,
-  },
-  ctaText: {
-    color: '#000000',
-    fontSize: 12,
+    lineHeight: 18,
+    maxWidth: 300,
   },
   pressed: {
     opacity: 0.88,
