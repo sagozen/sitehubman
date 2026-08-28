@@ -564,6 +564,7 @@ export interface BioPage {
   displayName: string;
   tagline?: string;
   photoUrl?: string;
+  coverPhotoUrl?: string;
   whatsapp?: string;
   instagram?: string;
   telegram?: string;

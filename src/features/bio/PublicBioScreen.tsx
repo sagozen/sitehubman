@@ -333,35 +333,69 @@ export function PublicBioScreen({ slug, cardId }: Props) {
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
         >
-          {/* ── 1. Executive Identity Card ── */}
-          <View style={styles.executiveCard}>
-            {/* Avatar Seal with Verified Ring */}
-            <View style={styles.avatarWrap}>
+      {/* ── FULL-BLEED COVER PHOTO HERO ── */}
+          <View style={styles.coverHeroWrap}>
+            {bioPage.coverPhotoUrl ? (
+              <Image source={{ uri: bioPage.coverPhotoUrl }} style={styles.coverPhoto} resizeMode="cover" />
+            ) : (
+              <Image source={require('@/assets/images/marketing/hero-home.png')} style={styles.coverPhoto} resizeMode="cover" />
+            )}
+            <View style={styles.coverOverlay} />
+
+            {/* Floating avatar on cover */}
+            <View style={styles.coverAvatarWrap}>
               {bioPage.photoUrl ? (
-                <Image source={{ uri: bioPage.photoUrl }} style={styles.avatarImg} />
+                <Image source={{ uri: bioPage.photoUrl }} style={styles.coverAvatarImg} />
               ) : (
-                <View style={styles.avatarSeal}>
-                  <AppText style={styles.avatarLetter} weight="extrabold">{initial}</AppText>
+                <View style={styles.coverAvatarSeal}>
+                  <AppText style={styles.coverAvatarLetter} weight="extrabold">{initial}</AppText>
                 </View>
               )}
-
               <View style={styles.verifiedBadge}>
                 <AppIcon name="Check" size={11} color="#000000" />
               </View>
             </View>
+          </View>
 
+          {/* ── 1. Executive Identity Card ── */}
+          <View style={styles.executiveCard}>
             {/* Name & Title */}
             <View style={styles.nameBlock}>
               <AppText style={styles.nameText} weight="extrabold">{bioPage.displayName}</AppText>
               <AppText style={styles.taglineText}>
                 {bioPage.tagline || 'Founder & Managing Director · AVIO'}
               </AppText>
-              <AppText style={styles.slugBadgeText}>
-                sitehubman.app/{bioPage.slug || slug || 'alexander'}
-              </AppText>
+              <View style={styles.slugPill}>
+                <AppIcon name="Globe" size={10} color="rgba(255,255,255,0.5)" />
+                <AppText style={styles.slugBadgeText}>
+                  sitehubman.app/{bioPage.slug || slug || 'alexander'}
+                </AppText>
+              </View>
             </View>
 
-            {/* ── 2. Primary Executive Actions: Save Contact & Exchange Contact ── */}
+            {/* ── Live Business Stats Bar ── */}
+            <View style={styles.statsBar}>
+              <View style={styles.statBarItem}>
+                <AppText style={styles.statBarValue} weight="extrabold">
+                  {bioPage.views ?? 0}
+                </AppText>
+                <AppText style={styles.statBarLabel}>Profile Views</AppText>
+              </View>
+              <View style={styles.statBarDivider} />
+              <View style={styles.statBarItem}>
+                <AppText style={styles.statBarValue} weight="extrabold">
+                  {bioPage.taps ?? 0}
+                </AppText>
+                <AppText style={styles.statBarLabel}>NFC Taps</AppText>
+              </View>
+              <View style={styles.statBarDivider} />
+              <View style={styles.statBarItem}>
+                <View style={styles.statBarLiveDot} />
+                <AppText style={styles.statBarLiveLabel}>Live Now</AppText>
+              </View>
+            </View>
+
+            {/* ── 2. Primary Executive Actions ── */}
             <View style={styles.actionButtonsCol}>
               <Pressable
                 onPress={() => void handleSaveContact()}
@@ -476,7 +510,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
             </View>
           </View>
 
-          {/* ── 5. VIRAL GROWTH CARD: Get Your Own AVIO Card ── */}
+          {/* ── 5. PREMIUM VIRAL CONVERSION CARD ── */}
           <Pressable
             style={({ pressed }) => [styles.viralCard, pressed && styles.pressed]}
             onPress={() => {
@@ -484,24 +518,31 @@ export function PublicBioScreen({ slug, cardId }: Props) {
               Linking.openURL('https://aviobrand.com').catch(() => undefined);
             }}
           >
-            <View style={styles.viralCardInner}>
-              <View style={styles.viralAvatarSeal}>
-                <AppText style={styles.viralAvatarLetter} weight="extrabold">A</AppText>
+            {/* Real product mockup */}
+            <Image
+              source={require('@/assets/images/marketing/nfc-tap-demo.png')}
+              style={styles.viralCoverImg}
+              resizeMode="cover"
+            />
+            <View style={styles.viralImgOverlay} />
+            <View style={styles.viralCardContent}>
+              <View style={styles.viralBadgeRow}>
+                <View style={styles.viralBadge}>
+                  <AppText style={styles.viralBadgeText} weight="extrabold">FREE TO START</AppText>
+                </View>
+                <View style={styles.viralBadge}>
+                  <AppText style={styles.viralBadgeText} weight="extrabold">NFC READY</AppText>
+                </View>
               </View>
-              <View style={styles.viralTextBlock}>
-                <AppText style={styles.viralTitle} weight="extrabold">
-                  Want your own card like this?
-                </AppText>
-                <AppText style={styles.viralSub}>
-                  Create a free AVIO Smart Pass in 60 seconds.
-                </AppText>
+              <AppText style={styles.viralTitle} weight="extrabold">
+                {"Impress every client like\n"}{bioPage.displayName.split(' ')[0]} does.
+              </AppText>
+              <AppText style={styles.viralSub}>
+                Get your own AVIO Smart Pass in 60 seconds. No app required for your clients.
+              </AppText>
+              <View style={styles.viralCta}>
+                <AppText style={styles.viralCtaText} weight="extrabold">Create My Card →</AppText>
               </View>
-              <AppIcon name="ArrowUpRight" size={18} color="#FFFFFF" />
-            </View>
-            <View style={styles.viralPillRow}>
-              <View style={styles.viralPill}><AppText style={styles.viralPillText} weight="bold">Free to start</AppText></View>
-              <View style={styles.viralPill}><AppText style={styles.viralPillText} weight="bold">NFC ready</AppText></View>
-              <View style={styles.viralPill}><AppText style={styles.viralPillText} weight="bold">No app needed</AppText></View>
             </View>
           </Pressable>
 
@@ -709,6 +750,48 @@ const styles = StyleSheet.create({
     gap: 14,
   },
 
+  // ── Cover Hero ──
+  coverHeroWrap: {
+    height: 200,
+    borderRadius: 20,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  coverPhoto: {
+    width: '100%',
+    height: '100%',
+  },
+  coverOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.38)',
+  },
+  coverAvatarWrap: {
+    position: 'absolute',
+    bottom: -36,
+    left: 20,
+  },
+  coverAvatarImg: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 3,
+    borderColor: '#000000',
+  },
+  coverAvatarSeal: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: '#000000',
+  },
+  coverAvatarLetter: {
+    fontSize: 32,
+    color: '#000000',
+  },
+
   // ── Executive Identity Card ──
   executiveCard: {
     borderRadius: 20,
@@ -716,6 +799,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
     padding: 24,
+    paddingTop: 52, // Space for floating avatar
     alignItems: 'center',
     gap: 16,
   },
@@ -753,6 +837,64 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: '#111114',
+  },
+
+  // ── Slug Pill ──
+  slugPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    marginTop: 2,
+  },
+
+  // ── Live Stats Bar ──
+  statsBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0D0D10',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.07)',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    width: '100%',
+  },
+  statBarItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 3,
+  },
+  statBarValue: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    letterSpacing: -0.5,
+  },
+  statBarLabel: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 10,
+  },
+  statBarDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  statBarLiveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#30D158',
+    marginBottom: 3,
+  },
+  statBarLiveLabel: {
+    color: '#30D158',
+    fontSize: 11,
+    fontWeight: '600',
   },
   nameBlock: {
     alignItems: 'center',
@@ -867,57 +1009,66 @@ const styles = StyleSheet.create({
 
   // ── Viral Growth Card ──
   viralCard: {
-    borderRadius: 16,
-    backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    padding: 16,
-    gap: 12,
-  },
-  viralCardInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  viralAvatarSeal: {
-    width: 40,
-    height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
+    overflow: 'hidden',
+    height: 220,
+    position: 'relative',
   },
-  viralAvatarLetter: {
-    fontSize: 18,
-    color: '#000000',
+  viralCoverImg: {
+    width: '100%',
+    height: '100%',
   },
-  viralTextBlock: {
-    flex: 1,
-    gap: 2,
+  viralImgOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.62)',
   },
-  viralTitle: {
-    color: '#FFFFFF',
-    fontSize: 14,
+  viralCardContent: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 20,
+    gap: 8,
   },
-  viralSub: {
-    color: 'rgba(255, 255, 255, 0.55)',
-    fontSize: 12,
-  },
-  viralPillRow: {
+  viralBadgeRow: {
     flexDirection: 'row',
     gap: 6,
   },
-  viralPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+  viralBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255,255,255,0.2)',
   },
-  viralPillText: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 11,
+  viralBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    letterSpacing: 0.8,
+  },
+  viralTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    lineHeight: 24,
+    letterSpacing: -0.2,
+  },
+  viralSub: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  viralCta: {
+    backgroundColor: '#FFFFFF',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 999,
+    marginTop: 4,
+  },
+  viralCtaText: {
+    color: '#000000',
+    fontSize: 13,
   },
 
   // ── NFC Footer ──
