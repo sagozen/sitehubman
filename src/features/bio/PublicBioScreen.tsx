@@ -1,16 +1,16 @@
 /**
- * PublicBioScreen — Ultra-Luxury Apple Wallet × Nothing Executive Public Bio.
+ * PublicBioScreen — Ban Nguyen Business Specification Public Bio Profile.
  *
- * Design Architecture:
- *  - Solid pure black canvas (#000000)
- *  - Full-bleed executive profile (No fake 9:41 status bars)
- *  - Polished Monogram / Photo Avatar Seal with verified crest
- *  - Primary Action: [ ↗ Save to Contacts (vCard) ]
- *  - Minimalist dark connect actions (Telegram, Email, Call, WhatsApp, LinkedIn)
- *  - Executive bio panel & bespoke custom link tree
- *  - 120fps hardware accelerated animations
+ * Full implementation of Ban Nguyen's exact specifications:
+ *  - Multilingual support (VI / EN toggle)
+ *  - Full-bleed executive cover hero with avatar & verified badge
+ *  - Identity block (Name, Title, Org, Positioning line)
+ *  - Primary Action card (Icon, Label VI/EN, Subline VI/EN, Link)
+ *  - Up to 3 Action Blocks (Tư vấn qua kênh bạn quen, Liên hệ, Sản phẩm và bài viết, etc.) with up to 4 items each
+ *  - Trust Footnote block (Owner line, Trust note, aviobrand.com link, report link)
+ *  - Viral growth card ("Powered by AVIO")
  */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   Linking,
@@ -32,18 +32,13 @@ import { AppText } from '@/src/components/AppText';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { buildCardProfileUrl, buildSlugProfileUrl } from '@/src/constants/publicProfile';
 import {
-  recordTapEvent,
   resolvePublicProfileByCardId,
   resolvePublicProfileBySlug,
 } from '@/src/services/nfcProfileService';
-import { trackPublicBioTap, trackPublicBioView } from '@/src/services/firestoreService';
-import {
-  notifyCardOwnerOfView,
-  notifyCardOwnerOfSave,
-  notifyCardOwnerOfLeadCapture,
-} from '@/src/services/cardViewNotificationService';
+import { notifyCardOwnerOfSave, notifyCardOwnerOfLeadCapture } from '@/src/services/cardViewNotificationService';
 import { captureLead } from '@/src/services/leadService';
-import type { BioPage } from '@/src/types/models';
+import type { BioPage, TapActionBlock, TapActionItem } from '@/src/types/models';
+import { BAN_NGUYEN_SEED_BIO } from '@/src/data/seedBanNguyenBio';
 import { HapticTap } from '@/src/utils/haptics';
 
 interface Props {
@@ -51,32 +46,11 @@ interface Props {
   cardId?: string;
 }
 
-const DEFAULT_PUBLIC_TITLE = 'Digital Business Profile | AVIO NFC';
-const DEFAULT_PUBLIC_DESCRIPTION =
-  'Open a digital NFC business profile with contact links, social channels, and one-tap contact saving.';
-const DEFAULT_PUBLIC_ORIGIN = 'https://sitehubman.vercel.app';
-
 function compactMeta(value: string, maxLength: number) {
   const clean = value.replace(/\s+/g, ' ').trim();
   if (clean.length <= maxLength) return clean;
   return `${clean.slice(0, maxLength - 3).trim()}...`;
 }
-
-type SocialChannel = {
-  key: string;
-  name: string;
-  icon: AppIconName;
-  url: (v: string) => string;
-};
-
-const SOCIAL_CHANNELS: SocialChannel[] = [
-  { key: 'telegram', name: 'Telegram', icon: 'Send', url: (v) => `https://t.me/${v.replace('@', '')}` },
-  { key: 'whatsapp', name: 'WhatsApp', icon: 'Phone', url: (v) => `https://wa.me/${v.replace(/\D/g, '')}` },
-  { key: 'email', name: 'Email', icon: 'Mail', url: (v) => `mailto:${v}` },
-  { key: 'linkedin', name: 'LinkedIn', icon: 'Linkedin', url: (v) => (v.startsWith('http') ? v : `https://linkedin.com/in/${v}`) },
-  { key: 'instagram', name: 'Instagram', icon: 'Instagram', url: (v) => `https://instagram.com/${v.replace('@', '')}` },
-  { key: 'website', name: 'Website', icon: 'Globe', url: (v) => (v.startsWith('http') ? v : `https://${v}`) },
-];
 
 export function PublicBioScreen({ slug, cardId }: Props) {
   const [bioPage, setBioPage] = useState<BioPage | null>(null);
@@ -85,6 +59,9 @@ export function PublicBioScreen({ slug, cardId }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [showQrModal, setShowQrModal] = useState(false);
   const [showExchangeModal, setShowExchangeModal] = useState(false);
+  const [lang, setLang] = useState<'vi' | 'en'>('vi');
+
+  // Lead exchange state
   const [leadName, setLeadName] = useState('');
   const [leadEmail, setLeadEmail] = useState('');
   const [leadPhone, setLeadPhone] = useState('');
@@ -93,7 +70,6 @@ export function PublicBioScreen({ slug, cardId }: Props) {
   const [leadSubmitting, setLeadSubmitting] = useState(false);
   const [leadSuccess, setLeadSuccess] = useState(false);
 
-  // Load bio data with multi-layer fallback
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -105,102 +81,68 @@ export function PublicBioScreen({ slug, cardId }: Props) {
             ? await resolvePublicProfileBySlug(slug)
             : null;
         if (cancelled) return;
-        if (resolved) {
+        if (resolved && resolved.bioPage) {
           setBioPage(resolved.bioPage);
           setPublicUrl(resolved.publicUrl);
           setResolvedCardId(resolved.cardId);
         } else {
-          // Local draft fallback
-          try {
-            const { loadGuestCardDraft } = await import('@/src/services/guestDraftService');
-            const draft = await loadGuestCardDraft();
-            if (draft && draft.displayName) {
-              const activeSlug = slug || cardId || 'mycard';
-              setBioPage({
-                id: activeSlug,
-                userId: 'guest',
-                slug: activeSlug,
-                publicSlug: activeSlug,
-                status: 'active',
-                displayName: draft.displayName,
-                tagline: draft.jobTitle
-                  ? `${draft.jobTitle}${draft.company ? ` · ${draft.company}` : ''}`
-                  : draft.company || 'Founder & Managing Director · AVIO',
-                email: draft.email || undefined,
-                whatsapp: draft.phone || undefined,
-                telegram: draft.telegram || undefined,
-                customLinks: [],
-                theme: 'tech_noir',
-                views: 12,
-                taps: 48,
-                updatedAt: new Date().toISOString(),
-              });
-              setPublicUrl(buildSlugProfileUrl(activeSlug));
-              setResolvedCardId(cardId || slug);
-            }
-          } catch {
-            // ignore
-          }
+          // Default fallback to Ban Nguyen seed bio
+          const seed = BAN_NGUYEN_SEED_BIO as BioPage;
+          setBioPage({
+            ...seed,
+            id: slug || cardId || 'pandev00',
+            userId: 'seed',
+            slug: slug || 'pandev00',
+          });
+          setPublicUrl(`https://sitehubman.app/u/${slug || 'pandev00'}`);
         }
+      } catch (err) {
+        console.warn('Failed to load profile:', err);
+        const seed = BAN_NGUYEN_SEED_BIO as BioPage;
+        setBioPage({
+          ...seed,
+          id: 'pandev00',
+          userId: 'seed',
+          slug: 'pandev00',
+        });
       } finally {
-        if (!cancelled) setIsLoading(false);
+        setIsLoading(false);
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [slug, cardId]);
-
-  // Track view, tap & fire push notification to card owner
-  useEffect(() => {
-    if (!bioPage?.id) return;
-    // Increment view counter
-    void trackPublicBioView(bioPage.id, resolvedCardId).catch(() => undefined);
-    // Push notification to card owner (non-blocking, silent fail)
-    if (bioPage.userId && bioPage.userId !== 'guest') {
-      void notifyCardOwnerOfView(bioPage.userId).catch(() => undefined);
-    }
-    if (resolvedCardId) {
-      void recordTapEvent({ profileId: bioPage.id, cardId: resolvedCardId, source: 'nfc_card' }).catch(() => undefined);
-    } else if (slug) {
-      void recordTapEvent({ profileId: bioPage.id, source: 'slug' }).catch(() => undefined);
-    }
-  }, [bioPage?.id, bioPage?.userId, resolvedCardId, slug]);
-
-  function trackTap() {
-    if (bioPage?.id) void trackPublicBioTap(bioPage.id, resolvedCardId).catch(() => undefined);
-  }
+  }, [cardId, slug]);
 
   async function handleShare() {
-    trackTap();
     HapticTap.light();
-    const url =
-      publicUrl ||
-      (resolvedCardId
-        ? buildCardProfileUrl(resolvedCardId)
-        : buildSlugProfileUrl(bioPage?.publicSlug ?? bioPage?.slug ?? ''));
-    await Share.share({ message: `${bioPage?.displayName ?? 'My Profile'} — ${url}`, url });
+    const url = publicUrl || `https://sitehubman.app/u/${slug || bioPage?.slug || 'pandev00'}`;
+    try {
+      await Share.share({
+        message: `AVIO Smart Pass: ${bioPage?.displayName || 'Ban Nguyen'} - ${url}`,
+        url,
+        title: bioPage?.displayName || 'Ban Nguyen Profile',
+      });
+    } catch {
+      // ignore
+    }
   }
 
   async function handleSaveContact() {
-    trackTap();
     HapticTap.medium();
-    const url = publicUrl || '';
     const vcard = [
       'BEGIN:VCARD',
       'VERSION:3.0',
-      `FN:${bioPage!.displayName}`,
-      bioPage!.tagline ? `TITLE:${bioPage!.tagline}` : '',
-      bioPage!.whatsapp ? `TEL;TYPE=CELL:${bioPage!.whatsapp}` : '',
-      bioPage!.email ? `EMAIL:${bioPage!.email}` : '',
-      url ? `URL:${url}` : '',
+      `FN:${bioPage?.displayName || 'Ban Nguyen'}`,
+      `TITLE:${bioPage?.jobTitleVi || bioPage?.tagline || 'Tech Lead · AI Coaching 1-1'}`,
+      `ORG:${bioPage?.organization || 'SAGOZEN LLC'}`,
+      `EMAIL:${bioPage?.email || 'pandev00@sagozen.digital'}`,
+      `URL:${publicUrl || 'https://sitehubman.app/u/pandev00'}`,
       'END:VCARD',
-    ]
-      .filter(Boolean)
-      .join('\n');
-    await Share.share({ message: vcard, title: `${bioPage!.displayName} Contact` });
-    // Notify card owner their contact was saved (non-blocking)
-    if (bioPage?.userId && bioPage.userId !== 'guest') {
+    ].join('\n');
+
+    await Share.share({ message: vcard, title: `${bioPage?.displayName || 'Ban Nguyen'} Contact` });
+    if (bioPage?.userId && bioPage.userId !== 'seed') {
       void notifyCardOwnerOfSave(bioPage.userId).catch(() => undefined);
     }
   }
@@ -211,7 +153,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
     try {
       const ownerId = bioPage?.userId || 'guest';
       await captureLead({
-        profileId: bioPage?.id || slug || 'unknown',
+        profileId: bioPage?.id || slug || 'pandev00',
         ownerUserId: ownerId,
         name: leadName.trim(),
         email: leadEmail.trim() || undefined,
@@ -220,8 +162,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
         note: leadNote.trim() || undefined,
       });
 
-      // Send instant push notification to card owner
-      if (ownerId !== 'guest') {
+      if (ownerId !== 'guest' && ownerId !== 'seed') {
         void notifyCardOwnerOfLeadCapture(ownerId, leadName.trim(), leadCompany.trim() || undefined);
       }
 
@@ -251,54 +192,33 @@ export function PublicBioScreen({ slug, cardId }: Props) {
     );
   }
 
-  if (!bioPage) {
-    return (
-      <SafeAreaView style={styles.notFoundSafe}>
-        <View style={styles.notFoundCenter}>
-          <AppIcon name="User" size={44} color="rgba(255, 255, 255, 0.4)" />
-          <AppText style={styles.notFoundTitle} weight="extrabold">Profile not found</AppText>
-          <AppText style={styles.notFoundSub}>This NFC profile link is not available yet.</AppText>
-          <Pressable onPress={() => router.back()} style={styles.backBtn}>
-            <AppText style={styles.backBtnText} weight="bold">Go back</AppText>
-          </Pressable>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  const bio = bioPage || (BAN_NGUYEN_SEED_BIO as BioPage);
+  const initial = (bio.displayName.trim()[0] ?? 'B').toUpperCase();
+  const canonicalUrl = publicUrl || `https://sitehubman.app/u/${bio.slug || 'pandev00'}`;
 
-  // Active Social Connections
-  const activeSocials = SOCIAL_CHANNELS.flatMap((s) => {
-    const val = (bioPage as unknown as Record<string, unknown>)[s.key] as string | undefined;
-    if (!val?.trim()) return [];
-    return [{ ...s, value: val.trim() }];
-  });
+  // Multilingual resolution
+  const currentTitle = lang === 'vi' ? (bio.jobTitleVi || bio.heroTitleVi || bio.tagline) : (bio.jobTitleEn || bio.heroTitleEn || bio.jobTitleVi || bio.tagline);
+  const currentOrg = bio.organization || bio.heroOrg || bio.company || 'SAGOZEN LLC';
+  const currentPos = lang === 'vi' ? (bio.positioningLineVi || bio.tagline) : (bio.positioningLineEn || bio.positioningLineVi);
 
-  const canonicalUrl =
-    publicUrl ||
-    (resolvedCardId
-      ? buildCardProfileUrl(resolvedCardId)
-      : buildSlugProfileUrl(bioPage.publicSlug ?? bioPage.slug ?? slug ?? ''));
-  const metaTitle = compactMeta(`${bioPage.displayName} | AVIO Executive`, 64);
-  const metaDescription = compactMeta(
-    bioPage.tagline
-      ? `${bioPage.displayName} - ${bioPage.tagline}. Verified NFC Smart Pass.`
-      : `Save ${bioPage.displayName}'s contact details.`,
-    155
-  );
+  const primaryLabel = lang === 'vi' ? (bio.primaryActionLabelVi || 'Xem khoá AI Coaching 1-1') : (bio.primaryActionLabelEn || 'See the 1-1 AI Coaching programme');
+  const primarySub = lang === 'vi' ? (bio.primaryActionSubVi || 'Lộ trình 9 bước · học phí theo đợt') : (bio.primaryActionSubEn || 'Nine stages · paid in stages');
+  const primaryUrl = bio.primaryActionUrl || 'https://t.me/pandev00';
+  const primaryIconName = (bio.primaryActionIcon as AppIconName) || 'FileText';
 
-  const initial = (bioPage.displayName.trim()[0] ?? 'A').toUpperCase();
+  const actionBlocksList: TapActionBlock[] = bio.actionBlocks?.length ? bio.actionBlocks : BAN_NGUYEN_SEED_BIO.actionBlocks ?? [];
+
+  const ownerLine = lang === 'vi' ? (bio.ownerLineVi || 'Nội dung do Ban Nguyen cung cấp.') : (bio.ownerLineEn || 'Content provided by Ban Nguyen.');
+  const trustNote = lang === 'vi' ? (bio.trustNoteVi || 'Avio lưu trữ trang này và không xác minh danh tính.') : (bio.trustNoteEn || 'Avio hosts this page and does not verify identity.');
 
   return (
     <View style={styles.root}>
       {Platform.OS === 'web' ? (
         <Head>
-          <title>{metaTitle}</title>
-          <meta name="description" content={metaDescription} />
-          <meta name="robots" content="index, follow" />
-          <link rel="canonical" href={canonicalUrl} />
-          <meta property="og:type" content="profile" />
-          <meta property="og:title" content={metaTitle} />
-          <meta property="og:description" content={metaDescription} />
+          <title>{`${bio.displayName} | AVIO Smart Pass`}</title>
+          <meta name="description" content={currentTitle || 'Digital Business Profile'} />
+          <meta property="og:title" content={`${bio.displayName} — AVIO Smart Pass`} />
+          <meta property="og:description" content={currentTitle} />
           <meta property="og:url" content={canonicalUrl} />
           <meta name="theme-color" content="#000000" />
         </Head>
@@ -320,6 +240,20 @@ export function PublicBioScreen({ slug, cardId }: Props) {
           </Pressable>
 
           <View style={styles.navRightGroup}>
+            {(bio.showLanguageToggle !== false) && (
+              <Pressable
+                onPress={() => {
+                  HapticTap.light();
+                  setLang((l) => (l === 'vi' ? 'en' : 'vi'));
+                }}
+                style={styles.langToggleBtn}
+              >
+                <AppText style={styles.langToggleText} weight="extrabold">
+                  {lang === 'vi' ? 'VI' : 'EN'}
+                </AppText>
+              </Pressable>
+            )}
+
             <Pressable onPress={() => setShowQrModal(true)} style={styles.navIconBtn} hitSlop={10}>
               <AppIcon name="QrCode" size={18} color="#FFFFFF" />
             </Pressable>
@@ -329,23 +263,20 @@ export function PublicBioScreen({ slug, cardId }: Props) {
           </View>
         </View>
 
-        <IosScrollView
-          contentContainerStyle={styles.scroll}
-          showsVerticalScrollIndicator={false}
-        >
-      {/* ── FULL-BLEED COVER PHOTO HERO ── */}
+        <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          {/* Full-bleed Cover Photo Hero */}
           <View style={styles.coverHeroWrap}>
-            {bioPage.coverPhotoUrl ? (
-              <Image source={{ uri: bioPage.coverPhotoUrl }} style={styles.coverPhoto} resizeMode="cover" />
-            ) : (
-              <Image source={require('@/assets/images/marketing/hero-home.png')} style={styles.coverPhoto} resizeMode="cover" />
-            )}
+            <Image
+              source={bio.coverPhotoUrl ? { uri: bio.coverPhotoUrl } : require('@/assets/images/marketing/hero-home.png')}
+              style={styles.coverPhoto}
+              resizeMode="cover"
+            />
             <View style={styles.coverOverlay} />
 
-            {/* Floating avatar on cover */}
+            {/* Avatar Seal */}
             <View style={styles.coverAvatarWrap}>
-              {bioPage.photoUrl ? (
-                <Image source={{ uri: bioPage.photoUrl }} style={styles.coverAvatarImg} />
+              {bio.photoUrl ? (
+                <Image source={{ uri: bio.photoUrl }} style={styles.coverAvatarImg} />
               ) : (
                 <View style={styles.coverAvatarSeal}>
                   <AppText style={styles.coverAvatarLetter} weight="extrabold">{initial}</AppText>
@@ -357,45 +288,42 @@ export function PublicBioScreen({ slug, cardId }: Props) {
             </View>
           </View>
 
-          {/* ── 1. Executive Identity Card ── */}
+          {/* Identity Card */}
           <View style={styles.executiveCard}>
-            {/* Name & Title */}
             <View style={styles.nameBlock}>
-              <AppText style={styles.nameText} weight="extrabold">{bioPage.displayName}</AppText>
-              <AppText style={styles.taglineText}>
-                {bioPage.tagline || 'Founder & Managing Director · AVIO'}
-              </AppText>
+              <AppText style={styles.nameText} weight="extrabold">{bio.displayName}</AppText>
+              <AppText style={styles.jobTitleText} weight="bold">{currentTitle}</AppText>
+              <AppText style={styles.orgText}>{currentOrg}</AppText>
+              {currentPos ? (
+                <AppText style={styles.positioningText}>{currentPos}</AppText>
+              ) : null}
               <View style={styles.slugPill}>
                 <AppIcon name="Globe" size={10} color="rgba(255,255,255,0.5)" />
                 <AppText style={styles.slugBadgeText}>
-                  sitehubman.app/{bioPage.slug || slug || 'alexander'}
+                  sitehubman.app/{bio.slug || 'pandev00'}
                 </AppText>
               </View>
             </View>
 
-            {/* ── Live Business Stats Bar ── */}
+            {/* Live Stats Bar */}
             <View style={styles.statsBar}>
               <View style={styles.statBarItem}>
-                <AppText style={styles.statBarValue} weight="extrabold">
-                  {bioPage.views ?? 0}
-                </AppText>
-                <AppText style={styles.statBarLabel}>Profile Views</AppText>
+                <AppText style={styles.statBarValue} weight="extrabold">{bio.views ?? 128}</AppText>
+                <AppText style={styles.statBarLabel}>Lượt xem</AppText>
               </View>
               <View style={styles.statBarDivider} />
               <View style={styles.statBarItem}>
-                <AppText style={styles.statBarValue} weight="extrabold">
-                  {bioPage.taps ?? 0}
-                </AppText>
-                <AppText style={styles.statBarLabel}>NFC Taps</AppText>
+                <AppText style={styles.statBarValue} weight="extrabold">{bio.taps ?? 42}</AppText>
+                <AppText style={styles.statBarLabel}>Lượt chạm NFC</AppText>
               </View>
               <View style={styles.statBarDivider} />
               <View style={styles.statBarItem}>
                 <View style={styles.statBarLiveDot} />
-                <AppText style={styles.statBarLiveLabel}>Live Now</AppText>
+                <AppText style={styles.statBarLiveLabel}>Đang hoạt động</AppText>
               </View>
             </View>
 
-            {/* ── 2. Primary Executive Actions ── */}
+            {/* Save & Exchange CTAs */}
             <View style={styles.actionButtonsCol}>
               <Pressable
                 onPress={() => void handleSaveContact()}
@@ -403,7 +331,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
               >
                 <AppIcon name="UserPlus" size={17} color="#000000" />
                 <AppText style={styles.saveContactBtnText} weight="extrabold">
-                  Save to Contacts
+                  Lưu danh bạ (vCard)
                 </AppText>
               </Pressable>
 
@@ -416,101 +344,119 @@ export function PublicBioScreen({ slug, cardId }: Props) {
               >
                 <AppIcon name="Users" size={16} color="#FFFFFF" />
                 <AppText style={styles.exchangeContactBtnText} weight="extrabold">
-                  Exchange Contact with {bioPage.displayName.split(' ')[0]}
+                  Trao đổi liên hệ với {bio.displayName.split(' ')[0]}
                 </AppText>
               </Pressable>
-
-              {bioPage.bookingUrl ? (
-                <Pressable
-                  onPress={() => {
-                    trackTap();
-                    HapticTap.medium();
-                    Linking.openURL(bioPage.bookingUrl!).catch(() => undefined);
-                  }}
-                  style={({ pressed }) => [styles.bookingBtn, pressed && styles.pressed]}
-                >
-                  <AppIcon name="Calendar" size={16} color="#000000" />
-                  <AppText style={styles.bookingBtnText} weight="extrabold">
-                    Book 15-Min Meeting
-                  </AppText>
-                </Pressable>
-              ) : null}
-            </View>
-
-            {/* ── 3. Quick Connect Action Bar ── */}
-            <View style={styles.quickConnectRow}>
-              {activeSocials.slice(0, 4).map((s) => (
-                <Pressable
-                  key={s.key}
-                  style={({ pressed }) => [styles.quickActionTile, pressed && styles.pressed]}
-                  onPress={() => {
-                    trackTap();
-                    HapticTap.light();
-                    Linking.openURL(s.url(s.value)).catch(() => undefined);
-                  }}
-                >
-                  <AppIcon name={s.icon} size={18} color="#FFFFFF" />
-                  <AppText style={styles.quickActionLabel} weight="bold">{s.name}</AppText>
-                </Pressable>
-              ))}
             </View>
           </View>
 
-          {/* ── Divider ── */}
-          <View style={styles.hairlineDivider} />
-
-          {/* ── 4. Executive Direct Channels ── */}
-          <View style={styles.channelsSection}>
-            <AppText style={styles.sectionHeading} weight="extrabold">CHANNELS & PORTFOLIO</AppText>
-
-            <View style={styles.channelsList}>
-              {activeSocials.map((s) => (
-                <Pressable
-                  key={s.key}
-                  style={({ pressed }) => [styles.channelRow, pressed && styles.pressed]}
-                  onPress={() => {
-                    trackTap();
-                    HapticTap.light();
-                    Linking.openURL(s.url(s.value)).catch(() => undefined);
-                  }}
-                >
-                  <View style={styles.channelIconBox}>
-                    <AppIcon name={s.icon} size={18} color="#FFFFFF" />
-                  </View>
-                  <View style={styles.channelMeta}>
-                    <AppText style={styles.channelTitle} weight="bold">{s.name}</AppText>
-                    <AppText style={styles.channelSub} numberOfLines={1}>{s.value}</AppText>
-                  </View>
-                  <AppIcon name="ArrowUpRight" size={16} color="rgba(255, 255, 255, 0.4)" />
-                </Pressable>
-              ))}
-
-              {bioPage.customLinks && bioPage.customLinks.length > 0 &&
-                bioPage.customLinks.map((link, idx) => (
-                  <Pressable
-                    key={`custom-${idx}`}
-                    style={({ pressed }) => [styles.channelRow, pressed && styles.pressed]}
-                    onPress={() => {
-                      trackTap();
-                      HapticTap.light();
-                      const url = link.url.startsWith('http') ? link.url : `https://${link.url}`;
-                      Linking.openURL(url).catch(() => undefined);
-                    }}
-                  >
-                    <View style={styles.channelIconBox}>
-                      <AppIcon name="Link" size={18} color="#FFFFFF" />
-                    </View>
-                    <View style={styles.channelMeta}>
-                      <AppText style={styles.channelTitle} weight="bold">{link.label}</AppText>
-                      <AppText style={styles.channelSub} numberOfLines={1}>{link.url}</AppText>
-                    </View>
-                    <AppIcon name="ArrowUpRight" size={16} color="rgba(255, 255, 255, 0.4)" />
-                  </Pressable>
-                ))}
+          {/* ── Primary Action Card (Hành động chính) ── */}
+          <Pressable
+            style={({ pressed }) => [styles.primaryActionCard, pressed && styles.pressed]}
+            onPress={() => {
+              HapticTap.medium();
+              Linking.openURL(primaryUrl).catch(() => undefined);
+            }}
+          >
+            <View style={styles.primaryActionHeader}>
+              <View style={styles.primaryActionIconBox}>
+                <AppIcon name={primaryIconName} size={20} color="#000000" />
+              </View>
+              <View style={styles.primaryActionBadge}>
+                <AppText style={styles.primaryActionBadgeText} weight="extrabold">HÀNH ĐỘNG CHÍNH</AppText>
+              </View>
             </View>
+
+            <View style={styles.primaryActionBody}>
+              <AppText style={styles.primaryActionLabel} weight="extrabold">
+                {primaryLabel}
+              </AppText>
+              <AppText style={styles.primaryActionSub}>
+                {primarySub}
+              </AppText>
+            </View>
+
+            <View style={styles.primaryActionFooter}>
+              <AppText style={styles.primaryActionCtaText} weight="extrabold">Truy cập ngay →</AppText>
+            </View>
+          </Pressable>
+
+          {/* ── Action Blocks (Up to 3 blocks) ── */}
+          {actionBlocksList.map((block, bIdx) => {
+            const blockTitle = lang === 'vi' ? block.titleVi : block.titleEn;
+            if (!block.items || block.items.length === 0) return null;
+
+            return (
+              <View key={block.id || `block-${bIdx}`} style={styles.actionBlockContainer}>
+                <AppText style={styles.blockTitle} weight="extrabold">
+                  {blockTitle.toUpperCase()}
+                </AppText>
+
+                <View style={styles.blockItemsList}>
+                  {block.items.map((item, iIdx) => {
+                    const itemLabel = lang === 'vi' ? item.labelVi : item.labelEn;
+                    const itemSub = lang === 'vi' ? (item.subVi || item.url) : (item.subEn || item.subVi || item.url);
+                    const iconName = (item.icon as AppIconName) || 'Link';
+
+                    return (
+                      <Pressable
+                        key={item.id || `item-${iIdx}`}
+                        style={({ pressed }) => [styles.actionItemRow, pressed && styles.pressed]}
+                        onPress={() => {
+                          HapticTap.light();
+                          Linking.openURL(item.url).catch(() => undefined);
+                        }}
+                      >
+                        <View style={styles.actionItemIconBox}>
+                          <AppIcon name={iconName} size={18} color="#FFFFFF" />
+                        </View>
+                        <View style={styles.actionItemMeta}>
+                          <AppText style={styles.actionItemLabel} weight="bold">
+                            {itemLabel}
+                          </AppText>
+                          {itemSub ? (
+                            <AppText style={styles.actionItemSub} numberOfLines={1}>
+                              {itemSub}
+                            </AppText>
+                          ) : null}
+                        </View>
+                        <AppIcon name="ArrowUpRight" size={16} color="rgba(255,255,255,0.4)" />
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            );
+          })}
+
+          {/* ── Trust Footnote Block (Khối tin cậy Avio) ── */}
+          <View style={styles.trustCard}>
+            <View style={styles.trustHeaderRow}>
+              <View style={styles.trustBrandBadge}>
+                <AppText style={styles.trustBrandText} weight="extrabold">Powered by avio</AppText>
+              </View>
+            </View>
+
+            <AppText style={styles.trustOwnerText} weight="bold">
+              {ownerLine}
+            </AppText>
+
+            <View style={styles.trustLinksRow}>
+              <Pressable onPress={() => Linking.openURL('https://aviobrand.com')} style={styles.trustLinkItem}>
+                <AppText style={styles.trustLinkText} weight="bold">aviobrand.com</AppText>
+              </Pressable>
+              <AppText style={styles.trustDot}>·</AppText>
+              <Pressable onPress={() => Linking.openURL('https://aviobrand.com/report')} style={styles.trustLinkItem}>
+                <AppText style={styles.trustLinkText} weight="bold">Báo cáo trang này</AppText>
+              </Pressable>
+            </View>
+
+            <AppText style={styles.trustNoticeText}>
+              {trustNote}
+            </AppText>
           </View>
 
-          {/* ── 5. PREMIUM VIRAL CONVERSION CARD ── */}
+          {/* Viral Growth Card */}
           <Pressable
             style={({ pressed }) => [styles.viralCard, pressed && styles.pressed]}
             onPress={() => {
@@ -518,7 +464,6 @@ export function PublicBioScreen({ slug, cardId }: Props) {
               Linking.openURL('https://aviobrand.com').catch(() => undefined);
             }}
           >
-            {/* Real product mockup */}
             <Image
               source={require('@/assets/images/marketing/nfc-tap-demo.png')}
               style={styles.viralCoverImg}
@@ -528,32 +473,23 @@ export function PublicBioScreen({ slug, cardId }: Props) {
             <View style={styles.viralCardContent}>
               <View style={styles.viralBadgeRow}>
                 <View style={styles.viralBadge}>
-                  <AppText style={styles.viralBadgeText} weight="extrabold">FREE TO START</AppText>
+                  <AppText style={styles.viralBadgeText} weight="extrabold">MIỄN PHÍ KHỞI TẠO</AppText>
                 </View>
                 <View style={styles.viralBadge}>
-                  <AppText style={styles.viralBadgeText} weight="extrabold">NFC READY</AppText>
+                  <AppText style={styles.viralBadgeText} weight="extrabold">SẴN SÀNG NFC</AppText>
                 </View>
               </View>
               <AppText style={styles.viralTitle} weight="extrabold">
-                {"Impress every client like\n"}{bioPage.displayName.split(' ')[0]} does.
+                {`Tạo ấn tượng với mọi đối tác như ${bio.displayName.split(' ')[0]}!`}
               </AppText>
               <AppText style={styles.viralSub}>
-                Get your own AVIO Smart Pass in 60 seconds. No app required for your clients.
+                Tạo trang danh tính AVIO Smart Pass trong 60 giây. Đối tác không cần cài ứng dụng.
               </AppText>
               <View style={styles.viralCta}>
-                <AppText style={styles.viralCtaText} weight="extrabold">Create My Card →</AppText>
+                <AppText style={styles.viralCtaText} weight="extrabold">Tạo thẻ của tôi →</AppText>
               </View>
             </View>
           </Pressable>
-
-          {/* ── 6. NFC Verified Footer ── */}
-          <View style={styles.nfcVerifiedFooter}>
-            <View style={styles.nfcDot} />
-            <AppText style={styles.nfcFooterText}>
-              AVIO Smart Pass · {resolvedCardId || 'BC-NFC_JEWDVONG'} · Verified Tap
-            </AppText>
-          </View>
-
         </IosScrollView>
       </SafeAreaView>
 
@@ -562,36 +498,35 @@ export function PublicBioScreen({ slug, cardId }: Props) {
         <View style={styles.modalOverlay}>
           <View style={styles.qrModalCard}>
             <View style={styles.qrHeaderRow}>
-              <AppText style={styles.qrModalTitle} weight="bold">Scan Profile QR</AppText>
+              <AppText style={styles.qrModalTitle} weight="bold">Mã QR danh tính</AppText>
               <Pressable onPress={() => setShowQrModal(false)} style={styles.closeBtn} hitSlop={10}>
                 <AppIcon name="X" size={18} color="#FFFFFF" />
               </Pressable>
             </View>
             <View style={styles.qrContainer}>
-              {canonicalUrl ? <QRCode value={canonicalUrl} size={200} backgroundColor="#FFFFFF" color="#000000" /> : null}
+              <QRCode value={canonicalUrl} size={200} backgroundColor="#FFFFFF" color="#000000" />
             </View>
-            <AppText style={styles.qrNameText} weight="extrabold">{bioPage.displayName}</AppText>
-            <AppText style={styles.qrSubText}>Scan with phone camera to connect</AppText>
+            <AppText style={styles.qrNameText} weight="extrabold">{bio.displayName}</AppText>
+            <AppText style={styles.qrSubText}>Quét bằng camera điện thoại để kết nối</AppText>
           </View>
         </View>
       </Modal>
 
-      {/* ── Exchange Contact Bottom Sheet Modal ── */}
+      {/* Exchange Contact Bottom Sheet Modal */}
       <Modal visible={showExchangeModal} animationType="slide" transparent>
         <Pressable style={styles.exchangeOverlay} onPress={() => setShowExchangeModal(false)}>
           <Pressable style={styles.exchangeCard} onPress={() => {}}>
             <View style={styles.exchangeHandle} />
-            
             <View style={styles.exchangeHeaderRow}>
               <View style={styles.exchangeIconBox}>
                 <AppIcon name="Users" size={20} color="#FFFFFF" />
               </View>
               <View style={{ flex: 1 }}>
                 <AppText style={styles.exchangeModalTitle} weight="extrabold">
-                  Exchange Contact
+                  Trao đổi thông tin liên hệ
                 </AppText>
                 <AppText style={styles.exchangeModalSub}>
-                  Send your details directly to {bioPage.displayName.split(' ')[0]}
+                  Gửi thông tin của bạn trực tiếp tới CRM của {bio.displayName.split(' ')[0]}
                 </AppText>
               </View>
               <Pressable onPress={() => setShowExchangeModal(false)} style={styles.closeBtn} hitSlop={10}>
@@ -605,28 +540,28 @@ export function PublicBioScreen({ slug, cardId }: Props) {
                   <AppIcon name="Check" size={24} color="#000000" />
                 </View>
                 <AppText style={styles.exchangeSuccessTitle} weight="extrabold">
-                  Contact Exchanged!
+                  Đã gửi thành công!
                 </AppText>
                 <AppText style={styles.exchangeSuccessSub}>
-                  Your info was sent directly to {bioPage.displayName.split(' ')[0]}'s private CRM.
+                  Thông tin đã được lưu trực tiếp vào danh bạ của {bio.displayName.split(' ')[0]}.
                 </AppText>
               </View>
             ) : (
               <View style={styles.exchangeForm}>
                 <View style={styles.inputWrap}>
-                  <AppText style={styles.inputLabel} weight="bold">Full Name *</AppText>
+                  <AppText style={styles.inputLabel} weight="bold">Họ và tên *</AppText>
                   <TextInput
                     style={styles.textInput}
                     value={leadName}
                     onChangeText={setLeadName}
-                    placeholder="e.g. Sarah Jenkins"
+                    placeholder="Nguyễn Văn A"
                     placeholderTextColor="rgba(255,255,255,0.3)"
                     autoCapitalize="words"
                   />
                 </View>
 
                 <View style={styles.inputWrap}>
-                  <AppText style={styles.inputLabel} weight="bold">Email or Phone *</AppText>
+                  <AppText style={styles.inputLabel} weight="bold">Email hoặc Số điện thoại *</AppText>
                   <TextInput
                     style={styles.textInput}
                     value={leadEmail || leadPhone}
@@ -637,7 +572,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
                         setLeadPhone(val);
                       }
                     }}
-                    placeholder="sarah@company.com or +1 555-0199"
+                    placeholder="email@example.com hoặc 0901234567"
                     placeholderTextColor="rgba(255,255,255,0.3)"
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -645,24 +580,12 @@ export function PublicBioScreen({ slug, cardId }: Props) {
                 </View>
 
                 <View style={styles.inputWrap}>
-                  <AppText style={styles.inputLabel} weight="bold">Company / Role (Optional)</AppText>
+                  <AppText style={styles.inputLabel} weight="bold">Công ty / Chức danh (Tuỳ chọn)</AppText>
                   <TextInput
                     style={styles.textInput}
                     value={leadCompany}
                     onChangeText={setLeadCompany}
-                    placeholder="Partner @ Apex Capital"
-                    placeholderTextColor="rgba(255,255,255,0.3)"
-                    autoCapitalize="words"
-                  />
-                </View>
-
-                <View style={styles.inputWrap}>
-                  <AppText style={styles.inputLabel} weight="bold">Quick Note (Optional)</AppText>
-                  <TextInput
-                    style={styles.textInput}
-                    value={leadNote}
-                    onChangeText={setLeadNote}
-                    placeholder="e.g. Met at tech conference"
+                    placeholder="Tech Lead @ SAGOZEN"
                     placeholderTextColor="rgba(255,255,255,0.3)"
                   />
                 </View>
@@ -677,7 +600,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
                   ]}
                 >
                   <AppText style={styles.sendContactBtnText} weight="extrabold">
-                    {leadSubmitting ? 'Sending...' : 'Send My Contact →'}
+                    {leadSubmitting ? 'Đang gửi...' : 'Gửi liên hệ của tôi →'}
                   </AppText>
                 </Pressable>
               </View>
@@ -712,8 +635,6 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.75,
   },
-
-  // ── Top Nav ──
   navHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -726,6 +647,7 @@ const styles = StyleSheet.create({
   },
   navRightGroup: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
   navIconBtn: {
@@ -738,21 +660,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-
-  // ── Scroll Content ──
+  langToggleBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 19,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  langToggleText: {
+    color: '#000000',
+    fontSize: 12,
+  },
   scroll: {
     paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 130, // Clearance for floating capsule dock
+    paddingBottom: 130,
     maxWidth: 540,
     width: '100%',
     alignSelf: 'center',
     gap: 14,
   },
-
-  // ── Cover Hero ──
   coverHeroWrap: {
-    height: 200,
+    height: 180,
     borderRadius: 20,
     overflow: 'hidden',
     position: 'relative',
@@ -791,110 +721,28 @@ const styles = StyleSheet.create({
     fontSize: 32,
     color: '#000000',
   },
-
-  // ── Executive Identity Card ──
-  executiveCard: {
-    borderRadius: 20,
-    backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    padding: 24,
-    paddingTop: 52, // Space for floating avatar
-    alignItems: 'center',
-    gap: 16,
-  },
-  avatarWrap: {
-    position: 'relative',
-  },
-  avatarImg: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-  },
-  avatarSeal: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarLetter: {
-    fontSize: 36,
-    color: '#000000',
-  },
   verifiedBadge: {
     position: 'absolute',
     bottom: 0,
     right: 0,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: '#111114',
   },
-
-  // ── Slug Pill ──
-  slugPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+  executiveCard: {
     borderRadius: 20,
+    backgroundColor: '#111114',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    marginTop: 2,
-  },
-
-  // ── Live Stats Bar ──
-  statsBar: {
-    flexDirection: 'row',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    padding: 20,
+    paddingTop: 48,
     alignItems: 'center',
-    backgroundColor: '#0D0D10',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.07)',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    width: '100%',
-  },
-  statBarItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 3,
-  },
-  statBarValue: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    letterSpacing: -0.5,
-  },
-  statBarLabel: {
-    color: 'rgba(255,255,255,0.4)',
-    fontSize: 10,
-  },
-  statBarDivider: {
-    width: 1,
-    height: 30,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-  statBarLiveDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#30D158',
-    marginBottom: 3,
-  },
-  statBarLiveLabel: {
-    color: '#30D158',
-    fontSize: 11,
-    fontWeight: '600',
+    gap: 14,
   },
   nameBlock: {
     alignItems: 'center',
@@ -905,22 +753,84 @@ const styles = StyleSheet.create({
     fontSize: 22,
     letterSpacing: -0.3,
   },
-  taglineText: {
-    color: 'rgba(255, 255, 255, 0.6)',
-    fontSize: 13,
+  jobTitleText: {
+    color: '#FFFFFF',
+    fontSize: 14,
     textAlign: 'center',
-    lineHeight: 18,
   },
-  slugBadgeText: {
-    color: 'rgba(255, 255, 255, 0.4)',
-    fontSize: 11,
-    letterSpacing: 0.5,
+  orgText: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 12,
+  },
+  positioningText: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 12,
+    textAlign: 'center',
     marginTop: 2,
   },
-
-  // ── Primary Action ──
-  saveContactBtn: {
+  slugPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    marginTop: 4,
+  },
+  slugBadgeText: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 11,
+  },
+  statsBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0D0D10',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.07)',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     width: '100%',
+  },
+  statBarItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 2,
+  },
+  statBarValue: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    letterSpacing: -0.5,
+  },
+  statBarLabel: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 10,
+  },
+  statBarDivider: {
+    width: 1,
+    height: 26,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  statBarLiveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#30D158',
+    marginBottom: 2,
+  },
+  statBarLiveLabel: {
+    color: '#30D158',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  actionButtonsCol: {
+    width: '100%',
+    gap: 8,
+  },
+  saveContactBtn: {
     height: 48,
     borderRadius: 14,
     backgroundColor: '#FFFFFF',
@@ -928,91 +838,172 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    marginTop: 4,
   },
   saveContactBtnText: {
     color: '#000000',
-    fontSize: 15,
+    fontSize: 14,
   },
-
-  // ── Quick Connect Bar ──
-  quickConnectRow: {
-    flexDirection: 'row',
-    gap: 8,
-    width: '100%',
-  },
-  quickActionTile: {
-    flex: 1,
-    height: 60,
-    borderRadius: 12,
+  exchangeContactBtn: {
+    height: 46,
+    borderRadius: 14,
     backgroundColor: '#16161A',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  quickActionLabel: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 10,
-  },
-
-  // ── Divider ──
-  hairlineDivider: {
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    marginVertical: 4,
-  },
-
-  // ── Channels & Portfolio ──
-  channelsSection: {
-    gap: 10,
-  },
-  sectionHeading: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    paddingHorizontal: 4,
-  },
-  channelsList: {
-    gap: 6,
-  },
-  channelRow: {
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    borderRadius: 14,
-    backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  exchangeContactBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+  },
+  primaryActionCard: {
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    padding: 18,
     gap: 12,
   },
-  channelIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: '#18181C',
+  primaryActionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  primaryActionIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(0,0,0,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  channelMeta: {
+  primaryActionBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    backgroundColor: '#000000',
+  },
+  primaryActionBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    letterSpacing: 0.6,
+  },
+  primaryActionBody: {
+    gap: 4,
+  },
+  primaryActionLabel: {
+    color: '#000000',
+    fontSize: 18,
+    lineHeight: 22,
+  },
+  primaryActionSub: {
+    color: 'rgba(0,0,0,0.65)',
+    fontSize: 13,
+  },
+  primaryActionFooter: {
+    alignSelf: 'flex-start',
+    marginTop: 4,
+  },
+  primaryActionCtaText: {
+    color: '#000000',
+    fontSize: 13,
+  },
+  actionBlockContainer: {
+    gap: 8,
+    marginTop: 4,
+  },
+  blockTitle: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 11,
+    letterSpacing: 0.8,
+    paddingLeft: 2,
+  },
+  blockItemsList: {
+    gap: 8,
+  },
+  actionItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 14,
+    borderRadius: 16,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  actionItemIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionItemMeta: {
     flex: 1,
     gap: 2,
   },
-  channelTitle: {
+  actionItemLabel: {
     color: '#FFFFFF',
     fontSize: 14,
   },
-  channelSub: {
+  actionItemSub: {
     color: 'rgba(255, 255, 255, 0.45)',
     fontSize: 12,
   },
-
-  // ── Viral Growth Card ──
+  trustCard: {
+    borderRadius: 18,
+    backgroundColor: '#0D0D10',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    padding: 16,
+    gap: 10,
+    marginTop: 8,
+  },
+  trustHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  trustBrandBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  trustBrandText: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 10,
+    letterSpacing: 0.5,
+  },
+  trustOwnerText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+  },
+  trustLinksRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  trustLinkItem: {},
+  trustLinkText: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 12,
+    textDecorationLine: 'underline',
+  },
+  trustDot: {
+    color: 'rgba(255,255,255,0.3)',
+  },
+  trustNoticeText: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 11,
+    lineHeight: 15,
+  },
   viralCard: {
     borderRadius: 20,
     overflow: 'hidden',
     height: 220,
     position: 'relative',
+    marginTop: 8,
   },
   viralCoverImg: {
     width: '100%',
@@ -1070,44 +1061,23 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontSize: 13,
   },
-
-  // ── NFC Footer ──
-  nfcVerifiedFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 14,
-  },
-  nfcDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#FFFFFF',
-  },
-  nfcFooterText: {
-    color: 'rgba(255, 255, 255, 0.4)',
-    fontSize: 11,
-  },
-
-  // ── Modal ──
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
-    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
   },
   qrModalCard: {
     width: '100%',
     maxWidth: 340,
     backgroundColor: '#111114',
-    borderRadius: 20,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     padding: 24,
     alignItems: 'center',
-    gap: 14,
+    gap: 16,
   },
   qrHeaderRow: {
     width: '100%',
@@ -1123,101 +1093,26 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#18181C',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   qrContainer: {
     padding: 16,
-    borderRadius: 16,
     backgroundColor: '#FFFFFF',
+    borderRadius: 16,
   },
   qrNameText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    textAlign: 'center',
+    fontSize: 18,
   },
   qrSubText: {
-    color: 'rgba(255, 255, 255, 0.5)',
+    color: 'rgba(255, 255, 255, 0.45)',
     fontSize: 12,
-    textAlign: 'center',
   },
-
-  // ── Not Found ──
-  notFoundSafe: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  notFoundCenter: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-    gap: 12,
-  },
-  notFoundTitle: {
-    color: '#FFFFFF',
-    fontSize: 20,
-  },
-  notFoundSub: {
-    color: 'rgba(255, 255, 255, 0.5)',
-    fontSize: 13,
-    textAlign: 'center',
-  },
-  backBtn: {
-    marginTop: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 999,
-    backgroundColor: '#FFFFFF',
-  },
-  backBtnText: {
-    color: '#000000',
-    fontSize: 14,
-  },
-
-  // ── Executive Action Buttons ──
-  actionButtonsCol: {
-    width: '100%',
-    gap: 8,
-  },
-  exchangeContactBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#18181C',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-    paddingVertical: 13,
-    paddingHorizontal: 20,
-    width: '100%',
-  },
-  exchangeContactBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-  },
-  bookingBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    paddingVertical: 13,
-    paddingHorizontal: 20,
-    width: '100%',
-  },
-  bookingBtnText: {
-    color: '#000000',
-    fontSize: 14,
-  },
-
-  // ── Exchange Modal ──
   exchangeOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
     justifyContent: 'flex-end',
   },
   exchangeCard: {
@@ -1229,7 +1124,7 @@ const styles = StyleSheet.create({
     padding: 24,
     paddingBottom: 40,
     gap: 16,
-    maxWidth: 540,
+    maxWidth: 640,
     width: '100%',
     alignSelf: 'center',
   },
@@ -1248,58 +1143,58 @@ const styles = StyleSheet.create({
   exchangeIconBox: {
     width: 40,
     height: 40,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   exchangeModalTitle: {
     color: '#FFFFFF',
-    fontSize: 17,
+    fontSize: 16,
   },
   exchangeModalSub: {
-    color: 'rgba(255, 255, 255, 0.55)',
+    color: 'rgba(255, 255, 255, 0.45)',
     fontSize: 12,
   },
   exchangeForm: {
     gap: 12,
   },
   inputWrap: {
-    gap: 6,
+    gap: 4,
   },
   inputLabel: {
-    color: 'rgba(255, 255, 255, 0.65)',
-    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 11,
   },
   textInput: {
-    height: 48,
-    borderRadius: 12,
     backgroundColor: '#18181C',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     paddingHorizontal: 14,
+    paddingVertical: 10,
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14,
   },
   sendContactBtn: {
-    height: 50,
+    height: 48,
     borderRadius: 14,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 6,
-  },
-  sendContactBtnText: {
-    color: '#000000',
-    fontSize: 15,
+    marginTop: 8,
   },
   btnDisabled: {
     opacity: 0.4,
   },
+  sendContactBtnText: {
+    color: '#000000',
+    fontSize: 14,
+  },
   exchangeSuccessBox: {
     alignItems: 'center',
+    gap: 8,
     paddingVertical: 24,
-    gap: 10,
   },
   exchangeSuccessIcon: {
     width: 52,
@@ -1308,16 +1203,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   exchangeSuccessTitle: {
     color: '#FFFFFF',
-    fontSize: 19,
+    fontSize: 18,
   },
   exchangeSuccessSub: {
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: 'rgba(255, 255, 255, 0.55)',
     fontSize: 13,
     textAlign: 'center',
-    paddingHorizontal: 16,
   },
 });
