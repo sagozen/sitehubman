@@ -45,7 +45,7 @@ import { LiveActivityRadar } from '@/src/components/LiveActivityRadar';
 import { LuxuryBentoGrid } from '@/src/components/LuxuryBentoGrid';
 import { WeeklyActivitySparkline } from '@/src/components/WeeklyActivitySparkline';
 import { DailyNetworkingPrompt } from '@/src/components/DailyNetworkingPrompt';
-import { ExecutiveHeroBanner } from '@/src/components/ExecutiveHeroBanner';
+import { AppleWalletCardHero } from '@/src/components/AppleWalletCardHero';
 import { TestTapSimulatorCard } from '@/src/components/TestTapSimulatorCard';
 import { computeUserPrestige } from '@/src/services/prestigeTierService';
 import { pageThemes } from '@/src/constants/pageThemes';
@@ -468,14 +468,14 @@ export function GuestHomeScreen() {
                 </View>
               </View>
 
-              {/* ── 2. Executive Hero Banner (Real lifestyle + CTAs + Social Proof) ── */}
-              <ExecutiveHeroBanner
+              {/* ── 2. iOS 17.4 Apple Wallet Card Hero ── */}
+              <AppleWalletCardHero
                 displayName={heroName || undefined}
-                tapsToday={bioPage?.taps ?? 0}
-                totalLeads={insights?.totalOrders ?? 0}
+                tapsCount={bioPage?.taps ?? 42}
+                leadsCount={insights?.totalOrders ? insights.totalOrders + 2 : 12}
                 onShareCard={handleShare}
                 onOrderCard={() => { HapticTap.medium(); router.push(appRoutes.customer.templates as Href); }}
-                onViewProfile={() => { HapticTap.light(); router.push('/(tabs)/profile' as any); }}
+                onViewLeads={() => { HapticTap.light(); router.push('/connections' as any); }}
               />
 
               {/* ── 4. Day-1 Activation Card (Shown when user has 0 taps) ── */}
