@@ -19,7 +19,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
-import { FlippableNfcCard } from '@/src/components/FlippableNfcCard';
 import QRCode from 'react-native-qrcode-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { appRoutes } from '@/src/constants/navigation';
@@ -46,7 +45,7 @@ import { LiveActivityRadar } from '@/src/components/LiveActivityRadar';
 import { LuxuryBentoGrid } from '@/src/components/LuxuryBentoGrid';
 import { WeeklyActivitySparkline } from '@/src/components/WeeklyActivitySparkline';
 import { DailyNetworkingPrompt } from '@/src/components/DailyNetworkingPrompt';
-import { PersonaModeSwitcher, type PersonaMode } from '@/src/components/PersonaModeSwitcher';
+import { ExecutiveHeroBanner } from '@/src/components/ExecutiveHeroBanner';
 import { TestTapSimulatorCard } from '@/src/components/TestTapSimulatorCard';
 import { computeUserPrestige } from '@/src/services/prestigeTierService';
 import { pageThemes } from '@/src/constants/pageThemes';
@@ -296,7 +295,6 @@ export function GuestHomeScreen() {
   const [waitlistSent, setWaitlistSent] = useState(false);
   const [showQuickModal, setShowQuickModal] = useState(false);
   const [showBeamModal, setShowBeamModal] = useState(false);
-  const [activePersona, setActivePersona] = useState<PersonaMode>('work');
   const [testTapCompleted, setTestTapCompleted] = useState(false);
 
   const cardWidth = Math.min(screenWidth - 40, 380);
@@ -470,27 +468,17 @@ export function GuestHomeScreen() {
                 </View>
               </View>
 
-              {/* ── 2. NFC Smart Card Hero ── */}
-              <View style={styles.cardContainer}>
-                <FlippableNfcCard
-                  fullName={heroName || undefined}
-                  title={heroTitle || undefined}
-                  phone={heroPhone || undefined}
-                  email={heroEmail || undefined}
-                  gradientIndex={cloudCard?.design?.gradientIndex ?? 0}
-                  width={cardWidth}
-                  cardId={cloudCard?.cardId ?? 'BC-NFC_JEWDVONG'}
-                />
-                <AppText style={styles.subtleFlipHint}>Tap to flip card</AppText>
-              </View>
-
-              {/* ── 3. Executive 3-Way Persona Switcher ── */}
-              <PersonaModeSwitcher
-                activeMode={activePersona}
-                onChangeMode={setActivePersona}
+              {/* ── 2. Executive Hero Banner (Real lifestyle + CTAs + Social Proof) ── */}
+              <ExecutiveHeroBanner
+                displayName={heroName || undefined}
+                tapsToday={bioPage?.taps ?? 0}
+                totalLeads={insights?.totalOrders ?? 0}
+                onShareCard={handleShare}
+                onOrderCard={() => { HapticTap.medium(); router.push(appRoutes.customer.templates as Href); }}
+                onViewProfile={() => { HapticTap.light(); router.push('/(tabs)/profile' as any); }}
               />
 
-              {/* ── 4. Day-1 Test-Tap Quest (Shown when user has 0 taps) ── */}
+              {/* ── 4. Day-1 Activation Card (Shown when user has 0 taps) ── */}
               {(bioPage?.taps ?? 0) === 0 && !testTapCompleted && (
                 <TestTapSimulatorCard
                   onSimulateTap={() => {
