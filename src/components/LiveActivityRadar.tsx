@@ -1,12 +1,14 @@
-/**
- * LiveActivityRadar.tsx
+﻿/**
+ * LiveActivityRadar.tsx — Barclays Financial Ledger Edition for AVIO Executive Workspace.
  *
- * Ambient Live Networking Radar Feed for AVIO Executive Workspace.
- * Shows real-time dynamic pulses, tap locations, and profile activity.
+ * Replaces ambient decorative pulses with a crisp, institutional activity ledger:
+ *  - Timeline Grouping (TODAY / THIS WEEK)
+ *  - Financial-style green status pills (+1 Lead, Saved, Verified)
+ *  - Flat charcoal card container with 1px translucent borders
+ *  - 120fps hardware accelerated interactions
  */
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import {
-  Animated,
   Pressable,
   StyleSheet,
   View,
@@ -15,44 +17,67 @@ import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { HapticTap } from '@/src/utils/haptics';
 
-interface RadarEvent {
+interface LedgerItem {
   id: string;
-  type: 'nfc_tap' | 'lead_saved' | 'link_visit' | 'wallet_scan';
+  group: 'TODAY' | 'THIS WEEK';
+  type: 'nfc_tap' | 'lead_saved' | 'wallet_scan' | 'vcard_download';
   title: string;
+  subtitle: string;
+  statusBadge: string;
+  statusColor: string;
   timeAgo: string;
-  icon: 'Nfc' | 'Users' | 'ExternalLink' | 'CreditCard';
-  iconColor: string;
+  icon: 'Nfc' | 'Users' | 'CreditCard' | 'UserPlus';
 }
 
-const DEFAULT_RADAR_EVENTS: RadarEvent[] = [
+const LEDGER_ACTIVITIES: LedgerItem[] = [
   {
     id: '1',
+    group: 'TODAY',
     type: 'nfc_tap',
-    title: 'Verified NFC Tap via Smart Card',
+    title: 'Verified Smart Pass Tap',
+    subtitle: 'NFC Beam · Executive Titanium',
+    statusBadge: '+ 1 Lead',
+    statusColor: '#30D158',
     timeAgo: '12m ago',
     icon: 'Nfc',
-    iconColor: '#30D158',
   },
   {
     id: '2',
+    group: 'TODAY',
     type: 'lead_saved',
-    title: 'Contact exchanged & saved to CRM',
+    title: 'Sarah Jenkins',
+    subtitle: 'Partner @ Apex Capital · Exchanged',
+    statusBadge: 'Saved',
+    statusColor: '#0A84FF',
     timeAgo: '1h ago',
     icon: 'Users',
-    iconColor: '#FFD60A',
   },
   {
     id: '3',
+    group: 'THIS WEEK',
     type: 'wallet_scan',
-    title: 'Apple Wallet Pass scanned at event',
-    timeAgo: '4h ago',
+    title: 'Apple Wallet Pass',
+    subtitle: 'PassKit Scan · Singapore Summit',
+    statusBadge: 'Verified',
+    statusColor: '#FFD60A',
+    timeAgo: '1d ago',
     icon: 'CreditCard',
-    iconColor: '#0A84FF',
+  },
+  {
+    id: '4',
+    group: 'THIS WEEK',
+    type: 'vcard_download',
+    title: 'vCard 3.0 Exported',
+    subtitle: 'Direct Contact Import',
+    statusBadge: 'Completed',
+    statusColor: 'rgba(255, 255, 255, 0.7)',
+    timeAgo: '3d ago',
+    icon: 'UserPlus',
   },
 ];
 
 interface LiveActivityRadarProps {
-  onPressItem?: (item: RadarEvent) => void;
+  onPressItem?: (item: LedgerItem) => void;
   totalTaps?: number;
   totalViews?: number;
 }
@@ -62,107 +87,124 @@ export function LiveActivityRadar({
   totalTaps = 0,
   totalViews = 0,
 }: LiveActivityRadarProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const fadeAnim = useRef(new Animated.Value(1)).current;
-
-  // Continuous Live Green Radar Pulse
-  useEffect(() => {
-    const pulse = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.6, duration: 1200, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
-      ])
-    );
-    pulse.start();
-    return () => pulse.stop();
-  }, [pulseAnim]);
-
-  // Rotate through activities every 5 seconds for living ambient feeling
-  useEffect(() => {
-    const interval = setInterval(() => {
-      Animated.sequence([
-        Animated.timing(fadeAnim, { toValue: 0.2, duration: 250, useNativeDriver: true }),
-        Animated.timing(fadeAnim, { toValue: 1, duration: 350, useNativeDriver: true }),
-      ]).start();
-
-      setCurrentIndex((prev) => (prev + 1) % DEFAULT_RADAR_EVENTS.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [fadeAnim]);
-
-  const activeEvent = DEFAULT_RADAR_EVENTS[currentIndex];
+  const todayItems = LEDGER_ACTIVITIES.filter((a) => a.group === 'TODAY');
+  const thisWeekItems = LEDGER_ACTIVITIES.filter((a) => a.group === 'THIS WEEK');
 
   return (
-    <Pressable
-      onPress={() => {
-        HapticTap.light();
-        onPressItem?.(activeEvent);
-      }}
-      style={({ pressed }) => [styles.container, pressed && styles.pressed]}
-    >
-      {/* Header with Live Blinking Radar Beacon */}
+    <View style={styles.container}>
+      {/* Header */}
       <View style={styles.headerRow}>
-        <View style={styles.liveIndicatorBox}>
-          <Animated.View
-            style={[
-              styles.radarWave,
-              { transform: [{ scale: pulseAnim }] },
-            ]}
-          />
-          <View style={styles.liveDot} />
-          <AppText style={styles.liveLabel} weight="extrabold">LIVE ACTIVITY RADAR</AppText>
+        <View style={styles.headerLeft}>
+          <AppText style={styles.headerTitle} weight="extrabold">ACTIVITY LEDGER</AppText>
         </View>
-        <AppText style={styles.timeAgoText}>{activeEvent.timeAgo}</AppText>
+        <View style={styles.liveAuditPill}>
+          <View style={styles.liveDot} />
+          <AppText style={styles.liveAuditText} weight="bold">LIVE AUDIT</AppText>
+        </View>
       </View>
 
-      {/* Rotating Event Item */}
-      <Animated.View style={[styles.eventRow, { opacity: fadeAnim }]}>
-        <View style={[styles.iconCircle, { backgroundColor: '#18181C' }]}>
-          <AppIcon name={activeEvent.icon} size={15} color={activeEvent.iconColor} />
+      {/* Main Ledger Card */}
+      <View style={styles.ledgerCard}>
+        {/* TODAY Section */}
+        <View style={styles.groupHeader}>
+          <AppText style={styles.groupTitle} weight="bold">TODAY</AppText>
         </View>
-        <View style={styles.eventMeta}>
-          <AppText style={styles.eventTitle} weight="bold" numberOfLines={1}>
-            {activeEvent.title}
-          </AppText>
-          <AppText style={styles.eventSub}>
-            Tap activity to view full intelligence feed
-          </AppText>
+        {todayItems.map((item, idx) => (
+          <Pressable
+            key={item.id}
+            onPress={() => {
+              HapticTap.light();
+              onPressItem?.(item);
+            }}
+            style={({ pressed }) => [
+              styles.row,
+              idx === todayItems.length - 1 && styles.rowLastInGroup,
+              pressed && styles.pressed,
+            ]}
+          >
+            <View style={styles.iconCircle}>
+              <AppIcon name={item.icon} size={15} color="#FFFFFF" />
+            </View>
+            <View style={styles.metaCol}>
+              <AppText style={styles.rowTitle} weight="bold">{item.title}</AppText>
+              <AppText style={styles.rowSub}>{item.subtitle}</AppText>
+            </View>
+            <View style={styles.rightCol}>
+              <View style={[styles.statusBadge, { borderColor: item.statusColor }]}>
+                <AppText style={[styles.statusText, { color: item.statusColor }]} weight="bold">
+                  {item.statusBadge}
+                </AppText>
+              </View>
+              <AppText style={styles.timeText}>{item.timeAgo}</AppText>
+            </View>
+          </Pressable>
+        ))}
+
+        {/* THIS WEEK Section */}
+        <View style={[styles.groupHeader, styles.groupHeaderSubsequent]}>
+          <AppText style={styles.groupTitle} weight="bold">THIS WEEK</AppText>
         </View>
-        <AppIcon name="ChevronRight" size={14} color="rgba(255,255,255,0.4)" />
-      </Animated.View>
-    </Pressable>
+        {thisWeekItems.map((item, idx) => (
+          <Pressable
+            key={item.id}
+            onPress={() => {
+              HapticTap.light();
+              onPressItem?.(item);
+            }}
+            style={({ pressed }) => [
+              styles.row,
+              idx === thisWeekItems.length - 1 && styles.rowLast,
+              pressed && styles.pressed,
+            ]}
+          >
+            <View style={styles.iconCircle}>
+              <AppIcon name={item.icon} size={15} color="#FFFFFF" />
+            </View>
+            <View style={styles.metaCol}>
+              <AppText style={styles.rowTitle} weight="bold">{item.title}</AppText>
+              <AppText style={styles.rowSub}>{item.subtitle}</AppText>
+            </View>
+            <View style={styles.rightCol}>
+              <View style={[styles.statusBadge, { borderColor: item.statusColor }]}>
+                <AppText style={[styles.statusText, { color: item.statusColor }]} weight="bold">
+                  {item.statusBadge}
+                </AppText>
+              </View>
+              <AppText style={styles.timeText}>{item.timeAgo}</AppText>
+            </View>
+          </Pressable>
+        ))}
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 16,
-    backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    padding: 14,
-    gap: 10,
+    gap: 8,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 2,
   },
-  liveIndicatorBox: {
+  headerLeft: {},
+  headerTitle: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 11,
+    letterSpacing: 0.8,
+  },
+  liveAuditPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
-    position: 'relative',
-  },
-  radarWave: {
-    position: 'absolute',
-    left: -2,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: 'rgba(48, 209, 88, 0.4)',
+    gap: 5,
+    backgroundColor: 'rgba(48, 209, 88, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(48, 209, 88, 0.25)',
   },
   liveDot: {
     width: 6,
@@ -170,42 +212,91 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: '#30D158',
   },
-  liveLabel: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    letterSpacing: 1.2,
+  liveAuditText: {
+    color: '#30D158',
+    fontSize: 9,
+    letterSpacing: 0.5,
   },
-  timeAgoText: {
-    color: 'rgba(255, 255, 255, 0.35)',
-    fontSize: 10,
+  ledgerCard: {
+    backgroundColor: '#111114',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    overflow: 'hidden',
   },
-  eventRow: {
+  groupHeader: {
+    backgroundColor: '#0A0A0C',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  groupHeaderSubsequent: {
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  groupTitle: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 10,
+    letterSpacing: 0.8,
+  },
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  rowLastInGroup: {
+    borderBottomWidth: 0,
+  },
+  rowLast: {
+    borderBottomWidth: 0,
+  },
+  pressed: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
   },
   iconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#18181C',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
   },
-  eventMeta: {
+  metaCol: {
     flex: 1,
     gap: 2,
   },
-  eventTitle: {
+  rowTitle: {
     color: '#FFFFFF',
     fontSize: 13,
   },
-  eventSub: {
+  rowSub: {
     color: 'rgba(255, 255, 255, 0.45)',
     fontSize: 11,
   },
-  pressed: {
-    opacity: 0.8,
+  rightCol: {
+    alignItems: 'flex-end',
+    gap: 3,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  statusText: {
+    fontSize: 10,
+    letterSpacing: 0.2,
+  },
+  timeText: {
+    color: 'rgba(255, 255, 255, 0.35)',
+    fontSize: 10,
   },
 });
