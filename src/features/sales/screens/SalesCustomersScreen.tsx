@@ -18,12 +18,14 @@ import { QuickActionModal } from '@/src/components/QuickActionModal';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useOrders } from '@/src/hooks/useOrders';
 
-const BG = '#F8FAFC';
-const SURFACE = 'rgba(255, 255, 255, 0.86)';
-const SURFACE_LIGHT = '#F1F5F9';
-const BORDER = 'rgba(15,23,42,0.06)';
-const INK = '#020617';
-const MUTED = '#64748B';
+import { usePreferences } from '@/src/hooks/usePreferences';
+
+const BG = '#000000';
+const SURFACE = '#111114';
+const SURFACE_LIGHT = '#1C1C1E';
+const BORDER = 'rgba(255,255,255,0.08)';
+const INK = '#FFFFFF';
+const MUTED = '#9A9AA0';
 const BLUE = '#0E7490';
 
 interface LocalCustomer {
@@ -36,6 +38,7 @@ interface LocalCustomer {
 }
 
 function CustomerCard({ customer, index }: { customer: LocalCustomer; index: number }) {
+  const { colors } = usePreferences();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
 
@@ -60,7 +63,7 @@ function CustomerCard({ customer, index }: { customer: LocalCustomer; index: num
     <Animated.View
       style={[
         s.customerCard,
-        { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+        { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
       ]}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -70,11 +73,11 @@ function CustomerCard({ customer, index }: { customer: LocalCustomer; index: num
           </AppText>
         </View>
         <View style={{ flex: 1 }}>
-          <AppText style={{ fontSize: 16, fontWeight: '900', color: INK }}>{customer.name}</AppText>
-          <AppText style={{ fontSize: 12, fontWeight: '600', color: MUTED, marginTop: 1 }}>{customer.phone}</AppText>
+          <AppText style={{ fontSize: 16, fontWeight: '900', color: colors.textPrimary }}>{customer.name}</AppText>
+          <AppText style={{ fontSize: 12, fontWeight: '600', color: colors.textMuted, marginTop: 1 }}>{customer.phone}</AppText>
         </View>
         <View style={{ alignItems: 'flex-end', gap: 4 }}>
-          <AppText style={{ fontSize: 16, fontWeight: '900', color: INK }}>${customer.totalSpent.toFixed(2)}</AppText>
+          <AppText style={{ fontSize: 16, fontWeight: '900', color: colors.textPrimary }}>${customer.totalSpent.toFixed(2)}</AppText>
           <StatusBadge status={customer.totalOrders > 3 ? 'active' : 'default'} label={`${customer.totalOrders} order${customer.totalOrders === 1 ? '' : 's'}`} />
         </View>
       </View>
@@ -84,6 +87,7 @@ function CustomerCard({ customer, index }: { customer: LocalCustomer; index: num
 
 export default function SalesCustomersScreen() {
   const { user } = useAuth();
+  const { colors } = usePreferences();
   const { orders, isLoading, refresh } = useOrders('sales', user?.id ?? '');
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -135,7 +139,7 @@ export default function SalesCustomersScreen() {
   }, [customers, debouncedSearch]);
 
   return (
-    <View style={s.bg}>
+    <View style={[s.bg, { backgroundColor: colors.background }]}>
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
         <IosScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
           {/* Header */}

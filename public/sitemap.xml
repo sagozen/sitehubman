@@ -2,31 +2,55 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 
-  <!-- ─── Static public pages ─── -->
+  <!-- Homepage -->
   <url>
-    <loc>https://sitehubman.vercel.app/</loc>
-    <lastmod>2026-07-24</lastmod>
+    <loc>https://sitehubman.com/</loc>
+    <lastmod>2026-08-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
+  <!-- Guest funnel -->
   <url>
-    <loc>https://sitehubman.vercel.app/nfc-demo</loc>
-    <lastmod>2026-07-24</lastmod>
-    <changefreq>monthly</changefreq>
+    <loc>https://sitehubman.com/guest-choose-card</loc>
+    <lastmod>2026-08-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://sitehubman.com/guest-design</loc>
+    <lastmod>2026-08-10</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://sitehubman.vercel.app/privacy-policy</loc>
-    <lastmod>2026-07-24</lastmod>
+    <loc>https://sitehubman.com/guest-analytics</loc>
+    <lastmod>2026-08-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- NFC Demo -->
+  <url>
+    <loc>https://sitehubman.com/nfc-demo</loc>
+    <lastmod>2026-08-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Legal -->
+  <url>
+    <loc>https://sitehubman.com/privacy-policy</loc>
+    <lastmod>2026-08-10</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
 
   <url>
-    <loc>https://sitehubman.vercel.app/terms-of-service</loc>
-    <lastmod>2026-07-24</lastmod>
+    <loc>https://sitehubman.com/terms-of-service</loc>
+    <lastmod>2026-08-10</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>

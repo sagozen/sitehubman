@@ -42,6 +42,7 @@ export interface AppUser {
   createdAt: string;
   updatedAt: string;
   isGuest?: boolean;
+  activeProfileId?: string;
 }
 
 /**
@@ -551,6 +552,23 @@ export interface Payout {
 
 export type BioTheme = 'vibrant_pink' | 'tech_noir' | 'editorial' | 'ocean_wave';
 
+export interface TapActionItem {
+  id?: string;
+  icon: string;
+  labelVi: string;
+  labelEn: string;
+  subVi?: string;
+  subEn?: string;
+  url: string;
+}
+
+export interface TapActionBlock {
+  id?: string;
+  titleVi: string;
+  titleEn: string;
+  items: TapActionItem[];
+}
+
 export interface BioPage {
   id: string;
   userId: string;
@@ -561,8 +579,16 @@ export interface BioPage {
   trialStartedAt?: string;
   trialEndsAt?: string;
   displayName: string;
+  printedName?: string;
+  jobTitleVi?: string;
+  jobTitleEn?: string;
+  organization?: string;
+  positioningLineVi?: string;
+  positioningLineEn?: string;
+  logoUrl?: string;
   tagline?: string;
   photoUrl?: string;
+  coverPhotoUrl?: string;
   whatsapp?: string;
   instagram?: string;
   telegram?: string;
@@ -572,6 +598,38 @@ export interface BioPage {
   twitter?: string;
   facebook?: string;
   customLinks: { label: string; url: string }[];
+  
+  /** Tap Page Specific Fields (Ban Nguyen Specification) */
+  heroTitleVi?: string;
+  heroTitleEn?: string;
+  heroOrg?: string;
+  showLanguageToggle?: boolean;
+
+  /** Primary Action */
+  primaryActionIcon?: string;
+  primaryActionLabelVi?: string;
+  primaryActionLabelEn?: string;
+  primaryActionSubVi?: string;
+  primaryActionSubEn?: string;
+  primaryActionUrl?: string;
+
+  /** Action Blocks (Max 3 blocks, max 4 items per block) */
+  actionBlocks?: TapActionBlock[];
+
+  /** Trust Block */
+  ownerLineVi?: string;
+  ownerLineEn?: string;
+  trustNoteVi?: string;
+  trustNoteEn?: string;
+
+  /** Theme & Styling Configuration */
+  colorPalette?: string;
+  colorMode?: 'light' | 'dark';
+  borderRadiusStyle?: 'balanced' | 'rounded' | 'sharp';
+  heroStyle?: 'gradient' | 'solid' | 'minimal';
+  cardStyle?: 'bordered' | 'solid' | 'glass';
+  avatarStyle?: 'circle' | 'square' | 'hexagon';
+
   /** Smart AI Business Card attributes */
   company?: string;
   role?: string;
@@ -585,6 +643,11 @@ export interface BioPage {
   coverImage?: string;
   avatar?: string;
   headline?: string;
+  directModeEnabled?: boolean;
+  directModeUrl?: string;
+  activePersona?: 'work' | 'personal' | 'creator';
+  bookingUrl?: string;
+  webhookUrl?: string;
   updatedAt: string;
 }
 
@@ -617,6 +680,7 @@ export interface UiPreferences {
   typographyColor: TypographyColorKey;
   primaryCardId?: string;
   hiddenCardIds?: string[];
+  activeProfileId?: string;
   cardDraft?: any;
 }
 

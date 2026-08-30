@@ -1,18 +1,19 @@
 {
   "expo": {
-    "name": "SiteHub Man – Smart NFC Digital Business Cards",
+    "name": "AVIO",
     "slug": "bio-cloud-native",
     "version": "1.0.0",
-    "description": "SiteHub Man lets you create premium NFC digital business cards, share your bio instantly via tap or QR code, and track every card interaction in real time. Go paperless. Go smart.",
-    "keywords": "NFC card, digital business card, smart card, bio link, QR code, contactless sharing, tap to share, NFC tag, networking, profile link",
+    "description": "AVIO lets you create premium NFC digital business cards, share your bio instantly via tap or QR code, and track every card interaction in real time. CONNECT · IDENTIFY · EMPOWER.",
+    "keywords": "AVIO, NFC card, digital business card, smart card, bio link, QR code, contactless sharing, tap to share, NFC tag, networking, profile link",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "biocloud",
+    "scheme": "avio",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.sagozen.oneapp",
+      "buildNumber": "44",
       "usesAppleSignIn": true,
       "infoPlist": {
         "NSCameraUsageDescription": "SiteHub needs camera access to scan QR codes on NFC cards.",
@@ -24,7 +25,6 @@
       },
       "entitlements": {
         "com.apple.developer.nfc.readersession.formats": [
-          "NDEF",
           "TAG"
         ]
       }
@@ -47,9 +47,9 @@
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/icon.png",
-      "name": "SiteHub Man – Smart NFC Digital Business Cards",
-      "shortName": "SiteHub Man",
-      "description": "Create premium NFC digital business cards, share your bio instantly via tap or QR code, and track every interaction. The future of networking.",
+      "name": "AVIO – Smart NFC Digital Business Cards",
+      "shortName": "AVIO",
+      "description": "AVIO lets you create premium NFC digital business cards, share your bio instantly via tap or QR code, and track every interaction. CONNECT · IDENTIFY · EMPOWER.",
       "themeColor": "#0B1220",
       "backgroundColor": "#000000",
       "display": "standalone",
@@ -62,8 +62,14 @@
       "orientation": "portrait",
       "preferRelatedApplications": true,
       "relatedApplications": [
-        { "platform": "itunes", "url": "https://apps.apple.com/app/sitehubman/id0000000000" },
-        { "platform": "play", "url": "https://play.google.com/store/apps/details?id=com.biocloud.nativeapp" }
+        {
+          "platform": "itunes",
+          "url": "https://apps.apple.com/app/sitehubman/id0000000000"
+        },
+        {
+          "platform": "play",
+          "url": "https://play.google.com/store/apps/details?id=com.biocloud.nativeapp"
+        }
       ]
     },
     "plugins": [
@@ -96,7 +102,7 @@
     },
     "runtimeVersion": "1.0.0",
     "updates": {
-      "url": "https://u.expo.dev/cb54673a-8b20-4939-9332-6e9f312521a5",
+      "url": "https://u.expo.dev/5c9466c1-b46a-4339-8dfe-d521e69edd21",
       "enabled": true,
       "checkAutomatically": "ON_ERROR_RECOVERY",
       "fallbackToCacheTimeout": 5000
@@ -104,10 +110,17 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "cb54673a-8b20-4939-9332-6e9f312521a5"
+        "projectId": "5c9466c1-b46a-4339-8dfe-d521e69edd21"
       },
-      "cloudinaryApiKey": "795664656796712"
+      "cloudinaryApiKey": "795664656796712",
+      "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyBJZa1RLcbZtFsfizGJadlLNnNgUVsUByw",
+      "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "sitehub-8dd56.firebaseapp.com",
+      "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "sitehub-8dd56",
+      "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "sitehub-8dd56.firebasestorage.app",
+      "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "145010162726",
+      "EXPO_PUBLIC_FIREBASE_APP_ID": "1:145010162726:web:8a7accc56cdc4e1fd23ae7",
+      "EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID": "G-KEC7CH3TF9"
     },
-    "owner": "theanthean8888"
+    "owner": "tiantian88888"
   }
 }

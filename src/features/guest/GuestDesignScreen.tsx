@@ -22,6 +22,7 @@ import { AppText } from '@/src/components/AppText';
 import { AppButton } from '@/src/components/AppButton';
 import { PaymentMethodIcon } from '@/src/components/PaymentMethodIcon';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
+import { FlippableNfcCard } from '@/src/components/FlippableNfcCard';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   formatFooterDualPrice,
@@ -54,7 +55,6 @@ const SURFACE = DESIGN_THEME.surface;
 const SURFACE_ACTIVE = DESIGN_THEME.accent;
 const BORDER = DESIGN_THEME.border;
 
-const FLOW_STEPS = ['Design', 'Pay', 'Deliver'] as const;
 
 // ─── Performance Optimized Glass Field ──────────────────────────────────────
 function FieldRow({
@@ -70,7 +70,6 @@ function FieldRow({
   placeholder: string;
 } & Pick<React.ComponentProps<typeof TextInput>, 'keyboardType' | 'autoCapitalize'>) {
   const ref = useRef<TextInput>(null);
-  const [focused, setFocused] = useState(false);
 
   const debouncedOnChange = useDebounceCallback((text: string) => {
     onChange(text);
@@ -80,12 +79,12 @@ function FieldRow({
     <Pressable
       onPress={() => { HapticTap.light(); ref.current?.focus(); }}
       hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-      style={[
+      style={({ pressed }) => [
         fi.row,
-        focused && fi.rowFocused
+        pressed && fi.rowPressed
       ] as ViewStyle[]}
     >
-      <AppIcon name={icon} size={20} color={focused ? '#FFFFFF' : BRAND} />
+      <AppIcon name={icon} size={20} color={BRAND} />
       <TextInput
         ref={ref}
         style={fi.input}
@@ -94,8 +93,6 @@ function FieldRow({
         placeholder={placeholder}
         placeholderTextColor={MUTED}
         accessibilityLabel={placeholder}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
         {...inputProps}
       />
     </Pressable>
@@ -111,23 +108,19 @@ const fi = StyleSheet.create({
     minHeight: 64,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: '#0D0D10',
+    borderColor: BORDER,
+    backgroundColor: SURFACE,
     overflow: 'hidden'
   } as ViewStyle,
-  rowFocused: {
-    borderColor: '#FFFFFF',
-    backgroundColor: '#111114',
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
+  rowPressed: {
+    transform: [{ scale: MotionScale.pressed }],
+    borderColor: 'rgba(255, 255, 255, 0.28)'
   } as ViewStyle,
   input: {
     flex: 1,
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '800',
+    color: INK,
     padding: 0,
     fontFamily: 'Inter_800ExtraBold'
   } as TextStyle,
@@ -284,50 +277,65 @@ export function GuestDesignScreen() {
         </View>
 
         <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-          <View style={styles.flowCard}>
-            <View style={styles.flowSteps}>
-              {FLOW_STEPS.map((step, index) => {
-                const active = index === 0;
-                return (
-                  <React.Fragment key={step}>
-                    <View style={styles.flowStep}>
-                      <View style={[styles.flowDot, active && styles.flowDotActive]}>
-                        <AppText style={[styles.flowDotText, active && styles.flowDotTextActive]}>
-                          {index + 1}
-                        </AppText>
-                      </View>
-                      <AppText style={[styles.flowStepText, active && styles.flowStepTextActive]}>
-                        {step}
-                      </AppText>
-                    </View>
-                    {index < FLOW_STEPS.length - 1 && (
-                      <View style={[styles.flowLine, index === 0 && styles.flowLineActive]} />
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </View>
-          </View>
 
-          {/* ── Card Stage ── */}
+          {/* ── Card Stage (Interactive 3D Flip) ── */}
           <View style={styles.previewStage}>
             <View style={styles.glowBackdrop} />
-            <View style={styles.glowBackdropBlue} />
             <View style={styles.previewWrap}>
-              <NfcGlobalCardFace
+              <FlippableNfcCard
                 fullName={name || 'Your Name'}
                 title={jobTitle || 'Verified Member'}
                 company={company || 'NFC Global'}
                 email={email || 'hello@nfcglobal.co'}
                 phone={phone || undefined}
+                gradientIndex={styleIdx}
                 width={cardWidth}
                 height={cardHeight}
               />
             </View>
             <View style={styles.liveRow}>
-              <View style={styles.livePulseRing} />
-              <View style={styles.livePulseDot} />
-              <AppText style={styles.previewHint}>Live design</AppText>
+              <View style={styles.liveDot} />
+              <AppText style={styles.previewHint}>Tap card to flip · Real-time material preview</AppText>
+            </View>
+
+            {/* Material & Finish Selector */}
+            <View style={styles.materialSection}>
+              <AppText style={styles.materialHeading} weight="extrabold">CARD MATERIAL & FINISH</AppText>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.materialScroll}>
+                {[
+                  { id: 0, name: 'Matte Obsidian', emoji: '⚫' },
+                  { id: 1, name: 'Brushed Titanium', emoji: '⚙️' },
+                  { id: 2, name: '24K Gold', emoji: '👑' },
+                  { id: 3, name: 'Emerald Green', emoji: '🟢' },
+                  { id: 4, name: 'Royal Violet', emoji: '🟣' },
+                ].map((mat) => {
+                  const active = styleIdx === mat.id;
+                  return (
+                    <Pressable
+                      key={mat.id}
+                      onPress={() => {
+                        HapticTap.medium();
+                        setStyleIdx(mat.id);
+                      }}
+                      style={[
+                        styles.materialPill,
+                        active && styles.materialPillActive,
+                      ]}
+                    >
+                      <AppText style={styles.materialEmoji}>{mat.emoji}</AppText>
+                      <AppText
+                        style={[
+                          styles.materialText,
+                          active && styles.materialTextActive,
+                        ]}
+                        weight="extrabold"
+                      >
+                        {mat.name}
+                      </AppText>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
             </View>
           </View>
 
@@ -482,26 +490,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    width: '100%',
-  } as ViewStyle,
+  },
   flowStep: {
     alignItems: 'center',
-    gap: 6,
-  } as ViewStyle,
-  flowLine: {
-    flex: 1,
-    height: 1.5,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    marginHorizontal: 4,
-    transform: [{ translateY: -10 }],
-  } as ViewStyle,
-  flowLineActive: {
-    backgroundColor: '#FFFFFF',
-  } as ViewStyle,
+    gap: 4,
+  },
   flowDot: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
@@ -513,16 +510,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   flowDotText: {
-    color: 'rgba(255, 255, 255, 0.64)',
     fontSize: 10,
-    fontWeight: '900',
-  } as TextStyle,
+    fontWeight: '800',
+    color: 'rgba(255, 255, 255, 0.56)',
+  },
   flowDotTextActive: {
     color: '#000000',
   },
   flowStepText: {
-    color: 'rgba(255, 255, 255, 0.4)',
-    fontSize: 10,
+    color: 'rgba(255, 255, 255, 0.56)',
+    fontSize: 11,
     fontWeight: '800',
     textAlign: 'center',
   },
@@ -533,33 +530,38 @@ const styles = StyleSheet.create({
   previewStage: { alignItems: 'center', position: 'relative', paddingVertical: 24, paddingHorizontal: 20 },
   glowBackdrop: {
     position: 'absolute',
-    width: 260,
-    height: 130,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: 130,
-    top: '30%',
-    zIndex: 0,
-  } as ViewStyle,
-  glowBackdropBlue: {
-    position: 'absolute',
-    width: 200,
-    height: 100,
-    backgroundColor: 'rgba(37, 150, 190, 0.1)',
-    borderRadius: 100,
-    top: '35%',
-    zIndex: 0,
-  } as ViewStyle,
+    width: '80%',
+    height: '60%',
+    backgroundColor: '#FFFFFF',
+    opacity: 0.02,
+    borderRadius: 999,
+    top: '20%',
+  },
   previewWrap: {
     borderRadius: 24,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
-    zIndex: 1,
-  } as ViewStyle,
-  liveRow: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 24, backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 99, zIndex: 1 } as ViewStyle,
-  livePulseDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#30D158' } as ViewStyle,
-  livePulseRing: { position: 'absolute', left: 11, width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(48,209,88,0.3)', transform: [{ scale: 1.6 }] } as ViewStyle,
-  previewHint: { fontSize: 11, color: '#FFFFFF', fontWeight: '800', letterSpacing: -0.2, fontFamily: 'SF-Pro-Display-Regular' } as TextStyle,
+  },
+  liveRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16, backgroundColor: 'rgba(0,0,0,0.4)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 99 },
+  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FFFFFF' },
+  previewHint: { fontSize: 11, color: 'rgba(255, 255, 255, 0.7)', letterSpacing: 0, fontFamily: 'SF-Pro-Display-Regular' },
+
+  materialSection: { width: '100%', marginTop: 20, gap: 10 },
+  materialHeading: { color: 'rgba(255, 255, 255, 0.45)', fontSize: 10, letterSpacing: 1.2 },
+  materialScroll: { gap: 8, paddingVertical: 4 },
+  materialPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14,
+    backgroundColor: '#111114', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  materialPillActive: {
+    backgroundColor: '#FFFFFF', borderColor: '#FFFFFF',
+    shadowColor: '#FFFFFF', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 6,
+  },
+  materialEmoji: { fontSize: 13 },
+  materialText: { color: 'rgba(255, 255, 255, 0.7)', fontSize: 12 },
+  materialTextActive: { color: '#000000' },
 
   sectionsContainer: { paddingHorizontal: 20, paddingTop: 10, gap: 40 },
   section: { gap: 16 },

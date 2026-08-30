@@ -40,5 +40,9 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
 };
 
 config.maxWorkers = 2;
+config.watcher = {
+  ...config.watcher,
+  healthCheck: { enabled: false },
+};
 
 module.exports = config;

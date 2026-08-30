@@ -12,7 +12,8 @@ import { theme } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 // Fix: use saveNfcWrite instead of removed activateNfcCard/linkCardToBio
-import { saveNfcWrite, updateNfcStatus } from '@/src/services/firestoreService';
+import { saveNfcWrite, updateNfcStatus, getBioPage } from '@/src/services/firestoreService';
+import { ensureNfcCardAssigned, syncBioToCard } from '@/src/services/nfcProfileService';
 
 export function ActivateCardScreen() {
   const { user } = useAuth();
@@ -25,23 +26,41 @@ export function ActivateCardScreen() {
     if (!requireAccount(undefined, { message: 'Create an account to activate and link NFC cards.' })) {
       return;
     }
-    if (!cardCode.trim()) {
+    const normalizedCode = cardCode.trim();
+    if (!normalizedCode) {
       Alert.alert('Card code required', 'Enter the activation code from your card or receipt.');
       return;
     }
 
     setIsSaving(true);
     try {
-      const profileUrl = buildCardProfileUrl(cardCode.trim());
+      const profileUrl = buildCardProfileUrl(normalizedCode);
+      
+      // 1. Assign NFC card to this user and their bio profile
+      await ensureNfcCardAssigned({
+        cardId: normalizedCode,
+        ownerUserId: user.id,
+        profileId: user.id,
+        chipUID: normalizedCode,
+      });
+
+      // 2. Sync their BioPage data to the card record
+      const bio = await getBioPage(user.id);
+      if (bio) {
+        await syncBioToCard(normalizedCode, bio);
+      }
+
+      // 3. Mark NFC record as verified
       await saveNfcWrite({
-        chipUID: cardCode.trim(),
+        chipUID: normalizedCode,
         profileUrl,
         orderId: '',
-        cardCode: cardCode.trim(),
+        cardCode: normalizedCode,
         writtenBy: user.id,
       });
-      await updateNfcStatus(cardCode.trim(), 'verified');
-      Alert.alert('Card activated ✅', 'Your NFC card is now linked to your account.');
+      await updateNfcStatus(normalizedCode, 'verified');
+
+      Alert.alert('Card activated ✅', 'Your NFC card is now linked to your account and profile!');
       setCardCode('');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to activate card.';

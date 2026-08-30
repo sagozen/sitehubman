@@ -26,6 +26,7 @@ import { HapticTap, HapticPattern } from '@/src/utils/haptics';
 import { Easings } from '@/src/utils/motion';
 import { ConnectionTagPicker } from '@/src/components/ConnectionTagPicker';
 import { ContactExportSheet } from '@/src/components/ContactExportSheet';
+import { AiFollowUpModal } from '@/src/components/AiFollowUpModal';
 import {
   ALL_TAGS,
   type ConnectionTagId,
@@ -94,6 +95,7 @@ export function MomentDetailSheet({
   const [opening, setOpening] = useState(false);
   const [showTagPicker, setShowTagPicker] = useState(false);
   const [showExport, setShowExport] = useState(false);
+  const [showAiModal, setShowAiModal] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -272,12 +274,25 @@ export function MomentDetailSheet({
             </ScrollView>
           </View>
 
+          {/* Primary AI Follow-Up Generator */}
+          <Pressable
+            onPress={() => {
+              HapticTap.medium();
+              setShowAiModal(true);
+            }}
+            style={({ pressed }) => [styles.aiFollowUpBtn, pressed && styles.pressed]}
+          >
+            <AppIcon name="Sparkles" size={17} color="#000000" />
+            <AppText style={styles.aiFollowUpBtnText} weight="extrabold">
+              AI Draft Follow-Up
+            </AppText>
+          </Pressable>
+
           {/* Action grid */}
           <View style={styles.actionsGrid}>
             <ActionButton
               icon="Mail"
               label="SMS / Chat"
-              primary
               onPress={() => {
                 HapticTap.medium();
                 void openSms(moment.phone || '+85512345678', `Hi ${moment.name}! We connected via SiteHub.`);
@@ -324,6 +339,18 @@ export function MomentDetailSheet({
           >
             <AppText style={styles.closeText}>Close</AppText>
           </Pressable>
+
+          {/* AI Follow-Up Modal */}
+          {showAiModal && (
+            <AiFollowUpModal
+              visible={showAiModal}
+              onClose={() => setShowAiModal(false)}
+              recipientName={moment.name}
+              phone={moment.phone}
+              email={moment.email}
+              company={moment.subtitle}
+            />
+          )}
 
           {/* Tag picker sub-modal */}
           {moment && (
@@ -676,6 +703,20 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: 'rgba(0,0,0,0.42)',
+  },
+  aiFollowUpBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    minHeight: 48,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 4,
+  },
+  aiFollowUpBtnText: {
+    color: '#000000',
+    fontSize: 15,
   },
   pressed: { opacity: 0.7 },
 });

@@ -212,14 +212,14 @@ type NavItem = RouteItem;
 const CONSUMER_TAB_ORDER = ['index', 'connections', 'share', 'profile', 'settings'] as const;
 
 export function LiquidTabBar({ state, navigation, descriptors }: Props) {
-  const { colors } = usePreferences();
+  const { colors, isDark } = usePreferences();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const tabRoutes = state.routes;
   const activeRoute = tabRoutes[state.index];
 
-  const capsuleWidth = 44;
-  const capsuleHeight = 44;
+  const capsuleWidth = 60;
+  const capsuleHeight = 46;
   const activeOptions = descriptors?.[activeRoute?.key]?.options ?? {};
   const isLegacyConnectionsRoute = activeRoute?.name === 'attendance';
   const shouldHide =
@@ -305,21 +305,22 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
   const items: NavItem[] = visibleRoutes.map((route: any) => ({ type: 'route', route }) as RouteItem);
   const activeIndex = items.findIndex((item) => item.route.name === activeRoute?.name);
 
-  // Animated sliding center value for the active circle indicator
-  // Total capsule width is 320. Padding horizontal is 8. Available inner width is 304.
-  // 5 tabs mean each tab is 60.8 wide.
-  // Circle size is 44x44, so left offset inside tab is (60.8 - 44)/2 = 8.4.
-  // Capsule offset is 8 + index * 60.8 + 8.4
-  const animCenterX = useRef(new Animated.Value(8 + Math.max(0, activeIndex) * 60.8 + 8.4)).current;
+  // Animated sliding center value for the active pill indicator
+  // Capsule width = 360, horizontal padding 8 → inner = 344
+  // 5 tabs at 68 wide each. Pill width = 60. Inner offset per tab = (68 - 60) / 2 = 4.
+  // Capsule target offset = 8 + index * 68 + 4
+  const TAB_WIDTH = 68;
+  const PILL_WIDTH = 60;
+  const animCenterX = useRef(new Animated.Value(8 + Math.max(0, activeIndex) * TAB_WIDTH + 4)).current;
 
   useEffect(() => {
     if (activeIndex !== -1) {
-      const targetX = 8 + activeIndex * 60.8 + 8.4;
+      const targetX = 8 + activeIndex * TAB_WIDTH + (TAB_WIDTH - PILL_WIDTH) / 2;
       Animated.spring(animCenterX, {
         toValue: targetX,
         useNativeDriver: true,
-        tension: 140,
-        friction: 8.5,
+        tension: 160,
+        friction: 9,
       }).start();
     }
   }, [activeIndex, animCenterX]);
@@ -341,27 +342,35 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
   }
 
   return (
-    <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-      <View style={styles.capsuleBar}>
-        {/* Animated Sliding Background Circle */}
-        {activeIndex !== -1 && (
-          <Animated.View
-            style={[
-              styles.slidingActiveCircle,
-              {
-                width: capsuleWidth,
-                height: capsuleHeight,
-                transform: [{ translateX: animCenterX }],
-              },
-            ]}
-          />
-        )}
-
-        {items.map((item, index) => {
+    <View style={[styles.floatingDockWrap, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+      <View style={styles.floatingDock}>
+        {items.map((item) => {
           const route = item.route;
           const isActive = activeRoute?.name === route.name;
           const isLegacyAttendance = route.name === 'attendance';
-          
+          const activeColor = '#FFFFFF';
+          const inactiveColor = 'rgba(255, 255, 255, 0.38)';
+
+          let iconName: any = 'home';
+          let labelText = 'Home';
+
+          if (route.name === 'index') {
+            iconName = isActive ? 'home' : 'home-outline';
+            labelText = 'Home';
+          } else if (route.name === 'connections' || isLegacyAttendance) {
+            iconName = isActive ? 'people' : 'people-outline';
+            labelText = 'Contacts';
+          } else if (route.name === 'share') {
+            iconName = isActive ? 'radio' : 'radio-outline';
+            labelText = 'Beam';
+          } else if (route.name === 'profile') {
+            iconName = isActive ? 'person' : 'person-outline';
+            labelText = 'Bio';
+          } else if (route.name === 'settings') {
+            iconName = isActive ? 'settings-sharp' : 'settings-outline';
+            labelText = 'Settings';
+          }
+
           return (
             <Pressable
               key={route.key}
@@ -372,46 +381,29 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
                   navigation.navigate(route.name);
                 }
               }}
-              style={styles.tabItem}
+              style={({ pressed }) => [
+                styles.dockTabItem,
+                pressed && { opacity: 0.65 },
+              ]}
+              hitSlop={6}
               accessibilityRole="button"
               accessibilityState={{ selected: isActive }}
             >
-              <View style={styles.iconContainer}>
-                {route.name === 'index' ? (
-                  <Ionicons
-                    name={isActive ? 'home' : 'home-outline'}
-                    size={22}
-                    color={isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.45)'}
-                  />
-                ) : route.name === 'connections' || isLegacyAttendance ? (
-                  <Ionicons
-                    name={isActive ? 'people-circle' : 'people-circle-outline'}
-                    size={22}
-                    color={isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.45)'}
-                  />
-                ) : route.name === 'share' ? (
-                  <Ionicons
-                    name={isActive ? 'qr-code' : 'qr-code-outline'}
-                    size={22}
-                    color={isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.45)'}
-                  />
-                ) : route.name === 'profile' ? (
-                  <Ionicons
-                    name={isActive ? 'heart' : 'heart-outline'}
-                    size={22}
-                    color={isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.45)'}
-                  />
-                ) : route.name === 'settings' ? (
-                  <View
-                    style={[
-                      styles.settingsDot,
-                      {
-                        borderWidth: isActive ? 2 : 0,
-                        borderColor: '#FFFFFF',
-                      },
-                    ]}
-                  />
-                ) : null}
+              <View style={styles.dockTabInner}>
+                <Ionicons
+                  name={iconName}
+                  size={21}
+                  color={isActive ? activeColor : inactiveColor}
+                />
+                <AppText
+                  style={[
+                    styles.dockTabLabel,
+                    { color: isActive ? activeColor : inactiveColor },
+                  ]}
+                  weight={isActive ? 'extrabold' : 'bold'}
+                >
+                  {labelText}
+                </AppText>
               </View>
             </Pressable>
           );
@@ -428,53 +420,48 @@ function routeLabel(route: any, descriptors?: Record<string, any>) {
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
+  floatingDockWrap: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
-    pointerEvents: 'box-none',
+    pointerEvents: 'box-none' as any,
+    zIndex: 100,
   },
-  capsuleBar: {
-    width: 320,
+  floatingDock: {
+    width: '92%',
+    maxWidth: 360,
     height: 58,
     borderRadius: 29,
-    backgroundColor: 'rgba(28, 28, 32, 0.72)',
+    backgroundColor: '#111114',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-around',
     paddingHorizontal: 8,
-    justifyContent: 'space-between',
-    ...createShadow({ color: '#000000', offset: { width: 0, height: 6 }, opacity: 0.1, radius: 16, elevation: 12 }),
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 12,
   },
-  tabItem: {
-    width: 60.8,
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 2,
-  },
-  iconContainer: {
-    width: '100%',
+  dockTabItem: {
+    flex: 1,
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  slidingActiveCircle: {
-    position: 'absolute',
-    top: 6,
-    borderRadius: 22,
-    backgroundColor: '#2D2E30',
-    zIndex: 1,
+  dockTabInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
   },
-  settingsDot: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#3900FF',
+  dockTabLabel: {
+    fontSize: 9.5,
+    letterSpacing: 0.2,
+    fontFamily: 'SF-Pro-Display-Regular',
   },
 });

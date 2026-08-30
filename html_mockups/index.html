@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiteHub Man — Web UI App Mockup Preview Suite</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Top Controls Toolbar -->
+  <header class="toolbar">
+    <div class="brand">
+      <div class="brand-icon" style="background: #111115; border: 1px solid rgba(255,255,255,0.15);">∧)))</div>
+      <div>
+        <div class="brand-title">AVIO</div>
+        <div class="brand-sub">CONNECT • IDENTIFY • EMPOWER</div>
+      </div>
+    </div>
+
+    <div class="controls-group">
+      <button class="btn-control active" id="btnIphone">📱 iPhone View</button>
+      <button class="btn-control" id="btnWide">💻 Wide View</button>
+      <button class="btn-control" id="themeToggle">☀️ Light Mode</button>
+    </div>
+  </header>
+
+  <!-- Device Preview Stage -->
+  <main class="stage">
+    <div class="device-frame">
+      <!-- Screen Canvas -->
+      <div class="screen-canvas">
+        
+        <!-- Dynamic Island & Status Bar -->
+        <div class="dynamic-island">
+          <div class="camera-dot"></div>
+        </div>
+        <div class="status-bar">
+          <span>9:41</span>
+          <span>📶 5G 🔋 100%</span>
+        </div>
+
+        <!-- Scrollable Viewport Area -->
+        <div class="viewport">
+
+          <!-- ─── SCREEN 1: BIO PROFILE & HOME ─── -->
+          <section class="screen active" id="screen-home">
+            <div class="page-header">
+              <div class="eyebrow-tag">SMART NFC DIGITAL PASS</div>
+              <div class="page-title">Bio Profile</div>
+              <div class="page-subtitle">Tap or scan to share identity</div>
+            </div>
+
+            <!-- 3D Flip NFC Card -->
+            <div class="card-perspective">
+              <div class="nfc-card-3d" id="nfcCard" title="Click card to flip!">
+                <div class="card-logo-row">
+                  <div class="card-chip"></div>
+                  <div class="card-brand-tag">SITEHUB PRO</div>
+                </div>
+                <div>
+                  <div class="card-holder-name">Alex Rivers</div>
+                  <div class="card-holder-title">Content Creator & Founder</div>
+                </div>
+                <div class="card-footer-meta">
+                  <div class="card-serial">UID: 04:A2:8F:90:3B</div>
+                  <div class="card-nfc-icon">📡</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 14 Profile Fields Details -->
+            <div class="ui-card">
+              <div class="profile-avatar-row">
+                <div class="avatar-circle">AR</div>
+                <div class="profile-info">
+                  <div class="profile-name">Alex Rivers</div>
+                  <div class="profile-title">Founder & Creative Lead</div>
+                  <div class="profile-bio">Building the next-gen digital identity & smart NFC business card experience.</div>
+                </div>
+              </div>
+
+              <!-- Vibes Personality Tags -->
+              <div class="vibes-pills">
+                <span class="vibe-tag">✨ Goated</span>
+                <span class="vibe-tag">🔥 Lowkey</span>
+                <span class="vibe-tag">⚡ Main Character</span>
+                <span class="vibe-tag">🎨 Creative</span>
+                <span class="vibe-tag">🚀 Builder</span>
+              </div>
+            </div>
+
+            <!-- Social Links Grid -->
+            <div class="ui-card">
+              <div style="font-size: 14px; font-weight: 700; margin-bottom: 10px;">Configured Social Links</div>
+              <div class="social-grid">
+                <a href="#" class="social-item" data-platform="Instagram">
+                  <div class="social-icon" style="background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);">📸</div>
+                  <div>
+                    <div class="social-name">Instagram</div>
+                    <div class="social-handle">@alexrivers</div>
+                  </div>
+                </a>
+                <a href="#" class="social-item" data-platform="TikTok">
+                  <div class="social-icon" style="background: #000000; border: 1px solid rgba(255,255,255,0.2);">🎵</div>
+                  <div>
+                    <div class="social-name">TikTok</div>
+                    <div class="social-handle">@alexrivers</div>
+                  </div>
+                </a>
+                <a href="#" class="social-item" data-platform="X">
+                  <div class="social-icon" style="background: #111115;">🐦</div>
+                  <div>
+                    <div class="social-name">X (Twitter)</div>
+                    <div class="social-handle">@alexrivers</div>
+                  </div>
+                </a>
+                <a href="#" class="social-item" data-platform="Bolt">
+                  <div class="social-icon" style="background: #0a84ff;">⚡</div>
+                  <div>
+                    <div class="social-name">Bolt</div>
+                    <div class="social-handle">@alexrivers</div>
+                  </div>
+                </a>
+              </div>
+            </div>
+
+            <!-- Primary CTAs -->
+            <button class="btn-cta" onclick="alert('Opening Web-to-Mobile Deep Link: biocloud://card/import?cardId=crd_882941')">
+              📱 Link Card to Phone App
+            </button>
+            <button class="btn-cta btn-cta-secondary" onclick="alert('Share link copied: https://sitehub.app/u/alex-rivers')">
+              🔗 Copy Public URL (sitehub.app/u/alex-rivers)
+            </button>
+          </section>
+
+          <!-- ─── SCREEN 2: STUDIO & NFC WRITE ─── -->
+          <section class="screen" id="screen-studio">
+            <div class="page-header">
+              <div class="eyebrow-tag">PHYSICAL CARD ENCODING</div>
+              <div class="page-title">NFC Studio</div>
+              <div class="page-subtitle">Write profile directly to physical card chip</div>
+            </div>
+
+            <div class="ui-card">
+              <div style="font-size: 14px; font-weight: 700; margin-bottom: 12px;">Card Design Selection</div>
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                <div style="background: #111114; border: 2px solid var(--accent-blue); padding: 12px; border-radius: 14px; font-size: 12px; font-weight: 700;">
+                  🖤 Classic Black
+                </div>
+                <div style="background: #2a2015; border: 1px solid var(--border-color); padding: 12px; border-radius: 14px; font-size: 12px; font-weight: 700;">
+                  🪵 Obsidian Wood
+                </div>
+                <div style="background: #1e293b; border: 1px solid var(--border-color); padding: 12px; border-radius: 14px; font-size: 12px; font-weight: 700;">
+                  🥈 Matte Silver
+                </div>
+                <div style="background: #3b2d10; border: 1px solid var(--border-color); padding: 12px; border-radius: 14px; font-size: 12px; font-weight: 700;">
+                  ✨ Gold Premium
+                </div>
+              </div>
+            </div>
+
+            <!-- NFC Hardware Status -->
+            <div class="ui-card" style="text-align: center; padding: 24px;">
+              <div style="font-size: 40px; margin-bottom: 8px;">📡</div>
+              <div style="font-size: 16px; font-weight: 800; margin-bottom: 4px;" id="nfcStatusText">Ready to Encode NFC Tag</div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Target URL: sitehub.app/u/alex-rivers</div>
+              
+              <!-- Progress Bar -->
+              <div style="width: 100%; height: 6px; background: var(--surface-subdued); border-radius: 3px; overflow: hidden; margin-bottom: 16px;">
+                <div id="nfcProgress" style="width: 0%; height: 100%; background: var(--accent-green); transition: width 0.3s ease;"></div>
+              </div>
+
+              <button class="btn-cta" id="btnSimulateNfc">
+                Write Profile to NFC Chip 💳
+              </button>
+            </div>
+          </section>
+
+          <!-- ─── SCREEN 3: SALES PORTAL ─── -->
+          <section class="screen" id="screen-sales">
+            <div class="page-header">
+              <div class="eyebrow-tag">SALES REVENUE & PIPELINE</div>
+              <div class="page-title">Sales Portal</div>
+              <div class="page-subtitle">Agent ID: SALE-ALEX25</div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="stats-grid">
+              <div class="stat-box">
+                <div class="stat-lbl">Today's Revenue</div>
+                <div class="stat-val" style="color: var(--accent-green);">$1,420.50</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-lbl">Today's Orders</div>
+                <div class="stat-val">12</div>
+              </div>
+            </div>
+
+            <!-- Orders Pipeline Card -->
+            <div class="ui-card">
+              <div style="font-size: 14px; font-weight: 700; margin-bottom: 12px;">Recent Customer Orders</div>
+              
+              <div class="order-item">
+                <div>
+                  <div style="font-size: 14px; font-weight: 700;">Sok Dara</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">Metal Card · ORD-1008</div>
+                </div>
+                <div style="text-align: right;">
+                  <span class="badge badge-done">Delivered</span>
+                  <div style="font-size: 13px; font-weight: 700; margin-top: 2px;">$48.00</div>
+                </div>
+              </div>
+
+              <div class="order-item">
+                <div>
+                  <div style="font-size: 14px; font-weight: 700;">Chan Ratha</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">Metal Card · ORD-1009</div>
+                </div>
+                <div style="text-align: right;">
+                  <span class="badge badge-printing">Printing</span>
+                  <div style="font-size: 13px; font-weight: 700; margin-top: 2px;">$48.00</div>
+                </div>
+              </div>
+
+              <div class="order-item">
+                <div>
+                  <div style="font-size: 14px; font-weight: 700;">Lin Veasna</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">Wood Card · ORD-1010</div>
+                </div>
+                <div style="text-align: right;">
+                  <span class="badge badge-pending">Pending</span>
+                  <div style="font-size: 13px; font-weight: 700; margin-top: 2px;">$35.00</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ─── SCREEN 4: ANALYTICS ─── -->
+          <section class="screen" id="screen-analytics">
+            <div class="page-header">
+              <div class="eyebrow-tag">REAL-TIME TRAFFIC & CLICKS</div>
+              <div class="page-title">Analytics</div>
+              <div class="page-subtitle">Automated NFC vs Web tracking</div>
+            </div>
+
+            <div class="stats-grid">
+              <div class="stat-box">
+                <div class="stat-lbl">NFC Card Taps 📶</div>
+                <div class="stat-val" style="color: var(--accent-cyan);">28</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-lbl">Direct Visits 🔗</div>
+                <div class="stat-val" style="color: var(--accent-blue);">14</div>
+              </div>
+            </div>
+
+            <div class="ui-card">
+              <div style="font-size: 14px; font-weight: 700; margin-bottom: 12px;">Link Clicks Breakdown</div>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                  <span>📸 Instagram</span>
+                  <span style="font-weight: 800;">11 clicks</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                  <span>🎵 TikTok</span>
+                  <span style="font-weight: 800;">5 clicks</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                  <span>⚡ Bolt</span>
+                  <span style="font-weight: 800;">3 clicks</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ─── SCREEN 5: SETTINGS ─── -->
+          <section class="screen" id="screen-settings">
+            <div class="page-header">
+              <div class="eyebrow-tag">PREFERENCES & ACCOUNT</div>
+              <div class="page-title">Settings</div>
+              <div class="page-subtitle">App preferences & security</div>
+            </div>
+
+            <div class="ui-card">
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <div class="avatar-circle" style="width: 48px; height: 48px; font-size: 18px;">AR</div>
+                <div>
+                  <div style="font-size: 16px; font-weight: 800;">Alex Rivers</div>
+                  <div style="font-size: 12px; color: var(--accent-green); font-weight: 600;">Super Admin · Active</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="ui-card" style="display: flex; flex-direction: column; gap: 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-size: 14px; font-weight: 700;">Language</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Display language</div>
+                </div>
+                <span style="font-size: 13px; font-weight: 700; color: var(--accent-blue);">English (US)</span>
+              </div>
+              <div style="height: 1px; background: var(--border-color);"></div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-size: 14px; font-weight: 700;">Push Notifications</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Order updates & tap alerts</div>
+                </div>
+                <span style="color: var(--accent-green); font-weight: 700;">ON</span>
+              </div>
+              <div style="height: 1px; background: var(--border-color);"></div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-size: 14px; font-weight: 700;">Haptic Feedback</div>
+                  <div style="font-size: 12px; color: var(--text-muted);">Vibrate on tap interaction</div>
+                </div>
+                <span style="color: var(--accent-green); font-weight: 700;">ON</span>
+              </div>
+            </div>
+
+            <div style="text-align: center; font-size: 11px; color: var(--text-tertiary); margin-top: 20px;">
+              GEN DIGITAL • SITEHUB MAN v1.0.0 (Build 21)
+            </div>
+          </section>
+
+        </div>
+
+        <!-- Bottom Tab Navigation Bar -->
+        <nav class="bottom-nav">
+          <button class="nav-item active" data-target="screen-home">
+            <span class="nav-icon">👤</span>
+            <span>Profile</span>
+          </button>
+          <button class="nav-item" data-target="screen-studio">
+            <span class="nav-icon">💳</span>
+            <span>NFC Studio</span>
+          </button>
+          <button class="nav-item" data-target="screen-sales">
+            <span class="nav-icon">💼</span>
+            <span>Sales</span>
+          </button>
+          <button class="nav-item" data-target="screen-analytics">
+            <span class="nav-icon">📊</span>
+            <span>Analytics</span>
+          </button>
+          <button class="nav-item" data-target="screen-settings">
+            <span class="nav-icon">⚙️</span>
+            <span>Settings</span>
+          </button>
+        </nav>
+
+      </div>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

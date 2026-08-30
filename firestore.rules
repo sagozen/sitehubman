@@ -962,5 +962,31 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAdmin();
     }
+
+    // ── Two-Way Contact Exchange Leads ──
+    match /leads/{leadId} {
+      // Any visitor (even unauthenticated) can exchange contact with a card owner
+      allow create: if request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 120;
+      // Only the card owner or admin can view and manage their captured leads
+      allow read: if isSignedIn() && (
+        isAdmin()
+        || resource.data.ownerUserId == request.auth.uid
+      );
+      allow update, delete: if isSignedIn() && (
+        isAdmin()
+        || resource.data.ownerUserId == request.auth.uid
+      );
+    }
+
+    // ── Metal Card Hardware Waitlist ──
+    match /metal_card_waitlist/{waitlistId} {
+      // Anyone can submit their email for the waitlist
+      allow create: if request.resource.data.email is string
+        && request.resource.data.email.size() > 3;
+      allow read, update, delete: if isAdmin();
+    }
   }
 }
+

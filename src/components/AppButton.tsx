@@ -25,7 +25,7 @@ import Animated, {
 
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { MonoText } from '@/src/components/MonoText';
-import { monoMotion, monoRadius, monoSpace } from '@/src/design-system/monochrome';
+import { monoMotion, monoSpace } from '@/src/design-system/monochrome';
 import { Haptics, HapticTap } from '@/src/utils/haptics';
 import { usePreferences } from '@/src/hooks/usePreferences';
 
@@ -193,7 +193,8 @@ function AppButtonRaw({
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         disabled={disabled || loading}
-        hitSlop={hitSlop}
+        hitSlop={hitSlop ?? 12}
+        unstable_pressDelay={0}
         android_ripple={null}
         accessibilityRole="button"
         accessibilityLabel={label || rest.accessibilityLabel || 'Action'}

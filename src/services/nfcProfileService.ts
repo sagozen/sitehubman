@@ -212,31 +212,94 @@ async function resolvePublishedCardByPublicSlug(publicSlug: string): Promise<Pub
   const normalized = publicSlug.trim();
   if (!normalized) return null;
 
-  const cardSnap = await getDocs(
-    query(
-      collection(db, firebaseCollections.cards),
-      where('publicSlug', '==', normalized),
-      where('status', 'in', [
-        'preview_ready',
-        'ordered',
-        'locked',
-        'printed',
-        'encoded',
-        'verified',
-        'active',
-        'published',
-      ])
-    )
-  );
-  const cardDoc = cardSnap.docs[0];
-  if (!cardDoc) return null;
+  try {
+    // 1. Direct card document lookup by ID (exact and uppercase)
+    const directSnap = await getDoc(doc(db, firebaseCollections.cards, normalized));
+    if (directSnap.exists()) {
+      const data = directSnap.data() as Record<string, unknown>;
+      return {
+        bioPage: cardProfileToBioPage(directSnap.id, data),
+        profileId: directSnap.id,
+        cardId: directSnap.id,
+        publicUrl: buildCardProfileUrl(normalized),
+      };
+    }
 
-  return {
-    bioPage: cardProfileToBioPage(cardDoc.id, cardDoc.data() as Record<string, unknown>),
-    profileId: cardDoc.id,
-    cardId: cardDoc.id,
-    publicUrl: buildCardProfileUrl(normalized),
-  };
+    const upper = normalized.toUpperCase();
+    if (upper !== normalized) {
+      const upperSnap = await getDoc(doc(db, firebaseCollections.cards, upper));
+      if (upperSnap.exists()) {
+        const data = upperSnap.data() as Record<string, unknown>;
+        return {
+          bioPage: cardProfileToBioPage(upperSnap.id, data),
+          profileId: upperSnap.id,
+          cardId: upperSnap.id,
+          publicUrl: buildCardProfileUrl(upper),
+        };
+      }
+    }
+
+    // 2. Query cards collection by publicSlug or cardId
+    const queries = [
+      query(collection(db, firebaseCollections.cards), where('publicSlug', '==', normalized), limit(1)),
+      query(collection(db, firebaseCollections.cards), where('publicSlug', '==', normalized.toLowerCase()), limit(1)),
+      query(collection(db, firebaseCollections.cards), where('cardId', '==', normalized), limit(1)),
+      query(collection(db, firebaseCollections.cards), where('cardId', '==', upper), limit(1)),
+    ];
+
+    for (const q of queries) {
+      try {
+        const snap = await getDocs(q);
+        if (!snap.empty && snap.docs[0]) {
+          const cardDoc = snap.docs[0];
+          return {
+            bioPage: cardProfileToBioPage(cardDoc.id, cardDoc.data() as Record<string, unknown>),
+            profileId: cardDoc.id,
+            cardId: cardDoc.id,
+            publicUrl: buildCardProfileUrl(normalized),
+          };
+        }
+      } catch {
+        // continue to next query
+      }
+    }
+  } catch {
+    // Firestore error fallback
+  }
+
+  // 3. Fallback to local guest draft so newly activated cards ALWAYS load instantly!
+  try {
+    const { loadGuestCardDraft } = await import('@/src/services/guestDraftService');
+    const draft = await loadGuestCardDraft();
+    if (draft && draft.displayName) {
+      return {
+        bioPage: {
+          id: normalized,
+          userId: 'guest',
+          slug: normalized,
+          publicSlug: normalized,
+          status: 'active',
+          displayName: draft.displayName,
+          tagline: draft.jobTitle ? `${draft.jobTitle}${draft.company ? ` · ${draft.company}` : ''}` : draft.company || 'Verified Member · AVIO',
+          email: draft.email || undefined,
+          whatsapp: draft.phone || undefined,
+          telegram: draft.telegram || undefined,
+          customLinks: [],
+          theme: 'tech_noir',
+          views: 1,
+          taps: 0,
+          updatedAt: new Date().toISOString(),
+        },
+        profileId: normalized,
+        cardId: normalized,
+        publicUrl: buildCardProfileUrl(normalized),
+      };
+    }
+  } catch {
+    // ignore
+  }
+
+  return null;
 }
 
 function mapProfileDoc(id: string, data: Record<string, unknown>): Profile {

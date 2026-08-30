@@ -11,11 +11,11 @@ interface QuickActionModalProps {
 }
 
 const ACTIONS: { label: string; icon: AppIconName; route: string; color: string }[] = [
-  { label: 'Design Card', icon: 'CreditCard', route: '/guest-design', color: '#FFFFFF' },
-  { label: 'New Order', icon: 'ShoppingCart', route: '/new-order', color: '#FFFFFF' },
+  { label: 'Apple Wallet Pass', icon: 'CreditCard', route: '/wallet-pass', color: '#FFFFFF' },
+  { label: 'Design Card', icon: 'Sparkles', route: '/cards/design', color: '#FFFFFF' },
+  { label: 'CRM Leads', icon: 'Users', route: '/connections', color: '#FFFFFF' },
+  { label: 'Edit Bio & Links', icon: 'User', route: '/edit-bio', color: '#FFFFFF' },
   { label: 'Track Order', icon: 'Truck', route: '/guest-track-order', color: '#FFFFFF' },
-  { label: 'Resume Bio Draft', icon: 'User', route: '/edit-bio', color: '#FFFFFF' },
-  { label: 'Resume Card Draft', icon: 'Folder', route: '/drafts', color: '#FFFFFF' },
 ];
 
 export function QuickActionModal({ visible, onClose }: QuickActionModalProps) {

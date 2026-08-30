@@ -225,6 +225,9 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 120,
     gap: 22,
+    maxWidth: 640,
+    width: '100%',
+    alignSelf: 'center',
   },
   avatar: {
     width: 44,

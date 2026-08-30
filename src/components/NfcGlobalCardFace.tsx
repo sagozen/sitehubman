@@ -1,19 +1,19 @@
 import React, { memo, useEffect, useRef } from 'react';
-import { Animated, Image, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Animated, Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { createShadow } from '@/src/utils/shadows';
 import { LinearGradient } from 'expo-linear-gradient';
-import QRCode from 'react-native-qrcode-svg';
-import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
+import { AvioLogo } from '@/src/components/AvioLogo';
 import { HolographicShimmer } from '@/src/components/HolographicShimmer';
 
 const CARD_GRADIENTS = [
-  ['#111111', '#202124', '#2596BE'], // Default classic blue
-  ['#0F2027', '#203A43', '#2C5364'], // Matte teal-gray
-  ['#8A2387', '#E94057', '#F27121'], // Cyber Sunset (Instagram vibe)
-  ['#000000', '#434343', '#111111'], // Pure dark carbon
-  ['#BF953F', '#FCF6BA', '#B38728'], // Premium Gold
-  ['#D3CBB8', '#6D604E', '#1D1A16'], // Earth sand
+  ['#111111', '#202124', '#2596BE'], // 0: Classic Cyan-Blue (Dark)
+  ['#0F2027', '#203A43', '#2C5364'], // 1: Matte Teal-Gray (Dark)
+  ['#8A2387', '#E94057', '#F27121'], // 2: Cyber Sunset (Dark)
+  ['#000000', '#434343', '#111111'], // 3: Pure Dark Carbon (Dark)
+  ['#BF953F', '#FCF6BA', '#B38728'], // 4: Premium Gold (Metallic)
+  ['#D3CBB8', '#6D604E', '#1D1A16'], // 5: Earth Sand (Dark)
+  ['#FFFFFF', '#F8FAFC', '#E2E8F0'], // 6: Ultra Ceramic Snow (Light Mode)
 ] as const;
 
 type NfcGlobalCardFaceProps = {
@@ -23,16 +23,19 @@ type NfcGlobalCardFaceProps = {
   phone?: string;
   email?: string;
   website?: string;
-  /** When provided, renders a real scannable QR code instead of the icon */
   profileUrl?: string;
   width?: number;
   height?: number;
   compact?: boolean;
   backgroundImageUri?: string | null;
-  /** Toggle the moving holographic shimmer overlay. Defaults to true. */
+  /** Toggle moving holographic shimmer overlay */
   shimmer?: boolean;
   style?: StyleProp<ViewStyle>;
   gradientIndex?: number;
+  /** Card color theme: 'dark' (default) or 'light' */
+  theme?: 'dark' | 'light';
+  /** Pause animation when card is flipped or offscreen */
+  paused?: boolean;
 };
 
 export const NfcGlobalCardFace = memo(function NfcGlobalCardFace({
@@ -50,26 +53,18 @@ export const NfcGlobalCardFace = memo(function NfcGlobalCardFace({
   shimmer = true,
   style,
   gradientIndex = 0,
+  theme,
+  paused = false,
 }: NfcGlobalCardFaceProps) {
+  const isLight = theme === 'light' || gradientIndex === 6;
+
   const displayName = fullName.trim() || 'Your Name';
-  const roleLine = [title.trim(), company.trim()].filter(Boolean).join(' / ');
-  const phoneLine = phone.trim() || '+1 (555) 123-4567';
-  const emailLine = email.trim() || 'hello@nfcglobal.com';
-  const webLine = website.trim() || 'nfcglobal.com';
   const cardSizeStyle = width ? { width, height: height ?? width / 1.586 } : undefined;
-  const qrSize = compact ? 26 : 36;
 
-  // Real scannable QR URL fallback if profileUrl is omitted
-  const activeQrUrl = profileUrl.trim()
-    ? profileUrl.trim()
-    : `https://sitehub.app/u/${encodeURIComponent(displayName.toLowerCase().replace(/\s+/g, '-'))}`;
-
-  const gradientColors = CARD_GRADIENTS[gradientIndex % CARD_GRADIENTS.length];
-
-  // Subtle breathing scale animation — 60fps native driver
+  // Breathing animation — 60fps native driver
   const breatheAnim = useRef(new Animated.Value(1)).current;
   useEffect(() => {
-    if (compact) return; // skip animation on compact cards
+    if (compact || paused) return;
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(breatheAnim, {
@@ -86,294 +81,338 @@ export const NfcGlobalCardFace = memo(function NfcGlobalCardFace({
     );
     loop.start();
     return () => loop.stop();
-  }, [compact, breatheAnim]);
+  }, [compact, paused, breatheAnim]);
 
   return (
-    <Animated.View style={[styles.card, compact && styles.cardCompact, cardSizeStyle, style, !compact && { transform: [{ scale: breatheAnim }] }]}>
-      {/* Single Solid Deep Color Background */}
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0D0D0F' }]} />
-      {shimmer ? <HolographicShimmer enabled={!compact} opacity={0.55} /> : null}
-
-      {/* Realistic Metallic Sheen Overlay */}
-      <LinearGradient
-        colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.03)', 'transparent', 'rgba(255,255,255,0.08)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
+    <Animated.View
+      style={[
+        styles.card,
+        compact && styles.cardCompact,
+        isLight && styles.cardLight,
+        cardSizeStyle,
+        style,
+        !compact && { transform: [{ scale: breatheAnim }] },
+      ]}
+    >
+      {/* Background Color Base */}
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          { backgroundColor: isLight ? '#F8FAFC' : '#090A0E' },
+        ]}
       />
+
+      {/* Light / Dark Gradient Sheen */}
+      {isLight ? (
+        <LinearGradient
+          colors={['#FFFFFF', '#F1F5F9', '#E2E8F0']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+      ) : (
+        <LinearGradient
+          colors={[
+            'rgba(255,255,255,0.16)',
+            'rgba(255,255,255,0.02)',
+            'transparent',
+            'rgba(255,255,255,0.06)',
+          ]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+      )}
+
+      {shimmer ? (
+        <HolographicShimmer enabled={!compact && !paused} opacity={isLight ? 0.25 : 0.4} />
+      ) : null}
+
+      {/* Top Header Row */}
       <View style={styles.top}>
-        <View style={styles.brand}>
-          <View style={styles.brandCopy}>
-            <AppText style={[styles.brandName, compact && styles.brandNameCompact]} numberOfLines={1}>
-              GENFC
-            </AppText>
-            <AppText style={[styles.brandSub, compact && styles.brandSubCompact]} numberOfLines={1}>
-              {roleLine || 'Verified identity'}
+        <AvioLogo
+          size={compact ? 80 : 105}
+          theme={isLight ? 'light' : 'dark'}
+          showTagline={false}
+        />
+
+        {/* Top Right Dot Grid Pattern */}
+        <View style={styles.dotGrid}>
+          {[...Array(12)].map((_, i) => (
+            <View
+              key={i}
+              style={[styles.gridDot, isLight && { backgroundColor: '#0F172A', opacity: 0.2 }]}
+            />
+          ))}
+        </View>
+      </View>
+
+      {/* EMV Metallic Smart Chip */}
+      <View style={[styles.emvChip, compact && styles.emvChipCompact]}>
+        <LinearGradient
+          colors={isLight ? ['#E2E8F0', '#CBD5E1', '#94A3B8'] : ['#D4AF37', '#FFF099', '#997000']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={styles.emvChipLine} />
+        <View style={styles.emvChipLineHoriz} />
+      </View>
+
+      {/* Center-Right NFC Target Ring */}
+      <View style={[styles.nfcHaloRing, compact && styles.nfcHaloRingCompact]}>
+        <LinearGradient
+          colors={isLight ? ['#0284C7', '#6366F1', '#38BDF8'] : ['#00F0FF', '#A855F7', '#3B82F6']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.nfcHaloBorder}
+        >
+          <View style={[styles.nfcHaloInner, isLight && styles.nfcHaloInnerLight]}>
+            <AppText
+              style={[
+                styles.nfcHaloText,
+                compact && styles.nfcHaloTextCompact,
+                isLight && styles.textDark,
+              ]}
+            >
+              NFC )))
             </AppText>
           </View>
-        </View>
-        
-        {/* Realistic EMV Metallic Smart Chip Graphic */}
-        <View style={[styles.emvChip, compact && styles.emvChipCompact]}>
-          <LinearGradient
-            colors={['#D4AF37', '#FFDF00', '#AA7C11']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
-          <View style={styles.emvChipLine} />
-          <View style={styles.emvChipLineHoriz} />
-        </View>
+        </LinearGradient>
       </View>
 
-      <View style={[styles.person, compact && styles.personCompact]}>
-        <AppText style={[styles.personName, compact && styles.personNameCompact]} numberOfLines={1} adjustsFontSizeToFit>
-          {displayName}
+      {/* Bottom Left Owner & ID Badge */}
+      <View style={[styles.bottomLeft, compact && styles.bottomLeftCompact]}>
+        <AppText
+          style={[
+            styles.ownerName,
+            compact && styles.ownerNameCompact,
+            isLight && styles.textDark,
+          ]}
+          numberOfLines={1}
+        >
+          {displayName.toUpperCase()}
         </AppText>
-      </View>
 
-      {/* NFC wave icon — Solar icon, subtle opacity */}
-      <View style={[styles.nfcMark, compact && styles.nfcMarkCompact]} pointerEvents="none">
-        <AppIcon
-          name="Nfc"
-          size={compact ? 22 : 32}
-          color="rgba(255,255,255,0.28)"
-        />
-      </View>
-
-      <View style={[styles.bottom, compact && styles.bottomCompact]}>
-        <View style={styles.info}>
-          <ContactLine icon="Phone" text={phoneLine} compact={compact} />
-          <ContactLine icon="Mail" text={emailLine} compact={compact} />
-          <ContactLine icon="Link" text={webLine} compact={compact} />
-        </View>
-        {/* QR tile — ALWAYS renders a real scannable SVG QR code */}
-        <View style={[styles.qr, compact && styles.qrCompact]}>
-          <QRCode
-            value={activeQrUrl}
-            size={qrSize}
-            color="#000000"
-            backgroundColor="#FFFFFF"
-            quietZone={2}
-          />
+        <View style={styles.idRow}>
+          <View style={[styles.idBadgeTag, isLight && styles.idBadgeTagLight]}>
+            <AppText style={[styles.idBadgeTagText, isLight && styles.idBadgeTagTextLight]}>
+              ID
+            </AppText>
+          </View>
+          <AppText
+            style={[
+              styles.idCodeText,
+              compact && styles.idCodeTextCompact,
+              isLight && styles.idCodeTextLight,
+            ]}
+          >
+            7A3F 8C21 9E4B
+          </AppText>
         </View>
       </View>
     </Animated.View>
   );
 });
 
-function ContactLine({
-  icon,
-  text,
-  compact,
-}: {
-  icon: 'Phone' | 'Mail' | 'Link';
-  text: string;
-  compact: boolean;
-}) {
-  return (
-    <View style={styles.contactLine}>
-      <AppIcon name={icon} size={compact ? 7 : 10} color="rgba(255,255,255,0.92)" />
-      <AppText style={[styles.contactText, compact && styles.contactTextCompact]} numberOfLines={1}>
-        {text}
-      </AppText>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   card: {
     width: '100%',
     aspectRatio: 1.586,
-    borderRadius: 16,
+    borderRadius: 18,
     padding: 22,
     position: 'relative',
     overflow: 'hidden',
-    backgroundColor: '#111111',
+    backgroundColor: '#090A0E',
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
-    ...createShadow({ color: '#111111', offset: { width: 0, height: 24 }, opacity: 0.28, radius: 55, elevation: 10 }),
+    borderColor: 'rgba(255, 255, 255, 0.16)',
+    ...createShadow({ color: '#000000', offset: { width: 0, height: 24 }, opacity: 0.4, radius: 55, elevation: 12 }),
   },
   cardCompact: {
     borderRadius: 12,
-    padding: 13,
+    padding: 14,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.14)',
-    ...createShadow({ color: '#111111', offset: { width: 0, height: 14 }, opacity: 0.28, radius: 28, elevation: 6 }),
+  },
+  cardLight: {
+    backgroundColor: '#F8FAFC',
+    borderColor: 'rgba(15, 23, 42, 0.12)',
+    ...createShadow({ color: '#0F172A', offset: { width: 0, height: 16 }, opacity: 0.12, radius: 32, elevation: 8 }),
   },
   top: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     zIndex: 2,
   },
-  brand: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 11,
-    flex: 1,
-    minWidth: 0,
-  },
-  logo: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoCompact: {
-    width: 28,
-    height: 28,
-    borderRadius: 10,
-  },
-  logoText: {
-    color: '#111111',
-    fontWeight: '800',
-    fontSize: 22,
-    lineHeight: 26,
-  },
-  logoTextCompact: {
-    fontSize: 16,
-    lineHeight: 19,
-  },
-  brandCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  brandName: {
+  brandTitle: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '800',
-    letterSpacing: 0,
+    letterSpacing: 3.5,
+    opacity: 0.95,
   },
-  brandNameCompact: {
-    fontSize: 9.5,
+  brandTitleCompact: {
+    fontSize: 11,
+    letterSpacing: 2,
   },
-  brandSub: {
-    color: 'rgba(255,255,255,0.58)',
-    fontSize: 10,
-    fontWeight: '600',
-    marginTop: 3,
+  textDark: {
+    color: '#0F172A',
   },
-  brandSubCompact: {
-    fontSize: 7.5,
-    marginTop: 1,
+  dotGrid: {
+    width: 36,
+    height: 24,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    justifyContent: 'flex-end',
+    opacity: 0.25,
+  },
+  gridDot: {
+    width: 2.5,
+    height: 2.5,
+    borderRadius: 1.25,
+    backgroundColor: '#FFFFFF',
   },
   emvChip: {
-    width: 32,
-    height: 24,
-    borderRadius: 5,
+    width: 38,
+    height: 28,
+    borderRadius: 6,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 223, 0, 0.6)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 18,
+    zIndex: 2,
   },
   emvChipCompact: {
-    width: 22,
-    height: 16,
+    width: 26,
+    height: 19,
     borderRadius: 4,
+    marginTop: 10,
   },
   emvChipLine: {
     position: 'absolute',
     width: 1,
     height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
   emvChipLineHoriz: {
     position: 'absolute',
     height: 1,
     width: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
-  person: {
-    marginTop: 12,
+  nfcHaloRing: {
+    position: 'absolute',
+    right: 20,
+    top: 24,
+    bottom: 24,
+    aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     zIndex: 2,
-    paddingRight: 52,
-    paddingBottom: 52, // reserve room for bottom info rows
   },
-  personCompact: {
-    marginTop: 6,
-    paddingRight: 34,
-    paddingBottom: 28,
+  nfcHaloRingCompact: {
+    right: 12,
+    top: 14,
+    bottom: 14,
   },
-  personName: {
+  nfcHaloBorder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 999,
+    padding: 2.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  nfcHaloInner: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: '#090A0E',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  nfcHaloInnerLight: {
+    backgroundColor: '#F8FAFC',
+    borderColor: 'rgba(15, 23, 42, 0.1)',
+  },
+  nfcHaloText: {
     color: '#FFFFFF',
-    fontSize: 28,
-    lineHeight: 31,
-    fontWeight: '900',
-    textShadowColor: 'rgba(255, 255, 255, 0.75)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 1.5,
   },
-  personNameCompact: {
-    fontSize: 16,
-    lineHeight: 18,
+  nfcHaloTextCompact: {
+    fontSize: 9,
+    letterSpacing: 1,
   },
-  nfcMark: {
+  bottomLeft: {
     position: 'absolute',
-    right: 20,
-    top: '35%',
-    zIndex: 1,
-  },
-  nfcMarkCompact: {
-    right: 13,
-    top: '33%',
-  },
-  bottom: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
-    bottom: 18,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    gap: 12,
+    left: 22,
+    bottom: 20,
     zIndex: 2,
+    gap: 5,
   },
-  bottomCompact: {
-    left: 13,
-    right: 13,
-    bottom: 11,
-    gap: 7,
+  bottomLeftCompact: {
+    left: 14,
+    bottom: 12,
+    gap: 3,
   },
-  info: {
-    flex: 1,
-    minWidth: 0,
+  ownerName: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 2,
+  },
+  ownerNameCompact: {
+    fontSize: 10,
+    letterSpacing: 1.5,
+  },
+  idRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
   },
-  contactLine: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    minWidth: 0,
+  idBadgeTag: {
+    backgroundColor: 'rgba(0, 240, 255, 0.15)',
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 3,
+    borderWidth: 0.5,
+    borderColor: '#00F0FF',
   },
-  contactText: {
-    flex: 1,
-    minWidth: 0,
-    color: 'rgba(255,255,255,0.76)',
-    fontSize: 10.5,
-    lineHeight: 13,
+  idBadgeTagLight: {
+    backgroundColor: 'rgba(2, 132, 199, 0.12)',
+    borderColor: '#0284C7',
+  },
+  idBadgeTagText: {
+    color: '#00F0FF',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  idBadgeTagTextLight: {
+    color: '#0284C7',
+  },
+  idCodeText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 11,
     fontWeight: '600',
+    letterSpacing: 1.5,
+    fontFamily: Platform.select({ ios: 'SF-Mono', android: 'monospace', default: 'monospace' }),
   },
-  contactTextCompact: {
-    fontSize: 7.5,
-    lineHeight: 9,
+  idCodeTextLight: {
+    color: 'rgba(15, 23, 42, 0.7)',
   },
-  qr: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  qrCompact: {
-    width: 30,
-    height: 30,
-    borderRadius: 7,
+  idCodeTextCompact: {
+    fontSize: 8,
+    letterSpacing: 1,
   },
 });

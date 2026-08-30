@@ -1,44 +1,41 @@
-import { IosScrollView } from '@/src/components/IosScrollView';
-import { useEffect, useRef, useState } from 'react';
+/**
+ * EditBioScreen.tsx — Ban Nguyen Business Specification Bio Profile Editor.
+ *
+ * Full implementation of Ban Nguyen's exact business specifications:
+ *  1. Danh tính (Identity): Printed Name, Handle/Slug, Multilingual Job Titles (VI/EN), Organization, Positioning Lines (VI/EN), Email, Photo, Logo.
+ *  2. Trang tap (Tap Page Content): Hero Titles (VI/EN), Hero Org, VI/EN Language Toggle switch, Primary Action (Icon, VI/EN Labels, VI/EN Sublines, Link), 3 Action Blocks with up to 4 items each.
+ *  3. Khối tin cậy (Trust Footnote): Owner Line (VI/EN), Trust Note (VI/EN).
+ *  4. Giao diện trang tap (Appearance Settings): Color Palette, Light/Dark Mode, Border Radius, Hero Style, Card Style, Avatar Style.
+ *  5. "Khôi phục nội dung mẫu": Reset to Ban Nguyen sample seed preset.
+ */
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Image,
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   TextInput,
   View,
   type TextInputProps,
-  type TextStyle,
-  type ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
+import { IosScrollView } from '@/src/components/IosScrollView';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { useBioPage } from '@/src/hooks/useBioPage';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { uploadProfilePhoto } from '@/src/services/profilePhotoService';
-import type { BioPage } from '@/src/types/models';
-import { LinearGradient } from 'expo-linear-gradient';
-import { StarsBoldDuotone, CopyBoldDuotone, AddCircleBoldDuotone } from '@solar-icons/react-native';
-import { pageThemes } from '@/src/constants/pageThemes';
+import type { BioPage, TapActionBlock, TapActionItem } from '@/src/types/models';
+import { BAN_NGUYEN_SEED_BIO } from '@/src/data/seedBanNguyenBio';
+import { HapticTap } from '@/src/utils/haptics';
 
-const _THEME = pageThemes.profile;
-const BRAND = '#007AFF';
-const INK = _THEME.text;
-const INK2 = _THEME.text;
-const MUTED = _THEME.muted;
-const BG = _THEME.canvas;
-const SURFACE = _THEME.surface;
-const BORDER = _THEME.border;
-
-type CustomLinkDraft = BioPage['customLinks'][number];
-
-// ─── Field row — iOS Settings style ──────────────────────────────────────────
+// ─── Field Row Component ───────────────────────────────────────────────────
 function FieldRow({
   icon,
   label,
@@ -59,457 +56,1101 @@ function FieldRow({
   return (
     <Pressable
       onPress={() => inputRef.current?.focus()}
-      style={[fr.row, last && fr.rowLast] as ViewStyle[]}
+      style={[styles.fieldRow, last && styles.fieldRowLast]}
     >
-      <View style={fr.iconBox}>
-        <AppIcon name={icon} size={16} color={BRAND} />
+      <View style={styles.fieldIconBox}>
+        <AppIcon name={icon} size={16} color="rgba(255, 255, 255, 0.7)" />
       </View>
-      <View style={fr.labelCol}>
-        <AppText style={fr.label}>{label}</AppText>
-      </View>
+      <AppText style={styles.fieldLabel} weight="bold">{label}</AppText>
       <TextInput
         ref={inputRef}
-        style={fr.input}
+        style={styles.fieldInput}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="#C4CFDE"
+        placeholderTextColor="rgba(255, 255, 255, 0.3)"
         {...inputProps}
       />
     </Pressable>
   );
 }
 
-const fr = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', minHeight: 56, gap: 12, paddingHorizontal: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: BORDER } as ViewStyle,
-  rowLast: { borderBottomWidth: 0 } as ViewStyle,
-  iconBox: { width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(0,122,255,0.12)', alignItems: 'center', justifyContent: 'center' } as ViewStyle,
-  labelCol: { width: 90 } as ViewStyle,
-  label: { fontSize: 14, fontWeight: '700', color: INK2 } as TextStyle,
-  input: { flex: 1, fontSize: 14, fontWeight: '600', color: INK, paddingVertical: 0, textAlign: 'right' } as TextStyle,
-});
-
-function Group({ children }: { children: React.ReactNode }) {
-  return <View style={grp.card}>{children}</View>;
+function SectionLabel({ text, sub }: { text: string; sub?: string }) {
+  return (
+    <View style={styles.sectionHeader}>
+      <AppText style={styles.sectionLabel} weight="extrabold">{text}</AppText>
+      {sub ? <AppText style={styles.sectionSub}>{sub}</AppText> : null}
+    </View>
+  );
 }
-const grp = StyleSheet.create({
-  card: { backgroundColor: SURFACE, borderRadius: 24, borderWidth: 1, borderColor: BORDER, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 2 } as ViewStyle,
-});
 
-function SectionLabel({ text }: { text: string }) {
-  return <AppText style={sl.text}>{text}</AppText>;
+function FieldGroup({ children }: { children: React.ReactNode }) {
+  return <View style={styles.fieldGroup}>{children}</View>;
 }
-const sl = StyleSheet.create({
-  text: { fontSize: 11, fontWeight: '800', color: MUTED, letterSpacing: 0.8, textTransform: 'uppercase', paddingHorizontal: 4 } as TextStyle,
-});
 
-// ─── Main screen ─────────────────────────────────────────────────────────────
 export function EditBioScreen() {
   const { user } = useAuth();
   const isGuest = useIsGuest();
   const { requireAccount } = useRequireAccount();
   const { bioPage, saveBioPage } = useBioPage(user?.id ?? '');
 
-  const [slug, setSlug] = useState('');
+  // Section 1: Identity
   const [displayName, setDisplayName] = useState('');
-  const [tagline, setTagline] = useState('');
-  const [whatsapp, setWhatsapp] = useState('');
-  const [instagram, setInstagram] = useState('');
-  const [telegram, setTelegram] = useState('');
+  const [printedName, setPrintedName] = useState('');
+  const [slug, setSlug] = useState('');
+  const [jobTitleVi, setJobTitleVi] = useState('');
+  const [jobTitleEn, setJobTitleEn] = useState('');
+  const [organization, setOrganization] = useState('');
+  const [positioningLineVi, setPositioningLineVi] = useState('');
+  const [positioningLineEn, setPositioningLineEn] = useState('');
   const [email, setEmail] = useState('');
-  const [website, setWebsite] = useState('');
-  const [linkedin, setLinkedin] = useState('');
-  const [twitter, setTwitter] = useState('');
-  const [facebook, setFacebook] = useState('');
-  const [customLinks, setCustomLinks] = useState<CustomLinkDraft[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
+  const [logoUrl, setLogoUrl] = useState<string | undefined>(undefined);
+
+  // Section 2: Tap Page Content
+  const [heroTitleVi, setHeroTitleVi] = useState('');
+  const [heroTitleEn, setHeroTitleEn] = useState('');
+  const [heroOrg, setHeroOrg] = useState('');
+  const [showLanguageToggle, setShowLanguageToggle] = useState(true);
+
+  // Primary Action
+  const [primaryActionIcon, setPrimaryActionIcon] = useState('file-text');
+  const [primaryActionLabelVi, setPrimaryActionLabelVi] = useState('');
+  const [primaryActionLabelEn, setPrimaryActionLabelEn] = useState('');
+  const [primaryActionSubVi, setPrimaryActionSubVi] = useState('');
+  const [primaryActionSubEn, setPrimaryActionSubEn] = useState('');
+  const [primaryActionUrl, setPrimaryActionUrl] = useState('');
+
+  // Action Blocks (Up to 3 blocks)
+  const [actionBlocks, setActionBlocks] = useState<TapActionBlock[]>([]);
+
+  // Section 3: Trust Block
+  const [ownerLineVi, setOwnerLineVi] = useState('');
+  const [ownerLineEn, setOwnerLineEn] = useState('');
+  const [trustNoteVi, setTrustNoteVi] = useState('');
+  const [trustNoteEn, setTrustNoteEn] = useState('');
+
+  // Section 4: Theme Settings
+  const [colorPalette, setColorPalette] = useState('Professional');
+  const [colorMode, setColorMode] = useState<'light' | 'dark'>('dark');
+  const [borderRadiusStyle, setBorderRadiusStyle] = useState<'balanced' | 'rounded' | 'sharp'>('balanced');
+  const [heroStyle, setHeroStyle] = useState<'gradient' | 'solid' | 'minimal'>('gradient');
+  const [cardStyle, setCardStyle] = useState<'bordered' | 'solid' | 'glass'>('bordered');
+  const [avatarStyle, setAvatarStyle] = useState<'circle' | 'square' | 'hexagon'>('circle');
+
+  const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
+  // Load existing bio data or load seed defaults
   useEffect(() => {
-    if (!bioPage) return;
-    setSlug(bioPage.slug ?? '');
-    setDisplayName(bioPage.displayName ?? '');
-    setTagline(bioPage.tagline ?? '');
-    setWhatsapp(bioPage.whatsapp ?? '');
-    setInstagram(bioPage.instagram ?? '');
-    setTelegram(bioPage.telegram ?? '');
-    setEmail(bioPage.email ?? '');
-    setWebsite(bioPage.website ?? '');
-    setLinkedin(bioPage.linkedin ?? '');
-    setTwitter(bioPage.twitter ?? '');
-    setFacebook(bioPage.facebook ?? '');
-    setCustomLinks(bioPage.customLinks?.length ? bioPage.customLinks : []);
-    setPhotoUrl(bioPage.photoUrl);
+    const data = bioPage ?? (BAN_NGUYEN_SEED_BIO as BioPage);
+    setDisplayName(data.displayName ?? 'Ban Nguyen');
+    setPrintedName(data.printedName ?? data.displayName ?? 'Ban Nguyen');
+    setSlug(data.slug ?? 'pandev00');
+    setJobTitleVi(data.jobTitleVi ?? 'Tech Lead · AI Coaching 1-1');
+    setJobTitleEn(data.jobTitleEn ?? 'Tech Lead · 1-1 AI Coaching');
+    setOrganization(data.organization ?? data.company ?? 'SAGOZEN LLC');
+    setPositioningLineVi(data.positioningLineVi ?? data.tagline ?? 'AI Coaching 1-1 — làm phần mềm bài bản');
+    setPositioningLineEn(data.positioningLineEn ?? '1-1 AI Coaching — build software properly');
+    setEmail(data.email ?? 'pandev00@sagozen.digital');
+    setPhotoUrl(data.photoUrl);
+    setLogoUrl(data.logoUrl);
+
+    setHeroTitleVi(data.heroTitleVi ?? data.jobTitleVi ?? 'Tech Lead · AI Coaching 1-1');
+    setHeroTitleEn(data.heroTitleEn ?? data.jobTitleEn ?? 'Tech Lead · 1-1 AI Coaching');
+    setHeroOrg(data.heroOrg ?? data.organization ?? 'SAGOZEN LLC');
+    setShowLanguageToggle(data.showLanguageToggle ?? true);
+
+    setPrimaryActionIcon(data.primaryActionIcon ?? 'file-text');
+    setPrimaryActionLabelVi(data.primaryActionLabelVi ?? 'Xem khoá AI Coaching 1-1');
+    setPrimaryActionLabelEn(data.primaryActionLabelEn ?? 'See the 1-1 AI Coaching programme');
+    setPrimaryActionSubVi(data.primaryActionSubVi ?? 'Lộ trình 9 bước · học phí theo đợt');
+    setPrimaryActionSubEn(data.primaryActionSubEn ?? 'Nine stages · paid in stages');
+    setPrimaryActionUrl(data.primaryActionUrl ?? 'https://t.me/pandev00');
+
+    setActionBlocks(data.actionBlocks?.length ? data.actionBlocks : BAN_NGUYEN_SEED_BIO.actionBlocks ?? []);
+
+    setOwnerLineVi(data.ownerLineVi ?? 'Nội dung do Ban Nguyen cung cấp.');
+    setOwnerLineEn(data.ownerLineEn ?? 'Content provided by Ban Nguyen.');
+    setTrustNoteVi(data.trustNoteVi ?? 'Avio lưu trữ trang này và không xác minh danh tính.');
+    setTrustNoteEn(data.trustNoteEn ?? 'Avio hosts this page and does not verify identity.');
+
+    setColorPalette(data.colorPalette ?? 'Professional');
+    setColorMode(data.colorMode ?? 'dark');
+    setBorderRadiusStyle(data.borderRadiusStyle ?? 'balanced');
+    setHeroStyle(data.heroStyle ?? 'gradient');
+    setCardStyle(data.cardStyle ?? 'bordered');
+    setAvatarStyle(data.avatarStyle ?? 'circle');
   }, [bioPage]);
 
-  // Calculate current progress percentage
-  const getCompletionPercent = () => {
-    let score = 0;
-    if (displayName.trim()) score += 25;
-    if (photoUrl) score += 25;
-    if (slug.trim()) score += 15;
-    if (email.trim() || whatsapp.trim()) score += 15;
-    if (telegram.trim() || instagram.trim() || linkedin.trim()) score += 10;
-    if (customLinks.length > 0) score += 10;
-    return score;
-  };
+  // Seed Reset Helper
+  function handleLoadSeedPreset() {
+    HapticTap.medium();
+    const seed = BAN_NGUYEN_SEED_BIO;
+    setDisplayName(seed.displayName ?? '');
+    setPrintedName(seed.printedName ?? '');
+    setSlug(seed.slug ?? '');
+    setJobTitleVi(seed.jobTitleVi ?? '');
+    setJobTitleEn(seed.jobTitleEn ?? '');
+    setOrganization(seed.organization ?? '');
+    setPositioningLineVi(seed.positioningLineVi ?? '');
+    setPositioningLineEn(seed.positioningLineEn ?? '');
+    setEmail(seed.email ?? '');
+    setPhotoUrl(seed.photoUrl);
 
-  const pct = getCompletionPercent();
+    setHeroTitleVi(seed.heroTitleVi ?? '');
+    setHeroTitleEn(seed.heroTitleEn ?? '');
+    setHeroOrg(seed.heroOrg ?? '');
+    setShowLanguageToggle(seed.showLanguageToggle ?? true);
 
-  function updateCustomLink(index: number, next: Partial<CustomLinkDraft>) {
-    setCustomLinks((links) => links.map((link, i) => i === index ? { ...link, ...next } : link));
+    setPrimaryActionIcon(seed.primaryActionIcon ?? 'file-text');
+    setPrimaryActionLabelVi(seed.primaryActionLabelVi ?? '');
+    setPrimaryActionLabelEn(seed.primaryActionLabelEn ?? '');
+    setPrimaryActionSubVi(seed.primaryActionSubVi ?? '');
+    setPrimaryActionSubEn(seed.primaryActionSubEn ?? '');
+    setPrimaryActionUrl(seed.primaryActionUrl ?? '');
+
+    setActionBlocks(seed.actionBlocks ?? []);
+
+    setOwnerLineVi(seed.ownerLineVi ?? '');
+    setOwnerLineEn(seed.ownerLineEn ?? '');
+    setTrustNoteVi(seed.trustNoteVi ?? '');
+    setTrustNoteEn(seed.trustNoteEn ?? '');
+
+    setColorPalette(seed.colorPalette ?? 'Professional');
+    setColorMode(seed.colorMode ?? 'dark');
+    setBorderRadiusStyle(seed.borderRadiusStyle ?? 'balanced');
+    setHeroStyle(seed.heroStyle ?? 'gradient');
+    setCardStyle(seed.cardStyle ?? 'bordered');
+    setAvatarStyle(seed.avatarStyle ?? 'circle');
+    Alert.alert('Khôi phục thành công', 'Đã tải dữ liệu mẫu của Ban Nguyen.');
   }
 
-  function addCustomLink(label = '', url = '') {
-    setCustomLinks((links) => [...links, { label, url }]);
+  // Helper for Action Blocks
+  function updateBlockTitle(bIndex: number, vi: string, en: string) {
+    setActionBlocks((blocks) =>
+      blocks.map((b, i) => (i === bIndex ? { ...b, titleVi: vi, titleEn: en } : b))
+    );
   }
 
-  function removeCustomLink(index: number) {
-    setCustomLinks((links) => links.filter((_, i) => i !== index));
+  function addActionBlock() {
+    if (actionBlocks.length >= 3) {
+      Alert.alert('Giới hạn', 'Tối đa 3 khối hành động.');
+      return;
+    }
+    HapticTap.light();
+    setActionBlocks((blocks) => [
+      ...blocks,
+      { id: `block-${Date.now()}`, titleVi: 'Khối hành động mới', titleEn: 'New Action Block', items: [] },
+    ]);
   }
 
-  async function pickImage(fromCamera: boolean) {
-    if (!requireAccount(undefined, { message: 'Create an account to upload a profile photo.' })) return;
+  function removeActionBlock(bIndex: number) {
+    HapticTap.light();
+    setActionBlocks((blocks) => blocks.filter((_, i) => i !== bIndex));
+  }
+
+  function updateActionItem(bIndex: number, iIndex: number, next: Partial<TapActionItem>) {
+    setActionBlocks((blocks) =>
+      blocks.map((b, bi) => {
+        if (bi !== bIndex) return b;
+        const nextItems = b.items.map((item, ii) => (ii === iIndex ? { ...item, ...next } : item));
+        return { ...b, items: nextItems };
+      })
+    );
+  }
+
+  function addActionItem(bIndex: number) {
+    const block = actionBlocks[bIndex];
+    if (block && block.items.length >= 4) {
+      Alert.alert('Giới hạn', 'Tối đa 4 mục mỗi khối.');
+      return;
+    }
+    HapticTap.light();
+    setActionBlocks((blocks) =>
+      blocks.map((b, i) => {
+        if (i !== bIndex) return b;
+        return {
+          ...b,
+          items: [
+            ...b.items,
+            {
+              id: `item-${Date.now()}`,
+              icon: 'link',
+              labelVi: 'Mục mới',
+              labelEn: 'New Item',
+              subVi: '',
+              subEn: '',
+              url: 'https://',
+            },
+          ],
+        };
+      })
+    );
+  }
+
+  function removeActionItem(bIndex: number, iIndex: number) {
+    HapticTap.light();
+    setActionBlocks((blocks) =>
+      blocks.map((b, bi) => {
+        if (bi !== bIndex) return b;
+        return { ...b, items: b.items.filter((_, ii) => ii !== iIndex) };
+      })
+    );
+  }
+
+  async function pickImage() {
+    if (!requireAccount(undefined, { message: 'Tạo tài khoản để tải ảnh chân dung.' })) return;
     if (!user?.id) return;
     try {
-      const perm = fromCamera
-        ? await ImagePicker.requestCameraPermissionsAsync()
-        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) {
-        Alert.alert('Permission needed', fromCamera ? 'Camera access required.' : 'Photo library access required.');
+        Alert.alert('Cần cấp quyền', 'Quyền truy cập thư viện ảnh bị từ chối.');
         return;
       }
-      const result = fromCamera
-        ? await ImagePicker.launchCameraAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.85 })
-        : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.85 });
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.85,
+      });
       if (result.canceled || !result.assets[0]) return;
       setIsUploadingPhoto(true);
       try {
-        const res = await uploadProfilePhoto({ uri: result.assets[0].uri, userId: user.id, fileName: result.assets[0].fileName, mimeType: result.assets[0].mimeType });
+        const res = await uploadProfilePhoto({
+          uri: result.assets[0].uri,
+          userId: user.id,
+          fileName: result.assets[0].fileName,
+          mimeType: result.assets[0].mimeType,
+        });
         setPhotoUrl(res.url);
       } catch (err) {
-        Alert.alert('Upload failed', err instanceof Error ? err.message : 'Try again.');
+        Alert.alert('Tải lên thất bại', err instanceof Error ? err.message : 'Thử lại.');
       } finally {
         setIsUploadingPhoto(false);
       }
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Could not open picker.');
+      Alert.alert('Lỗi', err instanceof Error ? err.message : 'Không mở được ảnh.');
     }
   }
 
   async function handleSave() {
-    if (!requireAccount(undefined, { message: 'Create an account to save your profile.' })) return;
-    if (!displayName.trim()) { Alert.alert('Required', 'Display name is required.'); return; }
-    if (slug.trim() && !/^[a-z0-9-]{3,40}$/i.test(slug.trim())) { Alert.alert('Invalid slug', 'Use 3–40 letters, numbers, or hyphens.'); return; }
-    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { Alert.alert('Invalid email', 'Enter a valid email.'); return; }
+    if (!requireAccount(undefined, { message: 'Tạo tài khoản để lưu thông tin trang.' })) return;
+    if (!displayName.trim()) {
+      Alert.alert('Yêu cầu', 'Vui lòng nhập tên hiển thị.');
+      return;
+    }
     setIsSaving(true);
+    HapticTap.medium();
     try {
       await saveBioPage({
-        slug: slug.trim().toLowerCase() || (user?.id ?? ''),
         displayName: displayName.trim(),
-        tagline: tagline.trim() || undefined,
-        whatsapp: whatsapp.trim() || undefined,
-        instagram: instagram.trim() || undefined,
-        telegram: telegram.trim() || undefined,
-        email: email.trim() || undefined,
-        website: website.trim() || undefined,
-        linkedin: linkedin.trim() || undefined,
-        twitter: twitter.trim() || undefined,
-        facebook: facebook.trim() || undefined,
-        customLinks: customLinks.filter(l => l.label.trim() && l.url.trim()),
-        theme: bioPage?.theme ?? 'vibrant_pink',
+        printedName: printedName.trim() || displayName.trim(),
+        slug: slug.trim().toLowerCase() || 'pandev00',
+        publicSlug: slug.trim().toLowerCase() || 'pandev00',
+        jobTitleVi: jobTitleVi.trim(),
+        jobTitleEn: jobTitleEn.trim(),
+        organization: organization.trim(),
+        company: organization.trim(),
+        positioningLineVi: positioningLineVi.trim(),
+        positioningLineEn: positioningLineEn.trim(),
+        tagline: positioningLineVi.trim() || jobTitleVi.trim(),
+        email: email.trim(),
         photoUrl,
+        logoUrl,
+
+        heroTitleVi: heroTitleVi.trim() || jobTitleVi.trim(),
+        heroTitleEn: heroTitleEn.trim() || jobTitleEn.trim(),
+        heroOrg: heroOrg.trim() || organization.trim(),
+        showLanguageToggle,
+
+        primaryActionIcon: primaryActionIcon.trim(),
+        primaryActionLabelVi: primaryActionLabelVi.trim(),
+        primaryActionLabelEn: primaryActionLabelEn.trim(),
+        primaryActionSubVi: primaryActionSubVi.trim(),
+        primaryActionSubEn: primaryActionSubEn.trim(),
+        primaryActionUrl: primaryActionUrl.trim(),
+
+        actionBlocks,
+
+        ownerLineVi: ownerLineVi.trim(),
+        ownerLineEn: ownerLineEn.trim(),
+        trustNoteVi: trustNoteVi.trim(),
+        trustNoteEn: trustNoteEn.trim(),
+
+        colorPalette,
+        colorMode,
+        borderRadiusStyle,
+        heroStyle,
+        cardStyle,
+        avatarStyle,
+
+        theme: 'tech_noir',
+        customLinks: [],
       });
-      Alert.alert('Saved', 'Your profile has been updated.');
+      Alert.alert('Thành công', 'Đã lưu thông tin trang danh tính thành công.');
     } catch (err) {
-      Alert.alert('Save failed', (err as Error).message);
+      Alert.alert('Lưu thất bại', (err as Error).message);
     } finally {
       setIsSaving(false);
     }
   }
 
-  const initial = (displayName || user?.displayName || '?')[0].toUpperCase();
+  const initial = (displayName || 'B')[0].toUpperCase();
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+      {/* Top Header */}
       <View style={styles.header}>
-        <View style={styles.navRow}>
-          <Pressable onPress={() => router.back()} style={styles.headerBtn} hitSlop={10}>
-            <AppIcon name="ChevronLeft" size={22} color={INK2} />
-          </Pressable>
-          <Pressable
-            onPress={() => void handleSave()}
-            disabled={isSaving}
-            style={styles.navSaveBtn}
-            hitSlop={10}
-          >
-            <AppText style={styles.navSaveText}>{isSaving ? 'Saving...' : 'Done'}</AppText>
-          </Pressable>
-        </View>
-        <AppText style={styles.headerSub}>Customize what people see.</AppText>
+        <Pressable onPress={() => router.back()} style={styles.navBtn} hitSlop={12}>
+          <AppIcon name="ChevronLeft" size={20} color="#FFFFFF" />
+        </Pressable>
+
+        <AppText style={styles.navTitle} weight="bold">
+          Chỉnh sửa thông tin
+        </AppText>
+
+        <Pressable
+          onPress={() => void handleSave()}
+          disabled={isSaving}
+          style={styles.doneBtn}
+          hitSlop={10}
+        >
+          <AppText style={styles.doneBtnText} weight="extrabold">
+            {isSaving ? 'Lưu...' : 'Lưu'}
+          </AppText>
+        </Pressable>
       </View>
 
       <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Gen Z Interactive Progress Card */}
-        <LinearGradient
-          colors={['#1F2937', '#111827']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.progressCard}
-        >
-          <View style={styles.progHeader}>
-            <StarsBoldDuotone size={24} color="#38BDF8" />
-            <AppText style={styles.progTitle}>Profile Completion</AppText>
-            <AppText style={styles.progPct}>{pct}%</AppText>
-          </View>
-          <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: `${pct}%` }]} />
-          </View>
-          <AppText style={styles.progHint}>
-            {pct < 100 ? '🔥 Tip: Add a Profile Photo to reach 100% completion!' : '🎉 All set! Your bio is fully optimized.'}
-          </AppText>
-        </LinearGradient>
-
-        {/* ── Gen Z Live Phone Screen Preview ── */}
-        <View style={styles.previewContainer}>
-          <View style={styles.phoneFrame}>
-            <LinearGradient
-              colors={['#7C3AED', '#C084FC', '#6366F1']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFillObject}
-            />
-            {/* Gloss shine filter */}
-            <View style={styles.phoneShine} />
-            
-            <View style={styles.phoneContent}>
-              <Pressable onPress={() => void pickImage(false)} style={styles.avatarWrap}>
-                {photoUrl ? (
-                  <Image source={{ uri: photoUrl }} style={styles.avatar} />
-                ) : (
-                  <View style={[styles.avatar, styles.avatarFallback]}>
-                    <AppText style={styles.avatarInitial}>{initial}</AppText>
-                  </View>
-                )}
-                <View style={styles.avatarBadge}>
-                  <AppIcon name={isUploadingPhoto ? 'Loader' : 'Camera'} size={12} color="#FFFFFF" />
-                </View>
-              </Pressable>
-              
-              <View style={styles.avatarMeta}>
-                <AppText style={styles.avatarName}>{displayName || 'Your Display Name'}</AppText>
-                <AppText style={styles.avatarSub}>{tagline || 'No tagline set yet'}</AppText>
-                {slug ? (
-                  <AppText style={styles.previewSlug}>sitehub.app/{slug.toLowerCase()}</AppText>
-                ) : null}
+        {/* Live Identity Card Preview */}
+        <View style={styles.previewCard}>
+          <Pressable onPress={() => void pickImage()} style={styles.avatarWrap}>
+            {photoUrl ? (
+              <Image source={{ uri: photoUrl }} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatar, styles.avatarFallback]}>
+                <AppText style={styles.avatarInitial} weight="extrabold">{initial}</AppText>
               </View>
-
-              {/* Dynamic custom link preview pills */}
-              <View style={styles.previewLinksContainer}>
-                {customLinks.length > 0 ? (
-                  customLinks.slice(0, 3).map((link, idx) => (
-                    <View key={`prev-${idx}`} style={styles.previewLinkPill}>
-                      <AppIcon name="Link" size={12} color="#FFFFFF" />
-                      <AppText style={styles.previewLinkText} numberOfLines={1}>
-                        {link.label || 'Platform Link'}
-                      </AppText>
-                    </View>
-                  ))
-                ) : (
-                  <View style={styles.previewLinkPillPlaceholder}>
-                    <AppText style={styles.previewPlaceholderT}>Add custom links below</AppText>
-                  </View>
-                )}
-              </View>
+            )}
+            <View style={styles.avatarBadge}>
+              <AppIcon name={isUploadingPhoto ? 'Loader' : 'Camera'} size={12} color="#000000" />
             </View>
-          </View>
-          
-          <View style={styles.previewActions}>
-            <Pressable onPress={() => void pickImage(false)} style={styles.photoBtn} disabled={isUploadingPhoto}>
-              <AppIcon name="Camera" size={15} color={BRAND} />
-              <AppText style={styles.photoBtnT}>{photoUrl ? 'Change Avatar' : 'Upload Avatar'}</AppText>
-            </Pressable>
-            <Pressable onPress={() => router.push('/theme-picker')} style={styles.previewLink}>
-              <StarsBoldDuotone size={15} color={INK2} />
-              <AppText style={styles.previewLinkTextBtn}>Theme</AppText>
-            </Pressable>
-            {bioPage?.slug ? (
-              <Pressable onPress={() => router.push(`/public/${bioPage.slug}`)} style={styles.previewLink}>
-                <AppIcon name="Eye" size={15} color={INK2} />
-                <AppText style={styles.previewLinkTextBtn}>View Live Profile</AppText>
-              </Pressable>
-            ) : null}
-          </View>
-        </View>
-
-        {/* ── Identity ── */}
-        <SectionLabel text="IDENTITY" />
-        <Group>
-          <FieldRow icon="User" label="Name" value={displayName} onChangeText={setDisplayName} placeholder="Alex Carter" autoCapitalize="words" />
-          <FieldRow icon="Tag" label="Tagline" value={tagline} onChangeText={setTagline} placeholder="Designer · Tech enthusiast" />
-          <FieldRow icon="Link" label="URL slug" value={slug} onChangeText={setSlug} placeholder="alexcarter" autoCapitalize="none" last />
-        </Group>
-
-        {/* ── Contact ── */}
-        <SectionLabel text="CONTACT" />
-        <Group>
-          <FieldRow icon="Mail" label="Email" value={email} onChangeText={setEmail} placeholder="alex@gmail.com" keyboardType="email-address" autoCapitalize="none" />
-          <FieldRow icon="Phone" label="WhatsApp" value={whatsapp} onChangeText={setWhatsapp} placeholder="+855 12 345 678" keyboardType="phone-pad" />
-          <FieldRow icon="Globe" label="Website" value={website} onChangeText={setWebsite} placeholder="alexdesign.co" keyboardType="url" autoCapitalize="none" last />
-        </Group>
-
-        {/* ── Social Media ── */}
-        <SectionLabel text="SOCIAL CHANNELS" />
-        <Group>
-          <FieldRow icon="Send" label="Telegram" value={telegram} onChangeText={setTelegram} placeholder="@alex_tg" autoCapitalize="none" />
-          <FieldRow icon="Instagram" label="Instagram" value={instagram} onChangeText={setInstagram} placeholder="@alex_ig" autoCapitalize="none" />
-          <FieldRow icon="Linkedin" label="LinkedIn" value={linkedin} onChangeText={setLinkedin} placeholder="alexprofile" autoCapitalize="none" last />
-        </Group>
-
-        {/* Gen Z Quick Add Platform Chips */}
-        <View style={styles.chipSection}>
-          <AppText style={styles.chipHeader}>⚡ GEN Z QUICK LINKS</AppText>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipScroll}>
-            {[
-              { label: 'TikTok', url: 'tiktok.com/@' },
-              { label: 'Spotify', url: 'open.spotify.com/user/' },
-              { label: 'YouTube', url: 'youtube.com/c/' },
-              { label: 'BeReal', url: 'bere.al/' },
-            ].map((chip) => (
-              <Pressable
-                key={chip.label}
-                onPress={() => addCustomLink(chip.label, chip.url)}
-                style={styles.chipBtn}
-              >
-                <AddCircleBoldDuotone size={16} color="#007AFF" />
-                <AppText style={styles.chipText}>{chip.label}</AppText>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* ── Custom Links List ── */}
-        <View style={styles.sectionHeaderRow}>
-          <SectionLabel text="CUSTOM BIO LINKS" />
-          <Pressable onPress={() => addCustomLink()} style={styles.addLinkBtn}>
-            <AppText style={styles.addLinkText}>+ Add Link</AppText>
           </Pressable>
+
+          <View style={styles.previewMeta}>
+            <AppText style={styles.previewName} weight="extrabold">
+              {displayName || 'Ban Nguyen'}
+            </AppText>
+            <AppText style={styles.previewSub}>
+              {jobTitleVi || 'Tech Lead · AI Coaching 1-1'}
+            </AppText>
+            <AppText style={styles.previewOrg}>
+              {organization || 'SAGOZEN LLC'}
+            </AppText>
+            <AppText style={styles.previewSlug}>
+              sitehubman.app/{slug || 'pandev00'}
+            </AppText>
+          </View>
         </View>
-        {customLinks.length > 0 ? (
-          <Group>
-            {customLinks.map((link, index) => (
-              <View key={`custom-link-${index}`} style={[styles.customLinkBlock, index === customLinks.length - 1 && styles.customLinkBlockLast]}>
-                <View style={styles.customLinkTop}>
-                  <AppText style={styles.customLinkTitle}>Link #{index + 1}</AppText>
-                  <Pressable onPress={() => removeCustomLink(index)} hitSlop={10}>
-                    <AppIcon name="X" size={17} color="#FF3B30" />
+
+        {/* ── 1. Danh tính (Identity) ── */}
+        <SectionLabel
+          text="DANH TÍNH"
+          sub="Đọc bởi cả ba mặt. Sửa ở đây là sửa mọi nơi."
+        />
+        <FieldGroup>
+          <FieldRow
+            icon="User"
+            label="Tên in trên thẻ*"
+            value={displayName}
+            onChangeText={(t) => {
+              setDisplayName(t);
+              setPrintedName(t);
+            }}
+            placeholder="Ban Nguyen"
+            autoCapitalize="words"
+          />
+          <FieldRow
+            icon="Tag"
+            label="Handle / Slug"
+            value={slug}
+            onChangeText={setSlug}
+            placeholder="pandev00"
+            autoCapitalize="none"
+          />
+          <FieldRow
+            icon="Briefcase"
+            label="Chức danh (VI)*"
+            value={jobTitleVi}
+            onChangeText={setJobTitleVi}
+            placeholder="Tech Lead · AI Coaching 1-1"
+          />
+          <FieldRow
+            icon="Briefcase"
+            label="Chức danh (EN)*"
+            value={jobTitleEn}
+            onChangeText={setJobTitleEn}
+            placeholder="Tech Lead · 1-1 AI Coaching"
+          />
+          <FieldRow
+            icon="Globe"
+            label="Tổ chức"
+            value={organization}
+            onChangeText={setOrganization}
+            placeholder="SAGOZEN LLC"
+          />
+          <FieldRow
+            icon="Award"
+            label="Dòng định vị (VI)"
+            value={positioningLineVi}
+            onChangeText={setPositioningLineVi}
+            placeholder="AI Coaching 1-1 — làm phần mềm bài bản"
+          />
+          <FieldRow
+            icon="Award"
+            label="Dòng định vị (EN)"
+            value={positioningLineEn}
+            onChangeText={setPositioningLineEn}
+            placeholder="1-1 AI Coaching — build software properly"
+          />
+          <FieldRow
+            icon="Mail"
+            label="Email*"
+            value={email}
+            onChangeText={setEmail}
+            placeholder="pandev00@sagozen.digital"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            last
+          />
+        </FieldGroup>
+
+        {/* ── 2. Trang Tap (Tap Page Setup) ── */}
+        <SectionLabel
+          text="TRANG TAP"
+          sub="Một hành động chính, tối đa 3 khối, mỗi khối tối đa 4 hành động."
+        />
+        <FieldGroup>
+          <FieldRow
+            icon="Briefcase"
+            label="Hero Title (VI)*"
+            value={heroTitleVi}
+            onChangeText={setHeroTitleVi}
+            placeholder="Tech Lead · AI Coaching 1-1"
+          />
+          <FieldRow
+            icon="Briefcase"
+            label="Hero Title (EN)"
+            value={heroTitleEn}
+            onChangeText={setHeroTitleEn}
+            placeholder="Tech Lead · 1-1 AI Coaching"
+          />
+          <FieldRow
+            icon="Globe"
+            label="Hero Organization"
+            value={heroOrg}
+            onChangeText={setHeroOrg}
+            placeholder="SAGOZEN LLC"
+            last
+          />
+        </FieldGroup>
+
+        {/* Language Toggle Switch */}
+        <View style={styles.switchRow}>
+          <AppText style={styles.switchLabel} weight="bold">Hiện nút chuyển ngôn ngữ VI / EN</AppText>
+          <Switch
+            value={showLanguageToggle}
+            onValueChange={setShowLanguageToggle}
+            trackColor={{ false: '#333', true: '#FFFFFF' }}
+            thumbColor={showLanguageToggle ? '#000000' : '#888'}
+          />
+        </View>
+
+        {/* Primary Action Box */}
+        <AppText style={styles.subSectionTitle} weight="extrabold">HÀNH ĐỘNG CHÍNH</AppText>
+        <FieldGroup>
+          <FieldRow
+            icon="FileText"
+            label="Biểu tượng (Lucide)"
+            value={primaryActionIcon}
+            onChangeText={setPrimaryActionIcon}
+            placeholder="file-text"
+          />
+          <FieldRow
+            icon="Sparkles"
+            label="Hành động (VI)*"
+            value={primaryActionLabelVi}
+            onChangeText={setPrimaryActionLabelVi}
+            placeholder="Xem khoá AI Coaching 1-1"
+          />
+          <FieldRow
+            icon="Sparkles"
+            label="Hành động (EN)*"
+            value={primaryActionLabelEn}
+            onChangeText={setPrimaryActionLabelEn}
+            placeholder="See the 1-1 AI Coaching programme"
+          />
+          <FieldRow
+            icon="AlignLeft"
+            label="Dòng phụ (VI)"
+            value={primaryActionSubVi}
+            onChangeText={setPrimaryActionSubVi}
+            placeholder="Lộ trình 9 bước · học phí theo đợt"
+          />
+          <FieldRow
+            icon="AlignLeft"
+            label="Dòng phụ (EN)"
+            value={primaryActionSubEn}
+            onChangeText={setPrimaryActionSubEn}
+            placeholder="Nine stages · paid in stages"
+          />
+          <FieldRow
+            icon="Link"
+            label="Liên kết (URL)*"
+            value={primaryActionUrl}
+            onChangeText={setPrimaryActionUrl}
+            placeholder="https://t.me/pandev00"
+            last
+          />
+        </FieldGroup>
+
+        {/* ── Action Blocks (Khối hành động) ── */}
+        <View style={styles.blocksHeader}>
+          <AppText style={styles.subSectionTitle} weight="extrabold">
+            KHỐI HÀNH ĐỘNG ({actionBlocks.length} / 3)
+          </AppText>
+          {actionBlocks.length < 3 && (
+            <Pressable onPress={addActionBlock} style={styles.addBlockBtn}>
+              <AppIcon name="Plus" size={14} color="#FFFFFF" />
+              <AppText style={styles.addBlockBtnText} weight="bold">Thêm khối</AppText>
+            </Pressable>
+          )}
+        </View>
+
+        {actionBlocks.map((block, bIndex) => (
+          <View key={block.id || `block-${bIndex}`} style={styles.blockCard}>
+            <View style={styles.blockCardHeader}>
+              <AppText style={styles.blockCardTitle} weight="extrabold">
+                Khối {bIndex + 1}: {block.titleVi || 'Chưa đặt tên'}
+              </AppText>
+              <Pressable onPress={() => removeActionBlock(bIndex)} hitSlop={10}>
+                <AppIcon name="Trash2" size={16} color="#FF3B30" />
+              </Pressable>
+            </View>
+
+            <FieldGroup>
+              <FieldRow
+                icon="Type"
+                label="Tiêu đề (VI)"
+                value={block.titleVi}
+                onChangeText={(t) => updateBlockTitle(bIndex, t, block.titleEn)}
+                placeholder="Tư vấn qua kênh bạn quen"
+              />
+              <FieldRow
+                icon="Type"
+                label="Tiêu đề (EN)"
+                value={block.titleEn}
+                onChangeText={(t) => updateBlockTitle(bIndex, block.titleVi, t)}
+                placeholder="Talk on your usual channel"
+                last
+              />
+            </FieldGroup>
+
+            {/* Items inside Block */}
+            <View style={styles.itemsHeader}>
+              <AppText style={styles.itemsTitle} weight="bold">
+                Mục ({block.items.length} / 4)
+              </AppText>
+              {block.items.length < 4 && (
+                <Pressable onPress={() => addActionItem(bIndex)} style={styles.addItemBtn}>
+                  <AppIcon name="Plus" size={12} color="#FFFFFF" />
+                  <AppText style={styles.addItemBtnText} weight="bold">Thêm mục</AppText>
+                </Pressable>
+              )}
+            </View>
+
+            {block.items.map((item, iIndex) => (
+              <View key={item.id || `item-${iIndex}`} style={styles.itemBox}>
+                <View style={styles.itemBoxHeader}>
+                  <AppText style={styles.itemBoxTitle} weight="bold">
+                    #{iIndex + 1} - {item.labelVi || 'Mục'}
+                  </AppText>
+                  <Pressable onPress={() => removeActionItem(bIndex, iIndex)} hitSlop={8}>
+                    <AppIcon name="X" size={14} color="rgba(255,255,255,0.6)" />
                   </Pressable>
                 </View>
-                <TextInput
-                  style={styles.customLinkInput}
-                  value={link.label}
-                  onChangeText={(value) => updateCustomLink(index, { label: value })}
-                  placeholder="Platform Name (e.g. TikTok, Portfolio)"
-                  placeholderTextColor="#C4CFDE"
-                />
-                <TextInput
-                  style={styles.customLinkInput}
-                  value={link.url}
-                  onChangeText={(value) => updateCustomLink(index, { url: value })}
-                  placeholder="URL link (e.g. tiktok.com/@yourprofile)"
-                  placeholderTextColor="#C4CFDE"
-                  keyboardType="url"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
+
+                <FieldGroup>
+                  <FieldRow
+                    icon="Smile"
+                    label="Icon (Lucide)"
+                    value={item.icon}
+                    onChangeText={(t) => updateActionItem(bIndex, iIndex, { icon: t })}
+                    placeholder="send"
+                  />
+                  <FieldRow
+                    icon="Tag"
+                    label="Nhãn (VI)"
+                    value={item.labelVi}
+                    onChangeText={(t) => updateActionItem(bIndex, iIndex, { labelVi: t })}
+                    placeholder="Telegram"
+                  />
+                  <FieldRow
+                    icon="Tag"
+                    label="Nhãn (EN)"
+                    value={item.labelEn}
+                    onChangeText={(t) => updateActionItem(bIndex, iIndex, { labelEn: t })}
+                    placeholder="Telegram"
+                  />
+                  <FieldRow
+                    icon="AlignLeft"
+                    label="Dòng phụ (VI)"
+                    value={item.subVi || ''}
+                    onChangeText={(t) => updateActionItem(bIndex, iIndex, { subVi: t })}
+                    placeholder="@pandev00"
+                  />
+                  <FieldRow
+                    icon="Link"
+                    label="Liên kết"
+                    value={item.url}
+                    onChangeText={(t) => updateActionItem(bIndex, iIndex, { url: t })}
+                    placeholder="https://t.me/pandev00"
+                    last
+                  />
+                </FieldGroup>
               </View>
             ))}
-          </Group>
-        ) : (
-          <Pressable onPress={() => addCustomLink()} style={styles.emptyLinkCard}>
-            <CopyBoldDuotone size={24} color="#007AFF" />
-            <View style={styles.emptyLinkCopy}>
-              <AppText style={styles.emptyLinkTitle}>Link Tree & Portfolio links</AppText>
-              <AppText style={styles.emptyLinkSub}>Tap to connect TikTok, portfolio booking, shop, or music feeds.</AppText>
-            </View>
-          </Pressable>
-        )}
+          </View>
+        ))}
 
+        {/* ── 3. Khối tin cậy (Trust Footnote) ── */}
+        <SectionLabel
+          text="KHỐI TIN CẬY"
+          sub="Hiển thị ở chân trang danh tính."
+        />
+        <FieldGroup>
+          <FieldRow
+            icon="ShieldCheck"
+            label="Chủ sở hữu (VI)"
+            value={ownerLineVi}
+            onChangeText={setOwnerLineVi}
+            placeholder="Nội dung do Ban Nguyen cung cấp."
+          />
+          <FieldRow
+            icon="ShieldCheck"
+            label="Chủ sở hữu (EN)"
+            value={ownerLineEn}
+            onChangeText={setOwnerLineEn}
+            placeholder="Content provided by Ban Nguyen."
+          />
+          <FieldRow
+            icon="Info"
+            label="Ghi chú tin cậy (VI)"
+            value={trustNoteVi}
+            onChangeText={setTrustNoteVi}
+            placeholder="Avio lưu trữ trang này và không xác minh danh tính."
+          />
+          <FieldRow
+            icon="Info"
+            label="Ghi chú tin cậy (EN)"
+            value={trustNoteEn}
+            onChangeText={setTrustNoteEn}
+            placeholder="Avio hosts this page and does not verify identity."
+            last
+          />
+        </FieldGroup>
+
+        {/* ── 4. Giao diện trang tap (Appearance) ── */}
+        <SectionLabel
+          text="GIAO DIỆN TRANG TAP"
+          sub="Cấu trúc, kích thước vùng chạm và khối tin cậy không đổi được."
+        />
+        <View style={styles.themeOptionsGrid}>
+          <View style={styles.themeOptionRow}>
+            <AppText style={styles.themeOptionLabel} weight="bold">Bộ màu</AppText>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillsScroll}>
+              {['Professional', 'Charcoal', 'Gold', 'Titanium', 'Emerald'].map((p) => (
+                <Pressable
+                  key={p}
+                  onPress={() => setColorPalette(p)}
+                  style={[styles.pillBtn, colorPalette === p && styles.pillBtnActive]}
+                >
+                  <AppText style={[styles.pillBtnText, colorPalette === p && styles.pillBtnTextActive]} weight="bold">
+                    {p}
+                  </AppText>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+
+          <View style={styles.themeOptionRow}>
+            <AppText style={styles.themeOptionLabel} weight="bold">Sáng / Tối</AppText>
+            <View style={styles.segmentedRow}>
+              {(['dark', 'light'] as const).map((mode) => (
+                <Pressable
+                  key={mode}
+                  onPress={() => setColorMode(mode)}
+                  style={[styles.segmentBtn, colorMode === mode && styles.segmentBtnActive]}
+                >
+                  <AppText style={[styles.segmentText, colorMode === mode && styles.segmentTextActive]} weight="bold">
+                    {mode === 'dark' ? 'Tối (Dark)' : 'Sáng (Light)'}
+                  </AppText>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.themeOptionRow}>
+            <AppText style={styles.themeOptionLabel} weight="bold">Bo góc</AppText>
+            <View style={styles.segmentedRow}>
+              {(['balanced', 'rounded', 'sharp'] as const).map((r) => (
+                <Pressable
+                  key={r}
+                  onPress={() => setBorderRadiusStyle(r)}
+                  style={[styles.segmentBtn, borderRadiusStyle === r && styles.segmentBtnActive]}
+                >
+                  <AppText style={[styles.segmentText, borderRadiusStyle === r && styles.segmentTextActive]} weight="bold">
+                    {r === 'balanced' ? 'Cân bằng' : r === 'rounded' ? 'Tròn' : 'Vuông'}
+                  </AppText>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        </View>
+
+        {/* Restore Sample Preset Button */}
+        <Pressable onPress={handleLoadSeedPreset} style={styles.resetSeedBtn}>
+          <AppIcon name="RotateCcw" size={16} color="#FFFFFF" />
+          <AppText style={styles.resetSeedBtnText} weight="extrabold">
+            Khôi phục nội dung mẫu (Ban Nguyen)
+          </AppText>
+        </Pressable>
       </IosScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, width: '100%', minHeight: '100vh' as any, backgroundColor: BG } as ViewStyle,
-
-  header: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16, backgroundColor: BG } as ViewStyle,
-  navRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } as ViewStyle,
-  headerBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: BORDER } as ViewStyle,
-  navSaveBtn: { minHeight: 36, justifyContent: 'center', paddingHorizontal: 4 } as ViewStyle,
-  navSaveText: { fontSize: 17, fontWeight: '800', color: '#007AFF' } as TextStyle,
-  largeTitle: { marginTop: 8, fontSize: 32, fontWeight: '900', color: INK, letterSpacing: -0.6 } as TextStyle,
-  headerSub: { marginTop: 4, fontSize: 14, fontWeight: '500', color: MUTED, lineHeight: 20 } as TextStyle,
-
-  scroll: { flexGrow: 1, width: '100%', maxWidth: 900, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 4, paddingBottom: 60, gap: 18 } as ViewStyle,
-
-  // Gen Z interactive completion progress card
-  progressCard: { padding: 20, borderRadius: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.1, shadowRadius: 18, elevation: 4 } as ViewStyle,
-  progHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 } as ViewStyle,
-  progTitle: { flex: 1, fontSize: 15, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.3 } as TextStyle,
-  progPct: { fontSize: 20, fontWeight: '900', color: '#38BDF8' } as TextStyle,
-  progressBarBg: { height: 6, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 99, marginVertical: 14, overflow: 'hidden' } as ViewStyle,
-  progressBarFill: { height: '100%', backgroundColor: '#38BDF8', borderRadius: 99 } as ViewStyle,
-  progHint: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.7)' } as TextStyle,
-
-  // Gen Z Live Phone Screen Mockup Container
-  previewContainer: { width: '100%', maxWidth: 840, alignSelf: 'center', padding: 18, borderRadius: 28, backgroundColor: SURFACE, borderWidth: 1, borderColor: BORDER, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 12, elevation: 2, alignItems: 'center', gap: 16 } as ViewStyle,
-  phoneFrame: { width: '100%', maxWidth: 520, minWidth: 0, alignSelf: 'center', minHeight: 280, borderRadius: 24, overflow: 'hidden', borderWidth: 3, borderColor: '#1F2937', position: 'relative', shadowColor: '#000000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.08, shadowRadius: 16, elevation: 4 } as ViewStyle,
-  phoneShine: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.06)', transform: [{ skewX: '-30deg' }, { scaleX: 1.5 }] } as ViewStyle,
-  phoneContent: { width: '100%', minWidth: 0, flex: 1, alignItems: 'center', padding: 24, gap: 14, justifyContent: 'center' } as ViewStyle,
-  previewSlug: { fontSize: 11, fontWeight: '800', color: 'rgba(255,255,255,0.85)', letterSpacing: 0.5, marginTop: 4 } as TextStyle,
-  previewLinksContainer: { width: '100%', gap: 8, marginTop: 8 } as ViewStyle,
-  previewLinkPill: { width: '100%', height: 38, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 16 } as ViewStyle,
-  previewLinkText: { fontSize: 12, fontWeight: '800', color: '#FFFFFF' } as TextStyle,
-  previewLinkPillPlaceholder: { width: '100%', height: 38, borderRadius: 999, borderStyle: 'dashed', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)', alignItems: 'center', justifyContent: 'center' } as ViewStyle,
-  previewPlaceholderT: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.6)' } as TextStyle,
-
-  // Avatar styles inside phone
-  avatarWrap: { position: 'relative' } as ViewStyle,
-  avatar: { width: 80, height: 80, borderRadius: 40, borderWidth: 3, borderColor: SURFACE, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 4 } as any,
-  avatarFallback: { backgroundColor: BRAND, alignItems: 'center', justifyContent: 'center' } as ViewStyle,
-  avatarInitial: { fontSize: 32, fontWeight: '900', color: '#FFFFFF' } as TextStyle,
-  avatarBadge: { position: 'absolute', bottom: 0, right: 0, width: 26, height: 26, borderRadius: 13, backgroundColor: INK2, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#7C3AED' } as ViewStyle,
-  avatarMeta: { alignItems: 'center', gap: 2 } as ViewStyle,
-  avatarName: { fontSize: 20, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5 } as TextStyle,
-  avatarSub: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.8)', textAlign: 'center' } as TextStyle,
-  
-  // Actions under preview
-  previewActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, width: '100%', justifyContent: 'center' } as ViewStyle,
-  photoBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, backgroundColor: 'rgba(0,122,255,0.08)' } as ViewStyle,
-  photoBtnT: { fontSize: 13, fontWeight: '800', color: BRAND } as TextStyle,
-  previewLink: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, backgroundColor: SURFACE, borderWidth: 1, borderColor: BORDER } as ViewStyle,
-  previewLinkTextBtn: { fontSize: 13, fontWeight: '800', color: INK2 } as TextStyle,
-
-  chipSection: { gap: 10 } as ViewStyle,
-  chipHeader: { fontSize: 11, fontWeight: '800', color: MUTED, letterSpacing: 0.8 } as TextStyle,
-  chipScroll: { gap: 8 } as ViewStyle,
-  chipBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: SURFACE, borderWidth: 1, borderColor: BORDER } as ViewStyle,
-  chipText: { fontSize: 12, fontWeight: '800', color: INK2 } as TextStyle,
-
-  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 } as ViewStyle,
-  addLinkBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: 'rgba(0,122,255,0.12)' } as ViewStyle,
-  addLinkText: { fontSize: 12, fontWeight: '800', color: BRAND } as TextStyle,
-
-  customLinkBlock: { padding: 16, gap: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: BORDER } as ViewStyle,
-  customLinkBlockLast: { borderBottomWidth: 0 } as ViewStyle,
-  customLinkTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } as ViewStyle,
-  customLinkTitle: { fontSize: 13, fontWeight: '800', color: INK2 } as TextStyle,
-  customLinkInput: { minHeight: 44, borderRadius: 12, backgroundColor: SURFACE, borderWidth: 1, borderColor: BORDER, paddingHorizontal: 14, fontSize: 14, fontWeight: '600', color: INK } as TextStyle,
-
-  emptyLinkCard: { minHeight: 76, borderRadius: 24, backgroundColor: SURFACE, borderWidth: 1, borderColor: BORDER, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 } as ViewStyle,
-  emptyLinkCopy: { flex: 1, gap: 2 } as ViewStyle,
-  emptyLinkTitle: { fontSize: 15, fontWeight: '800', color: INK, letterSpacing: -0.2 } as TextStyle,
-  emptyLinkSub: { fontSize: 12, fontWeight: '600', color: MUTED, lineHeight: 17 } as TextStyle,
+  safe: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
+  },
+  navBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#121214',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navTitle: {
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+  doneBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+  },
+  doneBtnText: {
+    color: '#000000',
+    fontSize: 13,
+  },
+  scroll: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 140,
+    gap: 16,
+    maxWidth: 640,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  previewCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    backgroundColor: '#111114',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  avatarWrap: {
+    position: 'relative',
+  },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+  },
+  avatarFallback: {
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitial: {
+    color: '#000000',
+    fontSize: 24,
+  },
+  avatarBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#111114',
+  },
+  previewMeta: {
+    flex: 1,
+    gap: 2,
+  },
+  previewName: {
+    color: '#FFFFFF',
+    fontSize: 17,
+  },
+  previewSub: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 12,
+  },
+  previewOrg: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 11,
+  },
+  previewSlug: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 11,
+    marginTop: 4,
+  },
+  sectionHeader: {
+    gap: 2,
+    marginTop: 8,
+  },
+  sectionLabel: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    letterSpacing: 0.8,
+  },
+  sectionSub: {
+    color: 'rgba(255,255,255,0.45)',
+    fontSize: 11,
+  },
+  subSectionTitle: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    letterSpacing: 0.8,
+    marginTop: 6,
+  },
+  fieldGroup: {
+    backgroundColor: '#111114',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    overflow: 'hidden',
+  },
+  fieldRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
+    gap: 10,
+  },
+  fieldRowLast: {
+    borderBottomWidth: 0,
+  },
+  fieldIconBox: {
+    width: 24,
+    alignItems: 'center',
+  },
+  fieldLabel: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 12,
+    width: 115,
+  },
+  fieldInput: {
+    flex: 1,
+    color: '#FFFFFF',
+    fontSize: 13,
+    padding: 0,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#111114',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  switchLabel: {
+    color: '#FFFFFF',
+    fontSize: 13,
+  },
+  blocksHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  addBlockBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  addBlockBtnText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+  },
+  blockCard: {
+    backgroundColor: '#0D0D10',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    padding: 14,
+    gap: 10,
+  },
+  blockCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  blockCardTitle: {
+    color: '#FFFFFF',
+    fontSize: 13,
+  },
+  itemsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  itemsTitle: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 11,
+  },
+  addItemBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+  },
+  addItemBtnText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+  },
+  itemBox: {
+    backgroundColor: '#141418',
+    borderRadius: 12,
+    padding: 10,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  itemBoxHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  itemBoxTitle: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 11,
+  },
+  themeOptionsGrid: {
+    gap: 12,
+  },
+  themeOptionRow: {
+    gap: 6,
+  },
+  themeOptionLabel: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 12,
+  },
+  pillsScroll: {
+    gap: 8,
+  },
+  pillBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  pillBtnActive: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
+  },
+  pillBtnText: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 12,
+  },
+  pillBtnTextActive: {
+    color: '#000000',
+  },
+  segmentedRow: {
+    flexDirection: 'row',
+    backgroundColor: '#111114',
+    borderRadius: 12,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  segmentBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 10,
+  },
+  segmentBtnActive: {
+    backgroundColor: '#FFFFFF',
+  },
+  segmentText: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 12,
+  },
+  segmentTextActive: {
+    color: '#000000',
+  },
+  resetSeedBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#16161A',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+    marginTop: 12,
+  },
+  resetSeedBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+  },
 });

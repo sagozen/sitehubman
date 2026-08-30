@@ -6,9 +6,8 @@ const PREFERENCE_KEY = 'ui_preferences_v2';
 
 export const defaultUiPreferences: UiPreferences = normalizeUiPreferences({
   language: 'en',
-  theme: 'vibrant_pink',
-  profileTheme: 'aqua',
-  colorMode: 'light',
+  profileTheme: 'mono',
+  colorMode: 'dark',
   typographyColor: 'deep_teal',
 });
 

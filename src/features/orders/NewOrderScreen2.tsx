@@ -24,6 +24,7 @@ import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { ShieldCheckBoldDuotone, PhoneBoldDuotone, LetterBoldDuotone, MapPointBoldDuotone, UserBoldDuotone, CardBoldDuotone, BoxBoldDuotone, GalleryBoldDuotone, UploadSquareBoldDuotone, QrCodeBoldDuotone, AltArrowLeftBoldDuotone, ShareBoldDuotone } from '@solar-icons/react-native';
 import { AppText } from '@/src/components/AppText';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
+import { FlippableNfcCard } from '@/src/components/FlippableNfcCard';
 import { IosFormActionFooter } from '@/src/components/IosFormActionFooter';
 import { iosDesign } from '@/src/design-system/ios';
 import { salesUi } from '@/src/features/sales/components/SalesScreenUi';
@@ -392,7 +393,7 @@ function CardPreview({
           <AppText style={styles.previewBadgeText}>Live preview</AppText>
         </View>
       </View>
-      <NfcGlobalCardFace
+      <FlippableNfcCard
         fullName={customerName.trim() || undefined}
         title={jobTitle.trim() || undefined}
         company={company.trim() || undefined}

@@ -1,5 +1,4 @@
-import { Platform } from 'react-native';
-import Head from 'expo-router/head';
+import { SeoHead } from '@/src/components/SeoHead';
 import { lazy, Suspense } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
@@ -20,12 +19,7 @@ function TabFallback() {
 export default function ConnectionsTabRoute() {
   return (
     <>
-      {Platform.OS === 'web' && (
-        <Head>
-          <title>Moments & Connections | Snap Tap NFC</title>
-          <meta name="description" content="View your contacts, log interaction moments, and view timeline logs of scanned cards." />
-        </Head>
-      )}
+      <SeoHead title="Connections" description="View and manage your NFC card connections, interaction moments, and contact timeline." noIndex />
       <Suspense fallback={<TabFallback />}>
         <GuestConnectionsScreen />
       </Suspense>

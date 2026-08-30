@@ -1,0 +1,30 @@
+# dependencies & builds
+node_modules
+.expo
+dist
+dist-preview
+web-build
+builds
+*.log
+
+# non-mobile folders & web apps
+shop
+web
+functions
+print-bridge
+html_mockups
+audit
+docs
+avio-cloud
+coresitehub
+
+# environment & credentials
+.env*.local
+credentials.json
+firebase-service-account.json
+local-credentials
+
+# macos & misc
+.DS_Store
+*.pem
+*.tsbuildinfo

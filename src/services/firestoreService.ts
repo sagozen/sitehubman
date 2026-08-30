@@ -635,7 +635,7 @@ export async function createCustomerReorder(sourceOrderId: string): Promise<stri
 
 export async function listOrders(role: UserRole, userId: string, branch?: string): Promise<Order[]> {
   const { listOrdersPage } = await import('@/src/services/orderListService');
-  const page = await listOrdersPage(role, userId, { branch, pageSize: 500 });
+  const page = await listOrdersPage(role, userId, { branch, pageSize: 30 }); // capped — use pagination for full list
   return page.items;
 }
 
@@ -1139,6 +1139,14 @@ export async function getPrinterJobByOrderId(orderId: string): Promise<PrinterJo
 
   const active = jobs.find((job) => job.stage !== 'completed' && job.stage !== 'failed');
   return active ?? jobs[0];
+}
+
+export async function getPrinterJob(jobId: string): Promise<PrinterJob | null> {
+  assertNonEmpty(jobId, 'Job ID is required.');
+  const ref = doc(db, firebaseCollections.printerJobs, jobId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return null;
+  return mapPrinterJob(snap.id, snap.data());
 }
 
 export function subscribePrinterJobs(
@@ -1774,4 +1782,12 @@ export async function reassignStaffOrders(fromStaffId: string, toStaffId: string
 
   await batch.commit();
   return snapshot.docs.length;
+}
+
+export async function updateUserActiveProfile(userId: string, activeProfileId: string): Promise<void> {
+  if (!userId.trim()) return;
+  await updateDoc(doc(db, firebaseCollections.users, userId), {
+    activeProfileId,
+    updatedAt: serverTimestamp(),
+  }).catch(() => undefined);
 }

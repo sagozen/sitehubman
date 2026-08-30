@@ -2,9 +2,14 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Animated,
   Image,
+  InteractionManager,
+  Linking,
+  Modal,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
+  TextInput,
   View,
   useWindowDimensions,
 } from 'react-native';
@@ -35,6 +40,14 @@ import { useBioPage } from '@/src/hooks/useBioPage';
 import type { Order } from '@/src/types/models';
 import { FAB } from '@/src/components/FAB';
 import { QuickActionModal } from '@/src/components/QuickActionModal';
+import { NfcBeamModal } from '@/src/components/NfcBeamModal';
+import { LiveActivityRadar } from '@/src/components/LiveActivityRadar';
+import { LuxuryBentoGrid } from '@/src/components/LuxuryBentoGrid';
+import { WeeklyActivitySparkline } from '@/src/components/WeeklyActivitySparkline';
+import { DailyNetworkingPrompt } from '@/src/components/DailyNetworkingPrompt';
+import { AppleWalletCardHero } from '@/src/components/AppleWalletCardHero';
+import { TestTapSimulatorCard } from '@/src/components/TestTapSimulatorCard';
+import { computeUserPrestige } from '@/src/services/prestigeTierService';
 import { pageThemes } from '@/src/constants/pageThemes';
 
 // ─── Telegram-style Avatar Gradient helper ──────────────────────────────────
@@ -74,8 +87,8 @@ const SPACING = {
 // ─── Quick actions ───────────────────────────────────────────────────────────
 const ACTIONS = [
   {
-    label: 'Sample Moments',
-    subtitle: 'Preview captured leads',
+    label: 'Lead CRM',
+    subtitle: 'Manage & export contacts',
     route: appRoutes.customerConnections as Href,
     icon: 'Users' as AppIconName,
     bg: '#E2F16D', // Lime Yellow
@@ -83,8 +96,8 @@ const ACTIONS = [
     image: require('@/assets/images/3d_share_card_v2.png'),
   },
   {
-    label: 'NFC Demo',
-    subtitle: 'Try tap-to-open',
+    label: 'Instant Share',
+    subtitle: 'Live QR & NFC beam',
     route: appRoutes.nfcDemo as Href,
     icon: 'Nfc' as AppIconName,
     bg: '#E57A65', // Terracotta
@@ -92,8 +105,8 @@ const ACTIONS = [
     image: require('@/assets/images/3d_signals_v2.png'),
   },
   {
-    label: 'Track order',
-    subtitle: 'Follow production',
+    label: 'Track Order',
+    subtitle: 'Card production status',
     route: appRoutes.guestTrackOrder as Href,
     icon: 'Truck' as AppIconName,
     bg: '#2563EB', // Sapphire Blue
@@ -101,8 +114,8 @@ const ACTIONS = [
     image: require('@/assets/images/3d_track_card_v2.png'),
   },
   {
-    label: 'New order',
-    subtitle: 'Choose a card design',
+    label: 'Order Cards',
+    subtitle: 'Metal & obsidian fleet',
     route: appRoutes.customer.templates as Href,
     icon: 'Plus' as AppIconName,
     bg: '#FF5733', // Coral Red
@@ -112,85 +125,10 @@ const ACTIONS = [
 ];
 
 const TRUST_POINTS = [
-  { label: 'Public profile', icon: 'UserRound' as AppIconName },
-  { label: 'NFC card order', icon: 'CreditCard' as AppIconName },
-  { label: 'Lead moments', icon: 'Users' as AppIconName },
+  { label: 'Executive Bio', icon: 'UserRound' as AppIconName },
+  { label: 'Smart NFC Card', icon: 'CreditCard' as AppIconName },
+  { label: 'Lead CRM & Export', icon: 'Users' as AppIconName },
 ];
-
-// ─── Animated Pulsing Live Dot ────────────────────────────────────────────────
-function PulsingDot() {
-  const scale = useRef(new Animated.Value(1)).current;
-  const opacity = useRef(new Animated.Value(0.6)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.parallel([
-          Animated.timing(scale, { toValue: 2.2, duration: 900, useNativeDriver: true }),
-          Animated.timing(opacity, { toValue: 0, duration: 900, useNativeDriver: true }),
-        ]),
-        Animated.parallel([
-          Animated.timing(scale, { toValue: 1, duration: 0, useNativeDriver: true }),
-          Animated.timing(opacity, { toValue: 0.6, duration: 0, useNativeDriver: true }),
-        ]),
-        Animated.delay(600),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [scale, opacity]);
-
-  return (
-    <View style={dotStyles.wrap}>
-      <Animated.View style={[dotStyles.ring, { transform: [{ scale }], opacity }]} />
-      <View style={dotStyles.core} />
-    </View>
-  );
-}
-const dotStyles = StyleSheet.create({
-  wrap: { width: 16, height: 16, alignItems: 'center', justifyContent: 'center' },
-  ring: { position: 'absolute', width: 10, height: 10, borderRadius: 5, backgroundColor: '#30D158' },
-  core: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#30D158' },
-});
-
-// ─── Live Tap Counter ─────────────────────────────────────────────────────────
-function LiveTapCounter() {
-  const BASE = 2847;
-  const [count, setCount] = useState(BASE);
-  const fadeAnim = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    // Increment every 8-14 seconds to simulate real live traffic
-    const bump = () => {
-      Animated.sequence([
-        Animated.timing(fadeAnim, { toValue: 0.3, duration: 180, useNativeDriver: true }),
-        Animated.timing(fadeAnim, { toValue: 1, duration: 220, useNativeDriver: true }),
-      ]).start();
-      setCount((c) => c + Math.floor(Math.random() * 3) + 1);
-    };
-    const id = setInterval(bump, 9000 + Math.random() * 5000);
-    return () => clearInterval(id);
-  }, [fadeAnim]);
-
-  return (
-    <View style={tapStyles.wrap}>
-      <View style={tapStyles.dot} />
-      <Animated.Text style={[tapStyles.count, { opacity: fadeAnim }]}>
-        {count.toLocaleString()}
-      </Animated.Text>
-      <View style={tapStyles.label}>
-        <AppText style={tapStyles.labelText}>cards tapped today</AppText>
-      </View>
-    </View>
-  );
-}
-const tapStyles = StyleSheet.create({
-  wrap: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#30D158' },
-  count: { fontSize: 13, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.3 },
-  label: {},
-  labelText: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.45)' },
-});
 
 // ─── Order status ────────────────────────────────────────────────────────────
 function orderStatus(s: string): { label: string; color: string } {
@@ -352,6 +290,12 @@ export function GuestHomeScreen() {
     useState<Awaited<ReturnType<typeof loadCustomerCloudCard>>>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [fabOpen, setFabOpen] = useState(false);
+  const [showWaitlist, setShowWaitlist] = useState(false);
+  const [waitlistEmail, setWaitlistEmail] = useState('');
+  const [waitlistSent, setWaitlistSent] = useState(false);
+  const [showQuickModal, setShowQuickModal] = useState(false);
+  const [showBeamModal, setShowBeamModal] = useState(false);
+  const [testTapCompleted, setTestTapCompleted] = useState(false);
 
   const cardWidth = Math.min(screenWidth - 40, 380);
 
@@ -407,7 +351,11 @@ export function GuestHomeScreen() {
   }, [isGuest, user?.id]);
 
   useEffect(() => {
-    void loadData();
+    // Render the screen first, then load cloud data after animations settle
+    const task = InteractionManager.runAfterInteractions(() => {
+      void loadData();
+    });
+    return () => task.cancel();
   }, [loadData]);
 
   const recentOrders = useMemo(() => orders.slice(0, 3), [orders]);
@@ -427,10 +375,33 @@ export function GuestHomeScreen() {
     }
   };
 
+  // ── Profile Completion Score ──────────────────────────────────────
+  const profileSteps = useMemo(() => [
+    { label: 'Add your name', done: !!(bioPage?.displayName || heroName) },
+    { label: 'Add a photo', done: !!bioPage?.photoUrl },
+    { label: 'Add your title', done: !!(bioPage?.tagline || bioPage?.headline) },
+    { label: 'Add email or WhatsApp', done: !!(bioPage?.email || bioPage?.whatsapp) },
+    { label: 'Share your card', done: !!(bioPage?.taps && bioPage.taps > 0) },
+  ], [bioPage, heroName]);
+
+  const profileScore = useMemo(() => {
+    const done = profileSteps.filter((s) => s.done).length;
+    return Math.round((done / profileSteps.length) * 100);
+  }, [profileSteps]);
+
+  const nextStep = useMemo(() => profileSteps.find((s) => !s.done), [profileSteps]);
+  const profileComplete = profileScore === 100;
+
+  // ── Executive Prestige Tier Stats ──────────────────────────────────
+  const prestigeStats = useMemo(() => {
+    const totalCount = (bioPage?.taps || 0) + (insights?.totalOrders || 0);
+    return computeUserPrestige(totalCount);
+  }, [bioPage?.taps, insights?.totalOrders]);
+
   return (
     <View style={styles.root}>
       {/* Low opacity ambient brand collage background */}
-      <View style={styles.homeBackdropWrap} pointerEvents="none">
+      <View style={[styles.homeBackdropWrap, { pointerEvents: 'none' as any }]}>
         <Image
           source={require('@/assets/images/savee_background.png')}
           style={styles.homeBackdropImg}
@@ -451,7 +422,7 @@ export function GuestHomeScreen() {
             <ErrorBanner message={error} onRetry={() => setIsLoading(true)} />
           ) : (
             <>
-              {/* ── 1. Top Greeting Bar ── */}
+              {/* ── 1. Executive Top Header ── */}
               <View style={styles.topGreetingRow}>
                 <Pressable
                   onPress={() => { HapticTap.light(); router.push('/profile' as any); }}
@@ -460,313 +431,304 @@ export function GuestHomeScreen() {
                   {bioPage?.photoUrl ? (
                     <Image source={{ uri: bioPage.photoUrl }} style={styles.greetingAvatarImg} />
                   ) : (
-                    <View style={styles.avatarNoBg}>
-                      <AppIcon
-                        name="UserRound"
-                        size={20}
-                        color="rgba(255,255,255,0.85)"
-                        variant="solar-bold"
-                      />
+                    <View style={styles.executiveAvatarSeal}>
+                      <AppText style={styles.executiveAvatarLetter} weight="extrabold">
+                        {(heroName?.[0] || 'A').toUpperCase()}
+                      </AppText>
                     </View>
                   )}
-                  <View>
-                    <AppText style={styles.greetingSub}>Good day,</AppText>
+                  <View style={styles.executiveTitles}>
+                    <View style={styles.prestigePill}>
+                      <AppText style={styles.prestigePillText} weight="bold">
+                        {prestigeStats.currentTier.badge} {prestigeStats.currentTier.name.toUpperCase()}
+                      </AppText>
+                    </View>
                     <AppText style={styles.greetingName} weight="extrabold">
-                      {heroName?.split(' ')[0] || 'Creator'}
+                      {heroName || 'Executive Member'}
                     </AppText>
                   </View>
                 </Pressable>
 
-                <View style={styles.headerActions}>
+                <View style={styles.headerRightActions}>
                   <Pressable
-                    onPress={() => {
-                      HapticTap.light();
-                      if (isGuest) {
-                        requireAccount(undefined, {
-                          message: 'Sign in to receive notifications.',
-                        });
-                      } else {
-                        router.push('/notifications');
-                      }
-                    }}
-                    style={({ pressed }) => [
-                      styles.inboxBtn,
-                      pressed && styles.pressed,
-                    ]}
-                    hitSlop={12}
+                    onPress={() => { HapticTap.light(); router.push('/scan' as any); }}
+                    style={styles.notifBtn}
+                    hitSlop={8}
                   >
-                    <AppIcon
-                      name="Inbox"
-                      size={15}
-                      color="#FFFFFF"
-                      variant="solar-bold"
-                    />
-                    <AppText style={styles.inboxBtnText}>Inbox</AppText>
-                    {(unreadCount > 0 || (items?.length ?? 0) > 0) && (
-                      <View style={styles.neonBadgePill}>
-                        <AppText style={styles.neonBadgeNum}>
-                          {unreadCount > 0 ? unreadCount : items?.length || 0}
-                        </AppText>
-                      </View>
-                    )}
+                    <AppIcon name="Scan" size={18} color="#FFFFFF" />
                   </Pressable>
-
                   <Pressable
-                    onPress={() => {
-                      HapticTap.medium();
-                      router.push(appRoutes.studio as Href);
-                    }}
-                    style={({ pressed }) => [
-                      styles.inboxBtn,
-                      pressed && styles.pressed,
-                    ]}
-                    hitSlop={12}
+                    onPress={() => { HapticTap.light(); router.push(appRoutes.guestDesign as Href); }}
+                    style={styles.notifBtn}
+                    hitSlop={8}
                   >
-                    <AppIcon name="Palette" size={15} color="rgba(255,255,255,0.7)" />
-                    <AppText style={styles.inboxBtnText}>Studio</AppText>
+                    <AppIcon name="Bell" size={18} color="#FFFFFF" />
+                    {unreadCount > 0 && <View style={styles.notifDot} />}
                   </Pressable>
                 </View>
               </View>
 
-              <View style={styles.launchHero}>
-                <View style={styles.launchEyebrowRow}>
-                  <PulsingDot />
-                  <AppText style={styles.launchEyebrow}>
-                    Profile commerce hub
-                  </AppText>
-                  <View style={{ flex: 1 }} />
-                  <LiveTapCounter />
-                </View>
-                <AppText style={styles.launchTitle}>
-                  One link for your profile, NFC card, orders, and leads.
-                </AppText>
-                <AppText style={styles.launchSub}>
-                  Build the card, share the profile, track the order, and keep every customer moment in one place.
-                </AppText>
-                <View style={styles.launchCtaRow}>
-                  <Pressable
-                    onPress={() => {
-                      HapticTap.medium();
-                      router.push(appRoutes.guestDesign as Href);
-                    }}
-                    style={({ pressed }) => [
-                      styles.launchPrimary,
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <AppIcon name="CreditCard" size={17} color="#020617" />
-                    <AppText style={styles.launchPrimaryText}>Design card</AppText>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => {
-                      HapticTap.light();
-                      router.push('/drafts' as Href);
-                    }}
-                    style={({ pressed }) => [
-                      styles.launchSecondary,
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <AppIcon name="ClipboardList" size={17} color="#FFFFFF" />
-                    <AppText style={styles.launchSecondaryText}>Drafts</AppText>
-                  </Pressable>
-                </View>
-                <View style={styles.trustRow}>
-                  {TRUST_POINTS.map((point) => (
-                    <View key={point.label} style={styles.trustPill}>
-                      <AppIcon name={point.icon} size={13} color="#7DD3FC" />
-                      <AppText style={styles.trustPillText}>{point.label}</AppText>
-                    </View>
-                  ))}
-                </View>
-              </View>
+              {/* ── 2. iOS 17.4 Apple Wallet Card Hero ── */}
+              <AppleWalletCardHero
+                displayName={heroName || undefined}
+                tapsCount={bioPage?.taps ?? 42}
+                leadsCount={insights?.totalOrders ? insights.totalOrders + 2 : 12}
+                onShareCard={handleShare}
+                onOrderCard={() => { HapticTap.medium(); router.push(appRoutes.customer.templates as Href); }}
+                onViewLeads={() => { HapticTap.light(); router.push('/connections' as any); }}
+              />
 
-              {/* NFC Card Preview with ambient glow */}
-              <View style={styles.cardContainer}>
-                {/* Ambient glow rings */}
-                <View style={styles.glowRing1} pointerEvents="none" />
-                <View style={styles.glowRing2} pointerEvents="none" />
-                <View style={[styles.cardElevation, { width: cardWidth }]}>
-                  <NfcGlobalCardFace
-                    fullName={heroName || undefined}
-                    title={heroTitle || undefined}
-                    phone={heroPhone || undefined}
-                    email={heroEmail || undefined}
-                    gradientIndex={cloudCard?.design?.gradientIndex ?? 0}
-                    width={cardWidth}
-                  />
-                  {/* NFC Live pulse badge */}
-                  <Animated.View style={[styles.liveBadgeWrap, { opacity: pulseOpacity }]}>
-                    <View style={styles.liveDot} />
-                    <AppText style={styles.liveBadgeText}>Live</AppText>
-                  </Animated.View>
-                </Pressable>
-                <AppText style={styles.cardHint}>Tap card to edit design</AppText>
-              </View>
+              {/* ── 4. Day-1 Activation Card (Shown when user has 0 taps) ── */}
+              {(bioPage?.taps ?? 0) === 0 && !testTapCompleted && (
+                <TestTapSimulatorCard
+                  onSimulateTap={() => {
+                    setTestTapCompleted(true);
+                  }}
+                />
+              )}
 
-              {/* ── 3. Stats Row ── */}
-              <View style={styles.statsRow}>
-                {[
-                  { label: 'Total Orders', value: insights?.totalOrders ?? 0, icon: 'CreditCard' as AppIconName },
-                  { label: 'Active', value: insights?.activeOrders ?? 0, icon: 'Nfc' as AppIconName },
-                  { label: 'Delivered', value: insights?.deliveredOrders ?? 0, icon: 'Package' as AppIconName },
-                ].map((stat) => (
-                  <View key={stat.label} style={styles.statCard}>
-                    <AppIcon name={stat.icon} size={16} color="rgba(255,255,255,0.5)" />
-                    <AppText style={styles.statValue} weight="extrabold">{stat.value}</AppText>
-                    <AppText style={styles.statLabel}>{stat.label}</AppText>
-                  </View>
-                ))}
-              </View>
-
-              {/* Quick Actions Scroll */}
-              <View style={{ marginTop: 4 }}>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  style={styles.actionScrollView}
-                  contentContainerStyle={styles.actionScroll}
+              {/* ── 5. Profile Completion Bar (hidden when 100%) ── */}
+              {!profileComplete && !isGuest && (
+                <Pressable
+                  onPress={() => { HapticTap.light(); router.push('/edit-bio' as any); }}
+                  style={({ pressed }) => [styles.completionCard, pressed && styles.pressed]}
                 >
-                  {ACTIONS.map((a) => (
-                    <Pressable
-                      key={a.label}
-                      onPress={() => {
-                        HapticTap.light();
-                        if (isGuest && a.label === 'Sample Moments') {
-                          requireAccount(undefined, {
-                            message: 'Sign in to see moments capture.',
-                          });
-                        } else {
-                          router.push(a.route);
-                        }
-                      }}
-                      style={({ pressed }) => [
-                        styles.actionCard,
-                        pressed && styles.actionCardPressed,
-                      ]}
-                    >
-                      {/* Glow strip at top */}
-                      <View style={styles.actionGlowStrip} />
-                      <View style={styles.actionTextWrap}>
-                        <View style={styles.actionCardIconBox}>
-                          <AppIcon name={a.icon} size={14} color="#FFFFFF" variant="solar-bold" />
-                        </View>
-                        <AppText
-                          variant="bodySmall"
-                          weight="bold"
-                          style={{ color: INK, marginTop: 6 }}
-                        >
-                          {a.label}
-                        </AppText>
-                        <AppText variant="caption" style={{ color: MUTED, marginTop: 1 }}>
-                          {a.subtitle}
-                        </AppText>
-                      </View>
-                      <View style={styles.actionImageWrap}>
-                        {a.image ? (
-                          <Image
-                            source={a.image}
-                            style={styles.actionImage}
-                            resizeMode="contain"
-                          />
-                        ) : (
-                          <View style={styles.actionIconContainer}>
-                            <AppIcon name={a.icon} size={15} color="#FFFFFF" />
-                          </View>
-                        )}
-                      </View>
-                    </Pressable>
-                  ))}
-                </ScrollView>
-              </View>
-
-              {/* ── 5. Quick Action 2×2 Grid ── */}
-              <AppText style={styles.sectionTitle} weight="extrabold">Quick Actions</AppText>
-              <View style={styles.quickGrid}>
-                {ACTIONS.map((a) => (
-                  <Pressable
-                    key={a.label}
-                    onPress={() => {
-                      HapticTap.light();
-                      if (isGuest && a.label === 'Sample Moments') {
-                        requireAccount(undefined, { message: 'Sign in to see moments capture.' });
-                      } else {
-                        router.push(a.route);
-                      }
-                    }}
-                    style={({ pressed }) => [
-                      styles.quickCard,
-                      { backgroundColor: a.bg },
-                      pressed && styles.actionCardPressed,
-                    ]}
-                  >
-                    <View style={styles.quickCardIcon}>
-                      <AppIcon name={a.icon} size={20} color={a.color} />
-                    </View>
-                    <AppText style={[styles.quickCardLabel, { color: a.color }]} weight="extrabold">
-                      {a.label}
+                  <View style={styles.completionHeader}>
+                    <AppText style={styles.completionTitle} weight="extrabold">
+                      Complete your profile
                     </AppText>
-                    <AppText style={[styles.quickCardSub, { color: a.color === '#FFFFFF' ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.55)' }]}>
-                      {a.subtitle}
+                    <AppText style={styles.completionScore} weight="extrabold">
+                      {profileScore}%
                     </AppText>
-                  </Pressable>
-                ))}
-              </View>
-
-              {/* ── 6. Recent Orders ── */}
-              {!isGuest && recentOrders.length > 0 ? (
-                <View style={styles.ordersSection}>
-                  <View style={styles.sectionHeader}>
-                    <AppText style={styles.sectionTitle} weight="extrabold">Recent Orders</AppText>
-                    <Pressable onPress={() => router.push(appRoutes.guestTrackOrder as Href)}>
-                      <AppText variant="caption" weight="bold" style={{ color: 'rgba(255,255,255,0.5)' }}>View All</AppText>
-                    </Pressable>
                   </View>
-                  <View style={styles.ordersCard}>
-                    {recentOrders.map((o) => (
-                      <OrderRow
-                        key={o.id}
-                        order={o}
-                        onPress={() => router.push(`/orders/detail/${o.id}` as Href)}
-                      />
+                  <View style={styles.completionTrack}>
+                    <View style={[styles.completionFill, { width: `${profileScore}%` as any }]} />
+                  </View>
+                  {nextStep && (
+                    <View style={styles.completionNextRow}>
+                      <AppIcon name="ArrowRight" size={12} color="rgba(255,255,255,0.5)" />
+                      <AppText style={styles.completionNextText} weight="bold">
+                        Next: {nextStep.label}
+                      </AppText>
+                    </View>
+                  )}
+                </Pressable>
+              )}
+
+              {/* ── 6. 2x2 High-Contrast Luxury Bento Grid ── */}
+              <LuxuryBentoGrid
+                onPressBeam={() => {
+                  setShowBeamModal(true);
+                }}
+                onPressWallet={() => {
+                  router.push('/wallet-pass' as any);
+                }}
+                onPressLeads={() => {
+                  router.push('/connections' as any);
+                }}
+                onPressStudio={() => {
+                  router.push(appRoutes.guestDesign as Href);
+                }}
+                leadsCount={insights?.totalOrders ? insights.totalOrders + 2 : 3}
+              />
+
+              {/* ── 7. 7-Day Networking Activity Pulse ── */}
+              <WeeklyActivitySparkline
+                totalTaps={bioPage?.taps ?? 0}
+                onPress={() => {
+                  router.push('/connections' as any);
+                }}
+              />
+
+              {/* ── 8. Live Activity Radar Feed (Active Networking Pulse) ── */}
+              <LiveActivityRadar
+                totalTaps={bioPage?.taps ?? 0}
+                totalViews={bioPage?.views ?? 0}
+                onPressItem={() => {
+                  router.push('/connections' as any);
+                }}
+              />
+
+              {/* ── 9. Daily Executive Networking Focus ── */}
+              <DailyNetworkingPrompt
+                onPress={() => {
+                  setShowBeamModal(true);
+                }}
+              />
+
+              {/* ── Divider ── */}
+              <View style={styles.hairlineDivider} />
+
+              {/* ── 6. Bespoke Hardware Concierge ── */}
+              <Pressable
+                onPress={() => {
+                  HapticTap.medium();
+                  setShowWaitlist(true);
+                }}
+                style={({ pressed }) => [styles.commerceRow, pressed && styles.pressed]}
+              >
+                <View style={styles.commerceLeft}>
+                  <AppText style={styles.commerceTitle} weight="extrabold">Bespoke Metal NFC Card</AppText>
+                  <AppText style={styles.commerceSub}>Laser-Engraved Titanium · 24K Gold · Limited</AppText>
+                </View>
+                <View style={styles.commerceRight}>
+                  <AppText style={styles.commerceLink} weight="bold">Join Waitlist →</AppText>
+                </View>
+              </Pressable>
+
+              {/* ── 7. Pro Upgrade Nudge ── */}
+              <Pressable
+                onPress={() => {
+                  HapticTap.medium();
+                  router.push('/pricing' as any);
+                }}
+                style={({ pressed }) => [styles.proNudgeCard, pressed && styles.pressed]}
+              >
+                <View style={styles.proNudgeBadge}>
+                  <AppText style={styles.proNudgeBadgeText} weight="extrabold">PRO</AppText>
+                </View>
+                <View style={styles.proNudgeContent}>
+                  <AppText style={styles.proNudgeTitle} weight="extrabold">
+                    Unlock your full identity
+                  </AppText>
+                  <View style={styles.proFeatureList}>
+                    {[
+                      'Unlimited bio links & social channels',
+                      'Analytics: views, taps & saves',
+                      'Custom domain  (you.com)',
+                      'Priority card production',
+                    ].map((f) => (
+                      <View key={f} style={styles.proFeatureRow}>
+                        <AppIcon name="Check" size={12} color="#000000" />
+                        <AppText style={styles.proFeatureText} weight="bold">{f}</AppText>
+                      </View>
                     ))}
                   </View>
                 </View>
-              ) : null}
+                <View style={styles.proNudgeArrow}>
+                  <AppIcon name="ChevronRight" size={16} color="#000000" />
+                </View>
+              </Pressable>
 
-              {/* ── 7. Guest Sign-In Banner ── */}
-              {isGuest ? (
-                <Pressable
-                  onPress={() => requireAccount(undefined, { message: 'Sign in to unlock your full card.' })}
-                  style={styles.guestBanner}
-                >
-                  <View style={styles.guestBannerIcon}>
-                    <AppIcon name="ShieldCheck" size={20} color="#FFFFFF" />
-                  </View>
-                  <View style={styles.guestBannerCopy}>
-                    <AppText variant="bodySmall" weight="bold" style={{ color: INK }}>
-                      Your card is saved locally.
-                    </AppText>
-                    <AppText variant="caption" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                      Sign in to claim it and go live →
-                    </AppText>
-                  </View>
-                </Pressable>
-              ) : null}
+              {/* ── 8. Viral Referral Invite (Free Pro Incentive) ── */}
+              <Pressable
+                onPress={async () => {
+                  HapticTap.medium();
+                  const slug = bioPage?.slug || 'join';
+                  const shareUrl = `https://aviobrand.com/?ref=${encodeURIComponent(slug)}`;
+                  try {
+                    await Share.share({
+                      message: `Get your own executive AVIO Smart Pass NFC business card for free! Use my invite link: ${shareUrl}`,
+                      url: shareUrl,
+                      title: 'Invite to AVIO Smart Pass',
+                    });
+                  } catch {
+                    // ignore
+                  }
+                }}
+                style={({ pressed }) => [styles.referralCard, pressed && styles.pressed]}
+              >
+                <View style={styles.referralIconBox}>
+                  <AppIcon name="Gift" size={20} color="#FFFFFF" />
+                </View>
+                <View style={styles.referralContent}>
+                  <AppText style={styles.referralTitle} weight="extrabold">
+                    Give Free Card, Get 1 Mo Pro
+                  </AppText>
+                  <AppText style={styles.referralSub}>
+                    Share your invite link with a colleague or friend.
+                  </AppText>
+                </View>
+                <View style={styles.referralShareBtn}>
+                  <AppText style={styles.referralShareBtnText} weight="bold">Invite →</AppText>
+                </View>
+              </Pressable>
             </>
 
           )}
         </IosScrollView>
       </SafeAreaView>
 
-      {/* FAB and Overlay Modal */}
-      <FAB
-        onPress={() => {
-          HapticTap.medium();
-          setFabOpen(true);
-        }}
-      />
       <QuickActionModal visible={fabOpen} onClose={() => setFabOpen(false)} />
+
+      {/* ── Physical Card Waitlist Modal ── */}
+      <Modal visible={showWaitlist} animationType="slide" transparent>
+        <Pressable style={styles.waitlistOverlay} onPress={() => setShowWaitlist(false)}>
+          <Pressable style={styles.waitlistCard} onPress={() => {}}>
+            <View style={styles.waitlistHandle} />
+            <View style={styles.waitlistIconSeal}>
+              <AppIcon name="CreditCard" size={22} color="#FFFFFF" />
+            </View>
+            <AppText style={styles.waitlistTitle} weight="extrabold">
+              Bespoke Metal NFC Card
+            </AppText>
+            <AppText style={styles.waitlistSub}>
+              Laser-engraved titanium or 24K gold plated. Limited production runs. Drop your email and we will notify you first.
+            </AppText>
+            {!waitlistSent ? (
+              <>
+                <TextInput
+                  style={styles.waitlistInput}
+                  value={waitlistEmail}
+                  onChangeText={setWaitlistEmail}
+                  placeholder="your@email.com"
+                  placeholderTextColor="rgba(255,255,255,0.3)"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                <Pressable
+                  style={({ pressed }) => [styles.waitlistBtn, pressed && { opacity: 0.85 }]}
+                  onPress={() => {
+                    if (!waitlistEmail.includes('@')) return;
+                    HapticTap.heavy();
+                    // Store in Firestore waitlist collection
+                    import('@/src/services/firebaseClient').then(({ db }) => {
+                      import('firebase/firestore').then(({ collection, addDoc, serverTimestamp }) => {
+                        addDoc(collection(db, 'metal_card_waitlist'), {
+                          email: waitlistEmail.trim().toLowerCase(),
+                          userId: user?.id ?? 'guest',
+                          name: heroName ?? '',
+                          createdAt: serverTimestamp(),
+                        }).catch(() => undefined);
+                      });
+                    });
+                    setWaitlistSent(true);
+                  }}
+                >
+                  <AppText style={styles.waitlistBtnText} weight="extrabold">
+                    Reserve My Spot
+                  </AppText>
+                </Pressable>
+              </>
+            ) : (
+              <View style={styles.waitlistSuccess}>
+                <AppIcon name="Check" size={20} color="#FFFFFF" />
+                <AppText style={styles.waitlistSuccessText} weight="bold">
+                  You're on the list! We'll be in touch.
+                </AppText>
+              </View>
+            )}
+            <Pressable onPress={() => { setShowWaitlist(false); setWaitlistSent(false); }} style={styles.waitlistClose} hitSlop={12}>
+              <AppText style={styles.waitlistCloseText} weight="bold">Close</AppText>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* ── Immersive Fullscreen NFC Beam Mode ── */}
+      <NfcBeamModal
+        visible={showBeamModal}
+        onClose={() => setShowBeamModal(false)}
+        fullName={heroName || 'Alexander Wright'}
+        title={heroTitle || 'Founder & CEO · AVIO'}
+        cardId={cloudCard?.cardId ?? 'BC-NFC_JEWDVONG'}
+        url={
+          bioPage?.slug
+            ? `https://aviobrand.com/u/${bioPage.slug}`
+            : 'https://aviobrand.com/u/demo'
+        }
+      />
     </View>
   );
 }
@@ -802,8 +764,8 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: SPACING.base,
     paddingTop: SPACING.xs,
-    paddingBottom: 80,
-    gap: SPACING.base,
+    paddingBottom: 130, // Clearance for floating capsule dock
+    gap: 14,
     maxWidth: 640,
     width: '100%',
     alignSelf: 'center',
@@ -819,76 +781,177 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  greetingAvatarCircle: {
+  executiveAvatarSeal: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#1E1E22',
-    borderWidth: 0,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  executiveAvatarLetter: {
+    color: '#000000',
+    fontSize: 18,
+  },
+  executiveTitles: {
+    gap: 1,
+  },
+  executiveEyebrow: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 10,
+    letterSpacing: 1.2,
+  },
+  prestigePill: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: '#18181C',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    alignSelf: 'flex-start',
+    marginBottom: 2,
+  },
+  prestigePillText: {
+    color: '#E5E5EA',
+    fontSize: 9,
+    letterSpacing: 1,
   },
   greetingAvatarImg: {
     width: 44,
     height: 44,
     borderRadius: 22,
   },
-  greetingAvatarLetter: {
-    color: '#FFFFFF',
-    fontSize: 18,
-  },
-  greetingSub: {
-    color: MUTED,
-    fontSize: 12,
-    fontWeight: '600',
-  },
   greetingName: {
     color: '#FFFFFF',
     fontSize: 18,
     lineHeight: 22,
   },
-  addPillBtn: {
+  headerRightActions: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#FF5722',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
+    gap: 8,
   },
-  addPillText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-  },
-  // ── Notification bell ─────────────────────────────────────────
   notifBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#121214',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   notifDot: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    top: 6,
+    right: 6,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
     backgroundColor: '#FF3B30',
     borderWidth: 1,
     borderColor: '#000000',
   },
-  // ── Card hint ─────────────────────────────────────────────────
-  cardHint: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.3)',
+
+  // ── Refined Unboxed Elements ──
+  subtleFlipHint: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.4)',
     textAlign: 'center',
     marginTop: 8,
-    letterSpacing: 0.3,
+  },
+  refinedShareBtn: {
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 2,
+  },
+  refinedShareText: {
+    color: '#000000',
+    fontSize: 15,
+  },
+  secondaryActionRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  secondaryActionBtn: {
+    flex: 1,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: '#121214',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  secondaryActionText: {
+    color: 'rgba(255, 255, 255, 0.85)',
+    fontSize: 13,
+  },
+  hairlineDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    marginVertical: 4,
+  },
+  infoSection: {
+    gap: 12,
+    paddingHorizontal: 4,
+  },
+  infoHeader: {
+    gap: 2,
+  },
+  infoTitle: {
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+  infoCardCode: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 12,
+  },
+  metricsRow: {
+    flexDirection: 'row',
+    gap: 48,
+    marginTop: 2,
+  },
+  metricItem: {
+    gap: 2,
+  },
+  metricLabel: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 12,
+  },
+  metricValue: {
+    color: '#FFFFFF',
+    fontSize: 26,
+    letterSpacing: -0.5,
+  },
+  commerceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+  },
+  commerceLeft: {
+    gap: 2,
+  },
+  commerceTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  commerceSub: {
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontSize: 12,
+  },
+  commerceRight: {},
+  commerceLink: {
+    color: 'rgba(255, 255, 255, 0.75)',
+    fontSize: 13,
   },
   // ── Stats row ─────────────────────────────────────────────────
   statsRow: {
@@ -1075,13 +1138,63 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
   },
+  orderHardwareBento: {
+    width: '100%',
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  orderHardwareLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  nfcIconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0, 102, 255, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 102, 255, 0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  orderHardwareTitle: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
+  },
+  laserPill: {
+    backgroundColor: 'rgba(0, 102, 255, 0.18)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  laserPillText: {
+    fontSize: 9,
+    color: '#2997FF',
+    letterSpacing: 0.5,
+  },
+  orderHardwareSub: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.5)',
+    marginTop: 2,
+    lineHeight: 16,
+  },
   fbAvatarBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 0,
+    backgroundColor: SURFACE,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
+    borderColor: SURFACE_BORDER,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -1104,13 +1217,13 @@ const styles = StyleSheet.create({
   inboxBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    gap: 6,
+    backgroundColor: SURFACE,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.10)',
-    paddingHorizontal: 13,
+    borderColor: SURFACE_BORDER,
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 999,
+    borderRadius: 0,
   },
   inboxBtnText: {
     color: '#FFFFFF',
@@ -1248,28 +1361,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
   },
-  glowRing1: {
-    position: 'absolute',
-    width: 260,
-    height: 130,
-    borderRadius: 130,
-    backgroundColor: 'rgba(37,150,190,0.13)',
-    top: '50%',
-    alignSelf: 'center',
-    transform: [{ translateY: -65 }],
-    zIndex: 0,
-  },
-  glowRing2: {
-    position: 'absolute',
-    width: 180,
-    height: 90,
-    borderRadius: 90,
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    top: '50%',
-    alignSelf: 'center',
-    transform: [{ translateY: -45 }],
-    zIndex: 0,
-  },
   cardElevation: {
     borderRadius: 16,
     overflow: 'hidden',
@@ -1323,37 +1414,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.base,
   },
   actionCard: {
-    width: 160,
-    height: 110,
-    borderRadius: 20,
+    width: 200,
+    height: 96,
+    borderRadius: 16,
     paddingHorizontal: 14,
-    paddingTop: 0,
-    paddingBottom: 12,
+    paddingVertical: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.10)',
-    backgroundColor: '#0D0D10',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    overflow: 'hidden',
-  },
-  actionGlowStrip: {
-    height: 2,
-    width: '60%',
-    borderRadius: 1,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    alignSelf: 'flex-start',
-    marginBottom: 8,
-    marginTop: 0,
-  },
-  actionCardIconBox: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.10)',
+    borderColor: SURFACE_BORDER,
+    backgroundColor: SURFACE,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   },
   actionCardPressed: {
     opacity: 0.75,
@@ -1622,4 +1693,282 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.5,
   },
+
+  // ── Profile Completion Bar ──
+  completionCard: {
+    borderRadius: 14,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    padding: 14,
+    gap: 10,
+  },
+  completionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  completionTitle: {
+    color: '#FFFFFF',
+    fontSize: 13,
+  },
+  completionScore: {
+    color: '#FFFFFF',
+    fontSize: 13,
+  },
+  completionTrack: {
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    overflow: 'hidden',
+  },
+  completionFill: {
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: '#FFFFFF',
+  },
+  completionNextRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  completionNextText: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 12,
+  },
+
+  cardHintBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'center',
+    marginTop: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  cardHintText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    letterSpacing: -0.2,
+  },
+
+  // Wide Primary Share Card Button
+  widePrimaryShareBtn: {
+    width: '100%',
+    height: 54,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginTop: 16,
+    marginBottom: 12,
+  },
+  widePrimaryShareText: {
+    color: '#000000',
+    fontSize: 16,
+    letterSpacing: -0.2,
+  },
+
+  // Secondary CTA buttons
+  ctaSecondaryBtn: {
+    flex: 1,
+    height: 48,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  ctaSecondaryText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  // ── Waitlist Modal ──
+  waitlistOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    justifyContent: 'flex-end',
+  },
+  waitlistCard: {
+    backgroundColor: '#111114',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 24,
+    gap: 14,
+    paddingBottom: 40,
+  },
+  waitlistHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignSelf: 'center',
+    marginBottom: 4,
+  },
+  waitlistIconSeal: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  waitlistTitle: {
+    color: '#FFFFFF',
+    fontSize: 20,
+  },
+  waitlistSub: {
+    color: 'rgba(255, 255, 255, 0.55)',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  waitlistInput: {
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: '#18181C',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 16,
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'System',
+  },
+  waitlistBtn: {
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  waitlistBtnText: {
+    color: '#000000',
+    fontSize: 15,
+  },
+  waitlistSuccess: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 16,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  waitlistSuccessText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    flex: 1,
+  },
+  waitlistClose: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  waitlistCloseText: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 14,
+  },
+
+  // ── Pro Upgrade Nudge ──
+  proNudgeCard: {
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    padding: 18,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+  },
+  proNudgeBadge: {
+    backgroundColor: '#000000',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    alignSelf: 'flex-start',
+  },
+  proNudgeBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    letterSpacing: 1.5,
+  },
+  proNudgeContent: {
+    flex: 1,
+    gap: 8,
+  },
+  proNudgeTitle: {
+    color: '#000000',
+    fontSize: 15,
+  },
+  proFeatureList: {
+    gap: 4,
+  },
+  proFeatureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  proFeatureText: {
+    color: 'rgba(0, 0, 0, 0.65)',
+    fontSize: 12,
+    flex: 1,
+  },
+  proNudgeArrow: {
+    alignSelf: 'center',
+    opacity: 0.4,
+  },
+
+  // ── Viral Referral Card ──
+  referralCard: {
+    borderRadius: 16,
+    backgroundColor: '#111114',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  referralIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#18181C',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  referralContent: {
+    flex: 1,
+    gap: 2,
+  },
+  referralTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  referralSub: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 12,
+  },
+  referralShareBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  referralShareBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+  },
 });
+
+

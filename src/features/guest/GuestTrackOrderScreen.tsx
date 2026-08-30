@@ -7,7 +7,9 @@ import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { AppButton } from '@/src/components/AppButton';
 import { CommentLoader } from '@/src/components/CommentLoader';
-import { OrderTimeline } from '@/src/components/OrderTimeline';
+import { AppHeaderV2 } from '@/src/components/AppHeaderV2';
+import { OrderCardV2 } from '@/src/components/OrderCardV2';
+import { OrderTimelineV2 } from '@/src/components/OrderTimelineV2';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
 import { productTypeOptions } from '@/src/constants/options';
 import { appRoutes } from '@/src/constants/navigation';
@@ -138,16 +140,12 @@ export function GuestTrackOrderScreen() {
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <IosScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
-        <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={12}>
-            <AppIcon name="ChevronLeft" size={22} color="#FFFFFF" />
-          </Pressable>
-          <View style={styles.headerCopy}>
-            <AppText style={styles.title}>Track Order</AppText>
-            <AppText style={styles.subtitle}>Production, payment, and delivery updates</AppText>
-          </View>
-          <AppIcon name="Truck" size={28} color={BRAND} />
-        </View>
+        <AppHeaderV2
+          title="Track Order"
+          showBack={true}
+          onBackPress={() => router.back()}
+          rightComponent={<AppIcon name="Truck" size={28} color={BRAND} />}
+        />
 
         {loading ? (
           <View style={styles.center}>
@@ -179,45 +177,17 @@ export function GuestTrackOrderScreen() {
             </View>
 
             {/* Order info */}
-            <View style={styles.orderCard}>
-              <View style={styles.orderRow}>
-                <View style={styles.orderLeft}>
-                  <AppText style={styles.orderNum}>{order.orderNumber ?? order.id.slice(0, 8)}</AppText>
-                  <AppText style={styles.orderProduct}>
-                    {productLabel} x {order.quantity}
-                  </AppText>
-                  <AppText style={styles.orderDate}>
-                    {new Date(order.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}
-                  </AppText>
-                </View>
-                <View>
-                  {st ? (
-                    <View style={[styles.statusBadge, { backgroundColor: st.bg }]}>
-                      <AppText style={[styles.statusText, { color: st.color }]}>{st.label}</AppText>
-                    </View>
-                  ) : null}
-                  <AppText style={styles.amount}>
-                    {order.currency ?? 'USD'}{' '}
-                    {order.amount != null ? order.amount.toLocaleString() : 'N/A'}
-                  </AppText>
-                </View>
-              </View>
-
-              <View style={styles.divider} />
-
-              <View style={styles.metaRow}>
-                <AppIcon name="Wallet" size={16} color={BRAND} />
-                <AppText style={styles.metaText}>{paymentLabel}</AppText>
-              </View>
-              {order.trackingNumber ? (
-                <View style={styles.metaRow}>
-                  <AppIcon name="Truck" size={16} color={BRAND} />
-                  <AppText style={styles.metaText}>
-                    {[order.carrier, order.trackingNumber].filter(Boolean).join(' / ')}
-                  </AppText>
-                </View>
-              ) : null}
-            </View>
+            <OrderCardV2
+              orderId={order.orderNumber ?? order.id.slice(0, 8)}
+              date={new Date(order.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}
+              amount={order.amount ?? 0}
+              status={
+                order.status === 'delivered' ? 'delivered' :
+                order.status === 'shipped' ? 'shipped' :
+                ['draft', 'pending_payment'].includes(order.status) ? 'pending' : 'processing'
+              }
+              itemCount={order.quantity ?? 1}
+            />
 
             {order.paymentStatus !== 'paid' && order.paymentMethod !== 'cash_on_delivery' ? (
               <AppButton
@@ -231,7 +201,10 @@ export function GuestTrackOrderScreen() {
 
             <View style={styles.timelineCard}>
               <AppText style={styles.sectionLabel}>Order timeline</AppText>
-              <OrderTimeline order={order} compact />
+              <OrderTimelineV2 
+                status={order.status}
+                paymentStatus={order.paymentStatus}
+              />
             </View>
           </>
         )}

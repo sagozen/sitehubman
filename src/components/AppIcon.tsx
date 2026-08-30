@@ -92,10 +92,16 @@ const ionicMap: Record<string, { outline: keyof typeof Ionicons.glyphMap; fill: 
   Star: { outline: 'star-outline', fill: 'star' },
   Heart: { outline: 'heart-outline', fill: 'heart' },
   UserRound: { outline: 'person-outline', fill: 'person' },
-  PlusSimple: { outline: 'add-outline', fill: 'add' },
-  LogOut: { outline: 'log-out-outline', fill: 'log-out' },
   Tag: { outline: 'pricetag-outline', fill: 'pricetag' },
   CircleCheck: { outline: 'checkmark-circle-outline', fill: 'checkmark-circle' },
+  Sun: { outline: 'sunny-outline', fill: 'sunny' },
+  Global: { outline: 'globe-outline', fill: 'globe' },
+  Smartphone: { outline: 'phone-portrait-outline', fill: 'phone-portrait' },
+  Vibrate: { outline: 'phone-portrait-outline', fill: 'phone-portrait' },
+  LockKeyhole: { outline: 'lock-closed-outline', fill: 'lock-closed' },
+  AltArrowRight: { outline: 'chevron-forward-outline', fill: 'chevron-forward' },
+  AltArrowLeft: { outline: 'chevron-back-outline', fill: 'chevron-back' },
+  Shield: { outline: 'shield-outline', fill: 'shield' },
 };
 
 const featherMap: Record<string, string> = {

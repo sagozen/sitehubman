@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { memo, useCallback, useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
-import { NfcGlobalCardBack } from '@/src/components/NfcGlobalCardBack';
+import { NfcCardFaceV2 } from '@/src/components/NfcCardFaceV2';
+import { NfcCardBackV2 } from '@/src/components/NfcCardBackV2';
 
 type FlippableNfcCardProps = {
   // Front props
@@ -14,50 +14,54 @@ type FlippableNfcCardProps = {
   website?: string;
   profileUrl?: string;
   backgroundImageUri?: string | null;
-  
+
   // Back props
   cardId?: string;
-  
-  // Size
+
+  // Size & Styling
   width?: number;
   height?: number;
   compact?: boolean;
   style?: StyleProp<ViewStyle>;
   gradientIndex?: number;
+  /** Card theme: 'dark' (default) or 'light' */
+  theme?: 'dark' | 'light';
 };
 
-export function FlippableNfcCard(props: FlippableNfcCardProps) {
+export const FlippableNfcCard = memo(function FlippableNfcCard(props: FlippableNfcCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
-  const [flipAnim] = useState(new Animated.Value(0));
-  const [scaleAnim] = useState(new Animated.Value(1));
 
-  function handleFlip() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    const toValue = isFlipped ? 0 : 1;
-    setIsFlipped(!isFlipped);
-    
-    Animated.sequence([
-      Animated.timing(scaleAnim, {
-        toValue: 0.94,
-        duration: 80,
-        useNativeDriver: true,
-      }),
-      Animated.parallel([
-        Animated.spring(flipAnim, {
-          toValue,
-          friction: 8,
-          tension: 10,
+  const flipAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handleFlip = useCallback(() => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setIsFlipped((prev) => {
+      const toValue = prev ? 0 : 1;
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 0.96,
+          duration: 40,
           useNativeDriver: true,
         }),
-        Animated.spring(scaleAnim, {
-          toValue: 1.0,
-          friction: 6,
-          tension: 12,
-          useNativeDriver: true,
-        }),
-      ]),
-    ]).start();
-  }
+        Animated.parallel([
+          Animated.spring(flipAnim, {
+            toValue,
+            friction: 7,
+            tension: 40,
+            useNativeDriver: true,
+          }),
+          Animated.spring(scaleAnim, {
+            toValue: 1.0,
+            friction: 7,
+            tension: 40,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]).start();
+      return !prev;
+    });
+  }, [flipAnim, scaleAnim]);
 
   const frontInterpolate = flipAnim.interpolate({
     inputRange: [0, 1],
@@ -80,19 +84,14 @@ export function FlippableNfcCard(props: FlippableNfcCardProps) {
         ]}
         pointerEvents={isFlipped ? 'none' : 'auto'}
       >
-        <NfcGlobalCardFace
+        <NfcCardFaceV2
           fullName={props.fullName}
-          title={props.title}
-          company={props.company}
-          phone={props.phone}
-          email={props.email}
-          website={props.website}
-          profileUrl={props.profileUrl}
-          backgroundImageUri={props.backgroundImageUri}
+          cardId={props.cardId}
           width={props.width}
           height={props.height}
           compact={props.compact}
-          gradientIndex={props.gradientIndex}
+          theme={props.theme}
+          paused={isFlipped}
         />
       </Animated.View>
 
@@ -106,23 +105,29 @@ export function FlippableNfcCard(props: FlippableNfcCardProps) {
         ]}
         pointerEvents={!isFlipped ? 'none' : 'auto'}
       >
-        <NfcGlobalCardBack
+        <NfcCardBackV2
           profileUrl={props.profileUrl}
           cardId={props.cardId}
           width={props.width}
           height={props.height}
           compact={props.compact}
+          theme={props.theme}
         />
       </Animated.View>
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
+    width: '100%',
+    aspectRatio: 1.586,
     position: 'relative',
+    alignSelf: 'center',
   },
   cardSide: {
+    width: '100%',
+    height: '100%',
     backfaceVisibility: 'hidden',
   },
   backSide: {

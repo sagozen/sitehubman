@@ -46,8 +46,11 @@ function filterByPeriod(payouts: Payout[], p: Period): Payout[] {
   });
 }
 
+import { usePreferences } from '@/src/hooks/usePreferences';
+
 export default function SalesPayoutsScreen() {
   const { user }        = useAuth();
+  const { colors, isDark } = usePreferences();
   const { payouts }     = usePayouts(user?.id ?? '');
   const { orders, refresh } = useOrders('sales', user?.id ?? '');
   const [period, setPeriod] = useState<Period>('Week');
@@ -62,7 +65,7 @@ export default function SalesPayoutsScreen() {
   const delivered    = orders.filter((o) => o.status === 'delivered').length;
 
   return (
-    <View style={styles.bg}>
+    <View style={[styles.bg, { backgroundColor: colors.background }]}>
       <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
         {/* Header */}

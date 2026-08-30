@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Telegram Login</title>
+  </head>
+  <body>
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var payload = {};
+        var returnOrigin = params.get('return_origin') || window.location.origin;
+        params.forEach(function (value, key) {
+          if (key === 'return_origin') return;
+          payload[key] = value;
+        });
+
+        if (window.opener && typeof window.opener.postMessage === 'function') {
+          window.opener.postMessage({ type: 'telegram-login', payload: payload }, returnOrigin);
+        }
+
+        document.body.textContent = 'Telegram login received. You can close this window.';
+        setTimeout(function () {
+          window.close();
+        }, 300);
+      })();
+    </script>
+  </body>
+</html>

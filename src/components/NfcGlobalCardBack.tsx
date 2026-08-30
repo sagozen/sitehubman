@@ -1,10 +1,9 @@
+import { memo } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { createShadow } from '@/src/utils/shadows';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
 import { AppText } from '@/src/components/AppText';
-
-const CARD_GRADIENT = ['#111111', '#202124', '#2596BE'] as const;
 
 type NfcGlobalCardBackProps = {
   /** Profile URL for QR code */
@@ -15,300 +14,331 @@ type NfcGlobalCardBackProps = {
   height?: number;
   compact?: boolean;
   style?: StyleProp<ViewStyle>;
+  /** Card color theme: 'dark' (default) or 'light' */
+  theme?: 'dark' | 'light';
 };
 
-export function NfcGlobalCardBack({
+export const NfcGlobalCardBack = memo(function NfcGlobalCardBack({
   profileUrl = '',
   cardId = '',
   width,
   height,
   compact = false,
   style,
+  theme = 'dark',
 }: NfcGlobalCardBackProps) {
+  const isLight = theme === 'light';
   const cardSizeStyle = width ? { width, height: height ?? width / 1.586 } : undefined;
-  const resolvedHeight = height ?? (width ? width / 1.586 : undefined);
-  const maxQrSize = resolvedHeight ? Math.max(62, Math.floor(resolvedHeight * 0.32)) : compact ? 74 : 104;
-  const qrSize = compact ? Math.min(74, maxQrSize) : Math.min(104, maxQrSize);
+  const qrUrl = profileUrl.trim() || `https://sitehub.app/u/${cardId || 'gennfc-7a3f'}`;
 
   return (
-    <View style={[styles.card, compact && styles.cardCompact, cardSizeStyle, style]}>
-      <LinearGradient colors={CARD_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+    <View
+      style={[
+        styles.card,
+        compact && styles.cardCompact,
+        isLight && styles.cardLight,
+        cardSizeStyle,
+        style,
+      ]}
+    >
+      {/* Background Color Base */}
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          { backgroundColor: isLight ? '#F8FAFC' : '#0A0B0E' },
+        ]}
+      />
 
-      {/* Magnetic stripe - placed higher up */}
-      <View style={[styles.magStripe, compact && styles.magStripeCompact]} />
+      {/* Surface Gradient */}
+      {isLight ? (
+        <LinearGradient
+          colors={['#FFFFFF', '#F1F5F9', '#E2E8F0']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+      ) : (
+        <LinearGradient
+          colors={[
+            'rgba(255,255,255,0.16)',
+            'rgba(255,255,255,0.02)',
+            'transparent',
+            'rgba(0,240,255,0.04)',
+          ]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+      )}
 
-      {/* Card content */}
+      {/* Content Layout — Clean 2028 Professional Aesthetic */}
       <View style={[styles.content, compact && styles.contentCompact]}>
-        <View style={[styles.mainRow, compact && styles.mainRowCompact]}>
-          {/* QR code section on the left */}
-          <View style={[styles.qrSection, compact && styles.qrSectionCompact]}>
-            <View style={[styles.qrBox, compact && styles.qrBoxCompact, { width: qrSize + 16, height: qrSize + 16 }]}>
-              {profileUrl ? (
-                <QRCode
-                  value={profileUrl}
-                  size={qrSize}
-                  color="#111111"
-                  backgroundColor="#FFFFFF"
-                  quietZone={4}
-                />
-              ) : (
-                <View style={[styles.qrPlaceholder, { width: qrSize, height: qrSize }]}>
-                  <AppText style={styles.qrPlaceholderText}>QR</AppText>
-                </View>
-              )}
-            </View>
-            <AppText style={[styles.qrLabel, compact && styles.qrLabelCompact]}>
-              SCAN TO VIEW
+        {/* Top Header Row */}
+        <View style={styles.headerRow}>
+          <View style={styles.headerLeft}>
+            <AppText
+              style={[
+                styles.brandTitle,
+                compact && styles.brandTitleCompact,
+                isLight && styles.textDark,
+              ]}
+            >
+              AVIO
+            </AppText>
+            <AppText
+              style={[
+                styles.brandSub,
+                compact && styles.brandSubCompact,
+                isLight && styles.textMutedDark,
+              ]}
+            >
+              SMART IDENTIFICATION
             </AppText>
           </View>
 
-          {/* Branding, Title, and Note on the right */}
-          <View style={[styles.rightColumn, compact && styles.rightColumnCompact]}>
-            <View style={[styles.brandRow, compact && styles.brandRowCompact]}>
-              <View style={[styles.brandMark, compact && styles.brandMarkCompact]}>
-                <AppText style={[styles.brandMarkText, compact && styles.brandMarkTextCompact]}>N</AppText>
-              </View>
-              <AppText style={[styles.brandText, compact && styles.brandTextCompact]}>
-                NFC GLOBAL
-              </AppText>
-            </View>
-
-            <AppText style={[styles.noteText, compact && styles.noteTextCompact]} numberOfLines={3}>
-              Scan the QR code or tap the card to connect instantly and view the digital profile.
+          <View style={[styles.statusBadge, isLight && styles.statusBadgeLight]}>
+            <View style={[styles.statusDot, isLight && styles.statusDotLight]} />
+            <AppText style={[styles.statusText, isLight && styles.statusTextLight]}>
+              ACTIVE PASS
             </AppText>
-
-            {cardId ? (
-              <AppText style={[styles.cardId, compact && styles.cardIdCompact]}>
-                ID: {cardId}
-              </AppText>
-            ) : null}
           </View>
         </View>
 
-        {!compact ? (
-          <View style={styles.instructions}>
-            <View style={styles.instructionRow}>
-              <View style={styles.instructionDot} />
-              <AppText style={styles.instructionText}>
-                Tap or scan back of card to connect
-              </AppText>
+        {/* 2028 Sleek Encrypted Stripe Accent */}
+        <View style={[styles.stripeBand, isLight && styles.stripeBandLight]}>
+          <LinearGradient
+            colors={
+              isLight
+                ? ['rgba(15,23,42,0.06)', 'rgba(15,23,42,0.02)', 'rgba(15,23,42,0.06)']
+                : ['rgba(255,255,255,0.06)', 'rgba(0,240,255,0.08)', 'rgba(255,255,255,0.06)']
+            }
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={StyleSheet.absoluteFill}
+          />
+          <AppText
+            style={[
+              styles.stripeText,
+              compact && styles.stripeTextCompact,
+              isLight && styles.stripeTextLight,
+            ]}
+            numberOfLines={1}
+          >
+            AVIO • ENCRYPTED NFC PROTOCOL • 2026 EDITION
+          </AppText>
+        </View>
+
+        {/* Bottom Row — Left Instructions + Right QR */}
+        <View style={styles.bottomRow}>
+          <View style={styles.bottomLeftContainer}>
+            <AppText
+              style={[
+                styles.instructionTitle,
+                compact && styles.instructionTitleCompact,
+                isLight && styles.textDark,
+              ]}
+            >
+              TAP OR SCAN TO CONNECT
+            </AppText>
+
+            <AppText
+              style={[
+                styles.supportUrl,
+                compact && styles.supportUrlCompact,
+                isLight && styles.textMutedDark,
+              ]}
+            >
+              sitehub.app
+            </AppText>
+          </View>
+
+          {/* Real Scannable QR Code */}
+          <View style={[styles.qrContainer, compact && styles.qrContainerCompact]}>
+            <View style={[styles.qrFrame, isLight && styles.qrFrameLight]}>
+              <QRCode
+                value={qrUrl}
+                size={compact ? 44 : 64}
+                color={isLight ? '#0F172A' : '#000000'}
+                backgroundColor="#FFFFFF"
+                quietZone={2}
+              />
             </View>
           </View>
-        ) : null}
+        </View>
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {
     width: '100%',
     aspectRatio: 1.586,
-    borderRadius: 16,
+    borderRadius: 18,
     position: 'relative',
     overflow: 'hidden',
-    backgroundColor: '#111111',
-    ...createShadow({ color: '#111111', offset: { width: 0, height: 24 }, opacity: 0.28, radius: 55, elevation: 10 }),
+    backgroundColor: '#090A0E',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.16)',
+    ...createShadow({ color: '#000000', offset: { width: 0, height: 24 }, opacity: 0.4, radius: 55, elevation: 12 }),
   },
   cardCompact: {
-    borderRadius: 10,
-    ...createShadow({ color: '#111111', offset: { width: 0, height: 14 }, opacity: 0.28, radius: 28, elevation: 6 }),
+    borderRadius: 12,
   },
-
-  // Magnetic stripe (placed higher up)
-  magStripe: {
-    position: 'absolute',
-    top: 20,
-    left: 0,
-    right: 0,
-    height: 38,
-    backgroundColor: '#000000',
+  cardLight: {
+    backgroundColor: '#F8FAFC',
+    borderColor: 'rgba(15, 23, 42, 0.12)',
+    ...createShadow({ color: '#0F172A', offset: { width: 0, height: 16 }, opacity: 0.12, radius: 32, elevation: 8 }),
   },
-  magStripeCompact: {
-    top: 12,
-    height: 24,
-  },
-
-  // Content
   content: {
     flex: 1,
     padding: 22,
-    paddingTop: 74, // reduced from 108 to start right below the high-aligned magnetic stripe
-    gap: 12,
+    justifyContent: 'space-between',
     zIndex: 2,
   },
   contentCompact: {
-    padding: 14,
-    paddingTop: 44, // reduced from 62
-    gap: 7,
+    padding: 13,
   },
-
-  // Horizontal Row
-  mainRow: {
+  headerRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 18,
-    flex: 1,
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
-  mainRowCompact: {
-    gap: 10,
+  headerLeft: {
+    gap: 2,
   },
-
-  // QR section (left)
-  qrSection: {
-    alignItems: 'center',
-    gap: 6,
-  },
-  qrSectionCompact: {
-    gap: 4,
-  },
-  qrBox: {
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 8,
-  },
-  qrBoxCompact: {
-    borderRadius: 10,
-    padding: 6,
-  },
-  qrPlaceholder: {
-    backgroundColor: '#E5E7EB',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-  },
-  qrPlaceholderText: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: '#9CA3AF',
-  },
-  qrLabel: {
-    fontSize: 8,
+  brandTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
     fontWeight: '800',
-    color: 'rgba(255,255,255,0.72)',
-    letterSpacing: 0.9,
-    textAlign: 'center',
+    letterSpacing: 3.5,
   },
-  qrLabelCompact: {
-    fontSize: 7,
+  brandTitleCompact: {
+    fontSize: 10,
+    letterSpacing: 2,
+  },
+  brandSub: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 9.5,
+    fontWeight: '600',
+    letterSpacing: 1.2,
+  },
+  brandSubCompact: {
+    fontSize: 7.5,
     letterSpacing: 0.8,
   },
-
-  // Right column
-  rightColumn: {
-    flex: 1,
-    gap: 6,
+  textDark: {
+    color: '#0F172A',
+  },
+  textMutedDark: {
+    color: 'rgba(15, 23, 42, 0.6)',
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(0, 240, 255, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    borderWidth: 0.5,
+    borderColor: 'rgba(0, 240, 255, 0.4)',
+  },
+  statusBadgeLight: {
+    backgroundColor: 'rgba(2, 132, 199, 0.08)',
+    borderColor: 'rgba(2, 132, 199, 0.3)',
+  },
+  statusDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#00F0FF',
+  },
+  statusDotLight: {
+    backgroundColor: '#0284C7',
+  },
+  statusText: {
+    color: '#00F0FF',
+    fontSize: 8.5,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+  },
+  statusTextLight: {
+    color: '#0284C7',
+  },
+  stripeBand: {
+    height: 24,
+    borderRadius: 6,
+    overflow: 'hidden',
     justifyContent: 'center',
+    paddingHorizontal: 10,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    marginVertical: 4,
   },
-  rightColumnCompact: {
-    gap: 4,
+  stripeBandLight: {
+    borderColor: 'rgba(15, 23, 42, 0.08)',
   },
-
-  // Note text (in gray)
-  noteText: {
-    color: 'rgba(255,255,255,0.62)', // Gray tone
-    fontSize: 11,
-    lineHeight: 15,
-    fontWeight: '500',
+  stripeText: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 8.5,
+    fontWeight: '600',
+    letterSpacing: 1.5,
   },
-  noteTextCompact: {
-    fontSize: 7.5,
-    lineHeight: 10,
+  stripeTextCompact: {
+    fontSize: 7,
+    letterSpacing: 1,
   },
-
-  // Card ID
-  cardId: {
+  stripeTextLight: {
+    color: 'rgba(15, 23, 42, 0.5)',
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+  },
+  bottomLeftContainer: {
+    gap: 3,
+  },
+  instructionTitle: {
+    color: '#FFFFFF',
     fontSize: 10,
     fontWeight: '700',
-    color: 'rgba(255,255,255,0.48)', // Premium light gray
     letterSpacing: 1.2,
-    marginTop: 2,
   },
-  cardIdCompact: {
-    fontSize: 7,
+  instructionTitleCompact: {
+    fontSize: 8,
     letterSpacing: 0.8,
-    marginTop: 1,
   },
-
-  // Branding mark (logo box)
-  brandMark: {
-    width: 26,
-    height: 26,
+  supportUrl: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 9.5,
+    fontWeight: '500',
+    letterSpacing: 0.5,
+  },
+  supportUrlCompact: {
+    fontSize: 7.5,
+  },
+  qrContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  qrContainerCompact: {},
+  qrFrame: {
+    padding: 3,
     borderRadius: 8,
     backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
-  brandMarkCompact: {
-    width: 18,
-    height: 18,
-    borderRadius: 5,
-  },
-  brandMarkText: {
-    color: '#111111',
-    fontWeight: '900',
-    fontSize: 14,
-    lineHeight: 16,
-  },
-  brandMarkTextCompact: {
-    fontSize: 10,
-    lineHeight: 11,
-  },
-  brandText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    lineHeight: 16,
-    fontWeight: '900',
-    letterSpacing: 1.3,
-  },
-  brandTextCompact: {
-    fontSize: 9,
-    lineHeight: 11,
-    letterSpacing: 0.9,
-  },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  brandRowCompact: {
-    gap: 6,
-  },
-
-  // Instructions
-  instructions: {
-    gap: 6,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.10)',
-    marginTop: 'auto',
-  },
-  instructionsCompact: {
-    gap: 4,
-    paddingTop: 6,
-  },
-  instructionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-  },
-  instructionDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.48)',
-  },
-  instructionText: {
-    flex: 1,
-    color: 'rgba(255,255,255,0.58)',
-    fontSize: 9,
-    lineHeight: 12,
-    fontWeight: '500',
-  },
-  instructionTextCompact: {
-    fontSize: 7,
-    lineHeight: 9,
+  qrFrameLight: {
+    borderWidth: 1,
+    borderColor: 'rgba(15, 23, 42, 0.15)',
+    shadowColor: '#0F172A',
+    shadowOpacity: 0.1,
   },
 });

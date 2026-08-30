@@ -1,5 +1,11 @@
 import { Redirect } from 'expo-router';
+import { SeoHead } from '@/src/components/SeoHead';
 
 export default function LegacyRegisterRedirect() {
-  return <Redirect href="/(auth)/register" />;
+  return (
+    <>
+      <SeoHead title="Register" noIndex />
+      <Redirect href="/(auth)/register" />
+    </>
+  );
 }

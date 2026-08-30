@@ -1,7 +1,16 @@
 User-agent: *
 Allow: /
 
-# Block private/admin routes from indexing
+# Public pages
+Allow: /u/
+Allow: /public/
+Allow: /c/
+Allow: /p/
+Allow: /privacy-policy
+Allow: /terms-of-service
+Allow: /nfc-demo
+
+# Block private/admin/internal routes
 Disallow: /admin
 Disallow: /sales
 Disallow: /account
@@ -18,12 +27,19 @@ Disallow: /login
 Disallow: /register
 Disallow: /guest-checkout
 Disallow: /guest-post-login-choice
+Disallow: /guest-track-order
 Disallow: /icon-preview
 Disallow: /qr-generator
+Disallow: /cards/preview
+Disallow: /card-preview
+Disallow: /studio
+Disallow: /edit-bio
+Disallow: /activate-card
+Disallow: /scan
+Disallow: /nfc-demo
+Disallow: /language-picker
+Disallow: /theme-picker
+Disallow: /preview
+Disallow: /promotional-preview
 
-# Allow public profile pages and main navigation
-Allow: /u/
-Allow: /public/
-
-Sitemap: https://sitehubman.vercel.app/_sitemap
-Sitemap: https://sitehubman.vercel.app/sitemap.xml
+Sitemap: https://sitehubman.com/sitemap.xml

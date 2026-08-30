@@ -1,8 +1,12 @@
 {
-  "name": "bolt-expo-starter",
+  "name": "avio-brand-monorepo",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "web",
+    "packages/*"
+  ],
   "scripts": {
     "start": "cross-env NODE_OPTIONS=--max-old-space-size=16384 expo start --lan",
     "start:clear": "cross-env NODE_OPTIONS=--max-old-space-size=16384 expo start -c --lan",
@@ -50,7 +54,12 @@
     "restart:expo": "powershell -ExecutionPolicy Bypass -File scripts/restart-expo.ps1",
     "run": "powershell -ExecutionPolicy Bypass -File scripts/run-sitehub.ps1",
     "metro:watch": "expo start --max-workers 2",
-    "metro:reset": "expo start -c"
+    "metro:reset": "expo start -c",
+    "web:dev": "cd web && npm run dev",
+    "web:build": "cd web && npm run build",
+    "web:preview": "cd web && npm run preview",
+    "web:install": "cd web && npm install",
+    "dev:all": "npx concurrently --names \"MOBILE,WEB\" --prefix-colors \"cyan,magenta\" \"npm run start:web\" \"npm run web:dev\""
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.1",
@@ -113,6 +122,7 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~19.1.10",
+    "concurrently": "^9.2.4",
     "cross-env": "^7.0.3",
     "eas-cli": "^16.24.1",
     "eslint": "^9.0.0",

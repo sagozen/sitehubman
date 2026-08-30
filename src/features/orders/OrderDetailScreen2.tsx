@@ -6,7 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppIcon, AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { AuthGate } from '@/src/components/AuthGate';
-import { OrderWorkflowTimeline } from '@/src/components/OrderWorkflowTimeline';
+import { AppHeaderV2 } from '@/src/components/AppHeaderV2';
+import { OrderTimelineV2 } from '@/src/components/OrderTimelineV2';
 import { OrderActionBar } from '@/src/components/OrderActionBar';
 import {
   cardDesignOptions,
@@ -615,15 +616,11 @@ function DetailContent() {
   if (!order || !form) {
     return (
       <SafeAreaView style={styles.safe}>
-        <View style={styles.header}>
-          <Pressable onPress={handleBack} style={styles.backBtn} hitSlop={12}>
-            <AppIcon name="ChevronLeft" size={22} color={PINK} />
-          </Pressable>
-          <View style={styles.headerText}>
-            <AppText variant="h2" weight="bold" style={styles.headerTitle}>Order Detail</AppText>
-            <AppText variant="caption" weight="semibold" style={styles.headerSub}>Unavailable</AppText>
-          </View>
-        </View>
+        <AppHeaderV2
+          title="Order Detail"
+          showBack={true}
+          onBackPress={handleBack}
+        />
         <View style={styles.center}>
           <AppText variant="body" weight="semibold" style={styles.errorText}>{message ?? 'Order not found.'}</AppText>
           <Pressable style={styles.secondaryButton} onPress={load}>
@@ -637,24 +634,22 @@ function DetailContent() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <Pressable onPress={handleBack} style={styles.backBtn} hitSlop={12}>
-          <AppIcon name="ChevronLeft" size={22} color={PINK} />
-        </Pressable>
-        <View style={styles.headerText}>
-          <AppText variant="h2" weight="bold" style={styles.headerTitle}>{order.customerName || 'Order Detail'}</AppText>
-          <AppText variant="caption" weight="semibold" style={styles.headerSub}>#{order.id.slice(0, 8).toUpperCase()} / {order.cardCode || 'No card code'}</AppText>
-        </View>
-        <View style={[styles.headerBadge, { backgroundColor: cardStatusOpt.color }]}>
-          <AppText variant="caption" tone="inverse" weight="bold" style={styles.headerBadgeText}>{cardStatusOpt.label}</AppText>
-        </View>
-      </View>
+      <AppHeaderV2
+        title={`${order.customerName || 'Order Detail'} (${order.id.slice(0, 8).toUpperCase()})`}
+        showBack={true}
+        onBackPress={handleBack}
+        rightComponent={
+          <View style={[styles.headerBadge, { backgroundColor: cardStatusOpt.color }]}>
+            <AppText variant="caption" tone="inverse" weight="bold" style={styles.headerBadgeText}>{cardStatusOpt.label}</AppText>
+          </View>
+        }
+      />
 
       <KeyboardAvoidingView style={styles.keyboard} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           {message ? <AppText style={[styles.inlineMessage, message.includes('denied') && styles.inlineError]}>{message}</AppText> : null}
 
-          {order ? <View style={styles.workflowSection}><AppText variant="caption" weight="semibold" style={styles.workflowTitle}>Workflow</AppText><View style={styles.workflowCard}><OrderWorkflowTimeline order={order} layout="step" /></View></View> : null}
+          {order ? <View style={styles.workflowSection}><AppText variant="caption" weight="semibold" style={styles.workflowTitle}>Workflow</AppText><View style={styles.workflowCard}><OrderTimelineV2 status={order.status} paymentStatus={order.paymentStatus} /></View></View> : null}
 
           {/* Role-aware action bar (single source of truth from orderWorkflow module) */}
           {order ? <View style={styles.actionBarWrap}><OrderActionBar order={order} role={currentRole} onAction={handleOrderAction} /></View> : null}
