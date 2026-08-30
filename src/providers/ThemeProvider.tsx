@@ -1,10 +1,12 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useMemo, type ReactNode } from 'react';
 import { useColorScheme } from 'react-native';
 import { glassTheme } from '@/src/design-system/glass';
+import { appleHIG, appleColors } from '@/src/design-system/apple-hig';
 
 interface ThemeContextProps {
   isDark: boolean;
   toggleTheme: () => void;
+  // Legacy colors shape — kept for backward compat
   colors: {
     primary: string;
     accent: string;
@@ -12,7 +14,12 @@ interface ThemeContextProps {
     surface: string;
     surfaceElevated: string;
     text: string;
+    textPrimary: string;
+    textMuted: string;
     textSecondary: string;
+    textInverse: string;
+    textTertiary: string;
+    border: string;
     disabled: string;
     success: string;
     warning: string;
@@ -21,55 +28,54 @@ interface ThemeContextProps {
   };
   spacing: typeof glassTheme.spacing;
   glass: typeof glassTheme;
+  // Apple HIG resolved palette for current mode
+  apple: typeof appleColors.dark | typeof appleColors.light;
+  // Apple HIG rulebook (static)
+  hig: typeof appleHIG;
 }
 
 const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
 
-const LIGHT_COLORS = {
-  primary: '#0A84FF',
-  accent: '#FF2D55',
-  background: '#F5F5F7',
-  surface: '#FFFFFF',
-  surfaceElevated: 'rgba(255,255,255,0.85)',
-  text: '#1C1C1E',
-  textSecondary: '#8E8E93',
-  disabled: '#C7C7CC',
-  success: '#34C759',
-  warning: '#FF9500',
-  error: '#FF3B30',
-  gradient: ['#0A84FF', '#5AC8FA'] as const,
-} as const;
-
-const DARK_COLORS = {
-  primary: '#0A84FF',
-  accent: '#FF375F',
-  background: '#000000',
-  surface: '#1C1C1E',
-  surfaceElevated: 'rgba(44,44,46,0.55)',
-  text: '#FFFFFF',
-  textSecondary: '#8E8E93',
-  disabled: '#48484A',
-  success: '#30D158',
-  warning: '#FF9F0A',
-  error: '#FF453A',
-  gradient: ['#0A84FF', '#5E5CE6'] as const,
-} as const;
+function buildColors(isDark: boolean) {
+  const a = isDark ? appleColors.dark : appleColors.light;
+  return {
+    primary:         a.tint,
+    accent:          isDark ? '#FF375F' : '#FF2D55',
+    background:      a.background,
+    surface:         a.backgroundSecondary,
+    surfaceElevated: a.backgroundTertiary,
+    text:            a.label,
+    textPrimary:     a.label,
+    textMuted:       a.labelSecondary,
+    textSecondary:   a.labelSecondary,
+    textInverse:     isDark ? '#000000' : '#FFFFFF',
+    textTertiary:    a.labelTertiary,
+    border:          a.separator,
+    disabled:        isDark ? '#48484A' : '#C7C7CC',
+    success:         a.success,
+    warning:         a.warning,
+    error:           a.destructive,
+    gradient:        [a.tint, isDark ? '#5E5CE6' : '#5AC8FA'] as const,
+  } as const;
+}
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const systemScheme = useColorScheme();
-  const [isDark, setIsDark] = useState(systemScheme === 'dark');
+  const [isDark, setIsDark] = useState(systemScheme === 'dark' || systemScheme === null);
   const toggleTheme = () => setIsDark(prev => !prev);
 
+  const value = useMemo<ThemeContextProps>(() => ({
+    isDark,
+    toggleTheme,
+    colors:  buildColors(isDark),
+    spacing: glassTheme.spacing,
+    glass:   glassTheme,
+    apple:   isDark ? appleColors.dark : appleColors.light,
+    hig:     appleHIG,
+  }), [isDark]);
+
   return (
-    <ThemeContext.Provider
-      value={{
-        isDark,
-        toggleTheme,
-        colors: isDark ? DARK_COLORS : LIGHT_COLORS,
-        spacing: glassTheme.spacing,
-        glass: glassTheme,
-      }}
-    >
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );
@@ -80,3 +86,9 @@ export const useTheme = (): ThemeContextProps => {
   if (!ctx) throw new Error('useTheme must be used within ThemeProvider');
   return ctx;
 };
+
+// Convenience hook: resolves Apple HIG colors for current mode
+export function useAppleTheme() {
+  const { isDark, apple, hig } = useTheme();
+  return { isDark, colors: apple, hig };
+}

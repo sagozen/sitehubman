@@ -1,7 +1,11 @@
 /**
- * Design Tokens — Premium SaaS Quality
- * World-class design system foundations
- * Handcrafted with intention, not AI-generated
+ * Design Tokens — Apple HIG Aligned
+ * Typography, color, spacing, and motion derived from Apple Human Interface Guidelines.
+ * For the canonical rulebook, see: src/design-system/apple-hig.ts
+ *
+ * References:
+ *   - Apple HIG Dynamic Type: https://developer.apple.com/design/human-interface-guidelines/typography
+ *   - UIKit System Colors: iOS 17 dark/light adaptive palette
  */
 
 import { Platform } from 'react-native';
@@ -12,84 +16,71 @@ import { Platform } from 'react-native';
 
 export const typography = {
   /**
-   * Font Families
-   * Using Inter on Android/Web, SF Pro on iOS
+   * Font Families — SF Pro on iOS (via 'System'), Inter on Android/Web
    */
   fontFamily: {
     regular: Platform.select({
       ios: 'System',
       android: 'Inter-Regular',
-      default: 'Inter, -apple-system, system-ui, sans-serif',
+      default: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif',
     })!,
     medium: Platform.select({
       ios: 'System',
       android: 'Inter-Medium',
-      default: 'Inter, -apple-system, system-ui, sans-serif',
+      default: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif',
     })!,
     semibold: Platform.select({
       ios: 'System',
       android: 'Inter-SemiBold',
-      default: 'Inter, -apple-system, system-ui, sans-serif',
+      default: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif',
     })!,
     bold: Platform.select({
       ios: 'System',
       android: 'Inter-Bold',
-      default: 'Inter, -apple-system, system-ui, sans-serif',
+      default: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif',
     })!,
   },
 
   /**
-   * Font Scales
-   * Precise sizing with proper line heights and letter spacing
+   * Font Scale — Apple HIG Dynamic Type (Default content size category)
+   * Reference: https://developer.apple.com/design/human-interface-guidelines/typography
    */
   scale: {
-    display: {
-      fontSize: 32,
-      lineHeight: 38,
-      letterSpacing: -0.4,
-      fontWeight: '700' as const,
+    display: {      // Large Title
+      fontSize: 34, lineHeight: 41, letterSpacing: 0.37, fontWeight: '700' as const,
     },
-    h1: {
-      fontSize: 24,
-      lineHeight: 31,
-      letterSpacing: -0.3,
-      fontWeight: '600' as const,
+    h1: {           // Title 1
+      fontSize: 28, lineHeight: 34, letterSpacing: 0.36, fontWeight: '700' as const,
     },
-    h2: {
-      fontSize: 20,
-      lineHeight: 28,
-      letterSpacing: -0.2,
-      fontWeight: '600' as const,
+    h2: {           // Title 2
+      fontSize: 22, lineHeight: 28, letterSpacing: 0.35, fontWeight: '700' as const,
     },
-    h3: {
-      fontSize: 17,
-      lineHeight: 24,
-      letterSpacing: -0.1,
-      fontWeight: '600' as const,
+    h3: {           // Title 3
+      fontSize: 20, lineHeight: 25, letterSpacing: 0.38, fontWeight: '600' as const,
     },
-    body: {
-      fontSize: 15,
-      lineHeight: 22,
-      letterSpacing: 0,
-      fontWeight: '400' as const,
+    headline: {     // Headline (semi-bold body)
+      fontSize: 17, lineHeight: 22, letterSpacing: -0.41, fontWeight: '600' as const,
     },
-    bodyEmphasis: {
-      fontSize: 15,
-      lineHeight: 22,
-      letterSpacing: -0.1,
-      fontWeight: '500' as const,
+    body: {         // Body — Apple HIG: 17pt
+      fontSize: 17, lineHeight: 22, letterSpacing: -0.41, fontWeight: '400' as const,
     },
-    caption: {
-      fontSize: 13,
-      lineHeight: 18,
-      letterSpacing: 0,
-      fontWeight: '400' as const,
+    bodyEmphasis: { // Body emphasis
+      fontSize: 17, lineHeight: 22, letterSpacing: -0.41, fontWeight: '500' as const,
     },
-    footnote: {
-      fontSize: 11,
-      lineHeight: 14,
-      letterSpacing: 0.1,
-      fontWeight: '400' as const,
+    callout: {      // Callout
+      fontSize: 16, lineHeight: 21, letterSpacing: -0.32, fontWeight: '400' as const,
+    },
+    subhead: {      // Subhead
+      fontSize: 15, lineHeight: 20, letterSpacing: -0.23, fontWeight: '400' as const,
+    },
+    caption: {      // Footnote (used as "caption" in app)
+      fontSize: 13, lineHeight: 18, letterSpacing: -0.08, fontWeight: '400' as const,
+    },
+    footnote: {     // Caption 1
+      fontSize: 12, lineHeight: 16, letterSpacing: 0,     fontWeight: '400' as const,
+    },
+    caption2: {     // Caption 2
+      fontSize: 11, lineHeight: 13, letterSpacing: 0.06,  fontWeight: '400' as const,
     },
   },
 } as const;

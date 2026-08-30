@@ -1,8 +1,14 @@
-/**
- * AppButton — monochrome, performance-tuned button primitive.
- * Variants: primary (solid black/white), secondary (light fill), ghost (text only),
- *           icon (square hit-target), soft (subtle fill), outline (hairline border).
- * Press scale: 0.985, spring damped for crisp Apple-feel.
+﻿/**
+ * AppButton — Apple HIG-compliant button primitive.
+ *
+ * Apple HIG rules applied:
+ * - Minimum touch target: 44x44pt (all interactive sizes)
+ * - Press: spring scale 0.97 + opacity 0.88 (200ms)
+ * - Radii: sm=10, md=14, lg=16, full=pill
+ * - Primary: filled system blue (#0A84FF dark / #007AFF light)
+ * - Destructive: system red
+ * - Disabled: opacity 0.40
+ * - Haptic: .selection on every tap
  */
 import React, { memo, useCallback, type ReactNode } from 'react';
 import {
@@ -15,6 +21,7 @@ import {
   type ViewStyle,
   type StyleProp,
   type TextStyle,
+  Text,
 } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -25,42 +32,16 @@ import Animated, {
 
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { MonoText } from '@/src/components/MonoText';
-import { monoMotion, monoSpace } from '@/src/design-system/monochrome';
 import { Haptics, HapticTap } from '@/src/utils/haptics';
 import { usePreferences } from '@/src/hooks/usePreferences';
 
 export type ButtonVariant =
-  | 'primary'
-  | 'secondary'
-  | 'tertiary'
-  | 'ghost'
-  | 'outline'
-  | 'soft'
-  | 'dark'
-  | 'white'
-  | 'destructive'
-  | 'link'
-  | 'icon'
-  | 'iconCircle'
-  | 'icon-circle'
-  | 'menu'
-  | 'close'
-  | 'back'
-  | 'floating'
-  | 'success'
-  | 'warning'
-  | 'disabled'
-  | 'loading'
-  | 'glass'
-  | 'glass-primary'
-  | 'share'
-  | 'scan'
-  | 'add'
-  | 'edit'
-  | 'pill'
-  | 'approval'
-  | 'reject'
-  | 'urgent';
+  | 'primary' | 'secondary' | 'tertiary' | 'ghost' | 'outline'
+  | 'soft' | 'dark' | 'white' | 'destructive' | 'link'
+  | 'icon' | 'iconCircle' | 'icon-circle' | 'menu' | 'close' | 'back'
+  | 'floating' | 'success' | 'warning' | 'disabled' | 'loading'
+  | 'glass' | 'glass-primary' | 'share' | 'scan' | 'add' | 'edit'
+  | 'pill' | 'approval' | 'reject' | 'urgent';
 
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl' | 'bottomCTA' | 'mini' | 'default';
 export type ButtonHaptic = 'light' | 'medium' | 'success' | 'error' | 'warning' | 'none';
@@ -72,7 +53,6 @@ export interface AppButtonProps extends Omit<PressableProps, 'style' | 'children
   size?: ButtonSize;
   iconLeft?: AppIconName | ReactNode;
   iconRight?: AppIconName | ReactNode;
-  /** Alias for iconLeft */
   iconName?: AppIconName | ReactNode;
   iconPosition?: string;
   destructiveConfirm?: boolean;
@@ -89,17 +69,22 @@ export interface AppButtonProps extends Omit<PressableProps, 'style' | 'children
   hitSlop?: number | { top: number; bottom: number; left: number; right: number };
 }
 
+// Apple HIG button size tokens
 const sizeConfig: Record<string, { height: number; radius: number; paddingX: number; fontSize: number; iconSize: number }> = {
-  mini: { height: 32, radius: 8, paddingX: 10, fontSize: 13, iconSize: 14 },
-  sm: { height: 36, radius: 10, paddingX: 14, fontSize: 14, iconSize: 16 },
-  md: { height: 44, radius: 12, paddingX: 18, fontSize: 15, iconSize: 18 },
-  default: { height: 44, radius: 12, paddingX: 18, fontSize: 15, iconSize: 18 },
-  lg: { height: 52, radius: 14, paddingX: 22, fontSize: 16, iconSize: 20 },
-  xl: { height: 60, radius: 16, paddingX: 26, fontSize: 17, iconSize: 22 },
-  bottomCTA: { height: 56, radius: 16, paddingX: 24, fontSize: 16, iconSize: 20 },
+  mini:     { height: 32, radius: 10,  paddingX: 12, fontSize: 13, iconSize: 14 },
+  sm:       { height: 36, radius: 10,  paddingX: 14, fontSize: 15, iconSize: 16 },
+  md:       { height: 44, radius: 14,  paddingX: 20, fontSize: 17, iconSize: 20 }, // Apple HIG: 44pt minimum
+  default:  { height: 44, radius: 14,  paddingX: 20, fontSize: 17, iconSize: 20 },
+  lg:       { height: 52, radius: 14,  paddingX: 22, fontSize: 17, iconSize: 20 },
+  xl:       { height: 56, radius: 16,  paddingX: 24, fontSize: 17, iconSize: 22 },
+  bottomCTA:{ height: 56, radius: 14,  paddingX: 24, fontSize: 17, iconSize: 20 },
 };
 
-const iconOnlyVariants: ButtonVariant[] = ['icon', 'iconCircle', 'close', 'back'];
+const iconOnlyVariants: ButtonVariant[] = ['icon', 'iconCircle', 'icon-circle', 'close', 'back'];
+
+// Apple HIG spring: snappy release, quick press-in
+const SPRING_IN  = { damping: 15, stiffness: 400, mass: 0.8 };
+const SPRING_OUT = { damping: 20, stiffness: 150, mass: 1   };
 
 function AppButtonRaw({
   label,
@@ -121,32 +106,31 @@ function AppButtonRaw({
   ...rest
 }: AppButtonProps) {
   const { isDark } = usePreferences();
-  const cfg = sizeConfig[size];
+  const cfg = sizeConfig[size] ?? sizeConfig.md;
   const isIconOnly = iconOnlyVariants.includes(variant);
-  const isCircular = variant === 'iconCircle' || variant === 'floating';
+  const isCircular = variant === 'iconCircle' || variant === 'icon-circle' || variant === 'floating';
+  const isMenu     = variant === 'menu' || variant === 'back';
 
-  // Reanimated shared values — press feedback
-  const scale = useSharedValue(1);
+  const scale   = useSharedValue(1);
   const opacity = useSharedValue(1);
 
   const handlePressIn = useCallback(() => {
-    scale.value = withTiming(monoMotion.pressScale, { duration: monoMotion.quick });
-    opacity.value = withTiming(monoMotion.pressOpacity, { duration: monoMotion.quick });
+    scale.value   = withTiming(0.97, { duration: 100 });           // Apple HIG: 0.97 press scale
+    opacity.value = withTiming(0.88, { duration: 100 });           // Apple HIG: 0.88 press opacity
   }, [scale, opacity]);
 
   const handlePressOut = useCallback(() => {
-    scale.value = withSpring(1, monoMotion.spring);
-    opacity.value = withTiming(1, { duration: monoMotion.slow });
+    scale.value   = withSpring(1, SPRING_OUT);                     // Apple spring release
+    opacity.value = withTiming(1, { duration: 180 });
   }, [scale, opacity]);
 
   const handlePress = useCallback(() => {
     if (disabled || loading) return;
-    // Haptic
     if (haptic && haptic !== 'none') {
-      if (haptic === 'light') Haptics.light();
-      else if (haptic === 'medium') Haptics.medium();
+      if (haptic === 'light')   Haptics.light();
+      else if (haptic === 'medium')  Haptics.medium();
       else if (haptic === 'success') Haptics.success();
-      else if (haptic === 'error') Haptics.error();
+      else if (haptic === 'error')   Haptics.error();
       else if (haptic === 'warning') Haptics.warning();
     } else {
       HapticTap.selection();
@@ -156,28 +140,24 @@ function AppButtonRaw({
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
-    opacity: opacity.value,
+    opacity:   opacity.value,
   }));
 
-  // Resolve variant colors
   const tokens = getVariantTokens(variant, isDark, color);
-  const isMenu = variant === 'menu' || variant === 'back';
-
-  // Default icons for action variants
-  const resolvedLeft = resolveIcon(iconLeft || iconName, variant, 'left');
+  const resolvedLeft  = resolveIcon(iconLeft || iconName, variant, 'left');
   const resolvedRight = resolveIcon(iconRight, variant, 'right');
 
   const buttonStyle: ViewStyle = {
-    minHeight: cfg.height,
-    height: isIconOnly ? cfg.height : undefined,
-    width: isIconOnly || variant === 'floating' ? cfg.height : undefined,
+    minHeight:       cfg.height,
+    height:          isIconOnly ? cfg.height : undefined,
+    width:           isIconOnly || variant === 'floating' ? cfg.height : undefined,
     paddingHorizontal: isIconOnly || variant === 'floating' ? 0 : cfg.paddingX,
-    borderRadius: isCircular ? 9999 : cfg.radius,
+    borderRadius:    isCircular ? 9999 : cfg.radius,
     backgroundColor: tokens.bg,
-    borderWidth: tokens.borderWidth,
-    borderColor: tokens.borderColor,
-    justifyContent: isMenu ? 'flex-start' : 'center',
-    opacity: disabled ? 0.4 : 1,
+    borderWidth:     tokens.borderWidth,
+    borderColor:     tokens.borderColor,
+    justifyContent:  isMenu ? 'flex-start' : 'center',
+    opacity:         disabled ? 0.40 : 1,       // Apple HIG: 0.40 disabled
   };
 
   return (
@@ -193,7 +173,7 @@ function AppButtonRaw({
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         disabled={disabled || loading}
-        hitSlop={hitSlop ?? 12}
+        hitSlop={hitSlop ?? 8}
         unstable_pressDelay={0}
         android_ripple={null}
         accessibilityRole="button"
@@ -216,8 +196,8 @@ function AppButtonRaw({
               color={tokens.text}
               style={[
                 {
-                  fontSize: cfg.fontSize,
-                  letterSpacing: variant === 'primary' || variant === 'dark' ? -0.2 : -0.1,
+                  fontSize:      cfg.fontSize,
+                  letterSpacing: -0.41,  // Apple HIG body letter spacing
                 },
                 labelStyle,
               ]}
@@ -236,67 +216,64 @@ function AppButtonRaw({
 
 export const AppButton = memo(AppButtonRaw);
 
-// ─── Helpers ───────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 function getVariantTokens(variant: ButtonVariant, isDark: boolean, color?: string) {
-  const ink = isDark ? '#FFFFFF' : '#000000';
-  const inkInverse = isDark ? '#000000' : '#FFFFFF';
-  const surface = isDark ? '#131316' : '#FFFFFF';
-  const sunken = isDark ? '#1C1C1F' : '#F4F4F5';
-  const hairline = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(10,10,11,0.10)';
+  // Apple HIG system colors
+  const tint       = isDark ? '#0A84FF' : '#007AFF';
+  const destructive= isDark ? '#FF453A' : '#FF3B30';
+  const success    = isDark ? '#30D158' : '#34C759';
+  const label      = isDark ? '#FFFFFF' : '#000000';
+  const labelInv   = isDark ? '#000000' : '#FFFFFF';
+  const fill       = isDark ? 'rgba(120,120,128,0.36)' : 'rgba(120,120,128,0.20)';
+  const separator  = isDark ? 'rgba(84,84,88,0.65)' : 'rgba(60,60,67,0.29)';
 
   switch (variant) {
     case 'primary':
+      return { bg: tint,       text: '#FFFFFF',  borderWidth: 0, borderColor: 'transparent' };
     case 'dark':
-      return { bg: color ?? ink, text: inkInverse, borderWidth: 0, borderColor: 'transparent' };
-    case 'secondary':
-      return { bg: surface, text: ink, borderWidth: 1, borderColor: hairline };
-    case 'outline':
-      return { bg: 'transparent', text: color ?? ink, borderWidth: 1, borderColor: color ?? ink };
-    case 'tertiary':
-      return { bg: 'transparent', text: ink, borderWidth: 0, borderColor: 'transparent' };
-    case 'ghost':
-      return { bg: 'transparent', text: ink, borderWidth: 0, borderColor: 'transparent' };
-    case 'soft':
-      return { bg: sunken, text: ink, borderWidth: 0, borderColor: 'transparent' };
+      return { bg: color ?? label, text: labelInv, borderWidth: 0, borderColor: 'transparent' };
     case 'white':
-      return { bg: '#FFFFFF', text: '#000000', borderWidth: 0, borderColor: 'transparent' };
+      return { bg: '#FFFFFF',  text: '#000000',  borderWidth: 0, borderColor: 'transparent' };
     case 'destructive':
-      return { bg: '#000000', text: '#FFFFFF', borderWidth: 0, borderColor: 'transparent' };
+      return { bg: destructive, text: '#FFFFFF', borderWidth: 0, borderColor: 'transparent' };
+    case 'success':
+      return { bg: success,    text: '#FFFFFF',  borderWidth: 0, borderColor: 'transparent' };
+    case 'secondary':
+      return { bg: fill,       text: label,      borderWidth: 0, borderColor: 'transparent' };
+    case 'outline':
+      return { bg: 'transparent', text: color ?? tint, borderWidth: 1, borderColor: color ?? tint };
+    case 'tertiary':
+    case 'ghost':
     case 'link':
-      return { bg: 'transparent', text: ink, borderWidth: 0, borderColor: 'transparent' };
+      return { bg: 'transparent', text: variant === 'link' ? tint : label, borderWidth: 0, borderColor: 'transparent' };
+    case 'soft':
+      return { bg: fill,       text: label,      borderWidth: 0, borderColor: 'transparent' };
     case 'icon':
-      return { bg: sunken, text: ink, borderWidth: 0, borderColor: 'transparent' };
     case 'iconCircle':
-      return { bg: sunken, text: ink, borderWidth: 0, borderColor: 'transparent' };
+    case 'icon-circle':
+      return { bg: fill,       text: label,      borderWidth: 0, borderColor: 'transparent' };
     case 'menu':
     case 'back':
     case 'close':
-      return { bg: 'transparent', text: ink, borderWidth: 0, borderColor: 'transparent' };
+      return { bg: 'transparent', text: tint,    borderWidth: 0, borderColor: 'transparent' };
     case 'floating':
-      return { bg: ink, text: inkInverse, borderWidth: 0, borderColor: 'transparent' };
+      return { bg: tint,       text: '#FFFFFF',  borderWidth: 0, borderColor: 'transparent' };
     default:
-      return { bg: ink, text: inkInverse, borderWidth: 0, borderColor: 'transparent' };
+      return { bg: color ?? tint, text: '#FFFFFF', borderWidth: 0, borderColor: 'transparent' };
   }
 }
 
 function resolveIcon(icon: AppIconName | ReactNode | undefined, variant: ButtonVariant, position: 'left' | 'right'): ReactNode {
   if (icon !== undefined) {
-    if (typeof icon === 'string') {
-      return <AppIcon name={icon as AppIconName} size={undefined as any} />;
-    }
+    if (typeof icon === 'string') return <AppIcon name={icon as AppIconName} size={undefined as any} />;
     return icon;
   }
-  // Default icons for action variants (only on left)
   if (position !== 'left') return null;
   switch (variant) {
-    case 'back':
-      return <AppIcon name="ChevronLeft" />;
-    case 'close':
-      return <AppIcon name="X" />;
-    case 'menu':
-      return <AppIcon name="SlidersHorizontal" />;
-    default:
-      return null;
+    case 'back':  return <AppIcon name="ChevronLeft" />;
+    case 'close': return <AppIcon name="X" />;
+    case 'menu':  return <AppIcon name="SlidersHorizontal" />;
+    default:      return null;
   }
 }
 
@@ -305,11 +282,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: monoSpace[2],
+    gap: 8,
   },
   contentMenu: {
     justifyContent: 'flex-start',
     width: '100%',
-    paddingLeft: monoSpace[4],
+    paddingLeft: 16,
   },
 });

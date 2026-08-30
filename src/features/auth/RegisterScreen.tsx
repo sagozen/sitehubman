@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ActivityIndicator,
   Alert,
@@ -41,6 +42,24 @@ export function RegisterScreen() {
       void getPostAuthDestination(user).then((dest) => router.replace(dest));
     }
   }, [isLoading, user]);
+
+  // Pre-fill name + email from onboarding if user came from /onboarding
+  useEffect(() => {
+    void (async () => {
+      try {
+        const [name, mail] = await AsyncStorage.multiGet([
+          '@avio_onboarding_name',
+          '@avio_onboarding_email',
+        ]);
+        const nameVal = name[1]?.trim();
+        const mailVal = mail[1]?.trim();
+        if (nameVal) setDisplayName(nameVal);
+        if (mailVal) setEmail(mailVal);
+      } catch {
+        // ignore — pre-fill is best-effort
+      }
+    })();
+  }, []);
 
   const busy = isSubmitting || isLoading;
 
