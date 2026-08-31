@@ -10,7 +10,7 @@
  *  - Trust Footnote block (Owner line, Trust note, aviobrand.com link, report link)
  *  - Viral growth card ("Powered by AVIO")
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Image,
   Linking,
@@ -35,7 +35,7 @@ import {
   resolvePublicProfileByCardId,
   resolvePublicProfileBySlug,
 } from '@/src/services/nfcProfileService';
-import { notifyCardOwnerOfSave, notifyCardOwnerOfLeadCapture } from '@/src/services/cardViewNotificationService';
+import { notifyCardOwnerOfSave, notifyCardOwnerOfLeadCapture, notifyCardOwnerOfView } from '@/src/services/cardViewNotificationService';
 import { captureLead } from '@/src/services/leadService';
 import type { BioPage, TapActionBlock, TapActionItem } from '@/src/types/models';
 import { BAN_NGUYEN_SEED_BIO } from '@/src/data/seedBanNguyenBio';
@@ -69,6 +69,10 @@ export function PublicBioScreen({ slug, cardId }: Props) {
   const [leadNote, setLeadNote] = useState('');
   const [leadSubmitting, setLeadSubmitting] = useState(false);
   const [leadSuccess, setLeadSuccess] = useState(false);
+
+  // ── Auto-lead capture: show exchange modal after 5s if visitor hasn't closed it ──
+  const autoLeadFiredRef = useRef(false);
+  const viewNotifiedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -114,6 +118,26 @@ export function PublicBioScreen({ slug, cardId }: Props) {
     };
   }, [cardId, slug]);
 
+  // ── Notify card owner the moment someone opens their profile ──
+  useEffect(() => {
+    if (!bioPage || viewNotifiedRef.current) return;
+    if (bioPage.userId && bioPage.userId !== 'seed' && bioPage.userId !== 'guest') {
+      viewNotifiedRef.current = true;
+      void notifyCardOwnerOfView(bioPage.userId).catch(() => undefined);
+    }
+  }, [bioPage]);
+
+  // ── Auto lead-capture: show exchange modal after 5s ──
+  // The visitor is still reading → perfect moment to ask for their contact
+  useEffect(() => {
+    if (isLoading || autoLeadFiredRef.current) return;
+    autoLeadFiredRef.current = true;
+    const timer = setTimeout(() => {
+      setShowExchangeModal(true);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [isLoading]);
+
   async function handleShare() {
     HapticTap.light();
     const url = publicUrl || `https://sitehubman.app/u/${slug || bioPage?.slug || 'pandev00'}`;
@@ -129,20 +153,46 @@ export function PublicBioScreen({ slug, cardId }: Props) {
   }
 
   async function handleSaveContact() {
-    HapticTap.medium();
+    HapticTap.heavy();
+    const name = bioPage?.displayName || 'Ban Nguyen';
+    const title = bioPage?.jobTitleVi || bioPage?.jobTitleEn || bioPage?.tagline || '';
+    const org = bioPage?.organization || '';
+    const email = bioPage?.email || '';
+    const phone = bioPage?.whatsapp?.replace(/\D/g, '') ? bioPage.whatsapp : '';
+    const url = publicUrl || `https://sitehubman.app/u/${bioPage?.slug || 'pandev00'}`;
+
     const vcard = [
       'BEGIN:VCARD',
       'VERSION:3.0',
-      `FN:${bioPage?.displayName || 'Ban Nguyen'}`,
-      `TITLE:${bioPage?.jobTitleVi || bioPage?.tagline || 'Tech Lead · AI Coaching 1-1'}`,
-      `ORG:${bioPage?.organization || 'SAGOZEN LLC'}`,
-      `EMAIL:${bioPage?.email || 'pandev00@sagozen.digital'}`,
-      `URL:${publicUrl || 'https://sitehubman.app/u/pandev00'}`,
+      `FN:${name}`,
+      title ? `TITLE:${title}` : '',
+      org ? `ORG:${org}` : '',
+      email ? `EMAIL;TYPE=INTERNET:${email}` : '',
+      phone ? `TEL;TYPE=CELL:${phone}` : '',
+      `URL:${url}`,
+      `NOTE:AVIO Smart Pass – ${url}`,
       'END:VCARD',
-    ].join('\n');
+    ].filter(Boolean).join('\n');
 
-    await Share.share({ message: vcard, title: `${bioPage?.displayName || 'Ban Nguyen'} Contact` });
-    if (bioPage?.userId && bioPage.userId !== 'seed') {
+    try {
+      if (Platform.OS === 'web' && typeof document !== 'undefined') {
+        // Web: instant .vcf file download — receiver gets it in 1 tap, no extra steps
+        const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${name.replace(/\s+/g, '_')}.vcf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+      } else {
+        await Share.share({ message: vcard, title: `${name} – AVIO Contact Card` });
+      }
+    } catch {
+      // silent
+    }
+
+    if (bioPage?.userId && bioPage.userId !== 'seed' && bioPage.userId !== 'guest') {
       void notifyCardOwnerOfSave(bioPage.userId).catch(() => undefined);
     }
   }

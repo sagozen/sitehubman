@@ -10,7 +10,7 @@ export default function PrivacyPolicyScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <AppIcon name="ArrowLeft" size={24} color="#2563eb" />
+          <AppIcon name="ArrowLeft" size={24} color="#9A9AA0" />
         </TouchableOpacity>
         <AppText style={styles.headerTitle}>Privacy Policy</AppText>
         <View style={styles.placeholder} />
@@ -18,7 +18,7 @@ export default function PrivacyPolicyScreen() {
 
       <IosScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         <View style={styles.iconContainer}>
-          <AppIcon name="ShieldCheck" size={24} color="#2563eb" />
+          <AppIcon name="ShieldCheck" size={24} color="#FFFFFF" />
         </View>
 
         <AppText style={styles.title}>Privacy Policy</AppText>

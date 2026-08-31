@@ -22,18 +22,18 @@ import { initiatePayment } from '@/src/services/paymentService';
 import type { Order } from '@/src/types/models';
 import { canTrackOwnOrders, isLocalOnlyGuest } from '@/src/utils/guestSession';
 
-const BRAND = '#2596BE';
+const BRAND = '#FFFFFF';
 
 function statusInfo(status: string): { label: string; color: string; bg: string } {
   if (['production_approved', 'printer_assigned', 'printing', 'nfc_writing', 'nfc_verification', 'qa_pending', 'qa_failed'].includes(status))
-    return { label: 'In Production', color: '#FF9500', bg: '#FFF3E0' };
+    return { label: 'In Production', color: '#FF9500', bg: 'rgba(255,149,0,0.15)' };
   if (['shipped', 'ready_to_ship'].includes(status))
-    return { label: 'Shipped', color: '#34C759', bg: '#EAFAEF' };
+    return { label: 'Shipped', color: '#34C759', bg: 'rgba(52,199,89,0.15)' };
   if (status === 'delivered')
-    return { label: 'Delivered', color: '#007AFF', bg: '#EAF2FF' };
+    return { label: 'Delivered', color: '#007AFF', bg: 'rgba(0,122,255,0.15)' };
   if (['draft', 'pending_payment', 'payment_submitted', 'payment_verified'].includes(status))
-    return { label: 'Processing', color: BRAND, bg: '#E6F5FB' };
-  return { label: 'Pending', color: '#8E8E93', bg: '#F2F2F7' };
+    return { label: 'Processing', color: '#2596BE', bg: 'rgba(37,150,190,0.15)' };
+  return { label: 'Pending', color: '#9A9AA0', bg: 'rgba(155,155,160,0.12)' };
 }
 
 export function GuestTrackOrderScreen() {
@@ -100,7 +100,7 @@ export function GuestTrackOrderScreen() {
         <IosScrollView contentContainerStyle={styles.content}>
           <View style={styles.header}>
             <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={12}>
-              <AppIcon name="ChevronLeft" size={22} color="#1C1C1E" />
+              <AppIcon name="ChevronLeft" size={22} color="#FFFFFF" />
             </Pressable>
             <AppText style={styles.title}>Track Order</AppText>
           </View>

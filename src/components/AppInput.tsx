@@ -1,9 +1,11 @@
-/**
- * AppInput — sharp monochrome input.
- * Hairline border, generous height, no decorative floating labels.
- * Single accent focus state, monochrome placeholder.
+﻿/**
+ * AppInput — Apple HIG-compliant text input.
+ * - 44pt minimum height (Apple HIG touch target requirement)
+ * - Focus ring: system tint (#0A84FF dark / #007AFF light)
+ * - Border radius: 10pt (Apple inputs standard)
+ * - Haptics on focus via HapticTap.selection
  */
-import { forwardRef, memo, useCallback, useEffect, useRef, useState } from 'react';
+import { forwardRef, memo, useCallback, useRef, useState } from 'react';
 import {
   Platform,
   Pressable,
@@ -13,10 +15,10 @@ import {
   View,
   type StyleProp,
   type ViewStyle,
+  Text,
 } from 'react-native';
 
 import { MonoText } from '@/src/components/MonoText';
-import { monoRadius, monoSpace } from '@/src/design-system/monochrome';
 import { usePreferences } from '@/src/hooks/usePreferences';
 
 interface AppInputProps extends TextInputProps {
@@ -42,13 +44,9 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
   },
   ref,
 ) {
-  const { colors, isDark } = usePreferences();
+  const { isDark } = usePreferences();
   const inputRef = useRef<TextInput | null>(null);
   const [focused, setFocused] = useState(false);
-
-  useEffect(() => {
-    inputRef.current = ref && typeof ref === 'object' ? (ref as any).current ?? null : null;
-  }, [ref]);
 
   const handleFocus = useCallback(
     (e: any) => {
@@ -66,20 +64,26 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
     [onBlur],
   );
 
+  // Apple HIG: tint color for focus ring, red for error
+  const tint        = isDark ? '#0A84FF' : '#007AFF';
+  const errorColor  = isDark ? '#FF453A' : '#FF3B30';
   const borderColor = error
-    ? '#000000'
+    ? errorColor
     : focused
-      ? '#000000'
+      ? tint
       : isDark
-        ? 'rgba(255,255,255,0.12)'
-        : 'rgba(10,10,11,0.12)';
+        ? 'rgba(84,84,88,0.65)'        // Apple separator dark
+        : 'rgba(60,60,67,0.29)';       // Apple separator light
+
+  const bg = isDark ? '#1C1C1E' : '#FFFFFF';                // Surface L1
+  const textColor   = isDark ? '#FFFFFF'         : '#000000';
+  const labelColor  = isDark ? 'rgba(235,235,245,0.60)' : 'rgba(60,60,67,0.60)';
+  const placeholder_ = isDark ? 'rgba(235,235,245,0.30)' : 'rgba(60,60,67,0.30)';
 
   return (
     <View style={[styles.container, containerStyle]}>
       {label ? (
-        <MonoText variant="subhead" weight="medium" tone="muted" style={styles.label}>
-          {label}
-        </MonoText>
+        <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
       ) : null}
 
       <Pressable
@@ -88,9 +92,9 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
         style={[
           styles.field,
           {
-            backgroundColor: isDark ? '#0F0F12' : '#F4F4F5',
+            backgroundColor: bg,
             borderColor,
-            borderWidth: focused ? 1.5 : 1,
+            borderWidth: focused ? 2 : 1,
           },
         ]}
       >
@@ -102,16 +106,16 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
           }}
           value={value}
           placeholder={placeholder}
-          placeholderTextColor={isDark ? 'rgba(255,255,255,0.4)' : 'rgba(60,60,67,0.5)'}
-          selectionColor={colors.primary ?? '#000000'}
-          cursorColor="#000000"
+          placeholderTextColor={placeholder_}
+          selectionColor={tint}
+          cursorColor={tint}
           onBlur={handleBlur}
           onFocus={handleFocus}
           allowFontScaling
-          maxFontSizeMultiplier={1.3}
+          maxFontSizeMultiplier={1.4}
           style={[
             styles.input,
-            { color: isDark ? '#FFFFFF' : '#27272A' },
+            { color: textColor },
             style,
           ]}
           {...props}
@@ -119,13 +123,9 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
       </Pressable>
 
       {error ? (
-        <MonoText variant="footnote" tone="muted" style={styles.error}>
-          {error}
-        </MonoText>
+        <Text style={[styles.helper, { color: errorColor }]}>{error}</Text>
       ) : helperText ? (
-        <MonoText variant="footnote" tone="muted" style={styles.error}>
-          {helperText}
-        </MonoText>
+        <Text style={[styles.helper, { color: labelColor }]}>{helperText}</Text>
       ) : null}
     </View>
   );
@@ -133,31 +133,36 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: monoSpace[3],
+    marginBottom: 12,
   },
   label: {
-    marginBottom: monoSpace[2],
-    letterSpacing: 0.2,
+    // Apple HIG Caption 1
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '400',
+    letterSpacing: 0,
+    marginBottom: 6,
   },
   field: {
-    minHeight: 52,
-    paddingHorizontal: monoSpace[4],
-    borderRadius: monoRadius.lg,
+    // Apple HIG: 44pt minimum touch target
+    minHeight: 44,
+    paddingHorizontal: 16,
+    borderRadius: 10,           // Apple inputs standard
     justifyContent: 'center',
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 2 },
-      default: { elevation: 1 },
-    }),
   },
   input: {
-    fontSize: 16,
+    // Apple HIG Body (17pt)
+    fontSize: 17,
     lineHeight: 22,
-    fontWeight: '500',
-    letterSpacing: -0.2,
-    paddingVertical: Platform.select({ ios: 14, default: 8 }),
+    fontWeight: '400',
+    letterSpacing: -0.41,
+    paddingVertical: Platform.select({ ios: 11, default: 8 }),
   },
-  error: {
-    marginTop: monoSpace[2],
-    paddingLeft: 2,
+  helper: {
+    // Apple HIG Caption 1
+    fontSize: 12,
+    lineHeight: 16,
+    marginTop: 4,
+    marginLeft: 2,
   },
 });

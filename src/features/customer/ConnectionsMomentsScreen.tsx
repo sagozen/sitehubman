@@ -92,14 +92,6 @@ export function ConnectionsMomentsScreen() {
   const [activeMoment, setActiveMoment] = useState<TapMoment | null>(null);
   const [activeSlugUrl, setActiveSlugUrl] = useState<string | null>(null);
 
-  const [simulatedLoading, setSimulatedLoading] = useState(true);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSimulatedLoading(false);
-    }, 750);
-    return () => clearTimeout(timer);
-  }, []);
-
   const { momentId } = useLocalSearchParams<{ momentId?: string }>();
 
   const profile = data?.profiles?.[0];
@@ -201,7 +193,7 @@ export function ConnectionsMomentsScreen() {
           <AppIcon name="Add" size={10} color="#000000" />
         </View>
       </View>
-      <AppText style={[styles.storyName, { color: isDark ? '#FFFFFF' : '#000000' }]} numberOfLines={1}>
+      <AppText style={[styles.storyName, { color: PAGE_THEME.text }]} numberOfLines={1}>
         {item.name}
       </AppText>
     </Pressable>
@@ -225,7 +217,7 @@ export function ConnectionsMomentsScreen() {
           />
           <View style={styles.conversationInfo}>
             <View style={styles.conversationHeader}>
-              <AppText style={[styles.conversationName, { color: isDark ? '#FFFFFF' : '#000000' }]} numberOfLines={1}>
+              <AppText style={[styles.conversationName, { color: PAGE_THEME.text }]} numberOfLines={1}>
                 {item.name}
               </AppText>
               <AppText style={styles.conversationTime}>{timeLabel}</AppText>
@@ -332,7 +324,7 @@ export function ConnectionsMomentsScreen() {
             <TextInput
               placeholder="Search"
               placeholderTextColor={MUTED}
-              style={[styles.searchInput, { color: isDark ? '#FFFFFF' : '#000000' }]}
+              style={[styles.searchInput, { color: PAGE_THEME.text }]}
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
@@ -383,9 +375,9 @@ export function ConnectionsMomentsScreen() {
 
       {/* Conversations list */}
       <FlatList
-        data={simulatedLoading ? [{ id: 's1' }, { id: 's2' }, { id: 's3' }, { id: 's4' }] as any : filteredMoments}
+        data={filteredMoments}
         keyExtractor={(item) => item.id}
-        renderItem={simulatedLoading ? () => <ConnectionRowSkeleton isDark={isDark} /> : renderConversation}
+        renderItem={renderConversation}
         contentContainerStyle={styles.conversationsList}
         showsVerticalScrollIndicator={false}
         refreshControl={

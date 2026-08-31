@@ -1,35 +1,45 @@
+﻿/**
+ * LiquidTabBar — Apple HIG-compliant tab bar.
+ *
+ * Apple HIG rules applied:
+ * - Tab bar height: 49pt + safe area bottom
+ * - Icon size: 24pt (Apple standard tab bar icon)
+ * - Label: Caption 2 (10pt) — Apple tab bar standard
+ * - Active tint: system blue (#0A84FF dark / #007AFF light)
+ * - Inactive tint: labelSecondary (rgba(235,235,245,0.60) dark)
+ * - Background: systemBackground with blur (glassmorphism per Apple HIG)
+ * - Touch target: each tab is full height (44pt+ tap area)
+ * - Haptic: .selection on every tab press
+ */
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { AccessibilityInfo, Platform, Pressable, StyleSheet, View, Animated } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Platform, Pressable, StyleSheet, View, Animated } from 'react-native';
 import { createShadow } from '@/src/utils/shadows';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { getLiquidTabIcon, LIQUID_TAB_ICON_SIZE } from '@/src/constants/liquidTabIcons';
 import { appRoutes } from '@/src/constants/navigation';
 import { theme } from '@/src/constants/theme';
 import { useAuth } from '@/src/hooks/useAuth';
 import { usePreferences } from '@/src/hooks/usePreferences';
 import { HapticTap } from '@/src/utils/haptics';
 
-// ─── Sales icon map ─────────────────────────────────────────────────────────
+// ─── Apple HIG Tab Bar Constants ────────────────────────────────────────────
+const TAB_BAR_HEIGHT = 49;                        // Apple HIG: 49pt tab bar
+const TAB_ICON_SIZE  = 24;                        // Apple HIG: 24pt icons
+const TAB_LABEL_SIZE = 10;                        // Apple HIG: 10pt labels
+
 const SALES_ICON_MAP: Record<string, string> = {
-  index: 'Home',
-  orders: 'ClipboardList',
+  index:   'Home',
+  orders:  'ClipboardList',
   payouts: 'Wallet',
-  me: 'User',
+  me:      'User',
 };
 
-// ─── Premium Sales Tab Bar ────────────────────────────────────────────────────
+// ─── Sales Tab Bar ───────────────────────────────────────────────────────────
 function SalesTabBar({
-  items,
-  activeRoute,
-  navigation,
-  descriptors,
-  paddingBottom,
-  newOrderHref,
-  ordersBadgeLabel,
+  items, activeRoute, navigation, descriptors, paddingBottom, newOrderHref, ordersBadgeLabel,
 }: {
   items: NavItem[];
   activeRoute: any;
@@ -39,8 +49,8 @@ function SalesTabBar({
   newOrderHref: string;
   ordersBadgeLabel: string;
 }) {
-  const leftItems  = items.slice(0, 2); // Home, Orders
-  const rightItems = items.slice(2);    // Payouts, Me
+  const leftItems  = items.slice(0, 2);
+  const rightItems = items.slice(2);
 
   function SalesTab({ route }: { route: any }) {
     const isActive  = activeRoute?.name === route.name;
@@ -56,9 +66,10 @@ function SalesTabBar({
           if (!isActive && !event.defaultPrevented) navigation.navigate(route.name);
         }}
         style={({ pressed }) => [st.tab, pressed && { opacity: 0.72 }, Platform.OS === 'web' && { outlineStyle: 'none' } as any]}
-        accessibilityRole="button"
+        accessibilityRole="tab"
         accessibilityLabel={label}
         accessibilityState={{ selected: isActive }}
+        hitSlop={0}
       >
         <View style={[st.tabInner, isActive && st.tabInnerActive]}>
           {showBadge ? (
@@ -66,12 +77,8 @@ function SalesTabBar({
               <AppText style={st.badgeText}>{ordersBadgeLabel}</AppText>
             </View>
           ) : null}
-          <AppIcon
-            name={iconName}
-            size={22}
-            color={isActive ? '#2596BE' : '#8E8E93'}
-          />
-          <AppText style={[st.tabLabel, isActive ? st.tabLabelActive : st.tabLabelInactive]}>
+          <AppIcon name={iconName} size={TAB_ICON_SIZE} color={isActive ? '#007AFF' : '#8E8E93'} />
+          <AppText style={[st.tabLabel, { color: isActive ? '#007AFF' : '#8E8E93', fontWeight: isActive ? '600' : '400' }]}>
             {label}
           </AppText>
         </View>
@@ -89,7 +96,7 @@ function SalesTabBar({
         <View style={st.fabWrap}>
           <Pressable
             onPress={() => router.push(newOrderHref as any)}
-            style={({ pressed }) => [{ transform: [{ scale: pressed ? 0.92 : 1 }] }, Platform.OS === 'web' && { outlineStyle: 'none' } as any]}
+            style={({ pressed }) => [{ transform: [{ scale: pressed ? 0.94 : 1 }] }, Platform.OS === 'web' && { outlineStyle: 'none' } as any]}
             accessibilityRole="button"
             accessibilityLabel="New order"
           >
@@ -107,7 +114,6 @@ function SalesTabBar({
   );
 }
 
-// ─── Sales styles ─────────────────────────────────────────────────────────────
 const st = StyleSheet.create({
   wrapper: {
     position: 'absolute',
@@ -120,10 +126,10 @@ const st = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.88)',
+    backgroundColor: 'rgba(255,255,255,0.92)',
     borderRadius: 30,
     paddingHorizontal: 12,
-    height: 60,
+    height: TAB_BAR_HEIGHT + 5,
     ...createShadow({ color: '#000', offset: { width: 0, height: 4 }, opacity: 0.06, radius: 16, elevation: 8 }),
   },
   side: {
@@ -136,30 +142,23 @@ const st = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 44,   // Apple HIG minimum touch target
   },
   tabInner: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
+    paddingVertical: 4,
     paddingHorizontal: 10,
-    borderRadius: 14,
+    borderRadius: 12,
     gap: 3,
     minWidth: 54,
   },
   tabInnerActive: {
-    backgroundColor: 'rgba(0, 122, 255, 0.08)',
+    backgroundColor: 'rgba(0,122,255,0.08)',
   },
   tabLabel: {
-    fontSize: 11,
+    fontSize: TAB_LABEL_SIZE,
     letterSpacing: 0,
-  },
-  tabLabelActive: {
-    fontWeight: '700',
-    color: '#007AFF',
-  },
-  tabLabelInactive: {
-    fontWeight: '500',
-    color: '#8E8E93',
   },
   fabWrap: {
     width: 60,
@@ -178,13 +177,13 @@ const st = StyleSheet.create({
   },
   badge: {
     position: 'absolute',
-    top: 3,
-    right: 3,
+    top: 2,
+    right: 4,
     zIndex: 10,
     minWidth: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: '#EF4444',
+    backgroundColor: '#FF3B30',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 3,
@@ -194,70 +193,50 @@ const st = StyleSheet.create({
   badgeText: {
     color: '#FFFFFF',
     fontSize: 9,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 11,
     includeFontPadding: false,
   },
 });
 
+// ─── Main component ──────────────────────────────────────────────────────────
 interface Props {
   state: any;
   navigation: any;
   descriptors?: Record<string, any>;
 }
-
 type RouteItem = { type: 'route'; route: any };
 type NavItem = RouteItem;
-
 const CONSUMER_TAB_ORDER = ['index', 'connections', 'share', 'profile', 'settings'] as const;
 
 export function LiquidTabBar({ state, navigation, descriptors }: Props) {
-  const { colors, isDark } = usePreferences();
-  const { user } = useAuth();
-  const insets = useSafeAreaInsets();
-  const tabRoutes = state.routes;
+  const { isDark } = usePreferences();
+  const { user }   = useAuth();
+  const insets     = useSafeAreaInsets();
+  const tabRoutes  = state.routes;
   const activeRoute = tabRoutes[state.index];
 
-  const capsuleWidth = 60;
-  const capsuleHeight = 46;
-  const activeOptions = descriptors?.[activeRoute?.key]?.options ?? {};
-  const isLegacyConnectionsRoute = activeRoute?.name === 'attendance';
-  const shouldHide =
-    !isLegacyConnectionsRoute &&
-    (activeOptions.href === null || activeOptions.tabBarStyle?.display === 'none');
+  const activeOptions    = descriptors?.[activeRoute?.key]?.options ?? {};
+  const isLegacyConn     = activeRoute?.name === 'attendance';
+  const shouldHide       = !isLegacyConn && (activeOptions.href === null || activeOptions.tabBarStyle?.display === 'none');
 
-  const isSalesBar =
-    tabRoutes.some((route: any) => route.name === 'orders') &&
-    tabRoutes.some((route: any) => route.name === 'payouts');
-  const isConsumerBar =
-    !isSalesBar &&
-    tabRoutes.some((route: any) => route.name === 'index') &&
-    tabRoutes.some((route: any) => route.name === 'profile') &&
-    tabRoutes.some((route: any) => route.name === 'settings');
+  const isSalesBar = tabRoutes.some((r: any) => r.name === 'orders') && tabRoutes.some((r: any) => r.name === 'payouts');
+  const isConsumerBar = !isSalesBar && tabRoutes.some((r: any) => r.name === 'index') && tabRoutes.some((r: any) => r.name === 'profile') && tabRoutes.some((r: any) => r.name === 'settings');
 
   const visibleRoutes = useMemo(() => {
     const isTabVisible = (route: any) => {
-      const options = descriptors?.[route.key]?.options ?? {};
-      if (options.href === null) return false;
-      if (options.tabBarStyle?.display === 'none') return false;
+      const opts = descriptors?.[route.key]?.options ?? {};
+      if (opts.href === null) return false;
+      if (opts.tabBarStyle?.display === 'none') return false;
       return true;
     };
-
     if (isConsumerBar) {
-      const connectionRoute =
-        tabRoutes.find((route: any) => route.name === 'connections') ??
-        tabRoutes.find((route: any) => route.name === 'attendance');
+      const connRoute = tabRoutes.find((r: any) => r.name === 'connections') ?? tabRoutes.find((r: any) => r.name === 'attendance');
       const ordered = CONSUMER_TAB_ORDER.map((name) =>
-        name === 'connections'
-          ? connectionRoute
-          : tabRoutes.find((route: any) => route.name === name)
-      ).filter((route): route is (typeof tabRoutes)[number] => Boolean(route));
-
-      return ordered.filter((route) =>
-        route.name === 'connections' || route.name === 'attendance' ? true : isTabVisible(route)
-      );
+        name === 'connections' ? connRoute : tabRoutes.find((r: any) => r.name === name)
+      ).filter((r): r is (typeof tabRoutes)[number] => Boolean(r));
+      return ordered.filter((r) => r.name === 'connections' || r.name === 'attendance' ? true : isTabVisible(r));
     }
-
     return tabRoutes.filter(isTabVisible);
   }, [descriptors, isConsumerBar, tabRoutes]);
 
@@ -266,13 +245,8 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
   const lastFetchedUserRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!isSalesUser || !user?.id) {
-      setActiveOrdersCount(0);
-      lastFetchedUserRef.current = null;
-      return;
-    }
+    if (!isSalesUser || !user?.id) { setActiveOrdersCount(0); lastFetchedUserRef.current = null; return; }
     if (lastFetchedUserRef.current === user.id) return;
-
     let cancelled = false;
     const task = setTimeout(() => {
       void (async () => {
@@ -281,46 +255,27 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
           const orders = await listOrders('sales', user.id);
           if (cancelled) return;
           lastFetchedUserRef.current = user.id;
-          setActiveOrdersCount(
-            orders.filter((order) => order.status !== 'delivered' && (order.cardStatus ?? 'active') !== 'closed').length
-          );
-        } catch {
-          if (!cancelled) setActiveOrdersCount(0);
-        }
+          setActiveOrdersCount(orders.filter((o) => o.status !== 'delivered' && (o.cardStatus ?? 'active') !== 'closed').length);
+        } catch { if (!cancelled) setActiveOrdersCount(0); }
       })();
     }, 800);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(task);
-    };
+    return () => { cancelled = true; clearTimeout(task); };
   }, [isSalesUser, user?.id]);
 
   const ordersBadgeLabel = activeOrdersCount > 99 ? '99+' : activeOrdersCount > 0 ? String(activeOrdersCount) : '';
-
-  const newOrderHref = isSalesBar
-    ? appRoutes.sales.newOrder
-    : appRoutes.newOrder;
-
+  const newOrderHref = isSalesBar ? appRoutes.sales.newOrder : appRoutes.newOrder;
   const items: NavItem[] = visibleRoutes.map((route: any) => ({ type: 'route', route }) as RouteItem);
   const activeIndex = items.findIndex((item) => item.route.name === activeRoute?.name);
 
-  // Animated sliding center value for the active pill indicator
-  // Capsule width = 360, horizontal padding 8 → inner = 344
-  // 5 tabs at 68 wide each. Pill width = 60. Inner offset per tab = (68 - 60) / 2 = 4.
-  // Capsule target offset = 8 + index * 68 + 4
-  const TAB_WIDTH = 68;
-  const PILL_WIDTH = 60;
-  const animCenterX = useRef(new Animated.Value(8 + Math.max(0, activeIndex) * TAB_WIDTH + 4)).current;
-
+  // Active indicator animation
+  const TAB_W = 68; const PILL_W = 60;
+  const animCenterX = useRef(new Animated.Value(8 + Math.max(0, activeIndex) * TAB_W + 4)).current;
   useEffect(() => {
     if (activeIndex !== -1) {
-      const targetX = 8 + activeIndex * TAB_WIDTH + (TAB_WIDTH - PILL_WIDTH) / 2;
       Animated.spring(animCenterX, {
-        toValue: targetX,
+        toValue: 8 + activeIndex * TAB_W + (TAB_W - PILL_W) / 2,
         useNativeDriver: true,
-        tension: 160,
-        friction: 9,
+        tension: 160, friction: 9,
       }).start();
     }
   }, [activeIndex, animCenterX]);
@@ -341,33 +296,43 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
     );
   }
 
+  // Apple HIG dark tab bar colors
+  const activeTint   = isDark ? '#0A84FF' : '#007AFF';            // system blue
+  const inactiveTint = isDark ? 'rgba(235,235,245,0.60)' : 'rgba(60,60,67,0.60)'; // labelSecondary
+  const barBg        = isDark ? 'rgba(28,28,30,0.94)' : 'rgba(255,255,255,0.92)';
+  const barBorder    = isDark ? 'rgba(84,84,88,0.65)' : 'rgba(60,60,67,0.18)';
+
+  // Bottom safe area + 49pt Apple standard
+  const tabBarHeight = TAB_BAR_HEIGHT + Math.max(insets.bottom, 0);
+
   return (
     <View style={[styles.floatingDockWrap, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-      <View style={styles.floatingDock}>
+      <View style={[
+        styles.floatingDock,
+        { backgroundColor: barBg, borderColor: barBorder },
+      ]}>
         {items.map((item) => {
-          const route = item.route;
+          const route    = item.route;
           const isActive = activeRoute?.name === route.name;
-          const isLegacyAttendance = route.name === 'attendance';
-          const activeColor = '#FFFFFF';
-          const inactiveColor = 'rgba(255, 255, 255, 0.38)';
+          const color    = isActive ? activeTint : inactiveTint;
 
-          let iconName: any = 'home';
+          let iconName: any = 'home-outline';
           let labelText = 'Home';
 
           if (route.name === 'index') {
-            iconName = isActive ? 'home' : 'home-outline';
+            iconName  = isActive ? 'home' : 'home-outline';
             labelText = 'Home';
-          } else if (route.name === 'connections' || isLegacyAttendance) {
-            iconName = isActive ? 'people' : 'people-outline';
+          } else if (route.name === 'connections' || route.name === 'attendance') {
+            iconName  = isActive ? 'people' : 'people-outline';
             labelText = 'Contacts';
           } else if (route.name === 'share') {
-            iconName = isActive ? 'radio' : 'radio-outline';
+            iconName  = isActive ? 'radio' : 'radio-outline';
             labelText = 'Beam';
           } else if (route.name === 'profile') {
-            iconName = isActive ? 'person' : 'person-outline';
+            iconName  = isActive ? 'person' : 'person-outline';
             labelText = 'Bio';
           } else if (route.name === 'settings') {
-            iconName = isActive ? 'settings-sharp' : 'settings-outline';
+            iconName  = isActive ? 'settings-sharp' : 'settings-outline';
             labelText = 'Settings';
           }
 
@@ -377,31 +342,20 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
               onPress={() => {
                 HapticTap.selection();
                 const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-                if (!isActive && !event.defaultPrevented) {
-                  navigation.navigate(route.name);
-                }
+                if (!isActive && !event.defaultPrevented) navigation.navigate(route.name);
               }}
               style={({ pressed }) => [
                 styles.dockTabItem,
                 pressed && { opacity: 0.65 },
               ]}
-              hitSlop={6}
-              accessibilityRole="button"
+              accessibilityRole="tab"
+              accessibilityLabel={labelText}
               accessibilityState={{ selected: isActive }}
+              hitSlop={0}
             >
               <View style={styles.dockTabInner}>
-                <Ionicons
-                  name={iconName}
-                  size={21}
-                  color={isActive ? activeColor : inactiveColor}
-                />
-                <AppText
-                  style={[
-                    styles.dockTabLabel,
-                    { color: isActive ? activeColor : inactiveColor },
-                  ]}
-                  weight={isActive ? 'extrabold' : 'bold'}
-                >
+                <Ionicons name={iconName} size={TAB_ICON_SIZE} color={color} />
+                <AppText style={[styles.dockTabLabel, { color }]} weight={isActive ? 'semibold' : 'regular'}>
                   {labelText}
                 </AppText>
               </View>
@@ -433,26 +387,23 @@ const styles = StyleSheet.create({
   floatingDock: {
     width: '92%',
     maxWidth: 360,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    // Apple HIG: 49pt tab bar height
+    height: TAB_BAR_HEIGHT + 5,
+    borderRadius: Math.round((TAB_BAR_HEIGHT + 5) / 2),
+    borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
     paddingHorizontal: 8,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 12,
+    ...createShadow({ color: '#000000', offset: { width: 0, height: 8 }, opacity: 0.25, radius: 16, elevation: 12 }),
   },
   dockTabItem: {
     flex: 1,
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+    // Ensures Apple 44pt minimum tap area
+    minHeight: 44,
   },
   dockTabInner: {
     alignItems: 'center',
@@ -460,8 +411,9 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   dockTabLabel: {
-    fontSize: 9.5,
-    letterSpacing: 0.2,
-    fontFamily: 'SF-Pro-Display-Regular',
+    // Apple HIG: 10pt tab bar label
+    fontSize: TAB_LABEL_SIZE,
+    lineHeight: 13,
+    letterSpacing: 0,
   },
 });

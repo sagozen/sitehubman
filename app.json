@@ -101,17 +101,11 @@
       "typedRoutes": true
     },
     "runtimeVersion": "1.0.0",
-    "updates": {
-      "url": "https://u.expo.dev/5c9466c1-b46a-4339-8dfe-d521e69edd21",
-      "enabled": true,
-      "checkAutomatically": "ON_ERROR_RECOVERY",
-      "fallbackToCacheTimeout": 5000
-    },
     "extra": {
-      "router": {},
       "eas": {
-        "projectId": "5c9466c1-b46a-4339-8dfe-d521e69edd21"
+        "projectId": "86323a4b-fac2-4d6d-ade2-bdb497df3ae8"
       },
+      "router": {},
       "cloudinaryApiKey": "795664656796712",
       "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyBJZa1RLcbZtFsfizGJadlLNnNgUVsUByw",
       "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "sitehub-8dd56.firebaseapp.com",
@@ -121,6 +115,6 @@
       "EXPO_PUBLIC_FIREBASE_APP_ID": "1:145010162726:web:8a7accc56cdc4e1fd23ae7",
       "EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID": "G-KEC7CH3TF9"
     },
-    "owner": "tiantian88888"
+    "owner": "tiantian8888"
   }
 }

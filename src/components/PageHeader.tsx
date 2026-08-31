@@ -1,10 +1,16 @@
+﻿/**
+ * PageHeader — Apple HIG-compliant screen header.
+ * - Navigation bar: 44pt height, Title 3 (20pt/600) or Large Title (34pt/700)
+ * - Back button: 44x44pt hit target, chevron-left icon only
+ * - Separator line: Apple system separator color
+ */
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View, Text, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
-import { AppText } from '@/src/components/AppText';
 import type { PageTheme } from '@/src/constants/pageThemes';
 import { HapticTap } from '@/src/utils/haptics';
+import { usePreferences } from '@/src/hooks/usePreferences';
 
 type PageHeaderProps = {
   theme: PageTheme;
@@ -16,9 +22,9 @@ type PageHeaderProps = {
   onBack?: () => void;
   right?: ReactNode;
   compact?: boolean;
+  /** Use 'largeTitle' for top-of-screen scrolling headers, 'navBar' for inline nav */
+  style?: 'largeTitle' | 'navBar';
 };
-
-import { usePreferences } from '@/src/hooks/usePreferences';
 
 export function PageHeader({
   theme: themeProp,
@@ -30,18 +36,20 @@ export function PageHeader({
   onBack,
   right,
   compact = false,
+  style: headerStyle = 'largeTitle',
 }: PageHeaderProps) {
-  const { colors, isDark } = usePreferences();
-  const theme = {
-    surface: themeProp.surface || colors?.surface || '#111114',
-    border: themeProp.border || colors?.border || 'rgba(255,255,255,0.09)',
-    text: themeProp.text || (isDark ? '#FFFFFF' : '#FFFFFF'),
-    muted: themeProp.muted || 'rgba(255,255,255,0.6)',
-    accent: themeProp.accent || colors?.primary || '#FFFFFF',
-    accentSoft: themeProp.accentSoft || colors?.primarySoft || 'rgba(255,255,255,0.08)',
-  };
+  const { isDark } = usePreferences();
+
+  const textColor  = themeProp.text  || (isDark ? '#FFFFFF' : '#000000');
+  const muteColor  = themeProp.muted || (isDark ? 'rgba(235,235,245,0.60)' : 'rgba(60,60,67,0.60)');
+  const accentColor = themeProp.accent || (isDark ? '#0A84FF' : '#007AFF');
+  const borderColor = isDark ? 'rgba(84,84,88,0.65)' : 'rgba(60,60,67,0.29)';
+
+  const isNavBar = headerStyle === 'navBar' || compact;
+
   return (
-    <View style={[styles.root, compact && styles.rootCompact]}>
+    <View style={[styles.root, isNavBar && styles.rootNavBar]}>
+      {/* Top row: back button + optional right slot */}
       <View style={styles.topRow}>
         {showBack ? (
           <Pressable
@@ -59,40 +67,50 @@ export function PageHeader({
               }
             }}
             style={({ pressed }) => [
-              styles.iconButton,
-              { backgroundColor: theme.surface, borderColor: theme.border },
-              pressed && styles.pressed,
+              styles.backBtn,
+              pressed && styles.backBtnPressed,
             ]}
           >
-            <AppIcon name="ChevronLeft" size={21} color={theme.text} />
+            <AppIcon name="ChevronLeft" size={22} color={accentColor} />
           </Pressable>
-        ) : null}
+        ) : (
+          <View style={styles.backPlaceholder} />
+        )}
 
         {eyebrow ? (
           <View style={styles.eyebrowWrap}>
-            <View style={[styles.accentRail, { backgroundColor: theme.accent }]} />
-            <AppText style={[styles.eyebrow, { color: theme.accent }]} weight="regular">{eyebrow}</AppText>
+            <Text style={[styles.eyebrow, { color: accentColor }]}>{eyebrow}</Text>
           </View>
         ) : (
-          <View style={styles.iconSpacer} />
+          <View style={{ flex: 1 }} />
         )}
 
-        {right ??
-          (icon ? (
-            <View style={[styles.iconButton, { backgroundColor: theme.accentSoft, borderColor: theme.border }]}>
-              <AppIcon name={icon} size={21} color={theme.accent} />
+        {right ?? (
+          icon ? (
+            <View style={[styles.iconBtn, { borderColor }]}>
+              <AppIcon name={icon} size={20} color={accentColor} />
             </View>
           ) : (
-            <View style={styles.iconSpacer} />
-          ))}
+            <View style={styles.backPlaceholder} />
+          )
+        )}
       </View>
 
-      <View style={styles.copy}>
-        <AppText style={[styles.title, compact && styles.titleCompact, { color: theme.text }]} weight="regular">
+      {/* Title block */}
+      <View style={styles.titleBlock}>
+        <Text
+          style={[
+            isNavBar ? styles.titleNavBar : styles.titleLarge,
+            { color: textColor },
+          ]}
+          numberOfLines={2}
+        >
           {title}
-        </AppText>
+        </Text>
         {subtitle ? (
-          <AppText style={[styles.subtitle, { color: theme.muted }]} weight="regular">{subtitle}</AppText>
+          <Text style={[styles.subtitle, { color: muteColor }]}>
+            {subtitle}
+          </Text>
         ) : null}
       </View>
     </View>
@@ -100,30 +118,51 @@ export function PageHeader({
 }
 
 const styles = StyleSheet.create({
-  root: { gap: 12 },
-  rootCompact: { gap: 8 },
-  topRow: {
-    minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
+  root: {
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 4,
   },
-  eyebrowWrap: {
-    flex: 1,
-    minWidth: 0,
+  rootNavBar: {
+    gap: 4,
+  },
+  topRow: {
+    // Apple HIG: nav bar row is 44pt
+    minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  accentRail: { width: 18, height: 3, borderRadius: 2 },
+  // Apple HIG: back button must be 44x44pt touch area
+  backBtn: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 22,
+    marginLeft: -8,
+  },
+  backBtnPressed: {
+    opacity: 0.5,
+  },
+  backPlaceholder: {
+    width: 44,
+    height: 44,
+  },
+  eyebrowWrap: {
+    flex: 1,
+    alignItems: 'flex-start',
+  },
   eyebrow: {
-    flexShrink: 1,
+    // Apple HIG Caption 2 (uppercase label)
     fontSize: 11,
-    lineHeight: 15,
-    fontWeight: '800',
+    lineHeight: 13,
+    fontWeight: '600',
+    letterSpacing: 0.06,
     textTransform: 'uppercase',
   },
-  iconButton: {
+  iconBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
@@ -131,22 +170,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconSpacer: { width: 44, height: 44 },
-  copy: { gap: 5 },
-  title: {
-    maxWidth: 520,
-    fontSize: 38,
-    lineHeight: 42,
-    fontWeight: '900',
-    letterSpacing: 0,
+  titleBlock: {
+    gap: 4,
   },
-  titleCompact: { fontSize: 32, lineHeight: 36 },
-  subtitle: {
-    maxWidth: 520,
-    fontSize: 15,
-    lineHeight: 21,
+  // Apple HIG Large Title: 34pt/700
+  titleLarge: {
+    fontSize: 34,
+    lineHeight: 41,
+    fontWeight: '700',
+    letterSpacing: 0.37,
+  },
+  // Apple HIG Title 3 for inline nav bars: 20pt/600
+  titleNavBar: {
+    fontSize: 20,
+    lineHeight: 25,
     fontWeight: '600',
-    letterSpacing: 0,
+    letterSpacing: 0.38,
   },
-  pressed: { opacity: 0.72, transform: [{ scale: 0.95 }] },
+  // Apple HIG Body (17pt)
+  subtitle: {
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: '400',
+    letterSpacing: -0.41,
+  },
+  pressed: {
+    opacity: 0.72,
+    transform: [{ scale: 0.97 }],
+  },
 });

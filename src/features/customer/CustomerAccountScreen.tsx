@@ -28,17 +28,19 @@ import { FAB } from '@/src/components/FAB';
 import { QuickActionModal } from '@/src/components/QuickActionModal';
 import { pageThemes } from '@/src/constants/pageThemes';
 
-// ─── Apple Pack Marketplace Palette ─────────────────────────────────────────
-const APPLE_BLUE = '#0071E3';
-const APPLE_GRAY = '#86868B';
-const APPLE_BG_LIGHT = '#F4F9FF'; // Refreshing cool ice blue
-const APPLE_BG_DARK = pageThemes.home.canvas;
-const APPLE_CARD_LIGHT = '#FFFFFF';
+// ─── Apple HIG System Colors ────────────────────────────────────────────────
+const APPLE_BLUE      = '#007AFF';   // system blue (light)
+const APPLE_GRAY      = '#8E8E93';   // system gray
+const APPLE_GREEN     = '#34C759';   // system green (light)
+const APPLE_ORANGE    = '#FF9500';   // system orange (light)
+// Dark mode surfaces
+const APPLE_BG_DARK   = pageThemes.home.canvas;
 const APPLE_CARD_DARK = pageThemes.home.surface;
-const APPLE_TEXT_LIGHT = '#0F172A';
 const APPLE_TEXT_DARK = pageThemes.home.text;
-const APPLE_GREEN = '#34C759';
-const APPLE_ORANGE = '#FF9500';
+// Light mode surfaces (Apple HIG: F2F2F7 grouped background, #000 label)
+const APPLE_BG_LIGHT   = '#F2F2F7';
+const APPLE_CARD_LIGHT = '#FFFFFF';
+const APPLE_TEXT_LIGHT = '#000000';
 
 const ACTIONS = [
   { label: 'Edit Profile', subtitle: 'Update bio & links', route: appRoutes.guestDesign as Href, icon: 'PenLine' as AppIconName, image: require('@/assets/images/3d_create_card_v2.png'), color: APPLE_BLUE },
@@ -313,7 +315,7 @@ export function CustomerAccountScreen() {
                 }}
                 style={({ pressed }) => [
                   styles.actionCard,
-                  { backgroundColor: isDark ? '#1E293B' : '#E0F2FE' },
+                  { backgroundColor: pageThemes.home.surfaceRaised },
                   pressed && styles.actionCardPressed,
                 ]}
               >

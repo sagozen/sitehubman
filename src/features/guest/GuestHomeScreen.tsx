@@ -47,6 +47,8 @@ import { WeeklyActivitySparkline } from '@/src/components/WeeklyActivitySparklin
 import { DailyNetworkingPrompt } from '@/src/components/DailyNetworkingPrompt';
 import { AppleWalletCardHero } from '@/src/components/AppleWalletCardHero';
 import { TestTapSimulatorCard } from '@/src/components/TestTapSimulatorCard';
+import { BeamNowButton } from '@/src/components/BeamNowButton';
+import { QuickSetupSheet } from '@/src/components/QuickSetupSheet';
 import { computeUserPrestige } from '@/src/services/prestigeTierService';
 import { pageThemes } from '@/src/constants/pageThemes';
 
@@ -295,6 +297,7 @@ export function GuestHomeScreen() {
   const [waitlistSent, setWaitlistSent] = useState(false);
   const [showQuickModal, setShowQuickModal] = useState(false);
   const [showBeamModal, setShowBeamModal] = useState(false);
+  const [showQuickSetup, setShowQuickSetup] = useState(false);
   const [testTapCompleted, setTestTapCompleted] = useState(false);
 
   const cardWidth = Math.min(screenWidth - 40, 380);
@@ -478,6 +481,20 @@ export function GuestHomeScreen() {
                 onViewLeads={() => { HapticTap.light(); router.push('/connections' as any); }}
               />
 
+              {/* ── BEAM NOW — #1 CTA for businessmen at events ── */}
+              <BeamNowButton
+                tapsCount={bioPage?.taps ?? 0}
+                onPress={() => {
+                  // If no name yet: open 30-second setup first, then beam
+                  if (!heroName && isGuest) {
+                    setShowQuickSetup(true);
+                  } else {
+                    HapticTap.heavy();
+                    setShowBeamModal(true);
+                  }
+                }}
+              />
+
               {/* ── 4. Day-1 Activation Card (Shown when user has 0 taps) ── */}
               {(bioPage?.taps ?? 0) === 0 && !testTapCompleted && (
                 <TestTapSimulatorCard
@@ -651,6 +668,27 @@ export function GuestHomeScreen() {
 
       <QuickActionModal visible={fabOpen} onClose={() => setFabOpen(false)} />
 
+      {/* ── 30-Second Quick Card Setup ── */}
+      <QuickSetupSheet
+        visible={showQuickSetup}
+        initialName={heroName || ''}
+        onClose={() => setShowQuickSetup(false)}
+        onComplete={(name, title, contact) => {
+          setShowQuickSetup(false);
+          // Immediately open the beam modal so they can share right away
+          setTimeout(() => setShowBeamModal(true), 300);
+        }}
+      />
+
+      {/* ── NFC Beam Modal ── */}
+      <NfcBeamModal
+        visible={showBeamModal}
+        onClose={() => setShowBeamModal(false)}
+        fullName={heroName || 'Your Name'}
+        title={bioPage?.tagline || bioPage?.headline || ''}
+        url={bioPage?.slug ? `https://aviobrand.com/u/${bioPage.slug}` : 'https://aviobrand.com/u/demo'}
+      />
+
       {/* ── Physical Card Waitlist Modal ── */}
       <Modal visible={showWaitlist} animationType="slide" transparent>
         <Pressable style={styles.waitlistOverlay} onPress={() => setShowWaitlist(false)}>
@@ -716,19 +754,6 @@ export function GuestHomeScreen() {
         </Pressable>
       </Modal>
 
-      {/* ── Immersive Fullscreen NFC Beam Mode ── */}
-      <NfcBeamModal
-        visible={showBeamModal}
-        onClose={() => setShowBeamModal(false)}
-        fullName={heroName || 'Alexander Wright'}
-        title={heroTitle || 'Founder & CEO · AVIO'}
-        cardId={cloudCard?.cardId ?? 'BC-NFC_JEWDVONG'}
-        url={
-          bioPage?.slug
-            ? `https://aviobrand.com/u/${bioPage.slug}`
-            : 'https://aviobrand.com/u/demo'
-        }
-      />
     </View>
   );
 }
