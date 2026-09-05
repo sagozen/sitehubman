@@ -37,8 +37,8 @@ function AppCardRaw({
 }: PropsWithChildren<AppCardProps>) {
   const { isDark } = usePreferences();
 
-  const surface = isDark ? '#131316' : '#FFFFFF';
-  const hairline = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(10,10,11,0.06)';
+  const surface = isDark ? '#1a1a1a' : '#FFFFFF';
+  const hairline = isDark ? '#3a3a3a' : 'rgba(10,10,11,0.06)';
 
   return (
     <View

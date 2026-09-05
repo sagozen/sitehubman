@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Apple Human Interface Guidelines — Canonical Design Rulebook
  *
  * This file is the SINGLE source of truth for all Apple HIG rules in this app.
@@ -16,54 +16,54 @@ import { Platform } from 'react-native';
 
 export const appleColors = {
   dark: {
-    // System Backgrounds (Apple HIG layered backgrounds)
-    background:       '#000000',   // systemBackground (dark)
-    backgroundSecondary: '#1C1C1E', // secondarySystemBackground
-    backgroundTertiary:  '#2C2C2E', // tertiarySystemBackground
-    groupedBackground:   '#000000', // systemGroupedBackground
-    groupedSecondary:    '#1C1C1E', // secondarySystemGroupedBackground
-    groupedTertiary:     '#2C2C2E', // tertiarySystemGroupedBackground
+    // System Backgrounds (monochrome palette)
+    background:          '#000000',   // monochromeBlack
+    backgroundSecondary: '#1a1a1a',   // monochromeDarkSurface
+    backgroundTertiary:  '#2a2a2a',   // monochromeSurfaceVariant
+    groupedBackground:   '#000000',   // monochromeBlack
+    groupedSecondary:    '#1a1a1a',   // monochromeDarkSurface
+    groupedTertiary:     '#2a2a2a',   // monochromeSurfaceVariant
 
-    // Labels (Apple HIG: use label, not a hardcoded color)
-    label:            '#FFFFFF',                    // label
-    labelSecondary:   'rgba(235,235,245,0.60)',     // secondaryLabel
-    labelTertiary:    'rgba(235,235,245,0.30)',     // tertiaryLabel
-    labelQuaternary:  'rgba(235,235,245,0.18)',     // quaternaryLabel
-    placeholderText:  'rgba(235,235,245,0.30)',     // placeholderText
+    // Labels (monochromeText hierarchy)
+    label:            '#ffffff',                    // monochromeTextPrimary
+    labelSecondary:   '#b3b3b3',                    // monochromeTextSecondary
+    labelTertiary:    '#808080',                    // monochromeTextMuted
+    labelQuaternary:  '#808080',                    // monochromeTextMuted
+    placeholderText:  '#808080',                    // monochromeTextMuted
 
     // Fills (used for controls, not backgrounds)
-    fillPrimary:      'rgba(120,120,128,0.36)',     // systemFill
-    fillSecondary:    'rgba(120,120,128,0.32)',     // secondarySystemFill
-    fillTertiary:     'rgba(118,118,128,0.24)',     // tertiarySystemFill
-    fillQuaternary:   'rgba(118,118,128,0.18)',     // quaternarySystemFill
+    fillPrimary:      'rgba(255,255,255,0.12)',     // systemFill
+    fillSecondary:    'rgba(255,255,255,0.08)',     // secondarySystemFill
+    fillTertiary:     'rgba(255,255,255,0.05)',     // tertiarySystemFill
+    fillQuaternary:   'rgba(255,255,255,0.03)',     // quaternarySystemFill
 
-    // Separators
-    separator:        'rgba(84,84,88,0.65)',        // separator
-    opaqueSeparator:  '#38383A',                   // opaqueSeparator
+    // Separators (monochromeBorder)
+    separator:        '#3a3a3a',                   // monochromeBorder
+    opaqueSeparator:  '#3a3a3a',                   // monochromeBorder
 
-    // System Tints
-    blue:    '#0A84FF',  // systemBlue
-    green:   '#30D158',  // systemGreen
+    // System Tints (spotifyGreen accent)
+    blue:    '#1DB954',  // spotifyGreen
+    green:   '#1DB954',  // spotifyGreen
     indigo:  '#5E5CE6',  // systemIndigo
     orange:  '#FF9F0A',  // systemOrange
     pink:    '#FF375F',  // systemPink
     purple:  '#BF5AF2',  // systemPurple
-    red:     '#FF453A',  // systemRed
-    teal:    '#5AC8FA',  // systemTeal
+    red:     '#ff4444',  // error
+    teal:    '#1DB954',  // spotifyGreen
     yellow:  '#FFD60A',  // systemYellow
-    gray:    '#8E8E93',  // systemGray
-    gray2:   '#636366',  // systemGray2
-    gray3:   '#48484A',  // systemGray3
-    gray4:   '#3A3A3C',  // systemGray4
-    gray5:   '#2C2C2E',  // systemGray5
-    gray6:   '#1C1C1E',  // systemGray6
+    gray:    '#808080',  // monochromeTextMuted
+    gray2:   '#b3b3b3',  // monochromeTextSecondary
+    gray3:   '#3a3a3a',  // monochromeBorder
+    gray4:   '#2a2a2a',  // monochromeSurfaceVariant
+    gray5:   '#1a1a1a',  // monochromeDarkSurface
+    gray6:   '#000000',  // monochromeBlack
 
     // Semantic (resolved)
-    tint:       '#0A84FF',  // default tint
-    link:       '#0A84FF',
-    destructive:'#FF453A',
-    success:    '#30D158',
-    warning:    '#FF9F0A',
+    tint:        '#1DB954',  // spotifyGreen
+    link:        '#1DB954',
+    destructive: '#ff4444',  // error
+    success:     '#1DB954',  // spotifyGreen
+    warning:     '#FF9F0A',
   },
   light: {
     background:       '#FFFFFF',
@@ -145,12 +145,12 @@ export type AppleTypeScale = keyof typeof appleType.scale;
 // 4pt base grid. All spacing must be a multiple of 4.
 
 export const appleSpacing = {
-  xxs:    4,
-  xs:     8,
-  sm:     12,
-  md:     16,   // Standard horizontal screen margin
-  lg:     20,
-  xl:     24,
+  xs:      4,   // 4px (xs)
+  sm:      8,   // 8px (sm)
+  md:     16,   // 16px (md)
+  lg:     24,   // 24px (lg)
+  xl:     32,   // 32px (xl)
+  xxs:     4,
   xxl:    32,
   xxxl:   40,
   section: 48,
@@ -162,16 +162,21 @@ export const appleSpacing = {
 } as const;
 
 // ─── BORDER RADIUS ───────────────────────────────────────────────────────────
-// Apple HIG uses consistent, meaningful radii.
+// Border Radii: 4px (small), 8px (medium), 12px (large), 9999px (circular/pill buttons)
 
 export const appleRadius = {
-  xs:      6,   // Tags, badges, small chips
-  sm:      10,  // Inputs, secondary buttons
-  md:      12,  // Cards, list rows, grouped table cells
-  lg:      14,  // Primary buttons, large cards
-  xl:      16,  // Full-width CTAs, large surfaces
-  xxl:     20,  // Modal sheet top corners
-  full:  9999,  // Pill shapes, avatar/icon containers
+  small:    4,   // 4px (small)
+  medium:   8,   // 8px (medium)
+  large:   12,   // 12px (large)
+  circular: 9999, // 9999px (circular/pill buttons)
+  pill:    9999,
+  xs:       4,
+  sm:       4,
+  md:       8,
+  lg:      12,
+  xl:      12,
+  xxl:     12,
+  full:  9999,
 } as const;
 
 // ─── CONTROL SIZES ───────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ApplePassConfirmationCard.tsx
  *
  * 100% Native Apple Cash / Apple Pay Confirmation Card Design.
@@ -71,7 +71,7 @@ export function ApplePassConfirmationCard({
           <AppText style={styles.mainTitle} weight="extrabold">
             {title}
           </AppText>
-          <AppIcon name="Check" size={20} color="#0A84FF" />
+          <AppIcon name="Check" size={20} color="#1DB954" />
         </View>
         <AppText style={styles.subText}>
           {subtitle}
@@ -83,10 +83,10 @@ export function ApplePassConfirmationCard({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 20,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: '#3a3a3a',
     padding: 24,
     alignItems: 'center',
     gap: 20,
@@ -94,9 +94,9 @@ const styles = StyleSheet.create({
   cardGraphicWrap: {
     width: 220,
     height: 135,
-    borderRadius: 14,
+    borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#111114',
+    backgroundColor: '#2a2a2a',
     position: 'relative',
     padding: 14,
     justifyContent: 'space-between',

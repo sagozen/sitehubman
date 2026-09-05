@@ -53,10 +53,15 @@ export const typography = {
 } as const;
 
 // ═══════════════════════════════════════════════════════════════════════════
-// SPACING (8pt grid from all systems)
+// SPACING (Spacing Scale: 4px (xs), 8px (sm), 16px (md), 24px (lg), 32px (xl))
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
   // Micro spacing
   1: 4,
   2: 8,   // Base unit
@@ -65,30 +70,35 @@ export const spacing = {
   
   // Standard spacing
   5: 20,
-  6: 24,  // Tesla's card padding
+  6: 24,
   8: 32,
   
-  // Generous spacing (Linear + Arc)
+  // Generous spacing
   10: 40,
-  12: 48, // Linear's section gaps
-  16: 64, // Linear's list item height
-  24: 96, // Arc's max spacing
+  12: 48,
+  16: 64,
+  24: 96,
   
   // Screen edges
-  screenX: 20,  // Apple standard
+  screenX: 20,
   screenY: 24,
 } as const;
 
 // ═══════════════════════════════════════════════════════════════════════════
-// CORNER RADIUS (Industry standard across all systems)
+// CORNER RADIUS (Border Radii: 4px (small), 8px (medium), 12px (large), 9999px (circular/pill))
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const radius = {
-  card: 16,    // All systems agree on 16px for cards
-  button: 10,  // Apple's button radius
-  input: 10,   // Apple's input radius
-  badge: 6,    // Linear's badge radius
-  sheet: 12,   // iOS sheet radius
+  small: 4,
+  medium: 8,
+  large: 12,
+  circular: 9999,
+  pill: 9999,
+  card: 12,
+  button: 9999,
+  input: 8,
+  badge: 4,
+  sheet: 12,
 } as const;
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -145,32 +155,42 @@ export const elevation = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const color = {
-  // Primary (Tesla's Electric Blue)
-  primary: '#3E6AE1',
+  // Primary (Spotify Green)
+  primary: '#1DB954',
+  accent: '#1DB954',
   
-  // Monochrome base (Nothing + Tesla)
-  black: '#0A0A0A',
-  white: '#FFFFFF',
+  // Monochrome base
+  monochromeBlack: '#000000',
+  monochromeDarkSurface: '#1a1a1a',
+  monochromeSurfaceVariant: '#2a2a2a',
+  monochromeBorder: '#3a3a3a',
+  monochromeTextPrimary: '#ffffff',
+  monochromeTextSecondary: '#b3b3b3',
+  monochromeTextMuted: '#808080',
+  spotifyGreen: '#1DB954',
+
+  black: '#000000',
+  white: '#ffffff',
   
-  // Surfaces (Apple standard)
-  surface: '#FFFFFF',
-  surfaceVariant: '#FAFAFA',
-  surfaceSecondary: '#F5F5F5',
+  // Surfaces
+  surface: '#1a1a1a',
+  surfaceVariant: '#2a2a2a',
+  surfaceSecondary: '#2a2a2a',
   
-  // Borders (Apple precision)
-  border: '#E5E5E5',
-  borderLight: '#F0F0F0',
+  // Borders
+  border: '#3a3a3a',
+  borderLight: '#3a3a3a',
   
   // Text hierarchy
-  text: '#0A0A0A',
-  textMedium: '#666666',
-  textLight: '#999999',
+  text: '#ffffff',
+  textMedium: '#b3b3b3',
+  textLight: '#808080',
   
-  // Status (Physical colors, not vibrant)
-  success: '#16A34A',
-  error: '#DC2626',
+  // Status
+  success: '#1DB954',
+  error: '#ff4444',
   warning: '#EA580C',
-  info: '#2563EB',
+  info: '#1DB954',
 } as const;
 
 // ═══════════════════════════════════════════════════════════════════════════

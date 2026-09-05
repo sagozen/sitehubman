@@ -1,4 +1,4 @@
-﻿/**
+/**
  * TestTapSimulatorCard.tsx — 100% Native Apple Cash / Apple Pay Confirmation Edition.
  *
  * Modeled directly after Apple Cash & Apple Pay native iOS interface:
@@ -72,7 +72,7 @@ export function TestTapSimulatorCard({ onSimulateTap }: TestTapSimulatorCardProp
       <View style={styles.contentBlock}>
         <View style={styles.titleRow}>
           {simulating ? (
-            <ActivityIndicator size="small" color="#0A84FF" />
+            <ActivityIndicator size="small" color="#1DB954" />
           ) : (
             <AppText style={styles.mainTitle} weight="extrabold">
               {completed ? 'Smart Pass Active' : 'Test NFC Smart Pass'}
@@ -81,7 +81,7 @@ export function TestTapSimulatorCard({ onSimulateTap }: TestTapSimulatorCardProp
           <AppIcon
             name={completed ? 'Check' : 'Nfc'}
             size={20}
-            color={completed ? '#0A84FF' : 'rgba(255,255,255,0.5)'}
+            color={completed ? '#1DB954' : '#808080'}
           />
         </View>
         <AppText style={styles.subText}>
@@ -103,10 +103,10 @@ export function TestTapSimulatorCard({ onSimulateTap }: TestTapSimulatorCardProp
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 20,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: '#3a3a3a',
     padding: 20,
     alignItems: 'center',
     gap: 16,
@@ -114,9 +114,9 @@ const styles = StyleSheet.create({
   cardGraphicWrap: {
     width: 200,
     height: 120,
-    borderRadius: 14,
+    borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#111114',
+    backgroundColor: '#2a2a2a',
     position: 'relative',
     padding: 12,
     justifyContent: 'space-between',
@@ -145,14 +145,14 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   cardLogoText: {
-    color: '#FFFFFF',
+    color: '#ffffff',
     fontSize: 13,
     letterSpacing: 0.3,
   },
   nfcChipSeal: {
     width: 22,
     height: 22,
-    borderRadius: 6,
+    borderRadius: 4,
     backgroundColor: 'rgba(255,255,255,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -163,12 +163,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   cardHolderName: {
-    color: 'rgba(255,255,255,0.85)',
+    color: '#b3b3b3',
     fontSize: 9,
     letterSpacing: 0.8,
   },
   cardPassType: {
-    color: '#FFFFFF',
+    color: '#1DB954',
     fontSize: 9,
     letterSpacing: 1,
   },
@@ -182,22 +182,22 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   mainTitle: {
-    color: '#FFFFFF',
+    color: '#ffffff',
     fontSize: 20,
     letterSpacing: -0.3,
   },
   subText: {
-    color: 'rgba(255, 255, 255, 0.65)',
+    color: '#b3b3b3',
     fontSize: 12,
     textAlign: 'center',
     lineHeight: 17,
     maxWidth: 290,
   },
   ctaPill: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1DB954',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: 9999,
     marginTop: 2,
   },
   ctaText: {
