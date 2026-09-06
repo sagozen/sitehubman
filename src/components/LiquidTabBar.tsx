@@ -48,6 +48,27 @@ const TAB_LABEL_SIZE = 10;
 const SPRING_STANDARD = { damping: 18, stiffness: 260, mass: 0.9 };
 const SPRING_SNAPPY   = { damping: 16, stiffness: 340, mass: 0.7 };
 
+// Styles for AnimatedTabItem — defined here so they're available before component declaration
+const ITEM_STYLE = StyleSheet.create({
+  tabItem: {
+    flex: 1,
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
+  },
+  tabInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  tabLabel: {
+    fontSize: TAB_LABEL_SIZE,
+    lineHeight: 13,
+    letterSpacing: 0,
+  },
+});
+
 // ─── Animated Tab Item ────────────────────────────────────────────────────────
 interface TabItemProps {
   iconName: any;
@@ -100,19 +121,19 @@ function AnimatedTabItem({
         runOnJS(HapticTap.selection)();
         runOnJS(onPress)();
       }}
-      style={[s.tabItem, Platform.OS === 'web' && ({ outlineStyle: 'none' } as any)]}
+      style={[ITEM_STYLE.tabItem, Platform.OS === 'web' && ({ outlineStyle: 'none' } as any)]}
       accessibilityRole="tab"
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ selected: isActive }}
       hitSlop={0}
     >
-      <Animated.View style={[s.tabInner, containerStyle]}>
+      <Animated.View style={[ITEM_STYLE.tabInner, containerStyle]}>
         <Animated.View style={iconStyle}>
           <Ionicons name={iconName} size={TAB_ICON_SIZE} color={isActive ? activeTint : inactiveTint} />
         </Animated.View>
         <Animated.View style={labelStyle}>
           <AppText
-            style={[s.tabLabel, { color: isActive ? activeTint : inactiveTint }]}
+            style={[ITEM_STYLE.tabLabel, { color: isActive ? activeTint : inactiveTint }]}
             weight={isActive ? 'semibold' : 'regular'}
           >
             {labelText}
