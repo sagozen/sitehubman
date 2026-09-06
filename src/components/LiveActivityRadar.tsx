@@ -1,4 +1,4 @@
-﻿/**
+/**
  * LiveActivityRadar.tsx — Barclays Financial Ledger Edition for AVIO Executive Workspace.
  *
  * Replaces ambient decorative pulses with a crisp, institutional activity ledger:
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
   },
   headerLeft: {},
   headerTitle: {
-    color: 'rgba(255, 255, 255, 0.45)',
+    color: '#808080',
     fontSize: 11,
     letterSpacing: 0.8,
   },
@@ -199,44 +199,44 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: 'rgba(48, 209, 88, 0.1)',
+    backgroundColor: 'rgba(29, 185, 84, 0.12)',
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 12,
+    borderRadius: 9999,
     borderWidth: 1,
-    borderColor: 'rgba(48, 209, 88, 0.25)',
+    borderColor: 'rgba(29, 185, 84, 0.3)',
   },
   liveDot: {
     width: 6,
     height: 6,
-    borderRadius: 3,
-    backgroundColor: '#30D158',
+    borderRadius: 9999,
+    backgroundColor: '#1DB954',
   },
   liveAuditText: {
-    color: '#30D158',
+    color: '#1DB954',
     fontSize: 9,
     letterSpacing: 0.5,
   },
   ledgerCard: {
-    backgroundColor: '#111114',
-    borderRadius: 16,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: '#3a3a3a',
     overflow: 'hidden',
   },
   groupHeader: {
-    backgroundColor: '#0A0A0C',
+    backgroundColor: '#000000',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    borderBottomColor: '#3a3a3a',
   },
   groupHeaderSubsequent: {
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopColor: '#3a3a3a',
   },
   groupTitle: {
-    color: 'rgba(255, 255, 255, 0.4)',
+    color: '#808080',
     fontSize: 10,
     letterSpacing: 0.8,
   },
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    borderBottomColor: '#3a3a3a',
   },
   rowLastInGroup: {
     borderBottomWidth: 0,
@@ -256,15 +256,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   pressed: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: '#2a2a2a',
   },
   iconCircle: {
     width: 34,
     height: 34,
-    borderRadius: 17,
-    backgroundColor: '#18181C',
+    borderRadius: 9999,
+    backgroundColor: '#2a2a2a',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#3a3a3a',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -273,11 +273,11 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   rowTitle: {
-    color: '#FFFFFF',
+    color: '#ffffff',
     fontSize: 13,
   },
   rowSub: {
-    color: 'rgba(255, 255, 255, 0.45)',
+    color: '#b3b3b3',
     fontSize: 11,
   },
   rightCol: {
@@ -287,16 +287,16 @@ const styles = StyleSheet.create({
   statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 6,
+    borderRadius: 4,
     borderWidth: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: '#1a1a1a',
   },
   statusText: {
     fontSize: 10,
     letterSpacing: 0.2,
   },
   timeText: {
-    color: 'rgba(255, 255, 255, 0.35)',
+    color: '#808080',
     fontSize: 10,
   },
 });

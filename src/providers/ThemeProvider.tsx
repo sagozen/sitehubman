@@ -40,7 +40,7 @@ function buildColors(isDark: boolean) {
   const a = isDark ? appleColors.dark : appleColors.light;
   return {
     primary:         a.tint,
-    accent:          isDark ? '#FF375F' : '#FF2D55',
+    accent:          isDark ? '#FF375F' : '#FF2D55',   // Apple systemPink
     background:      a.background,
     surface:         a.backgroundSecondary,
     surfaceElevated: a.backgroundTertiary,
@@ -51,7 +51,7 @@ function buildColors(isDark: boolean) {
     textInverse:     isDark ? '#000000' : '#FFFFFF',
     textTertiary:    a.labelTertiary,
     border:          a.separator,
-    disabled:        isDark ? '#48484A' : '#C7C7CC',
+    disabled:        isDark ? '#48484A' : '#C7C7CC',   // Apple gray3
     success:         a.success,
     warning:         a.warning,
     error:           a.destructive,

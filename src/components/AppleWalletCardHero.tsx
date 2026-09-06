@@ -1,4 +1,4 @@
-﻿/**
+/**
  * AppleWalletCardHero.tsx
  *
  * 100% Native iOS 17.4 Apple Wallet & Apple Cash Card Layout.
@@ -137,13 +137,13 @@ const styles = StyleSheet.create({
   // ── Hero Card ──
   heroCard: {
     height: 210,
-    borderRadius: 20,
+    borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#111114',
+    backgroundColor: '#1a1a1a',
     padding: 20,
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#3a3a3a',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.5,
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   brandTitle: {
-    color: '#FFFFFF',
+    color: '#ffffff',
     fontSize: 18,
     letterSpacing: 0.2,
   },
@@ -190,17 +190,17 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   cardHolderName: {
-    color: '#FFFFFF',
+    color: '#ffffff',
     fontSize: 14,
     letterSpacing: 0.8,
   },
   cardSub: {
-    color: 'rgba(255, 255, 255, 0.55)',
+    color: '#b3b3b3',
     fontSize: 10,
     letterSpacing: 0.5,
   },
   passBadge: {
-    color: '#FFD60A',
+    color: '#1DB954',
     fontSize: 10,
     letterSpacing: 0.8,
   },
@@ -210,35 +210,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#111114',
-    borderRadius: 16,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: '#3a3a3a',
   },
   balanceLeft: {
     gap: 2,
   },
   balanceLabel: {
-    color: 'rgba(255, 255, 255, 0.45)',
+    color: '#808080',
     fontSize: 12,
   },
   balanceValue: {
-    color: '#FFFFFF',
+    color: '#ffffff',
     fontSize: 26,
     letterSpacing: -0.5,
   },
   balanceUnit: {
-    color: 'rgba(255, 255, 255, 0.45)',
+    color: '#808080',
     fontSize: 14,
     fontWeight: '400',
   },
   actionPill: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1DB954',
     paddingHorizontal: 18,
     paddingVertical: 10,
-    borderRadius: 20,
+    borderRadius: 9999,
   },
   actionPillText: {
     color: '#000000',
@@ -247,12 +247,12 @@ const styles = StyleSheet.create({
 
   // ── iOS 17.4 Feature Banner Card ──
   featureBanner: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 18,
+    backgroundColor: '#2a2a2a',
+    borderRadius: 12,
     padding: 16,
     gap: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: '#3a3a3a',
   },
   featureBannerHeader: {
     flexDirection: 'row',
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   featureIconBox: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -271,23 +271,23 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   featureTitle: {
-    color: '#FFFFFF',
+    color: '#ffffff',
     fontSize: 14,
   },
   featureSub: {
-    color: 'rgba(255, 255, 255, 0.55)',
+    color: '#b3b3b3',
     fontSize: 12,
     lineHeight: 16,
   },
   bannerDivider: {
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: '#3a3a3a',
   },
   bannerFooterLink: {
     paddingVertical: 2,
   },
   bannerFooterLinkText: {
-    color: '#FFFFFF',
+    color: '#1DB954',
     fontSize: 13,
   },
 

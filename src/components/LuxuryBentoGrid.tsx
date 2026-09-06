@@ -1,4 +1,4 @@
-﻿/**
+/**
  * LuxuryBentoGrid.tsx — Barclays Financial Seals Edition.
  *
  * Replaces generic tiles with high-precision 48px circular action seals
@@ -107,15 +107,15 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   actionRowCard: {
-    backgroundColor: '#111114',
-    borderRadius: 16,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: '#3a3a3a',
     padding: 16,
     gap: 14,
   },
   actionRowLabel: {
-    color: 'rgba(255, 255, 255, 0.45)',
+    color: '#808080',
     fontSize: 10,
     letterSpacing: 0.8,
   },
@@ -132,40 +132,40 @@ const styles = StyleSheet.create({
   actionSealCircle: {
     width: 48,
     height: 48,
-    borderRadius: 24,
-    backgroundColor: '#18181C',
+    borderRadius: 9999,
+    backgroundColor: '#2a2a2a',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: '#3a3a3a',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
   actionSealBeam: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#FFFFFF',
+    backgroundColor: '#ffffff',
+    borderColor: '#ffffff',
   },
   sealBadge: {
     position: 'absolute',
     top: -2,
     right: -2,
-    backgroundColor: '#0A84FF',
+    backgroundColor: '#1DB954',
     paddingHorizontal: 5,
     paddingVertical: 1,
-    borderRadius: 10,
+    borderRadius: 9999,
     borderWidth: 1,
-    borderColor: '#111114',
+    borderColor: '#1a1a1a',
   },
   sealBadgeText: {
-    color: '#FFFFFF',
+    color: '#000000',
     fontSize: 9,
   },
   actionSealText: {
-    color: '#FFFFFF',
+    color: '#ffffff',
     fontSize: 12,
     textAlign: 'center',
   },
   actionSealSub: {
-    color: 'rgba(255, 255, 255, 0.45)',
+    color: '#808080',
     fontSize: 10,
     textAlign: 'center',
   },

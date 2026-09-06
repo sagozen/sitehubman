@@ -77,10 +77,10 @@ function MonoTextRaw({
   const resolvedWeight = weight ?? (variantStyle.fontWeight as MonoWeight | undefined) ?? 'regular';
   const fontFamily = resolveFamily(resolvedWeight);
 
-  const primaryColor = isDark ? '#FAFAFA' : '#09090B';
-  const mutedColor = isDark ? '#A1A1AA' : '#6E6E73';
-  const tertiaryColor = isDark ? '#71717A' : '#A1A1AA';
-  const inverseColor = isDark ? '#09090B' : '#FFFFFF';
+  const primaryColor = isDark ? '#ffffff' : '#000000';
+  const mutedColor = isDark ? '#b3b3b3' : '#666666';
+  const tertiaryColor = isDark ? '#808080' : '#808080';
+  const inverseColor = isDark ? '#000000' : '#ffffff';
 
   const toneColor =
     color ??

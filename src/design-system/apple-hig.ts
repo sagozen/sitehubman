@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Apple Human Interface Guidelines — Canonical Design Rulebook
  *
  * This file is the SINGLE source of truth for all Apple HIG rules in this app.
@@ -17,12 +17,12 @@ import { Platform } from 'react-native';
 export const appleColors = {
   dark: {
     // System Backgrounds (Apple HIG layered backgrounds)
-    background:       '#000000',   // systemBackground (dark)
-    backgroundSecondary: '#1C1C1E', // secondarySystemBackground
-    backgroundTertiary:  '#2C2C2E', // tertiarySystemBackground
-    groupedBackground:   '#000000', // systemGroupedBackground
-    groupedSecondary:    '#1C1C1E', // secondarySystemGroupedBackground
-    groupedTertiary:     '#2C2C2E', // tertiarySystemGroupedBackground
+    background:          '#000000',   // systemBackground (dark)
+    backgroundSecondary: '#1C1C1E',   // secondarySystemBackground
+    backgroundTertiary:  '#2C2C2E',   // tertiarySystemBackground
+    groupedBackground:   '#000000',   // systemGroupedBackground
+    groupedSecondary:    '#1C1C1E',   // secondarySystemGroupedBackground
+    groupedTertiary:     '#2C2C2E',   // tertiarySystemGroupedBackground
 
     // Labels (Apple HIG: use label, not a hardcoded color)
     label:            '#FFFFFF',                    // label
@@ -41,7 +41,7 @@ export const appleColors = {
     separator:        'rgba(84,84,88,0.65)',        // separator
     opaqueSeparator:  '#38383A',                   // opaqueSeparator
 
-    // System Tints
+    // System Tints (Apple UIKit system colors)
     blue:    '#0A84FF',  // systemBlue
     green:   '#30D158',  // systemGreen
     indigo:  '#5E5CE6',  // systemIndigo
@@ -59,14 +59,14 @@ export const appleColors = {
     gray6:   '#1C1C1E',  // systemGray6
 
     // Semantic (resolved)
-    tint:       '#0A84FF',  // default tint
-    link:       '#0A84FF',
-    destructive:'#FF453A',
-    success:    '#30D158',
-    warning:    '#FF9F0A',
+    tint:        '#0A84FF',  // default tint (systemBlue dark)
+    link:        '#0A84FF',
+    destructive: '#FF453A',
+    success:     '#30D158',
+    warning:     '#FF9F0A',
   },
   light: {
-    background:       '#FFFFFF',
+    background:          '#FFFFFF',
     backgroundSecondary: '#F2F2F7',
     backgroundTertiary:  '#FFFFFF',
     groupedBackground:   '#F2F2F7',
@@ -103,11 +103,11 @@ export const appleColors = {
     gray5:   '#E5E5EA',
     gray6:   '#F2F2F7',
 
-    tint:       '#007AFF',
-    link:       '#007AFF',
-    destructive:'#FF3B30',
-    success:    '#34C759',
-    warning:    '#FF9500',
+    tint:        '#007AFF',
+    link:        '#007AFF',
+    destructive: '#FF3B30',
+    success:     '#34C759',
+    warning:     '#FF9500',
   },
 } as const;
 
@@ -145,33 +145,39 @@ export type AppleTypeScale = keyof typeof appleType.scale;
 // 4pt base grid. All spacing must be a multiple of 4.
 
 export const appleSpacing = {
-  xxs:    4,
-  xs:     8,
-  sm:     12,
-  md:     16,   // Standard horizontal screen margin
-  lg:     20,
-  xl:     24,
-  xxl:    32,
-  xxxl:   40,
+  xxs:     4,
+  xs:      8,
+  sm:      12,
+  md:      16,   // Standard horizontal screen margin
+  lg:      20,
+  xl:      24,
+  xxl:     32,
+  xxxl:    40,
   section: 48,
   // Named semantic spacings
-  screenH: 16,  // Standard horizontal padding on any screen
-  rowH:    16,  // Left padding inside a list row
-  cardPad: 16,  // Padding inside a card
-  stackGap: 8,  // Gap between stacked UI elements
+  screenH:  16,  // Standard horizontal padding on any screen
+  rowH:     16,  // Left padding inside a list row
+  cardPad:  16,  // Padding inside a card
+  stackGap:  8,  // Gap between stacked UI elements
 } as const;
 
 // ─── BORDER RADIUS ───────────────────────────────────────────────────────────
 // Apple HIG uses consistent, meaningful radii.
 
 export const appleRadius = {
-  xs:      6,   // Tags, badges, small chips
-  sm:      10,  // Inputs, secondary buttons
-  md:      12,  // Cards, list rows, grouped table cells
-  lg:      14,  // Primary buttons, large cards
-  xl:      16,  // Full-width CTAs, large surfaces
-  xxl:     20,  // Modal sheet top corners
-  full:  9999,  // Pill shapes, avatar/icon containers
+  xs:       6,    // Tags, badges, small chips
+  sm:       10,   // Inputs, secondary buttons
+  md:       12,   // Cards, list rows, grouped table cells
+  lg:       14,   // Primary buttons, large cards
+  xl:       16,   // Full-width CTAs, large surfaces
+  xxl:      20,   // Modal sheet top corners
+  full:   9999,   // Pill shapes, avatar/icon containers
+  // Aliases (from remote branch — kept for compatibility)
+  small:    6,
+  medium:  12,
+  large:   16,
+  circular: 9999,
+  pill:    9999,
 } as const;
 
 // ─── CONTROL SIZES ───────────────────────────────────────────────────────────
@@ -190,6 +196,54 @@ export const appleControl = {
   tabBarLabel: 10,  // Tab bar label font size
 } as const;
 
+// ─── SHADOW ELEVATION ────────────────────────────────────────────────────────
+// 5-level shadow system matching Apple's elevation model
+
+export const appleShadow = {
+  none: {
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  xs: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  sm: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  md: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  lg: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  xl: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.24,
+    shadowRadius: 32,
+    elevation: 16,
+  },
+} as const;
+
 // ─── MOTION ──────────────────────────────────────────────────────────────────
 // Apple-feel spring and timing presets.
 
@@ -201,15 +255,24 @@ export const appleMotion = {
   slow:     350,  // Screen transitions
 
   // Press feedback (applied to all interactive elements)
-  pressScale:   0.97,   // Scale on press-in
-  pressOpacity: 0.88,   // Opacity on press-in
-  disabledOpacity: 0.40, // Disabled state
+  pressScale:      0.97,   // Scale on press-in
+  pressOpacity:    0.88,   // Opacity on press-in
+  disabledOpacity: 0.40,   // Disabled state
 
-  // Spring configs (pass to withSpring)
+  // Spring configs (pass to withSpring / Reanimated 4)
   spring: {
-    gentle:  { damping: 20, stiffness: 150, mass: 1 },   // Standard
+    gentle:  { damping: 20, stiffness: 150, mass: 1 },    // Standard transitions
     snappy:  { damping: 15, stiffness: 300, mass: 0.8 },  // Button release
-    bouncy:  { damping: 10, stiffness: 250, mass: 1 },    // Celebratory
+    bouncy:  { damping: 10, stiffness: 250, mass: 1 },    // Celebratory / tab indicator
+    micro:   { damping: 25, stiffness: 400, mass: 0.6 },  // Micro-interactions
+  },
+
+  // Easing curves (for withTiming)
+  easing: {
+    standard: 'cubic-bezier(0.4, 0.0, 0.2, 1)',    // Material standard — smooth
+    decelerate: 'cubic-bezier(0.0, 0.0, 0.2, 1)',  // Elements entering screen
+    accelerate: 'cubic-bezier(0.4, 0.0, 1, 1)',    // Elements leaving screen
+    sharp: 'cubic-bezier(0.4, 0.0, 0.6, 1)',       // Quick, snappy
   },
 } as const;
 
@@ -222,7 +285,7 @@ export const appleHapticRule = {
   // Use for: confirm, submit, toggle
   confirm:    'medium',
   // Use for: destructive actions, errors, alarms
-  destructive:'heavy',
+  destructive: 'heavy',
   // Use for: success feedback
   success:    'success',
   // Use for: errors
@@ -251,6 +314,7 @@ export const appleHIG = {
   spacing:  appleSpacing,
   radius:   appleRadius,
   control:  appleControl,
+  shadow:   appleShadow,
   motion:   appleMotion,
   haptic:   appleHapticRule,
   a11y:     appleA11y,
