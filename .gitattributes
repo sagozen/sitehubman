@@ -11,5 +11,9 @@
 *.woff binary
 *.woff2 binary
 ios/** text eol=lf
+ios/**/*.png binary
+ios/**/*.jpg binary
+ios/**/*.jpeg binary
+ios/**/*.pdf binary
 ios/.xcode.env text eol=lf
 *.sh text eol=lf
