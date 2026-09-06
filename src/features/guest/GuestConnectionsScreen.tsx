@@ -50,8 +50,11 @@ function getGradientForName(name: string) {
   return AVATAR_GRADIENTS[hash % AVATAR_GRADIENTS.length] as [string, string];
 }
 
-const EmptyState = () => {
+const EmptyState = ({ isDark }: { isDark: boolean }) => {
   const floatAnim = useSharedValue(0);
+  const textColor = isDark ? '#FFFFFF' : '#000000';
+  const subColor = isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)';
+  const iconColor = isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.35)';
 
   useEffect(() => {
     floatAnim.value = withRepeat(
@@ -71,10 +74,10 @@ const EmptyState = () => {
   return (
     <View style={styles.emptyState}>
       <Animated.View style={animatedStyle}>
-        <AppIcon name="Search" size={32} color="rgba(255, 255, 255, 0.4)" />
+        <AppIcon name="Search" size={32} color={iconColor} />
       </Animated.View>
-      <AppText style={styles.emptyTitle} weight="bold">No contacts found</AppText>
-      <AppText style={styles.emptySub}>Try searching for another keyword.</AppText>
+      <AppText style={[styles.emptyTitle, { color: textColor }]} weight="bold">No contacts found</AppText>
+      <AppText style={[styles.emptySub, { color: subColor }]}>Try searching for another keyword.</AppText>
     </View>
   );
 };
@@ -293,18 +296,16 @@ export function GuestConnectionsScreen() {
     };
   });
 
-  // Filter Animations
-  const FILTERS = [
-    { id: 'all', label: 'All Leads' },
-    { id: 'vip', label: 'VIP / Exec' },
-    { id: 'recent', label: 'Recent' },
-  ];
+  const [filterStripWidth, setFilterStripWidth] = useState(0);
   const activeFilterIndex = FILTERS.findIndex(f => f.id === activeFilter);
   const filterAnim = useSharedValue(0);
   
   useEffect(() => {
-    filterAnim.value = withSpring(activeFilterIndex, SPRING_SNAPPY);
-  }, [activeFilterIndex, filterAnim]);
+    if (filterStripWidth > 0) {
+      const tabW = (filterStripWidth - 6) / FILTERS.length;
+      filterAnim.value = withSpring(activeFilterIndex * tabW, SPRING_SNAPPY);
+    }
+  }, [activeFilterIndex, filterAnim, filterStripWidth]);
 
   const filterIndicatorStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: filterAnim.value * 100 }], // approximated width
@@ -411,7 +412,7 @@ export function GuestConnectionsScreen() {
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            ListEmptyComponent={<EmptyState />}
+            ListEmptyComponent={<EmptyState isDark={isDark} />}
           />
 
           {/* ── Contact Detail Popup ── */}
@@ -432,7 +433,7 @@ export function GuestConnectionsScreen() {
                   {/* Modal Contact Info */}
                   <AppText style={[styles.modalName, { color: textColor }]} weight="extrabold">{selectedContact.name}</AppText>
                   <AppText style={[styles.modalSub, { color: subTextColor }]}>{selectedContact.subtitle || 'Executive Contact'}</AppText>
-                  <AppText style={styles.modalMeta}>Verified NFC Exchange · Direct Lead</AppText>
+                  <AppText style={[styles.modalMeta, { color: subTextColor }]}>Verified NFC Exchange · Direct Lead</AppText>
 
                   {/* Action Bubbles Row */}
                   <View style={styles.modalActionsRow}>
@@ -443,7 +444,7 @@ export function GuestConnectionsScreen() {
                   </View>
 
                   <Pressable style={styles.modalCloseBtn} onPress={handleCloseModal}>
-                    <AppText style={styles.modalCloseText}>Dismiss</AppText>
+                    <AppText style={[styles.modalCloseText, { color: subTextColor }]}>Dismiss</AppText>
                   </Pressable>
                 </Animated.View>
               </View>
@@ -543,7 +544,7 @@ const styles = StyleSheet.create({
     top: 3,
     bottom: 3,
     left: 3,
-    width: 100, // Hardcoded approximation based on 3 tabs
+    width: '33.33%', // Responsive: 3 equal tabs
     borderRadius: 9,
   },
   filterButton: {
@@ -613,12 +614,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   emptyTitle: {
-    color: '#FFFFFF', // Can be dynamic
     fontSize: 15,
     marginTop: 12,
   },
   emptySub: {
-    color: 'rgba(255, 255, 255, 0.4)',
     fontSize: 12,
   },
 
@@ -663,7 +662,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   modalMeta: {
-    color: 'rgba(255, 255, 255, 0.4)',
     fontSize: 12,
     marginTop: 2,
     marginBottom: 24,
@@ -703,7 +701,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   modalCloseText: {
-    color: 'rgba(255, 255, 255, 0.45)',
     fontSize: 14,
     fontWeight: '600',
   },

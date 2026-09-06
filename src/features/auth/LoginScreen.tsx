@@ -23,7 +23,11 @@ import Animated, {
   useAnimatedStyle,
   withSequence,
   withTiming,
+  withSpring,
 } from 'react-native-reanimated';
+
+const SPRING_SNAPPY = { damping: 16, stiffness: 340, mass: 0.7 };
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { AppText } from '@/src/components/AppText';
@@ -42,6 +46,58 @@ import {
 import { auth } from '@/src/services/firebaseClient';
 import { Haptics, HapticTap } from '@/src/utils/haptics';
 import { usePreferences } from '@/src/hooks/usePreferences';
+
+// ── Spring Submit Button ──────────────────────────────────────────────────────
+function SpringSubmitButton({ isDark, busy, isSubmitting, isSignUp, onPress }: {
+  isDark: boolean; busy: boolean; isSubmitting: boolean; isSignUp: boolean; onPress: () => void;
+}) {
+  const scale = useSharedValue(1);
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  return (
+    <AnimatedPressable
+      style={[
+        styles.primarySubmitBtn,
+        { backgroundColor: isDark ? '#FFFFFF' : '#000000' },
+        busy && { opacity: 0.6 },
+        animStyle,
+      ]}
+      onPressIn={() => { scale.value = withSpring(0.96, SPRING_SNAPPY); }}
+      onPressOut={() => { scale.value = withSpring(1.0, SPRING_SNAPPY); }}
+      onPress={onPress}
+      disabled={busy}
+    >
+      {isSubmitting ? (
+        <ActivityIndicator color={isDark ? '#000000' : '#FFFFFF'} size="small" />
+      ) : (
+        <AppText
+          style={[styles.primarySubmitBtnText, { color: isDark ? '#000000' : '#FFFFFF' }]}
+          weight="bold"
+        >
+          {isSignUp ? 'Create Account' : 'Sign In'}
+        </AppText>
+      )}
+    </AnimatedPressable>
+  );
+}
+
+// ── Spring Social Button ──────────────────────────────────────────────────────
+function SpringSocialButton({ style, onPress, disabled, children }: {
+  style: any; onPress: () => void; disabled: boolean; children: React.ReactNode;
+}) {
+  const scale = useSharedValue(1);
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  return (
+    <AnimatedPressable
+      style={[style, animStyle]}
+      onPressIn={() => { scale.value = withSpring(0.94, SPRING_SNAPPY); }}
+      onPressOut={() => { scale.value = withSpring(1.0, SPRING_SNAPPY); }}
+      onPress={onPress}
+      disabled={disabled}
+    >
+      {children}
+    </AnimatedPressable>
+  );
+}
 
 export function LoginScreen() {
   const { isLoading, signIn, signInAsGuest, signUp } = useAuth();
@@ -459,27 +515,13 @@ export function LoginScreen() {
               </View>
 
               {/* Submit Button */}
-              <Pressable
-                style={({ pressed }) => [
-                  styles.primarySubmitBtn,
-                  { backgroundColor: isDark ? '#FFFFFF' : '#000000' },
-                  pressed && styles.btnPressed,
-                  busy && { opacity: 0.6 },
-                ]}
+              <SpringSubmitButton
+                isDark={isDark}
+                busy={busy}
+                isSubmitting={isSubmitting}
+                isSignUp={isSignUp}
                 onPress={handleSubmit}
-                disabled={busy}
-              >
-                {isSubmitting ? (
-                  <ActivityIndicator color={isDark ? '#000000' : '#FFFFFF'} size="small" />
-                ) : (
-                  <AppText
-                    style={[styles.primarySubmitBtnText, { color: isDark ? '#000000' : '#FFFFFF' }]}
-                    weight="bold"
-                  >
-                    {isSignUp ? 'Create Account' : 'Sign In'}
-                  </AppText>
-                )}
-              </Pressable>
+              />
             </Animated.View>
 
             {/* Divider */}
@@ -492,12 +534,8 @@ export function LoginScreen() {
             {/* Social Auth & Guest Row */}
             <Animated.View entering={FadeInDown.delay(180).springify()} style={styles.socialStack}>
               {Platform.OS === 'ios' && (
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.socialBtn,
-                    { backgroundColor: inputBg, borderColor: inputBorder },
-                    pressed && styles.btnPressed,
-                  ]}
+                <SpringSocialButton
+                  style={[styles.socialBtn, { backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={handleApplePress}
                   disabled={busy}
                 >
@@ -509,15 +547,11 @@ export function LoginScreen() {
                       <AppText style={[styles.socialBtnText, { color: textColor }]}>Apple</AppText>
                     </>
                   )}
-                </Pressable>
+                </SpringSocialButton>
               )}
 
-              <Pressable
-                style={({ pressed }) => [
-                  styles.socialBtn,
-                  { backgroundColor: inputBg, borderColor: inputBorder },
-                  pressed && styles.btnPressed,
-                ]}
+              <SpringSocialButton
+                style={[styles.socialBtn, { backgroundColor: inputBg, borderColor: inputBorder }]}
                 onPress={handleGooglePress}
                 disabled={busy}
               >
@@ -529,17 +563,16 @@ export function LoginScreen() {
                     <AppText style={[styles.socialBtnText, { color: textColor }]}>Google</AppText>
                   </>
                 )}
-              </Pressable>
+              </SpringSocialButton>
 
               {/* Guest One-Click Button */}
-              <Pressable
-                style={({ pressed }) => [
+              <SpringSocialButton
+                style={[
                   styles.socialBtn,
                   {
                     backgroundColor: isDark ? 'rgba(10, 132, 255, 0.12)' : 'rgba(0, 122, 255, 0.08)',
                     borderColor: isDark ? 'rgba(10, 132, 255, 0.3)' : 'rgba(0, 122, 255, 0.2)',
                   },
-                  pressed && styles.btnPressed,
                 ]}
                 onPress={handleGuest}
                 disabled={busy}
@@ -554,7 +587,7 @@ export function LoginScreen() {
                     </AppText>
                   </>
                 )}
-              </Pressable>
+              </SpringSocialButton>
             </Animated.View>
 
             {/* Terms Footer */}
