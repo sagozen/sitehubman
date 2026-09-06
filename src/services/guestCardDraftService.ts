@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { FastStorage } from '@/src/utils/storage';
 import {
   addDoc,
   collection,
@@ -139,10 +139,10 @@ function createCardId(): string {
 
 async function getStoredSession(): Promise<GuestDraftSession | null> {
   const [guestId, cardId, guestAccessKey, publicSlug] = await Promise.all([
-    AsyncStorage.getItem(CURRENT_GUEST_ID_KEY),
-    AsyncStorage.getItem(CURRENT_CARD_ID_KEY),
-    AsyncStorage.getItem(CURRENT_GUEST_ACCESS_KEY),
-    AsyncStorage.getItem(CURRENT_PUBLIC_SLUG_KEY),
+    FastStorage.getItem(CURRENT_GUEST_ID_KEY),
+    FastStorage.getItem(CURRENT_CARD_ID_KEY),
+    FastStorage.getItem(CURRENT_GUEST_ACCESS_KEY),
+    FastStorage.getItem(CURRENT_PUBLIC_SLUG_KEY),
   ]);
 
   if (!guestId || !cardId) return null;
@@ -156,11 +156,11 @@ async function getStoredSession(): Promise<GuestDraftSession | null> {
 }
 
 async function saveStoredSession(session: GuestDraftSession): Promise<void> {
-  await AsyncStorage.multiSet([
-    [CURRENT_GUEST_ID_KEY, session.guestId],
-    [CURRENT_CARD_ID_KEY, session.cardId],
-    [CURRENT_GUEST_ACCESS_KEY, session.guestAccessKey],
-    [CURRENT_PUBLIC_SLUG_KEY, session.publicSlug],
+  await Promise.all([
+    FastStorage.setItem(CURRENT_GUEST_ID_KEY, session.guestId),
+    FastStorage.setItem(CURRENT_CARD_ID_KEY, session.cardId),
+    FastStorage.setItem(CURRENT_GUEST_ACCESS_KEY, session.guestAccessKey),
+    FastStorage.setItem(CURRENT_PUBLIC_SLUG_KEY, session.publicSlug),
   ]);
 }
 
