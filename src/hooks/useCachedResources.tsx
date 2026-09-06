@@ -27,13 +27,7 @@ export default function useCachedResources(): boolean {
   useEffect(() => {
     async function prepare() {
       try {
-        // We don't await SplashScreen here to avoid hanging the logic.
-        // Instead, we just tell the app we are ready to go.
-        
-        // Trigger pre-fetching in the background WITHOUT 'await'
-        // so it doesn't block the 'setReady(true)' call.
         triggerBackgroundTasks();
-
       } catch (e) {
         console.error('Error during resource caching', e);
       } finally {
@@ -41,7 +35,6 @@ export default function useCachedResources(): boolean {
       }
     }
 
-    // Helper to run heavy tasks without blocking the main thread
     function triggerBackgroundTasks() {
       setTimeout(() => {
         try {
@@ -62,12 +55,11 @@ export default function useCachedResources(): boolean {
       }, 1000);
     }
 
-    // If fonts are loaded OR if there was an error loading fonts, we proceed.
     if (fontsLoaded || fontError) {
       prepare();
     }
   }, [fontsLoaded, fontError, router]);
 
-  // The app is ready as soon as fonts are loaded (or failed) and the prepare function runs.
-  return fontsLoaded || !!fontError && isReady;
+  // Fix: operator precedence — both conditions must be true before app renders
+  return (fontsLoaded || !!fontError) && isReady;
 }

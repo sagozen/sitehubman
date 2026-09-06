@@ -19,6 +19,9 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+
+const SPRING_SNAPPY = { damping: 16, stiffness: 340, mass: 0.7 };
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import type { TapMoment, TapMomentSource } from '@/src/components/TapMomentCard';
@@ -387,24 +390,28 @@ interface ActionButtonProps {
 }
 
 function ActionButton({ icon, label, primary = false, disabled = false, onPress }: ActionButtonProps) {
+  const scale = useSharedValue(1);
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   return (
-    <Pressable
+    <AnimatedPressable
+      onPressIn={() => { scale.value = withSpring(0.94, SPRING_SNAPPY); }}
+      onPressOut={() => { scale.value = withSpring(1.0, SPRING_SNAPPY); }}
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={({ pressed }) => [
+      style={[
         styles.actionButton,
         primary ? styles.actionPrimary : styles.actionSecondary,
-        pressed && !disabled && styles.actionPressed,
         disabled && styles.actionDisabled,
+        animStyle,
       ]}
     >
       <AppIcon name={icon} size={16} color={primary ? '#FFFFFF' : '#007AFF'} />
       <AppText style={[styles.actionLabel, primary ? styles.actionLabelPrimary : styles.actionLabelSecondary]}>
         {label}
       </AppText>
-    </Pressable>
+    </AnimatedPressable>
   );
 }
 

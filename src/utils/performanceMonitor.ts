@@ -30,7 +30,7 @@ export const usePerformanceMonitor = () => {
       setMetrics(prev => ({
         ...prev,
         [label]: duration,
-        [`${label}_timestamp]`]: Date.now()
+        [`${label}_timestamp`]: Date.now(),
       }));
 
       // Log to console for immediate feedback

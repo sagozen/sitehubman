@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { FastStorage } from '@/src/utils/storage';
 import { normalizeUiPreferences } from '@/src/constants/themeResolver';
 import { UiPreferences } from '@/src/types/models';
 
@@ -13,9 +13,10 @@ export const defaultUiPreferences: UiPreferences = normalizeUiPreferences({
 
 export async function getUiPreferences(): Promise<UiPreferences> {
   try {
-    const raw = await AsyncStorage.getItem(PREFERENCE_KEY);
+    const raw = await FastStorage.getItem(PREFERENCE_KEY);
     if (!raw) {
-      const legacy = await AsyncStorage.getItem('ui_preferences_v1');
+      // Migrate from legacy key if it exists
+      const legacy = await FastStorage.getItem('ui_preferences_v1');
       if (legacy) {
         const parsed = normalizeUiPreferences(JSON.parse(legacy) as Partial<UiPreferences>);
         await setUiPreferences(parsed);
@@ -23,17 +24,16 @@ export async function getUiPreferences(): Promise<UiPreferences> {
       }
       return defaultUiPreferences;
     }
-
     return normalizeUiPreferences(JSON.parse(raw) as Partial<UiPreferences>);
   } catch {
     return defaultUiPreferences;
   }
 }
 
-export async function setUiPreferences(preferences: UiPreferences) {
-  await AsyncStorage.setItem(PREFERENCE_KEY, JSON.stringify(preferences));
+export async function setUiPreferences(preferences: UiPreferences): Promise<void> {
+  await FastStorage.setItem(PREFERENCE_KEY, JSON.stringify(preferences));
 }
 
-export async function resetUiPreferences() {
-  await AsyncStorage.removeItem(PREFERENCE_KEY);
+export async function resetUiPreferences(): Promise<void> {
+  await FastStorage.removeItem(PREFERENCE_KEY);
 }

@@ -24,7 +24,9 @@ import {
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeInUp, useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+
+const SPRING_SNAPPY = { damping: 16, stiffness: 340, mass: 0.7 };
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -115,6 +117,23 @@ export function CustomerProfileScreen() {
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<'bio' | 'card' | 'links' | 'settings'>('bio');
+  const [tabBarWidth, setTabBarWidth] = useState(0);
+  const tabIndicatorX = useSharedValue(0);
+  const TAB_KEYS = ['bio', 'card', 'links', 'settings'] as const;
+
+  const tabIndicatorStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: tabIndicatorX.value }],
+  }));
+
+  const setActiveTabAnimated = useCallback((tab: typeof TAB_KEYS[number]) => {
+    HapticTap.light();
+    setActiveTab(tab);
+    if (tabBarWidth > 0) {
+      const idx = TAB_KEYS.indexOf(tab);
+      const tabW = tabBarWidth / TAB_KEYS.length;
+      tabIndicatorX.value = withSpring(idx * tabW, SPRING_SNAPPY);
+    }
+  }, [tabBarWidth, tabIndicatorX]);
 
   const [editName, setEditName] = useState('');
   const [editTitle, setEditTitle] = useState('');
@@ -334,7 +353,7 @@ export function CustomerProfileScreen() {
             <View style={styles.actionPillRow}>
               <Pressable
                 style={({ pressed }) => [styles.editProfileBtn, pressed && styles.pressed]}
-                onPress={() => { HapticTap.medium(); setActiveTab('bio'); }}
+                onPress={() => setActiveTabAnimated('bio')}
                 accessibilityRole="button"
                 accessibilityLabel="Edit profile"
               >
@@ -429,7 +448,23 @@ export function CustomerProfileScreen() {
           </Animated.View>
 
           {/* ── 4. X.com Underlined Tab Navigation ── */}
-          <View style={styles.navTabContainer}>
+          <View
+            style={styles.navTabContainer}
+            onLayout={(e) => {
+              const w = e.nativeEvent.layout.width;
+              setTabBarWidth(w);
+              const idx = TAB_KEYS.indexOf(activeTab);
+              tabIndicatorX.value = (idx * w) / TAB_KEYS.length;
+            }}
+          >
+            {/* Sliding underline indicator */}
+            <Animated.View
+              style={[
+                styles.navActiveIndicatorSlider,
+                { width: tabBarWidth > 0 ? tabBarWidth / TAB_KEYS.length : '25%' },
+                tabIndicatorStyle,
+              ]}
+            />
             {[
               { key: 'bio', label: 'Bio & Info' },
               { key: 'card', label: 'NFC Cards' },
@@ -441,7 +476,7 @@ export function CustomerProfileScreen() {
                 <Pressable
                   key={tab.key}
                   style={styles.navTabItem}
-                  onPress={() => { HapticTap.light(); setActiveTab(tab.key as any); }}
+                  onPress={() => setActiveTabAnimated(tab.key as any)}
                   accessibilityRole="tab"
                   accessibilityState={{ selected: isActive }}
                 >
@@ -451,7 +486,6 @@ export function CustomerProfileScreen() {
                   >
                     {tab.label}
                   </AppText>
-                  {isActive && <View style={styles.navActiveIndicator} />}
                 </Pressable>
               );
             })}
@@ -876,13 +910,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.1)',
     marginBottom: 12,
+    position: 'relative',
   },
   navTabItem: {
     flex: 1,
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
   },
   navTabText: {
     fontSize: 14,
@@ -898,6 +932,15 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     backgroundColor: '#FFFFFF',
+  },
+  navActiveIndicatorSlider: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: '#FFFFFF',
+    zIndex: 1,
   },
 
   // ── Tab Body & Charcoal Cards ──

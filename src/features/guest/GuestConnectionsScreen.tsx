@@ -10,7 +10,6 @@
  */
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import {
-  FlatList,
   Pressable,
   StyleSheet,
   TextInput,
@@ -19,6 +18,7 @@ import {
   Linking,
   Alert,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp, useSharedValue, useAnimatedStyle, withSpring, withTiming, withRepeat, withSequence } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
@@ -35,6 +35,12 @@ import { usePreferences } from '@/src/hooks/usePreferences';
 const SPRING_STD   = { damping: 18, stiffness: 260, mass: 0.9 };
 const SPRING_SNAPPY = { damping: 16, stiffness: 340, mass: 0.7 };
 const SPRING_BOUNCY = { damping: 12, stiffness: 280, mass: 1.0 };
+
+const FILTERS = [
+  { id: 'all', label: 'All Leads' },
+  { id: 'vip', label: 'VIP / Exec' },
+  { id: 'recent', label: 'Recent' },
+] as const;
 
 const AVATAR_GRADIENTS = [
   ['#FF512F', '#DD2476'],
@@ -308,7 +314,7 @@ export function GuestConnectionsScreen() {
   }, [activeFilterIndex, filterAnim, filterStripWidth]);
 
   const filterIndicatorStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: filterAnim.value * 100 }], // approximated width
+    transform: [{ translateX: filterAnim.value }],
   }));
 
   const bgColors = isDark 
@@ -372,7 +378,10 @@ export function GuestConnectionsScreen() {
         </Animated.View>
 
         {/* Segmented Filter Bar */}
-        <View style={[styles.filterStrip, { backgroundColor: surfaceColor }]}>
+        <View 
+          style={[styles.filterStrip, { backgroundColor: surfaceColor }]}
+          onLayout={(e) => setFilterStripWidth(e.nativeEvent.layout.width)}
+        >
           <Animated.View style={[styles.filterIndicator, filterIndicatorStyle, { backgroundColor: isDark ? '#242428' : '#E8E8E8' }]} />
           {FILTERS.map((tab, idx) => {
             const isSelected = activeFilter === tab.id;
@@ -397,14 +406,14 @@ export function GuestConnectionsScreen() {
         </View>
       </View>
     ),
-    [activeFilter, filteredMoments.length, handleExportCSV, query, isDark, textColor, subTextColor, surfaceColor, searchAnimatedStyle, filterIndicatorStyle, searchFocused],
+    [activeFilter, filteredMoments.length, handleExportCSV, query, isDark, textColor, subTextColor, surfaceColor, searchAnimatedStyle, filterIndicatorStyle, searchFocused, filterStripWidth],
   );
 
   return (
     <LinearGradient colors={bgColors} style={styles.safe}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <View style={styles.content}>
-          <FlatList
+          <FlashList
             data={filteredMoments}
             keyExtractor={(item) => item.id}
             renderItem={renderContactRow}
@@ -413,6 +422,7 @@ export function GuestConnectionsScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             ListEmptyComponent={<EmptyState isDark={isDark} />}
+            estimatedItemSize={72}
           />
 
           {/* ── Contact Detail Popup ── */}
