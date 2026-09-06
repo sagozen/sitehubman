@@ -1,28 +1,13 @@
-/**
- * SettingsScreen — Apple Wallet × Nothing × Premium Fintech Edition.
- *
- * Improvements:
- *  1. Stripped out giant boxed card containers around every group.
- *  2. Refined, elegant header title (28px) with proper tracking.
- *  3. Distinct, logically organized categories:
- *     - PREFERENCES (Theme Mode, Notifications, Haptic Feedback)
- *     - SECURITY & PRIVACY (Passcode Lock, Profile Visibility)
- *     - HARDWARE & NFC (Active Smart Card, NFC Burn)
- *     - ACCOUNT (Reset Defaults, Sign Out / Exit Guest)
- *  4. Borderless rows with subtle hairlines and generous bottom clearance.
- */
 import React, { useState } from 'react';
 import {
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   Share,
   View,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
@@ -33,6 +18,21 @@ import { usePreferences } from '@/src/hooks/usePreferences';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { HapticTap } from '@/src/utils/haptics';
 import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
+import Animated, {
+  FadeInDown,
+  FadeInUp,
+  FadeOutDown,
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withSequence,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const SPRING_SNAPPY = { damping: 16, stiffness: 340, mass: 0.7 };
 
 interface SettingRowProps {
   icon: AppIconName;
@@ -42,6 +42,7 @@ interface SettingRowProps {
   onPress?: () => void;
   rightElement?: React.ReactNode;
   isDestructive?: boolean;
+  delay?: number;
 }
 
 function SettingRow({
@@ -52,26 +53,80 @@ function SettingRow({
   onPress,
   rightElement,
   isDestructive = false,
+  delay = 0,
 }: SettingRowProps) {
+  const { preferences } = usePreferences();
+  const isDark = preferences.colorMode === 'dark';
+
+  const scale = useSharedValue(1);
+  const chevronX = useSharedValue(0);
+  const glowOpacity = useSharedValue(0);
+
+  React.useEffect(() => {
+    if (isDestructive) {
+      glowOpacity.value = withRepeat(withTiming(0.4, { duration: 1500 }), -1, true);
+    }
+  }, [isDestructive]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const chevronStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: chevronX.value }],
+  }));
+
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: glowOpacity.value,
+  }));
+
+  const handlePressIn = () => {
+    if (onPress) {
+      scale.value = withSpring(0.97, SPRING_SNAPPY);
+    }
+  };
+  
+  const handlePressOut = () => {
+    if (onPress) {
+      scale.value = withSpring(1, SPRING_SNAPPY);
+    }
+  };
+
+  const handlePress = () => {
+    if (onPress) {
+      HapticTap.selection();
+      if (!isDestructive && !rightElement && !valueText) {
+        chevronX.value = withSequence(
+          withTiming(4, { duration: 100 }),
+          withTiming(0, { duration: 100 })
+        );
+      }
+      onPress();
+    }
+  };
+
   const content = (
-    <View style={styles.row}>
-      <View style={[styles.iconBox, isDestructive && styles.iconBoxDestructive]}>
+    <Animated.View entering={FadeInDown.delay(delay).springify()} style={[styles.row, animatedStyle]}>
+      <View style={[styles.iconBox, isDestructive && styles.iconBoxDestructive, !isDark && styles.iconBoxLight]}>
+        {isDestructive && (
+          <Animated.View style={[StyleSheet.absoluteFillObject, { backgroundColor: '#FF453A', borderRadius: 10 }, glowStyle]} />
+        )}
         <AppIcon
           name={icon}
           size={18}
-          color={isDestructive ? '#FF453A' : '#FFFFFF'}
+          color={isDestructive ? '#FF453A' : isDark ? '#FFFFFF' : '#000000'}
         />
       </View>
 
       <View style={styles.rowContent}>
         <AppText
-          style={[styles.rowTitle, isDestructive && styles.rowTitleDestructive]}
+          style={[styles.rowTitle, isDestructive && styles.rowTitleDestructive, !isDark && !isDestructive && { color: '#000000' }]}
           weight="bold"
         >
           {title}
         </AppText>
         {subtitle ? (
-          <AppText style={styles.rowSubtitle}>{subtitle}</AppText>
+          <AppText style={[styles.rowSubtitle, !isDark && { color: 'rgba(0, 0, 0, 0.45)' }]}>{subtitle}</AppText>
         ) : null}
       </View>
 
@@ -79,25 +134,28 @@ function SettingRow({
         <View style={styles.rowRight}>{rightElement}</View>
       ) : valueText ? (
         <View style={styles.rowRight}>
-          <AppText style={styles.rowValueText}>{valueText}</AppText>
+          <AppText style={[styles.rowValueText, !isDark && { color: 'rgba(0, 0, 0, 0.55)' }]}>{valueText}</AppText>
           {onPress ? (
-            <AppIcon name="ChevronRight" size={14} color="rgba(255, 255, 255, 0.3)" />
+            <Animated.View style={chevronStyle}>
+              <AppIcon name="ChevronRight" size={14} color={isDark ? "rgba(255, 255, 255, 0.3)" : "rgba(0, 0, 0, 0.3)"} />
+            </Animated.View>
           ) : null}
         </View>
       ) : onPress ? (
-        <AppIcon name="ChevronRight" size={14} color="rgba(255, 255, 255, 0.3)" />
+        <Animated.View style={chevronStyle}>
+          <AppIcon name="ChevronRight" size={14} color={isDark ? "rgba(255, 255, 255, 0.3)" : "rgba(0, 0, 0, 0.3)"} />
+        </Animated.View>
       ) : null}
-    </View>
+    </Animated.View>
   );
 
   if (onPress) {
     return (
       <Pressable
-        onPress={() => {
-          HapticTap.light();
-          onPress();
-        }}
-        style={({ pressed }) => [pressed && styles.rowPressed]}
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={({ pressed }) => [pressed && { opacity: 0.9 }]}
       >
         {content}
       </Pressable>
@@ -107,248 +165,331 @@ function SettingRow({
   return content;
 }
 
+const SectionLabel = ({ title, delay }: { title: string, delay: number }) => {
+  const { preferences } = usePreferences();
+  const isDark = preferences.colorMode === 'dark';
+  return (
+    <Animated.View entering={FadeInDown.delay(delay).springify()} style={[styles.sectionLabelWrapper, !isDark && styles.sectionLabelWrapperLight]}>
+      <BlurView intensity={isDark ? 20 : 40} tint={isDark ? 'dark' : 'light'} style={styles.sectionLabelBlur}>
+        <AppText style={[styles.sectionLabelText, !isDark && { color: 'rgba(0,0,0,0.6)' }]} weight="bold">{title}</AppText>
+      </BlurView>
+    </Animated.View>
+  );
+};
+
 export function SettingsScreen() {
   const { user, signOutUser } = useAuth();
   const isGuest = useIsGuest();
   const { preferences, updatePreferences, resetPreferences } = usePreferences();
   const { requireAccount } = useRequireAccount();
+  
+  const isDark = preferences.colorMode === 'dark';
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [hapticsEnabled, setHapticsEnabled] = useState(true);
   const [securityPinEnabled, setSecurityPinEnabled] = useState(false);
+  const [showSignOutSheet, setShowSignOutSheet] = useState(false);
+  const [showResetSheet, setShowResetSheet] = useState(false);
 
   const cardProfile = { name: 'AVIO Digital Pass', cardId: 'AVIO-8890-7A3F' };
 
   const handleColorModeToggle = async () => {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    HapticTap.selection();
     const nextMode = preferences.colorMode === 'dark' ? 'light' : 'dark';
     await updatePreferences({ colorMode: nextMode });
   };
 
   const handleToggleNotifications = (val: boolean) => {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    HapticTap.selection();
     setNotificationsEnabled(val);
   };
 
   const handleToggleHaptics = (val: boolean) => {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    HapticTap.selection();
     setHapticsEnabled(val);
   };
 
   const handleTogglePin = (val: boolean) => {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    HapticTap.selection();
     setSecurityPinEnabled(val);
   };
 
   const handleCopyProfileUrl = async () => {
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    HapticTap.success();
     const url = buildSlugProfileUrl(isGuest ? 'guest-demo' : user?.id || '');
     await Share.share({ message: url, url });
   };
 
-  const handleResetPreferences = () => {
-    Alert.alert(
-      'Reset Preferences',
-      'Restore default preferences and UI appearance?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reset',
-          style: 'destructive',
-          onPress: async () => {
-            await resetPreferences();
-            void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          },
-        },
-      ],
-    );
+  const handleResetPreferencesPress = () => {
+    setShowResetSheet(true);
   };
 
-  const handleSignOut = () => {
-    Alert.alert(
-      isGuest ? 'Exit Guest Mode' : 'Sign Out',
-      isGuest
-        ? 'Are you sure you want to return to the welcome screen?'
-        : 'Are you sure you want to sign out of AVIO?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: isGuest ? 'Exit' : 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            await signOutUser();
-            router.replace('/');
-          },
-        },
-      ],
-    );
+  const handleConfirmReset = async () => {
+    setShowResetSheet(false);
+    await resetPreferences();
+    HapticTap.success();
+  };
+
+  const handleSignOutPress = () => {
+    setShowSignOutSheet(true);
+  };
+
+  const handleConfirmSignOut = async () => {
+    setShowSignOutSheet(false);
+    HapticTap.success();
+    await signOutUser();
+    router.replace('/');
   };
 
   return (
-    <SafeAreaView style={styles.screen} edges={['top']}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* ── Refined Settings Header (28px) ── */}
-        <View style={styles.header}>
-          <AppText style={styles.title} weight="extrabold">
-            Settings
-          </AppText>
-          <AppText style={styles.subtitle}>
-            AVIO OS · Preferences & Security
-          </AppText>
-        </View>
-
-        {/* ── User Account Summary Row (Borderless) ── */}
-        <View style={styles.profileRow}>
-          <View style={styles.avatarSeal}>
-            <AppText style={styles.avatarLetter} weight="extrabold">
-              {isGuest ? 'G' : (user?.displayName?.[0] || 'U').toUpperCase()}
+    <View style={styles.screen}>
+      <LinearGradient
+        colors={isDark ? ['#000000', '#07090E', '#0D1017'] : ['#F4F7FB', '#FAFCFF', '#FFFFFF']}
+        style={StyleSheet.absoluteFillObject}
+      />
+      <SafeAreaView style={styles.screen} edges={['top']}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {/* ── Refined Settings Header ── */}
+          <Animated.View entering={FadeInDown.springify()} style={styles.header}>
+            <AppText style={[styles.title, !isDark && { color: '#000000' }]} weight="extrabold">
+              Settings
             </AppText>
+            <AppText style={[styles.subtitle, !isDark && { color: 'rgba(0, 0, 0, 0.45)' }]}>
+              AVIO OS · Preferences & Security
+            </AppText>
+          </Animated.View>
+
+          {/* ── User Account Summary Card (Glass) ── */}
+          <Animated.View entering={FadeInDown.delay(30).springify()} style={styles.profileCardWrapper}>
+            <BlurView intensity={isDark ? 30 : 60} tint={isDark ? 'dark' : 'light'} style={[styles.profileCard, !isDark && styles.profileCardLight]}>
+              <View style={styles.profileRow}>
+                <LinearGradient colors={['#4facfe', '#00f2fe']} style={styles.avatarSeal}>
+                  <AppText style={styles.avatarLetter} weight="extrabold">
+                    {isGuest ? 'G' : (user?.displayName?.[0] || 'U').toUpperCase()}
+                  </AppText>
+                </LinearGradient>
+                <View style={styles.profileInfo}>
+                  <AppText style={[styles.profileName, !isDark && { color: '#000000' }]} weight="bold">
+                    {isGuest ? 'Guest User' : user?.displayName || 'AVIO Member'}
+                  </AppText>
+                  <AppText style={[styles.profileRole, !isDark && { color: 'rgba(0, 0, 0, 0.5)' }]}>
+                    {isGuest ? 'Guest Access · Demo Pass' : user?.email || 'Active Plan'}
+                  </AppText>
+                </View>
+                {isGuest ? (
+                  <Pressable
+                    style={[styles.upgradeBtn, !isDark && styles.upgradeBtnLight]}
+                    onPress={() => {
+                      HapticTap.selection();
+                      requireAccount(undefined, { message: 'Create an account to activate your pass.' });
+                    }}
+                  >
+                    <AppText style={[styles.upgradeBtnText, !isDark && { color: '#FFFFFF' }]} weight="bold">Upgrade</AppText>
+                  </Pressable>
+                ) : (
+                  <Pressable style={[styles.shareIconBtn, !isDark && styles.shareIconBtnLight]} onPress={handleCopyProfileUrl}>
+                    <AppIcon name="Share" size={16} color={isDark ? "#FFFFFF" : "#000000"} />
+                  </Pressable>
+                )}
+              </View>
+            </BlurView>
+          </Animated.View>
+
+          {/* ── 1. PREFERENCES ── */}
+          <SectionLabel title="PREFERENCES" delay={60} />
+          <View style={styles.sectionGroup}>
+            <SettingRow
+              delay={90}
+              icon="Sun"
+              title="Appearance"
+              subtitle="Dark, Light, or System"
+              valueText={preferences.colorMode === 'dark' ? 'Dark' : 'Light'}
+              onPress={handleColorModeToggle}
+            />
+            <SettingRow
+              delay={120}
+              icon="Bell"
+              title="Push Notifications"
+              subtitle="NFC tap alerts and order status"
+              rightElement={
+                <AppleToggle
+                  value={notificationsEnabled}
+                  onValueChange={handleToggleNotifications}
+                  accessibilityLabel="Push notifications toggle"
+                />
+              }
+            />
+            <SettingRow
+              delay={150}
+              icon="Smartphone"
+              title="Haptic Feedback"
+              subtitle="Tactile vibrations on tap"
+              rightElement={
+                <AppleToggle
+                  value={hapticsEnabled}
+                  onValueChange={handleToggleHaptics}
+                  accessibilityLabel="Haptic feedback toggle"
+                />
+              }
+            />
           </View>
-          <View style={styles.profileInfo}>
-            <AppText style={styles.profileName} weight="bold">
-              {isGuest ? 'Guest User' : user?.displayName || 'AVIO Member'}
-            </AppText>
-            <AppText style={styles.profileRole}>
-              {isGuest ? 'Guest Access · Demo Pass' : user?.email || 'Active Plan'}
-            </AppText>
+
+          {/* ── 2. SECURITY & PRIVACY ── */}
+          <SectionLabel title="SECURITY & PRIVACY" delay={180} />
+          <View style={styles.sectionGroup}>
+            <SettingRow
+              delay={210}
+              icon="LockKeyhole"
+              title="Passcode Lock"
+              subtitle="Require PIN on app launch"
+              rightElement={
+                <AppleToggle
+                  value={securityPinEnabled}
+                  onValueChange={handleTogglePin}
+                  accessibilityLabel="Passcode lock toggle"
+                />
+              }
+            />
+            <SettingRow
+              delay={240}
+              icon="Globe"
+              title="Public Profile Visibility"
+              subtitle="sitehubman.app link status"
+              valueText="Public"
+              onPress={handleCopyProfileUrl}
+            />
           </View>
-          {isGuest ? (
-            <Pressable
-              style={styles.upgradeBtn}
-              onPress={() => {
-                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                requireAccount(undefined, { message: 'Create an account to activate your pass.' });
-              }}
-            >
-              <AppText style={styles.upgradeBtnText} weight="bold">Upgrade</AppText>
-            </Pressable>
-          ) : (
-            <Pressable style={styles.shareIconBtn} onPress={handleCopyProfileUrl}>
-              <AppIcon name="Share" size={16} color="#FFFFFF" />
-            </Pressable>
-          )}
-        </View>
 
-        {/* ── 1. PREFERENCES ── */}
-        <AppText style={styles.sectionHeader}>PREFERENCES</AppText>
-        <View style={styles.sectionGroup}>
-          <SettingRow
-            icon="Sun"
-            title="Appearance"
-            subtitle="Dark, Light, or System"
-            valueText={preferences.colorMode === 'dark' ? 'Dark' : 'Light'}
-            onPress={handleColorModeToggle}
-          />
-          <View style={styles.divider} />
-          <SettingRow
-            icon="Bell"
-            title="Push Notifications"
-            subtitle="NFC tap alerts and order status"
-            rightElement={
-              <AppleToggle
-                value={notificationsEnabled}
-                onValueChange={handleToggleNotifications}
-                accessibilityLabel="Push notifications toggle"
-              />
-            }
-          />
-          <View style={styles.divider} />
-          <SettingRow
-            icon="Smartphone"
-            title="Haptic Feedback"
-            subtitle="Tactile vibrations on tap"
-            rightElement={
-              <AppleToggle
-                value={hapticsEnabled}
-                onValueChange={handleToggleHaptics}
-                accessibilityLabel="Haptic feedback toggle"
-              />
-            }
-          />
-        </View>
+          {/* ── 3. HARDWARE & NFC ── */}
+          <SectionLabel title="HARDWARE & NFC" delay={270} />
+          <View style={styles.sectionGroup}>
+            <SettingRow
+              delay={300}
+              icon="CreditCard"
+              title="Active Smart Card"
+              subtitle={cardProfile ? cardProfile.name : 'AVIO Digital Pass'}
+              valueText={cardProfile ? cardProfile.cardId : 'Active'}
+              onPress={() => router.push('/(tabs)/share')}
+            />
+            <SettingRow
+              delay={330}
+              icon="Nfc"
+              title="Burn NFC Chip"
+              subtitle="Write profile data to physical card"
+              onPress={() => router.push('/(tabs)/share')}
+            />
+          </View>
 
-        {/* ── 2. SECURITY & PRIVACY ── */}
-        <AppText style={styles.sectionHeader}>SECURITY & PRIVACY</AppText>
-        <View style={styles.sectionGroup}>
-          <SettingRow
-            icon="LockKeyhole"
-            title="Passcode Lock"
-            subtitle="Require PIN on app launch"
-            rightElement={
-              <AppleToggle
-                value={securityPinEnabled}
-                onValueChange={handleTogglePin}
-                accessibilityLabel="Passcode lock toggle"
-              />
-            }
-          />
-          <View style={styles.divider} />
-          <SettingRow
-            icon="Globe"
-            title="Public Profile Visibility"
-            subtitle="sitehubman.app link status"
-            valueText="Public"
-            onPress={handleCopyProfileUrl}
-          />
-        </View>
+          {/* ── 4. ACCOUNT ── */}
+          <SectionLabel title="ACCOUNT" delay={360} />
+          <View style={styles.sectionGroup}>
+            <SettingRow
+              delay={390}
+              icon="Refresh"
+              title="Reset App Settings"
+              subtitle="Restore default preferences"
+              onPress={handleResetPreferencesPress}
+            />
+            <SettingRow
+              delay={420}
+              icon="LogOut"
+              title={isGuest ? 'Exit Guest Mode' : 'Sign Out'}
+              subtitle={user?.email || 'Sign out of current session'}
+              onPress={handleSignOutPress}
+              isDestructive
+            />
+          </View>
 
-        {/* ── 3. HARDWARE & NFC ── */}
-        <AppText style={styles.sectionHeader}>HARDWARE & NFC</AppText>
-        <View style={styles.sectionGroup}>
-          <SettingRow
-            icon="CreditCard"
-            title="Active Smart Card"
-            subtitle={cardProfile ? cardProfile.name : 'AVIO Digital Pass'}
-            valueText={cardProfile ? cardProfile.cardId : 'Active'}
-            onPress={() => router.push('/(tabs)/share')}
-          />
-          <View style={styles.divider} />
-          <SettingRow
-            icon="Nfc"
-            title="Burn NFC Chip"
-            subtitle="Write profile data to physical card"
-            onPress={() => router.push('/(tabs)/share')}
-          />
-        </View>
+          {/* ── Footer Info ── */}
+          <Animated.View entering={FadeInDown.delay(450).springify()} style={styles.footer}>
+            <AppText style={[styles.footerBrand, !isDark && { color: 'rgba(0,0,0,0.3)' }]}>AVIO Technologies • CONNECT · IDENTIFY · EMPOWER</AppText>
+            <AppText style={[styles.footerVersion, !isDark && { color: 'rgba(0,0,0,0.2)' }]}>Version 1.0.0 (Build 32)</AppText>
+          </Animated.View>
 
-        {/* ── 4. ACCOUNT ── */}
-        <AppText style={styles.sectionHeader}>ACCOUNT</AppText>
-        <View style={styles.sectionGroup}>
-          <SettingRow
-            icon="Refresh"
-            title="Reset App Settings"
-            subtitle="Restore default preferences"
-            onPress={handleResetPreferences}
-          />
-          <View style={styles.divider} />
-          <SettingRow
-            icon="LogOut"
-            title={isGuest ? 'Exit Guest Mode' : 'Sign Out'}
-            subtitle={user?.email || 'Sign out of current session'}
-            onPress={handleSignOut}
-            isDestructive
-          />
-        </View>
+        </ScrollView>
+      </SafeAreaView>
 
-        {/* ── Footer Info ── */}
-        <View style={styles.footer}>
-          <AppText style={styles.footerBrand}>AVIO Technologies • CONNECT · IDENTIFY · EMPOWER</AppText>
-          <AppText style={styles.footerVersion}>Version 1.0.0 (Build 32)</AppText>
+      {/* ── Sign Out Sheet ── */}
+      <Modal visible={showSignOutSheet} transparent animationType="fade">
+        <View style={StyleSheet.absoluteFillObject}>
+          <BlurView intensity={isDark ? 40 : 60} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFillObject} />
+          <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setShowSignOutSheet(false)} />
+          <View style={styles.sheetWrapper}>
+            <View style={[styles.sheetContainer, !isDark && styles.sheetContainerLight]}>
+              <AppText style={[styles.sheetTitle, !isDark && { color: '#000000' }]} weight="bold">
+                {isGuest ? 'Exit Guest Mode' : 'Sign Out'}
+              </AppText>
+              <AppText style={[styles.sheetSubtitle, !isDark && { color: 'rgba(0,0,0,0.5)' }]}>
+                {isGuest
+                  ? 'Are you sure you want to return to the welcome screen?'
+                  : 'Are you sure you want to sign out of AVIO?'}
+              </AppText>
+              
+              <Pressable
+                style={({ pressed }) => [styles.sheetDestructiveBtn, pressed && { opacity: 0.8 }]}
+                onPress={handleConfirmSignOut}
+              >
+                <AppText style={styles.sheetDestructiveBtnText} weight="bold">{isGuest ? 'Exit' : 'Sign Out'}</AppText>
+              </Pressable>
+              
+              <Pressable
+                style={({ pressed }) => [styles.sheetCancelBtn, !isDark && styles.sheetCancelBtnLight, pressed && { opacity: 0.8 }]}
+                onPress={() => {
+                  HapticTap.selection();
+                  setShowSignOutSheet(false);
+                }}
+              >
+                <AppText style={[styles.sheetCancelBtnText, !isDark && { color: '#000000' }]} weight="bold">Cancel</AppText>
+              </Pressable>
+            </View>
+          </View>
         </View>
+      </Modal>
 
-      </ScrollView>
-    </SafeAreaView>
+      {/* ── Reset Preferences Sheet ── */}
+      <Modal visible={showResetSheet} transparent animationType="fade">
+        <View style={StyleSheet.absoluteFillObject}>
+          <BlurView intensity={isDark ? 40 : 60} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFillObject} />
+          <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setShowResetSheet(false)} />
+          <View style={styles.sheetWrapper}>
+            <View style={[styles.sheetContainer, !isDark && styles.sheetContainerLight]}>
+              <AppText style={[styles.sheetTitle, !isDark && { color: '#000000' }]} weight="bold">
+                Reset Preferences
+              </AppText>
+              <AppText style={[styles.sheetSubtitle, !isDark && { color: 'rgba(0,0,0,0.5)' }]}>
+                Restore default preferences and UI appearance?
+              </AppText>
+              
+              <Pressable
+                style={({ pressed }) => [styles.sheetDestructiveBtn, pressed && { opacity: 0.8 }]}
+                onPress={handleConfirmReset}
+              >
+                <AppText style={styles.sheetDestructiveBtnText} weight="bold">Reset</AppText>
+              </Pressable>
+              
+              <Pressable
+                style={({ pressed }) => [styles.sheetCancelBtn, !isDark && styles.sheetCancelBtnLight, pressed && { opacity: 0.8 }]}
+                onPress={() => {
+                  HapticTap.selection();
+                  setShowResetSheet(false);
+                }}
+              >
+                <AppText style={[styles.sheetCancelBtnText, !isDark && { color: '#000000' }]} weight="bold">Cancel</AppText>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#000000',
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -363,6 +504,7 @@ const styles = StyleSheet.create({
   header: {
     paddingVertical: 12,
     gap: 4,
+    marginBottom: 16,
   },
   title: {
     fontSize: 28,
@@ -374,26 +516,33 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.45)',
   },
 
-  // ── User Account Summary Row ──
+  // ── Profile Card ──
+  profileCardWrapper: {
+    marginBottom: 24,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  profileCard: {
+    padding: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  profileCardLight: {
+    backgroundColor: 'rgba(0, 0, 0, 0.03)',
+  },
   profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
-    marginBottom: 8,
     gap: 14,
   },
   avatarSeal: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#FFFFFF',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarLetter: {
-    color: '#000000',
+    color: '#FFFFFF',
     fontSize: 18,
   },
   profileInfo: {
@@ -414,6 +563,9 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: 999,
   },
+  upgradeBtnLight: {
+    backgroundColor: '#000000',
+  },
   upgradeBtnText: {
     color: '#000000',
     fontSize: 12,
@@ -426,36 +578,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  shareIconBtnLight: {
+    backgroundColor: 'rgba(0,0,0,0.06)',
+  },
 
-  // ── Section Group (Borderless with Dividers) ──
-  sectionHeader: {
-    color: 'rgba(255, 255, 255, 0.4)',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.2,
+  // ── Section Group ──
+  sectionLabelWrapper: {
     marginTop: 22,
-    marginBottom: 6,
-    marginLeft: 4,
+    marginBottom: 12,
+    alignSelf: 'flex-start',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  sectionLabelWrapperLight: {
+    backgroundColor: 'transparent',
+  },
+  sectionLabelBlur: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  sectionLabelText: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 10,
+    letterSpacing: 1.2,
   },
   sectionGroup: {
     paddingVertical: 2,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    marginLeft: 48,
+    gap: 8,
   },
 
   // ── Row Item ──
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 13,
-    paddingHorizontal: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
     gap: 14,
-  },
-  rowPressed: {
-    opacity: 0.65,
   },
   iconBox: {
     width: 34,
@@ -464,6 +623,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#141418',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  iconBoxLight: {
+    backgroundColor: 'rgba(0,0,0,0.06)',
   },
   iconBoxDestructive: {
     backgroundColor: 'rgba(255, 69, 58, 0.12)',
@@ -474,14 +636,14 @@ const styles = StyleSheet.create({
   },
   rowTitle: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 15,
   },
   rowTitleDestructive: {
     color: '#FF453A',
   },
   rowSubtitle: {
     color: 'rgba(255, 255, 255, 0.45)',
-    fontSize: 11,
+    fontSize: 12,
   },
   rowRight: {
     flexDirection: 'row',
@@ -496,7 +658,7 @@ const styles = StyleSheet.create({
   // ── Footer ──
   footer: {
     alignItems: 'center',
-    marginTop: 32,
+    marginTop: 40,
     marginBottom: 20,
     gap: 4,
   },
@@ -508,5 +670,60 @@ const styles = StyleSheet.create({
   footerVersion: {
     color: 'rgba(255, 255, 255, 0.2)',
     fontSize: 11,
+  },
+
+  // ── Bottom Sheets ──
+  sheetWrapper: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    padding: 20,
+    paddingBottom: 40,
+  },
+  sheetContainer: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+  },
+  sheetContainerLight: {
+    backgroundColor: '#FFFFFF',
+  },
+  sheetTitle: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  sheetSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.6)',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  sheetDestructiveBtn: {
+    backgroundColor: '#FF453A',
+    width: '100%',
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sheetDestructiveBtnText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+  sheetCancelBtn: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    width: '100%',
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+  sheetCancelBtnLight: {
+    backgroundColor: 'rgba(0,0,0,0.05)',
+  },
+  sheetCancelBtnText: {
+    color: '#FFFFFF',
+    fontSize: 16,
   },
 });

@@ -8,35 +8,172 @@
  *  - Fast 1-tap Apple Contacts (.vcf) & Telegram CRM modal
  *  - Generous bottom padding (130px) for the floating dock capsule
  */
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import {
   FlatList,
   Pressable,
   StyleSheet,
   TextInput,
   View,
-  Animated,
   Share,
   Linking,
   Alert,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeInDown, FadeInUp, useSharedValue, useAnimatedStyle, withSpring, withTiming, withRepeat, withSequence } from 'react-native-reanimated';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { useDebounce } from '@/src/hooks/useDebounce';
 import type { TapMoment } from '@/src/components/TapMomentCard';
 import { SEED_MOMENTS } from '@/src/data/seedMoments';
 import { HapticTap } from '@/src/utils/haptics';
+import { usePreferences } from '@/src/hooks/usePreferences';
+
+const SPRING_STD   = { damping: 18, stiffness: 260, mass: 0.9 };
+const SPRING_SNAPPY = { damping: 16, stiffness: 340, mass: 0.7 };
+const SPRING_BOUNCY = { damping: 12, stiffness: 280, mass: 1.0 };
+
+const AVATAR_GRADIENTS = [
+  ['#FF512F', '#DD2476'],
+  ['#4776E6', '#8E54E9'],
+  ['#00B4DB', '#0083B0'],
+  ['#7b4397', '#dc2430'],
+  ['#1D976C', '#93F9B9'],
+  ['#EB3349', '#F45C43'],
+];
+
+function getGradientForName(name: string) {
+  const hash = (name || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return AVATAR_GRADIENTS[hash % AVATAR_GRADIENTS.length] as [string, string];
+}
+
+const EmptyState = () => {
+  const floatAnim = useSharedValue(0);
+
+  useEffect(() => {
+    floatAnim.value = withRepeat(
+      withSequence(
+        withTiming(-8, { duration: 1200 }),
+        withTiming(8, { duration: 1200 })
+      ),
+      -1,
+      true
+    );
+  }, [floatAnim]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: floatAnim.value }]
+  }));
+
+  return (
+    <View style={styles.emptyState}>
+      <Animated.View style={animatedStyle}>
+        <AppIcon name="Search" size={32} color="rgba(255, 255, 255, 0.4)" />
+      </Animated.View>
+      <AppText style={styles.emptyTitle} weight="bold">No contacts found</AppText>
+      <AppText style={styles.emptySub}>Try searching for another keyword.</AppText>
+    </View>
+  );
+};
+
+const ContactRow = ({ item, index, handleOpenContact, isDark }: any) => {
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }]
+  }));
+
+  const initials = (item.name || 'C')
+    .split(' ')
+    .map((n: string) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
+  const gradient = getGradientForName(item.name);
+  const isUnread = index < 2; // Simulated unread state for recent items
+
+  const textColor = isDark ? '#FFFFFF' : '#000000';
+  const subTextColor = isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)';
+  const borderColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+
+  return (
+    <Animated.View entering={FadeInDown.delay(index * 60).springify().damping(18)}>
+      <Pressable
+        onPressIn={() => {
+          scale.value = withSpring(0.95, SPRING_SNAPPY);
+          HapticTap.light();
+        }}
+        onPressOut={() => {
+          scale.value = withSpring(1, SPRING_SNAPPY);
+        }}
+        onPress={() => handleOpenContact(item)}
+      >
+        <Animated.View style={[styles.contactRow, { borderBottomColor: borderColor }, animatedStyle]}>
+          <LinearGradient colors={gradient as any} style={styles.avatarCircle}>
+            <AppText style={styles.avatarText} weight="bold">{initials}</AppText>
+          </LinearGradient>
+
+          <View style={styles.contactDetails}>
+            <View style={styles.nameHeaderRow}>
+              <AppText style={[styles.contactName, { color: textColor }]} weight="bold" numberOfLines={1}>
+                {item.name}
+              </AppText>
+              <AppText style={[styles.timeText, { color: subTextColor }]}>
+                {item.occurredAt instanceof Date ? item.occurredAt.toLocaleDateString() : 'Today'}
+              </AppText>
+            </View>
+            <AppText style={[styles.contactSub, { color: subTextColor }]} numberOfLines={1}>
+              {item.subtitle || 'NFC Tap Contact'}
+            </AppText>
+          </View>
+
+          {isUnread && <View style={styles.unreadDot} />}
+          <AppIcon name="ChevronRight" size={16} color={subTextColor} />
+        </Animated.View>
+      </Pressable>
+    </Animated.View>
+  );
+};
+
+const ActionBubble = ({ icon, label, onPress, colors, isDark }: any) => {
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }]
+  }));
+
+  return (
+    <Pressable
+      onPressIn={() => {
+        scale.value = withSpring(0.9, SPRING_SNAPPY);
+        HapticTap.selection();
+      }}
+      onPressOut={() => {
+        scale.value = withSpring(1, SPRING_SNAPPY);
+      }}
+      onPress={onPress}
+      style={styles.bubbleContainer}
+    >
+      <Animated.View style={[styles.bubbleWrapper, animatedStyle]}>
+        <LinearGradient colors={colors} style={styles.bubbleGradient}>
+          <AppIcon name={icon} size={22} color="#FFFFFF" />
+        </LinearGradient>
+        <AppText style={[styles.bubbleLabel, { color: isDark ? '#FFFFFF' : '#000000' }]} weight="medium">{label}</AppText>
+      </Animated.View>
+    </Pressable>
+  );
+};
 
 export function GuestConnectionsScreen() {
   const insets = useSafeAreaInsets();
+  const { isDark } = usePreferences();
+  
   const [selectedContact, setSelectedContact] = useState<TapMoment | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'vip' | 'recent'>('all');
-
-  const scaleAnim = useRef(new Animated.Value(0.92)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const allMoments = useMemo(() => SEED_MOMENTS, []);
   const debouncedSearch = useDebounce(query, 300);
@@ -112,89 +249,74 @@ export function GuestConnectionsScreen() {
     });
   }, []);
 
+  const handleSave = useCallback((_contact: TapMoment) => {
+    HapticTap.success();
+    Alert.alert('Saved', 'Contact saved to address book.');
+  }, []);
+
   const handleOpenContact = useCallback(
     (contact: TapMoment) => {
       HapticTap.light();
-      fadeAnim.setValue(0);
-      scaleAnim.setValue(0.94);
       setSelectedContact(contact);
       setModalVisible(true);
-
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 160,
-          useNativeDriver: true,
-        }),
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          tension: 140,
-          friction: 9,
-          useNativeDriver: true,
-        }),
-      ]).start();
     },
-    [fadeAnim, scaleAnim],
+    [],
   );
 
   const handleCloseModal = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 120,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 0.94,
-        duration: 120,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      setModalVisible(false);
+    setModalVisible(false);
+    setTimeout(() => {
       setSelectedContact(null);
-    });
-  }, [fadeAnim, scaleAnim]);
+    }, 300); // Give time for exit animation if we add one
+  }, []);
 
   const renderContactRow = useCallback(
-    ({ item }: { item: TapMoment }) => {
-      const initials = (item.name || 'C')
-        .split(' ')
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
-
-      return (
-        <Pressable
-          style={({ pressed }) => [styles.contactRow, pressed && styles.rowPressed]}
-          onPress={() => handleOpenContact(item)}
-        >
-          {/* Minimalist Monogram Seal */}
-          <View style={styles.avatarCircle}>
-            <AppText style={styles.avatarText} weight="bold">{initials}</AppText>
-          </View>
-
-          {/* Contact Information */}
-          <View style={styles.contactDetails}>
-            <View style={styles.nameHeaderRow}>
-              <AppText style={styles.contactName} weight="bold" numberOfLines={1}>
-                {item.name}
-              </AppText>
-              <AppText style={styles.timeText}>
-                {item.occurredAt instanceof Date ? item.occurredAt.toLocaleDateString() : 'Today'}
-              </AppText>
-            </View>
-            <AppText style={styles.contactSub} numberOfLines={1}>
-              {item.subtitle || 'NFC Tap Contact'}
-            </AppText>
-          </View>
-
-          <AppIcon name="ChevronRight" size={16} color="rgba(255, 255, 255, 0.25)" />
-        </Pressable>
-      );
-    },
-    [handleOpenContact],
+    ({ item, index }: { item: TapMoment; index: number }) => (
+      <ContactRow 
+        item={item} 
+        index={index} 
+        handleOpenContact={handleOpenContact} 
+        isDark={isDark}
+      />
+    ),
+    [handleOpenContact, isDark],
   );
+
+  // Search Animation
+  const searchFocused = useSharedValue(0);
+  const searchAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      marginHorizontal: withSpring(searchFocused.value ? -4 : 0, SPRING_SNAPPY),
+      borderColor: searchFocused.value 
+        ? 'rgba(64, 156, 255, 0.6)' 
+        : (isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)'),
+    };
+  });
+
+  // Filter Animations
+  const FILTERS = [
+    { id: 'all', label: 'All Leads' },
+    { id: 'vip', label: 'VIP / Exec' },
+    { id: 'recent', label: 'Recent' },
+  ];
+  const activeFilterIndex = FILTERS.findIndex(f => f.id === activeFilter);
+  const filterAnim = useSharedValue(0);
+  
+  useEffect(() => {
+    filterAnim.value = withSpring(activeFilterIndex, SPRING_SNAPPY);
+  }, [activeFilterIndex, filterAnim]);
+
+  const filterIndicatorStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: filterAnim.value * 100 }], // approximated width
+  }));
+
+  const bgColors = isDark 
+    ? ['#000000', '#07090E', '#0D1017'] as const
+    : ['#F4F7FB', '#FAFCFF', '#FFFFFF'] as const;
+    
+  const textColor = isDark ? '#FFFFFF' : '#000000';
+  const subTextColor = isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)';
+  const surfaceColor = isDark ? '#121214' : '#FFFFFF';
 
   const renderHeader = useCallback(
     () => (
@@ -202,62 +324,68 @@ export function GuestConnectionsScreen() {
         {/* Top Header */}
         <View style={styles.titleRow}>
           <View style={styles.titleWithBadge}>
-            <AppText style={styles.pageTitle} weight="extrabold">
+            <AppText style={[styles.pageTitle, { color: textColor }]} weight="extrabold">
               Lead CRM
             </AppText>
-            <View style={styles.countPill}>
-              <AppText style={styles.countPillText} weight="bold">
+            <View style={[styles.countPill, { backgroundColor: isDark ? '#141418' : '#F0F0F0', borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0,0,0,0.05)' }]}>
+              <AppText style={[styles.countPillText, { color: textColor }]} weight="bold">
                 {filteredMoments.length} CONTACTS
               </AppText>
             </View>
           </View>
           <Pressable
-            style={({ pressed }) => [styles.exportBtn, pressed && styles.exportBtnPressed]}
+            style={({ pressed }) => [
+              styles.exportBtn, 
+              { backgroundColor: isDark ? '#FFFFFF' : '#000000' },
+              pressed && styles.exportBtnPressed
+            ]}
             onPress={handleExportCSV}
           >
-            <AppIcon name="Download" size={13} color="#000000" />
-            <AppText style={styles.exportBtnText} weight="bold">
+            <AppIcon name="Download" size={13} color={isDark ? '#000000' : '#FFFFFF'} />
+            <AppText style={[styles.exportBtnText, { color: isDark ? '#000000' : '#FFFFFF' }]} weight="bold">
               Export CSV
             </AppText>
           </Pressable>
         </View>
 
         {/* Minimalist Search Bar */}
-        <View style={styles.searchBar}>
-          <AppIcon name="Search" size={16} color="rgba(255, 255, 255, 0.4)" />
+        <Animated.View style={[styles.searchBar, { backgroundColor: surfaceColor }, searchAnimatedStyle]}>
+          <AppIcon name="Search" size={16} color={subTextColor} />
           <TextInput
             placeholder="Search leads by name, company, or title..."
-            placeholderTextColor="rgba(255, 255, 255, 0.35)"
-            style={styles.searchInput}
+            placeholderTextColor={subTextColor}
+            style={[styles.searchInput, { color: textColor }]}
             value={query}
             onChangeText={setQuery}
             autoCapitalize="none"
             autoCorrect={false}
             returnKeyType="search"
+            onFocus={() => (searchFocused.value = 1)}
+            onBlur={() => (searchFocused.value = 0)}
           />
           {query ? (
             <Pressable onPress={() => setQuery('')} hitSlop={10}>
-              <AppIcon name="X" size={15} color="rgba(255, 255, 255, 0.5)" />
+              <AppIcon name="X" size={15} color={subTextColor} />
             </Pressable>
           ) : null}
-        </View>
+        </Animated.View>
 
-        {/* Segmented Filter Bar (Nothing/Apple style) */}
-        <View style={styles.filterStrip}>
-          {[
-            { id: 'all', label: 'All Leads' },
-            { id: 'vip', label: 'VIP / Exec' },
-            { id: 'recent', label: 'Recent' },
-          ].map((tab) => {
+        {/* Segmented Filter Bar */}
+        <View style={[styles.filterStrip, { backgroundColor: surfaceColor }]}>
+          <Animated.View style={[styles.filterIndicator, filterIndicatorStyle, { backgroundColor: isDark ? '#242428' : '#E8E8E8' }]} />
+          {FILTERS.map((tab, idx) => {
             const isSelected = activeFilter === tab.id;
             return (
               <Pressable
                 key={tab.id}
-                style={[styles.filterButton, isSelected && styles.filterButtonActive]}
+                style={styles.filterButton}
                 onPress={() => { HapticTap.selection(); setActiveFilter(tab.id as any); }}
               >
                 <AppText
-                  style={[styles.filterButtonText, isSelected && styles.filterButtonTextActive]}
+                  style={[
+                    styles.filterButtonText,
+                    { color: isSelected ? textColor : subTextColor }
+                  ]}
                   weight={isSelected ? 'bold' : 'medium'}
                 >
                   {tab.label}
@@ -268,81 +396,62 @@ export function GuestConnectionsScreen() {
         </View>
       </View>
     ),
-    [activeFilter, filteredMoments.length, handleExportCSV, query],
+    [activeFilter, filteredMoments.length, handleExportCSV, query, isDark, textColor, subTextColor, surfaceColor, searchAnimatedStyle, filterIndicatorStyle, searchFocused],
   );
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.content}>
-        <FlatList
-          data={filteredMoments}
-          keyExtractor={(item) => item.id}
-          renderItem={renderContactRow}
-          ListHeaderComponent={renderHeader}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <AppIcon name="Search" size={24} color="rgba(255, 255, 255, 0.3)" />
-              <AppText style={styles.emptyTitle} weight="bold">No contacts found</AppText>
-              <AppText style={styles.emptySub}>Try searching for another keyword.</AppText>
+    <LinearGradient colors={bgColors} style={styles.safe}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <View style={styles.content}>
+          <FlatList
+            data={filteredMoments}
+            keyExtractor={(item) => item.id}
+            renderItem={renderContactRow}
+            ListHeaderComponent={renderHeader}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            ListEmptyComponent={<EmptyState />}
+          />
+
+          {/* ── Contact Detail Popup ── */}
+          {modalVisible && selectedContact && (
+            <View style={StyleSheet.absoluteFill}>
+              <BlurView style={StyleSheet.absoluteFill} tint={isDark ? "dark" : "light"} intensity={40} />
+              <Pressable style={StyleSheet.absoluteFillObject} onPress={handleCloseModal} />
+              <View style={styles.modalOverlay}>
+                <Animated.View entering={FadeInUp.springify().damping(16)} style={[styles.modalCard, { backgroundColor: isDark ? '#121216' : '#FFFFFF', borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0,0,0,0.08)' }]}>
+                  
+                  {/* Modal Avatar */}
+                  <LinearGradient colors={getGradientForName(selectedContact.name) as any} style={styles.modalAvatar}>
+                    <AppText style={styles.modalAvatarText} weight="extrabold">
+                      {(selectedContact.name || 'C')[0].toUpperCase()}
+                    </AppText>
+                  </LinearGradient>
+
+                  {/* Modal Contact Info */}
+                  <AppText style={[styles.modalName, { color: textColor }]} weight="extrabold">{selectedContact.name}</AppText>
+                  <AppText style={[styles.modalSub, { color: subTextColor }]}>{selectedContact.subtitle || 'Executive Contact'}</AppText>
+                  <AppText style={styles.modalMeta}>Verified NFC Exchange · Direct Lead</AppText>
+
+                  {/* Action Bubbles Row */}
+                  <View style={styles.modalActionsRow}>
+                    <ActionBubble icon="Phone" label="Call" onPress={() => { handleCall(selectedContact); handleCloseModal(); }} colors={['#34e89e', '#0f3443']} isDark={isDark} />
+                    <ActionBubble icon="MessageSquare" label="WhatsApp" onPress={() => { handleWhatsApp(selectedContact); handleCloseModal(); }} colors={['#25D366', '#128C7E']} isDark={isDark} />
+                    <ActionBubble icon="Mail" label="Email" onPress={() => { handleEmail(selectedContact); handleCloseModal(); }} colors={['#00C6FF', '#0072FF']} isDark={isDark} />
+                    <ActionBubble icon="Bookmark" label="Save" onPress={() => { handleSave(selectedContact); handleCloseModal(); }} colors={['#f12711', '#f5af19']} isDark={isDark} />
+                  </View>
+
+                  <Pressable style={styles.modalCloseBtn} onPress={handleCloseModal}>
+                    <AppText style={styles.modalCloseText}>Dismiss</AppText>
+                  </Pressable>
+                </Animated.View>
+              </View>
             </View>
-          }
-        />
-
-        {/* ── Contact Detail Popup (Apple Modal Style) ── */}
-        {modalVisible && selectedContact && (
-          <Animated.View style={[styles.modalOverlay, { opacity: fadeAnim }]}>
-            <Pressable style={StyleSheet.absoluteFillObject} onPress={handleCloseModal} />
-            <Animated.View style={[styles.modalCard, { transform: [{ scale: scaleAnim }] }]}>
-              {/* Modal Avatar */}
-              <View style={styles.modalAvatar}>
-                <AppText style={styles.modalAvatarText} weight="extrabold">
-                  {(selectedContact.name || 'C')[0].toUpperCase()}
-                </AppText>
-              </View>
-
-              {/* Modal Contact Info */}
-              <AppText style={styles.modalName} weight="extrabold">{selectedContact.name}</AppText>
-              <AppText style={styles.modalSub}>{selectedContact.subtitle || 'Executive Contact'}</AppText>
-              <AppText style={styles.modalMeta}>Verified NFC Exchange · Direct Lead</AppText>
-
-              {/* Executive Follow-Up Actions */}
-              <View style={styles.modalActions}>
-                <Pressable
-                  style={styles.modalBtn}
-                  onPress={() => { handleWhatsApp(selectedContact); handleCloseModal(); }}
-                >
-                  <AppIcon name="MessageSquare" size={16} color="#000000" />
-                  <AppText style={styles.modalBtnText} weight="bold">WhatsApp</AppText>
-                </Pressable>
-
-                <Pressable
-                  style={styles.modalBtnDark}
-                  onPress={() => { handleEmail(selectedContact); handleCloseModal(); }}
-                >
-                  <AppIcon name="Mail" size={16} color="#FFFFFF" />
-                  <AppText style={styles.modalBtnDarkText} weight="bold">Follow Up</AppText>
-                </Pressable>
-
-                <Pressable
-                  style={styles.modalBtnDark}
-                  onPress={() => { handleCall(selectedContact); handleCloseModal(); }}
-                >
-                  <AppIcon name="Phone" size={16} color="#FFFFFF" />
-                  <AppText style={styles.modalBtnDarkText} weight="bold">Call</AppText>
-                </Pressable>
-              </View>
-
-              <Pressable style={styles.modalCloseBtn} onPress={handleCloseModal}>
-                <AppText style={styles.modalCloseText}>Dismiss</AppText>
-              </Pressable>
-            </Animated.View>
-          </Animated.View>
-        )}
-      </View>
-    </SafeAreaView>
+          )}
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
@@ -350,7 +459,9 @@ export function GuestConnectionsScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+  },
+  safeArea: {
+    flex: 1,
   },
   content: {
     flex: 1,
@@ -361,9 +472,6 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 20,
     paddingBottom: 130, // Clearance for floating capsule dock
-  },
-  rowPressed: {
-    opacity: 0.65,
   },
 
   // ── Header Area ──
@@ -385,7 +493,6 @@ const styles = StyleSheet.create({
   exportBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 8,
@@ -395,65 +502,59 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   exportBtnText: {
-    color: '#000000',
     fontSize: 12,
   },
   pageTitle: {
     fontSize: 24,
-    color: '#FFFFFF',
     letterSpacing: 0.2,
   },
   countPill: {
-    backgroundColor: '#141418',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   countPillText: {
-    color: '#FFFFFF',
     fontSize: 10,
     letterSpacing: 0.8,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#121214',
     borderRadius: 14,
     paddingHorizontal: 14,
     height: 44,
     gap: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
   },
   searchInput: {
     flex: 1,
-    color: '#FFFFFF',
     fontSize: 14,
     padding: 0,
   },
   filterStrip: {
     flexDirection: 'row',
-    backgroundColor: '#121214',
     borderRadius: 12,
     padding: 3,
+    position: 'relative',
+  },
+  filterIndicator: {
+    position: 'absolute',
+    top: 3,
+    bottom: 3,
+    left: 3,
+    width: 100, // Hardcoded approximation based on 3 tabs
+    borderRadius: 9,
   },
   filterButton: {
     flex: 1,
     paddingVertical: 8,
     alignItems: 'center',
     borderRadius: 9,
-  },
-  filterButtonActive: {
-    backgroundColor: '#242428',
+    zIndex: 1,
   },
   filterButtonText: {
-    color: 'rgba(255, 255, 255, 0.45)',
     fontSize: 12,
-  },
-  filterButtonTextActive: {
-    color: '#FFFFFF',
   },
 
   // ── Contact Rows (Borderless) ──
@@ -462,22 +563,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
     gap: 14,
   },
   avatarCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#141418',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
   },
   avatarText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 15,
   },
   contactDetails: {
     flex: 1,
@@ -489,17 +590,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   contactName: {
-    color: '#FFFFFF',
     fontSize: 15,
   },
   timeText: {
-    color: 'rgba(255, 255, 255, 0.35)',
     fontSize: 11,
     fontFamily: 'monospace',
   },
   contactSub: {
-    color: 'rgba(255, 255, 255, 0.5)',
     fontSize: 12,
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#007AFF',
   },
 
   // ── Empty State ──
@@ -509,8 +613,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   emptyTitle: {
-    color: '#FFFFFF',
+    color: '#FFFFFF', // Can be dynamic
     fontSize: 15,
+    marginTop: 12,
   },
   emptySub: {
     color: 'rgba(255, 255, 255, 0.4)',
@@ -520,90 +625,86 @@ const styles = StyleSheet.create({
   // ── Modal ──
   modalOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-end', // Bottom sheet style
     zIndex: 999,
     padding: 20,
+    paddingBottom: 40,
   },
   modalCard: {
     width: '100%',
-    maxWidth: 320,
-    backgroundColor: '#121216',
-    borderRadius: 20,
+    maxWidth: 400,
+    borderRadius: 32,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
     padding: 24,
     alignItems: 'center',
     gap: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
   },
   modalAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#FFFFFF',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
   },
   modalAvatarText: {
-    color: '#000000',
-    fontSize: 22,
+    color: '#FFFFFF',
+    fontSize: 24,
   },
   modalName: {
-    color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 20,
   },
   modalSub: {
-    color: 'rgba(255, 255, 255, 0.6)',
-    fontSize: 13,
+    fontSize: 14,
   },
   modalMeta: {
-    color: 'rgba(255, 255, 255, 0.35)',
-    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 12,
     marginTop: 2,
+    marginBottom: 24,
+  },
+  modalActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 10,
     marginBottom: 16,
   },
-  modalActions: {
-    width: '100%',
+  bubbleContainer: {
+    alignItems: 'center',
     gap: 8,
   },
-  modalBtn: {
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
-    borderRadius: 12,
-    flexDirection: 'row',
+  bubbleWrapper: {
+    alignItems: 'center',
+    gap: 6,
+  },
+  bubbleGradient: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
   },
-  modalBtnText: {
-    color: '#000000',
-    fontSize: 14,
-  },
-  modalBtnDark: {
-    width: '100%',
-    backgroundColor: '#1A1A20',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    paddingVertical: 12,
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  modalBtnDarkText: {
-    color: '#FFFFFF',
-    fontSize: 14,
+  bubbleLabel: {
+    fontSize: 12,
   },
   modalCloseBtn: {
     marginTop: 10,
-    paddingVertical: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
   },
   modalCloseText: {
     color: 'rgba(255, 255, 255, 0.45)',
-    fontSize: 13,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

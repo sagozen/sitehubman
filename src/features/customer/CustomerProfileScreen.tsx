@@ -24,6 +24,7 @@ import {
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -105,7 +106,7 @@ export function CustomerProfileScreen() {
   const activeType = user?.activeProfileId === 'social' ? 'social' : 'professional';
   const queryUserId = activeType === 'social' && user?.id ? `${user.id}_social` : (user?.id ?? '');
   const { bioPage, saveBioPage } = useBioPage(queryUserId);
-  const { preferences, updatePreferences } = usePreferences();
+  const { preferences, updatePreferences, isDark } = usePreferences();
 
   const [cloudCard, setCloudCard] = useState<Awaited<ReturnType<typeof loadCustomerCloudCard>>>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -248,8 +249,12 @@ export function CustomerProfileScreen() {
     );
   }
 
+  const bg = isDark
+    ? (['#000000', '#07090E', '#0D1017'] as const)
+    : (['#F4F7FB', '#FAFCFF', '#FFFFFF'] as const);
+
   return (
-    <View style={styles.root}>
+    <LinearGradient colors={bg} style={StyleSheet.absoluteFill}>
       <ScrollView showsVerticalScrollIndicator={false} bounces style={styles.scroll}>
         <View style={styles.container}>
 
@@ -303,7 +308,7 @@ export function CustomerProfileScreen() {
           </View>
 
           {/* ── 2. Floating Avatar & Actions Row ── */}
-          <View style={styles.profileHeaderRow}>
+          <Animated.View entering={FadeInDown.delay(50).springify().damping(18)} style={styles.profileHeaderRow}>
             {/* Overlapping Floating Avatar (X.com Style) */}
             <Pressable
               style={styles.avatarContainer}
@@ -365,10 +370,10 @@ export function CustomerProfileScreen() {
                 <AppIcon name="ExternalLink" size={18} color="#FFFFFF" />
               </Pressable>
             </View>
-          </View>
+          </Animated.View>
 
           {/* ── 3. Profile Info (X.com Metadata) ── */}
-          <View style={styles.infoSection}>
+          <Animated.View entering={FadeInDown.delay(100).springify().damping(18)} style={styles.infoSection}>
             {/* Display Name + Verified Badge */}
             <View style={styles.nameRow}>
               <AppText style={styles.displayNameText} weight="extrabold" numberOfLines={1}>
@@ -421,7 +426,7 @@ export function CustomerProfileScreen() {
                 <AppText style={styles.statLabel}>NFC Taps</AppText>
               </View>
             </View>
-          </View>
+          </Animated.View>
 
           {/* ── 4. X.com Underlined Tab Navigation ── */}
           <View style={styles.navTabContainer}>
@@ -673,7 +678,7 @@ export function CustomerProfileScreen() {
           <View style={{ height: 120 }} />
         </View>
       </ScrollView>
-    </View>
+    </LinearGradient>
   );
 }
 
