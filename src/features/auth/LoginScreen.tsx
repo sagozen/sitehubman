@@ -10,7 +10,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as Crypto from 'expo-crypto';
@@ -18,15 +18,12 @@ import { sendPasswordResetEmail } from 'firebase/auth';
 
 import Animated, {
   FadeInDown,
+  FadeInUp,
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
-  withTiming,
   withSequence,
-  withRepeat,
-  interpolateColor
+  withTiming,
 } from 'react-native-reanimated';
-import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { AppText } from '@/src/components/AppText';
@@ -46,131 +43,15 @@ import { auth } from '@/src/services/firebaseClient';
 import { Haptics, HapticTap } from '@/src/utils/haptics';
 import { usePreferences } from '@/src/hooks/usePreferences';
 
-const SPRING_SNAPPY = { damping: 16, stiffness: 340, mass: 0.7 };
-
-type AuthStep = 'LANDING' | 'EMAIL' | 'PASSWORD' | 'CHECK_EMAIL';
-
-function AnimatedPressable({ onPress, children, style, disabled }: any) {
-  const scale = useSharedValue(1);
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  return (
-    <Pressable
-      onPressIn={() => {
-        if (!disabled) {
-          scale.value = withSpring(0.95, SPRING_SNAPPY);
-          HapticTap.selection();
-        }
-      }}
-      onPressOut={() => {
-        scale.value = withSpring(1, SPRING_SNAPPY);
-      }}
-      onPress={onPress}
-      disabled={disabled}
-    >
-      <Animated.View style={[style, animatedStyle]}>
-        {children}
-      </Animated.View>
-    </Pressable>
-  );
-}
-
-function GlassInput({
-  value,
-  onChangeText,
-  placeholder,
-  secureTextEntry,
-  keyboardType,
-  autoCapitalize,
-  autoCorrect,
-  editable,
-  isDark
-}: any) {
-  const [isFocused, setIsFocused] = useState(false);
-  const focusVal = useSharedValue(0);
-
-  useEffect(() => {
-    focusVal.value = withTiming(isFocused ? 1 : 0, { duration: 250 });
-  }, [isFocused]);
-
-  const animatedBorderStyle = useAnimatedStyle(() => {
-    const borderColor = interpolateColor(
-      focusVal.value,
-      [0, 1],
-      [isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)', '#0A84FF']
-    );
-    return { borderColor };
-  });
-
-  return (
-    <Animated.View style={[styles.glassInputContainer, animatedBorderStyle]}>
-      <BlurView
-        intensity={isDark ? 20 : 40}
-        tint={isDark ? 'dark' : 'light'}
-        style={StyleSheet.absoluteFill}
-      />
-      <TextInput
-        style={[styles.input, { color: isDark ? '#FFFFFF' : '#000000' }]}
-        placeholder={placeholder}
-        placeholderTextColor={isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'}
-        value={value}
-        onChangeText={onChangeText}
-        secureTextEntry={secureTextEntry}
-        keyboardType={keyboardType}
-        autoCapitalize={autoCapitalize}
-        autoCorrect={autoCorrect}
-        editable={editable}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-      />
-    </Animated.View>
-  );
-}
-
-function OrbBackground({ isDark }: { isDark: boolean }) {
-  const orb1X = useSharedValue(0);
-  const orb1Y = useSharedValue(0);
-  const orb2X = useSharedValue(0);
-  const orb2Y = useSharedValue(0);
-
-  useEffect(() => {
-    orb1X.value = withRepeat(withSequence(withTiming(100, { duration: 5000 }), withTiming(0, { duration: 5000 })), -1, true);
-    orb1Y.value = withRepeat(withSequence(withTiming(50, { duration: 4000 }), withTiming(-50, { duration: 4000 })), -1, true);
-    orb2X.value = withRepeat(withSequence(withTiming(-100, { duration: 6000 }), withTiming(0, { duration: 6000 })), -1, true);
-    orb2Y.value = withRepeat(withSequence(withTiming(-50, { duration: 5500 }), withTiming(50, { duration: 5500 })), -1, true);
-  }, []);
-
-  const orb1Style = useAnimatedStyle(() => ({
-    transform: [{ translateX: orb1X.value }, { translateY: orb1Y.value }],
-  }));
-  const orb2Style = useAnimatedStyle(() => ({
-    transform: [{ translateX: orb2X.value }, { translateY: orb2Y.value }],
-  }));
-
-  const orbColor = isDark ? 'rgba(10, 132, 255, 0.15)' : 'rgba(10, 132, 255, 0.1)';
-
-  return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
-      <Animated.View style={[styles.orb, { top: '20%', left: '10%', backgroundColor: orbColor }, orb1Style]} />
-      <Animated.View style={[styles.orb, { bottom: '20%', right: '10%', backgroundColor: orbColor }, orb2Style]} />
-      <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-    </View>
-  );
-}
-
 export function LoginScreen() {
   const { isLoading, signIn, signInAsGuest, signUp } = useAuth();
   const insets = useSafeAreaInsets();
   const { isDark } = usePreferences();
 
-  const [authStep, setAuthStep] = useState<AuthStep>('LANDING');
+  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
-
-  const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -178,6 +59,7 @@ export function LoginScreen() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isAppleLoading, setIsAppleLoading] = useState(false);
   const [appleAvailable, setAppleAvailable] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
 
   const shakeOffset = useSharedValue(0);
 
@@ -202,73 +84,66 @@ export function LoginScreen() {
       withTiming(6, { duration: 50 }),
       withTiming(0, { duration: 50 })
     );
-  }, []);
+  }, [shakeOffset]);
 
   const animatedShakeStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: shakeOffset.value }],
   }));
 
-  async function handleContinue() {
+  async function handleSubmit() {
     if (busy) return;
     const normalizedEmail = email.trim().toLowerCase();
 
     if (!normalizedEmail) {
       triggerErrorShake();
-      Alert.alert('Missing Email', 'Please enter your work or personal email.');
+      Alert.alert('Missing Email', 'Please enter your email address.');
       return;
     }
 
-    if (authStep === 'EMAIL') {
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailPattern.test(normalizedEmail)) {
-        triggerErrorShake();
-        Alert.alert('Invalid Email', 'Please enter a valid email address.');
-        return;
-      }
-      HapticTap.light();
-      setAuthStep('PASSWORD');
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(normalizedEmail)) {
+      triggerErrorShake();
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
       return;
     }
 
-    if (authStep === 'PASSWORD') {
-      if (!password || password.length < 6) {
-        triggerErrorShake();
-        Alert.alert('Invalid Password', 'Password must be at least 6 characters.');
-        return;
-      }
+    if (!password || password.length < 6) {
+      triggerErrorShake();
+      Alert.alert('Invalid Password', 'Password must be at least 6 characters.');
+      return;
+    }
 
-      setIsSubmitting(true);
-      HapticTap.medium();
+    setIsSubmitting(true);
+    HapticTap.medium();
 
-      try {
-        let signedInUser;
-        if (isSignUp) {
-          if (!displayName.trim()) {
-            triggerErrorShake();
-            Alert.alert('Missing Name', 'Please enter your full name.');
-            setIsSubmitting(false);
-            return;
-          }
-          signedInUser = await signUp({
-            displayName: displayName.trim(),
-            email: normalizedEmail,
-            password,
-          });
-        } else {
-          signedInUser = await signIn({ email: normalizedEmail, password });
+    try {
+      let signedInUser;
+      if (isSignUp) {
+        if (!displayName.trim()) {
+          triggerErrorShake();
+          Alert.alert('Missing Name', 'Please enter your full name.');
+          setIsSubmitting(false);
+          return;
         }
-
-        await finalizeGuestAccountUpgrade(signedInUser);
-        const destination = await getPostAuthDestination(signedInUser);
-        Haptics.success();
-        router.replace(destination);
-      } catch (error) {
-        Haptics.error();
-        triggerErrorShake();
-        Alert.alert(isSignUp ? 'Sign up failed' : 'Sign in failed', getAuthErrorMessage(error));
-      } finally {
-        setIsSubmitting(false);
+        signedInUser = await signUp({
+          displayName: displayName.trim(),
+          email: normalizedEmail,
+          password,
+        });
+      } else {
+        signedInUser = await signIn({ email: normalizedEmail, password });
       }
+
+      await finalizeGuestAccountUpgrade(signedInUser);
+      const destination = await getPostAuthDestination(signedInUser);
+      Haptics.success();
+      router.replace(destination);
+    } catch (error) {
+      Haptics.error();
+      triggerErrorShake();
+      Alert.alert(isSignUp ? 'Sign up failed' : 'Sign in failed', getAuthErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -276,7 +151,7 @@ export function LoginScreen() {
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) {
       triggerErrorShake();
-      Alert.alert('Missing Email', 'Please enter your email.');
+      Alert.alert('Missing Email', 'Please enter your email address first.');
       return;
     }
 
@@ -286,11 +161,12 @@ export function LoginScreen() {
     try {
       await sendPasswordResetEmail(auth, normalizedEmail);
       Haptics.success();
-      setAuthStep('CHECK_EMAIL');
+      setForgotSent(true);
+      Alert.alert('Reset Link Sent', `Password reset instructions have been sent to ${normalizedEmail}`);
     } catch (error) {
       Haptics.error();
       triggerErrorShake();
-      Alert.alert('Failed to send reset link', getAuthErrorMessage(error));
+      Alert.alert('Reset Failed', getAuthErrorMessage(error));
     } finally {
       setIsSubmitting(false);
     }
@@ -386,268 +262,320 @@ export function LoginScreen() {
     }
   }
 
-  function handleBack() {
-    HapticTap.light();
-    if (authStep === 'EMAIL') {
-      setAuthStep('LANDING');
-    } else if (authStep === 'PASSWORD') {
-      setAuthStep('EMAIL');
-    } else if (authStep === 'CHECK_EMAIL') {
-      setAuthStep('PASSWORD');
-    }
-  }
-
   const bgColors = isDark
-    ? ['#000000', '#07090E', '#111827'] as const
-    : ['#F0F4FF', '#E8EFFE', '#FFFFFF'] as const;
+    ? (['#000000', '#07090E', '#0D1017'] as const)
+    : (['#F4F7FB', '#FAFCFF', '#FFFFFF'] as const);
 
   const textColor = isDark ? '#FFFFFF' : '#000000';
   const subTextColor = isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)';
+  const inputBg = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+  const inputBorder = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)';
 
   return (
     <LinearGradient colors={bgColors} style={styles.container}>
-      <OrbBackground isDark={isDark} />
-
-      {authStep !== 'LANDING' && (
-        <AnimatedPressable
-          onPress={handleBack}
-          style={[styles.backBtn, { top: Math.max(insets.top, 16), backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }]}
-        >
-          <Ionicons name="chevron-back" size={24} color={textColor} />
-        </AnimatedPressable>
-      )}
+      {/* Background glow orbs (strictly pointerEvents="none" on all platforms) */}
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <View
+          style={[
+            styles.glowOrb,
+            {
+              top: '15%',
+              left: '10%',
+              backgroundColor: isDark ? 'rgba(10, 132, 255, 0.12)' : 'rgba(10, 132, 255, 0.08)',
+            },
+          ]}
+        />
+        <View
+          style={[
+            styles.glowOrb,
+            {
+              bottom: '20%',
+              right: '10%',
+              backgroundColor: isDark ? 'rgba(88, 86, 214, 0.12)' : 'rgba(88, 86, 214, 0.08)',
+            },
+          ]}
+        />
+      </View>
 
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top + 20, 40) }]}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingTop: Math.max(insets.top + 24, 44), paddingBottom: Math.max(insets.bottom + 32, 48) },
+          ]}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
           <Animated.View style={[styles.mainContent, animatedShakeStyle]}>
-            {authStep === 'LANDING' ? (
-              <View style={styles.landingWrap}>
-                <Animated.View entering={FadeInDown.delay(0).springify()} style={styles.logoWrap}>
-                  <AvioLogo size="md" theme={isDark ? "dark" : "light"} showTagline />
-                </Animated.View>
+            {/* Brand Logo & Header */}
+            <Animated.View entering={FadeInDown.delay(0).springify()} style={styles.logoWrap}>
+              <AvioLogo size="md" theme={isDark ? 'dark' : 'light'} showTagline />
+              <AppText style={[styles.executiveSub, { color: subTextColor }]}>
+                Contactless smart identity & NFC hardware for modern creators and teams.
+              </AppText>
+            </Animated.View>
 
-                <Animated.View entering={FadeInDown.delay(60).springify()}>
-                  <AppText style={[styles.executiveSub, { color: subTextColor }]}>
-                    Next-generation contactless identity & NFC hardware for modern professionals.
-                  </AppText>
-                </Animated.View>
+            {/* Mode Switcher Tabs (Sign In / Create Account) */}
+            <Animated.View entering={FadeInDown.delay(60).springify()} style={styles.tabSwitcher}>
+              <Pressable
+                style={[
+                  styles.tabButton,
+                  !isSignUp && [
+                    styles.tabButtonActive,
+                    { backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : '#FFFFFF' },
+                  ],
+                ]}
+                onPress={() => {
+                  HapticTap.light();
+                  setIsSignUp(false);
+                }}
+              >
+                <AppText
+                  style={[
+                    styles.tabButtonText,
+                    { color: !isSignUp ? textColor : subTextColor },
+                  ]}
+                  weight={!isSignUp ? 'bold' : 'medium'}
+                >
+                  Sign In
+                </AppText>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.tabButton,
+                  isSignUp && [
+                    styles.tabButtonActive,
+                    { backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : '#FFFFFF' },
+                  ],
+                ]}
+                onPress={() => {
+                  HapticTap.light();
+                  setIsSignUp(true);
+                }}
+              >
+                <AppText
+                  style={[
+                    styles.tabButtonText,
+                    { color: isSignUp ? textColor : subTextColor },
+                  ]}
+                  weight={isSignUp ? 'bold' : 'medium'}
+                >
+                  Create Account
+                </AppText>
+              </Pressable>
+            </Animated.View>
 
-                <View style={styles.actionBlock}>
-                  {Platform.OS === 'ios' && (
-                    <Animated.View entering={FadeInDown.delay(120).springify()}>
-                      <AnimatedPressable onPress={handleApplePress} disabled={busy}>
-                        <BlurView intensity={isDark ? 20 : 40} tint={isDark ? "dark" : "light"} style={styles.glassBtn}>
-                          {isAppleLoading ? (
-                            <ActivityIndicator color={textColor} size="small" />
-                          ) : (
-                            <>
-                              <Ionicons name="logo-apple" size={20} color={textColor} />
-                              <AppText style={[styles.glassBtnText, { color: textColor }]}>Continue with Apple</AppText>
-                            </>
-                          )}
-                        </BlurView>
-                      </AnimatedPressable>
-                    </Animated.View>
-                  )}
-
-                  <Animated.View entering={FadeInDown.delay(180).springify()}>
-                    <AnimatedPressable onPress={handleGooglePress} disabled={busy}>
-                      <BlurView intensity={isDark ? 20 : 40} tint={isDark ? "dark" : "light"} style={styles.glassBtn}>
-                        {isGoogleLoading ? (
-                          <ActivityIndicator color={textColor} size="small" />
-                        ) : (
-                          <>
-                            <Ionicons name="logo-google" size={18} color={textColor} />
-                            <AppText style={[styles.glassBtnText, { color: textColor }]}>Continue with Google</AppText>
-                          </>
-                        )}
-                      </BlurView>
-                    </AnimatedPressable>
-                  </Animated.View>
-
-                  <Animated.View entering={FadeInDown.delay(240).springify()}>
-                    <AnimatedPressable onPress={() => { HapticTap.light(); setAuthStep('EMAIL'); }} disabled={busy}>
-                      <BlurView intensity={isDark ? 20 : 40} tint={isDark ? "dark" : "light"} style={styles.glassBtn}>
-                        <Ionicons name="mail-outline" size={18} color={textColor} />
-                        <AppText style={[styles.glassBtnText, { color: textColor }]}>Continue with Email</AppText>
-                      </BlurView>
-                    </AnimatedPressable>
-                  </Animated.View>
-
-                  <Animated.View entering={FadeInDown.delay(300).springify()}>
-                    <Pressable
-                      style={({ pressed }) => [styles.guestBtn, pressed && { opacity: 0.7 }]}
-                      onPress={handleGuest}
-                      disabled={busy}
-                    >
-                      {isGuestLoading ? (
-                        <ActivityIndicator color={isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.6)"} size="small" />
-                      ) : (
-                        <AppText style={styles.guestBtnText}>Explore AVIO Studio as Guest →</AppText>
-                      )}
-                    </Pressable>
-                  </Animated.View>
+            {/* Input Fields */}
+            <Animated.View entering={FadeInDown.delay(120).springify()} style={styles.formStack}>
+              {isSignUp && (
+                <View style={styles.inputGroup}>
+                  <AppText style={[styles.inputLabel, { color: subTextColor }]}>Full Name</AppText>
+                  <View
+                    style={[
+                      styles.inputBox,
+                      { backgroundColor: inputBg, borderColor: inputBorder },
+                    ]}
+                  >
+                    <Ionicons name="person-outline" size={18} color={subTextColor} style={styles.inputIcon} />
+                    <TextInput
+                      style={[styles.textInput, { color: textColor }]}
+                      placeholder="e.g. Johnathan Vance"
+                      placeholderTextColor={subTextColor}
+                      value={displayName}
+                      onChangeText={setDisplayName}
+                      autoCapitalize="words"
+                      editable={!busy}
+                    />
+                  </View>
                 </View>
+              )}
 
-                <Animated.View entering={FadeInDown.delay(360).springify()} style={styles.termsWrap}>
-                  <AppText style={[styles.termsText, { color: subTextColor }]}>
-                    By continuing, you agree to AVIO's{' '}
-                    <AppText
-                      style={[styles.termsLink, { color: textColor }]}
-                      onPress={() => router.push('/terms-of-service' as any)}
-                    >
-                      Terms
-                    </AppText>{' '}
-                    and{' '}
-                    <AppText
-                      style={[styles.termsLink, { color: textColor }]}
-                      onPress={() => router.push('/privacy-policy' as any)}
-                    >
-                      Privacy Policy
-                    </AppText>.
-                  </AppText>
-                </Animated.View>
-              </View>
-            ) : authStep === 'EMAIL' ? (
-              <View style={styles.formWrap}>
-                <Animated.View entering={FadeInDown.delay(0).springify()} style={styles.formLogoWrap}>
-                  <AvioLogo size="sm" theme={isDark ? "dark" : "light"} showTagline={false} />
-                </Animated.View>
-
-                <Animated.View entering={FadeInDown.delay(60).springify()}>
-                  <AppText style={[styles.formTitle, { color: textColor }]}>Enter your email</AppText>
-                  <AppText style={[styles.formSub, { color: subTextColor }]}>We'll check if you have an active AVIO account.</AppText>
-                </Animated.View>
-
-                <Animated.View entering={FadeInDown.delay(120).springify()} style={styles.inputContainer}>
-                  <GlassInput
-                    placeholder="Work or personal email"
+              <View style={styles.inputGroup}>
+                <AppText style={[styles.inputLabel, { color: subTextColor }]}>Email Address</AppText>
+                <View
+                  style={[
+                    styles.inputBox,
+                    { backgroundColor: inputBg, borderColor: inputBorder },
+                  ]}
+                >
+                  <Ionicons name="mail-outline" size={18} color={subTextColor} style={styles.inputIcon} />
+                  <TextInput
+                    style={[styles.textInput, { color: textColor }]}
+                    placeholder="name@company.com"
+                    placeholderTextColor={subTextColor}
                     value={email}
                     onChangeText={setEmail}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoCorrect={false}
                     editable={!busy}
-                    isDark={isDark}
                   />
-                </Animated.View>
-
-                <Animated.View entering={FadeInDown.delay(180).springify()} style={{ width: '100%' }}>
-                  <AnimatedPressable onPress={handleContinue} disabled={busy}>
-                    <View style={[styles.primaryPillBtn, { backgroundColor: isDark ? '#FFFFFF' : '#000000' }]}>
-                      <AppText style={[styles.primaryPillBtnText, { color: isDark ? '#000000' : '#FFFFFF' }]}>Continue</AppText>
-                    </View>
-                  </AnimatedPressable>
-                </Animated.View>
+                </View>
               </View>
-            ) : authStep === 'PASSWORD' ? (
-              <View style={styles.formWrap}>
-                <Animated.View entering={FadeInDown.delay(0).springify()} style={styles.formLogoWrap}>
-                  <AvioLogo size="sm" theme={isDark ? "dark" : "light"} showTagline={false} />
-                </Animated.View>
 
-                <Animated.View entering={FadeInDown.delay(60).springify()}>
-                  <AppText style={[styles.formTitle, { color: textColor }]}>
-                    {isSignUp ? 'Create your profile' : 'Enter your password'}
-                  </AppText>
-                  <AppText style={[styles.formSub, { color: subTextColor }]}>{email}</AppText>
-                </Animated.View>
-
-                <Animated.View entering={FadeInDown.delay(120).springify()} style={styles.inputStack}>
-                  {isSignUp && (
-                    <GlassInput
-                      placeholder="Full Name (e.g. Johnathan Vance)"
-                      value={displayName}
-                      onChangeText={setDisplayName}
-                      autoCapitalize="words"
-                      editable={!busy}
-                      isDark={isDark}
-                    />
+              <View style={styles.inputGroup}>
+                <View style={styles.passwordLabelRow}>
+                  <AppText style={[styles.inputLabel, { color: subTextColor }]}>Password</AppText>
+                  {!isSignUp && (
+                    <Pressable onPress={handleSendMagicLink} disabled={busy} hitSlop={8}>
+                      <AppText style={styles.forgotLink}>Forgot?</AppText>
+                    </Pressable>
                   )}
-
-                  <GlassInput
-                    placeholder="Password (min 6 characters)"
+                </View>
+                <View
+                  style={[
+                    styles.inputBox,
+                    { backgroundColor: inputBg, borderColor: inputBorder },
+                  ]}
+                >
+                  <Ionicons name="lock-closed-outline" size={18} color={subTextColor} style={styles.inputIcon} />
+                  <TextInput
+                    style={[styles.textInput, { color: textColor }]}
+                    placeholder="Min 6 characters"
+                    placeholderTextColor={subTextColor}
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry={!showPassword}
+                    autoCapitalize="none"
+                    autoCorrect={false}
                     editable={!busy}
-                    isDark={isDark}
                   />
-                </Animated.View>
-
-                <Animated.View entering={FadeInDown.delay(180).springify()} style={{ width: '100%' }}>
-                  <AnimatedPressable onPress={handleContinue} disabled={busy}>
-                    <View style={[styles.primaryPillBtn, { backgroundColor: isDark ? '#FFFFFF' : '#000000' }]}>
-                      {isSubmitting ? (
-                        <ActivityIndicator color={isDark ? '#000000' : '#FFFFFF'} size="small" />
-                      ) : (
-                        <AppText style={[styles.primaryPillBtnText, { color: isDark ? '#000000' : '#FFFFFF' }]}>
-                          {isSignUp ? 'Create Account' : 'Sign In'}
-                        </AppText>
-                      )}
-                    </View>
-                  </AnimatedPressable>
-                </Animated.View>
-
-                <Animated.View entering={FadeInDown.delay(240).springify()} style={styles.switchAuthWrap}>
-                  {!isSignUp && (
-                    <Pressable onPress={handleSendMagicLink} disabled={busy}>
-                      <AppText style={[styles.switchAuthText, { color: subTextColor }]}>Forgot password? Reset here</AppText>
-                    </Pressable>
-                  )}
                   <Pressable
-                    onPress={() => {
-                      HapticTap.light();
-                      setIsSignUp((v) => !v);
-                    }}
-                    disabled={busy}
-                    style={{ marginTop: 12 }}
+                    onPress={() => setShowPassword((v) => !v)}
+                    style={styles.eyeBtn}
+                    hitSlop={10}
+                    accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    <AppText style={styles.switchAuthHighlight}>
-                      {isSignUp
-                        ? 'Already have an AVIO account? Sign In'
-                        : "Don't have an account? Sign Up"}
-                    </AppText>
+                    <Ionicons
+                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                      size={20}
+                      color={subTextColor}
+                    />
                   </Pressable>
-                </Animated.View>
+                </View>
               </View>
-            ) : (
-              <View style={styles.formWrap}>
-                <Animated.View entering={FadeInDown.delay(0).springify()} style={styles.formLogoWrap}>
-                  <AvioLogo size="sm" theme={isDark ? "dark" : "light"} showTagline={false} />
-                </Animated.View>
 
-                <Animated.View entering={FadeInDown.delay(60).springify()} style={styles.emailSentIcon}>
-                  <Ionicons name="mail-unread-outline" size={48} color="#0A84FF" />
-                </Animated.View>
-
-                <Animated.View entering={FadeInDown.delay(120).springify()}>
-                  <AppText style={[styles.formTitle, { color: textColor }]}>Check your inbox</AppText>
-                  <AppText style={[styles.formSub, { color: subTextColor }]}>
-                    We sent password reset instructions to {email}.
-                  </AppText>
-                </Animated.View>
-
-                <Animated.View entering={FadeInDown.delay(180).springify()} style={{ width: '100%' }}>
-                  <AnimatedPressable
-                    onPress={() => {
-                      HapticTap.light();
-                      setAuthStep('EMAIL');
-                    }}
+              {/* Submit Button */}
+              <Pressable
+                style={({ pressed }) => [
+                  styles.primarySubmitBtn,
+                  { backgroundColor: isDark ? '#FFFFFF' : '#000000' },
+                  pressed && styles.btnPressed,
+                  busy && { opacity: 0.6 },
+                ]}
+                onPress={handleSubmit}
+                disabled={busy}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator color={isDark ? '#000000' : '#FFFFFF'} size="small" />
+                ) : (
+                  <AppText
+                    style={[styles.primarySubmitBtnText, { color: isDark ? '#000000' : '#FFFFFF' }]}
+                    weight="bold"
                   >
-                    <View style={[styles.primaryPillBtn, { backgroundColor: isDark ? '#FFFFFF' : '#000000' }]}>
-                      <AppText style={[styles.primaryPillBtnText, { color: isDark ? '#000000' : '#FFFFFF' }]}>Back to Sign In</AppText>
-                    </View>
-                  </AnimatedPressable>
-                </Animated.View>
-              </View>
-            )}
+                    {isSignUp ? 'Create Account' : 'Sign In'}
+                  </AppText>
+                )}
+              </Pressable>
+            </Animated.View>
+
+            {/* Divider */}
+            <View style={styles.dividerRow}>
+              <View style={[styles.dividerLine, { backgroundColor: inputBorder }]} />
+              <AppText style={[styles.dividerText, { color: subTextColor }]}>or continue with</AppText>
+              <View style={[styles.dividerLine, { backgroundColor: inputBorder }]} />
+            </View>
+
+            {/* Social Auth & Guest Row */}
+            <Animated.View entering={FadeInDown.delay(180).springify()} style={styles.socialStack}>
+              {Platform.OS === 'ios' && (
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.socialBtn,
+                    { backgroundColor: inputBg, borderColor: inputBorder },
+                    pressed && styles.btnPressed,
+                  ]}
+                  onPress={handleApplePress}
+                  disabled={busy}
+                >
+                  {isAppleLoading ? (
+                    <ActivityIndicator color={textColor} size="small" />
+                  ) : (
+                    <>
+                      <Ionicons name="logo-apple" size={18} color={textColor} />
+                      <AppText style={[styles.socialBtnText, { color: textColor }]}>Apple</AppText>
+                    </>
+                  )}
+                </Pressable>
+              )}
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.socialBtn,
+                  { backgroundColor: inputBg, borderColor: inputBorder },
+                  pressed && styles.btnPressed,
+                ]}
+                onPress={handleGooglePress}
+                disabled={busy}
+              >
+                {isGoogleLoading ? (
+                  <ActivityIndicator color={textColor} size="small" />
+                ) : (
+                  <>
+                    <Ionicons name="logo-google" size={18} color={textColor} />
+                    <AppText style={[styles.socialBtnText, { color: textColor }]}>Google</AppText>
+                  </>
+                )}
+              </Pressable>
+
+              {/* Guest One-Click Button */}
+              <Pressable
+                style={({ pressed }) => [
+                  styles.socialBtn,
+                  {
+                    backgroundColor: isDark ? 'rgba(10, 132, 255, 0.12)' : 'rgba(0, 122, 255, 0.08)',
+                    borderColor: isDark ? 'rgba(10, 132, 255, 0.3)' : 'rgba(0, 122, 255, 0.2)',
+                  },
+                  pressed && styles.btnPressed,
+                ]}
+                onPress={handleGuest}
+                disabled={busy}
+              >
+                {isGuestLoading ? (
+                  <ActivityIndicator color="#0A84FF" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name="sparkles" size={16} color="#0A84FF" />
+                    <AppText style={[styles.socialBtnText, { color: '#0A84FF', fontWeight: '700' }]}>
+                      Guest Mode
+                    </AppText>
+                  </>
+                )}
+              </Pressable>
+            </Animated.View>
+
+            {/* Terms Footer */}
+            <View style={styles.termsWrap}>
+              <AppText style={[styles.termsText, { color: subTextColor }]}>
+                By continuing, you agree to AVIO's{' '}
+                <AppText
+                  style={[styles.termsLink, { color: textColor }]}
+                  onPress={() => router.push('/terms-of-service' as any)}
+                >
+                  Terms
+                </AppText>{' '}
+                and{' '}
+                <AppText
+                  style={[styles.termsLink, { color: textColor }]}
+                  onPress={() => router.push('/privacy-policy' as any)}
+                >
+                  Privacy Policy
+                </AppText>.
+              </AppText>
+            </View>
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -659,21 +587,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  orb: {
+  glowOrb: {
     position: 'absolute',
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-  },
-  backBtn: {
-    position: 'absolute',
-    left: 20,
-    zIndex: 10,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 320,
+    height: 320,
+    borderRadius: 160,
   },
   keyboardView: {
     flex: 1,
@@ -682,132 +600,158 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingBottom: 40,
   },
   mainContent: {
     width: '100%',
-    maxWidth: 440,
+    maxWidth: 420,
     alignSelf: 'center',
   },
-  landingWrap: {
-    alignItems: 'center',
-  },
   logoWrap: {
-    marginBottom: 16,
+    alignItems: 'center',
+    marginBottom: 24,
   },
   executiveSub: {
     fontSize: 13,
     textAlign: 'center',
     lineHeight: 18,
+    marginTop: 10,
     maxWidth: 320,
-    marginBottom: 36,
   },
-  actionBlock: {
-    width: '100%',
-    gap: 12,
+
+  tabSwitcher: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(120, 120, 128, 0.12)',
+    borderRadius: 14,
+    padding: 3,
+    marginBottom: 20,
   },
-  glassBtn: {
+  tabButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 11,
+  },
+  tabButtonActive: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  tabButtonText: {
+    fontSize: 14,
+  },
+
+  formStack: {
+    gap: 16,
+  },
+  inputGroup: {
+    gap: 6,
+  },
+  passwordLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  inputLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+    marginLeft: 2,
+  },
+  forgotLink: {
+    fontSize: 12,
+    color: '#0A84FF',
+    fontWeight: '600',
+  },
+  inputBox: {
     width: '100%',
     height: 52,
     borderRadius: 14,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+  textInput: {
+    flex: 1,
+    height: '100%',
+    fontSize: 15,
+  },
+  eyeBtn: {
+    padding: 6,
+  },
+
+  primarySubmitBtn: {
+    width: '100%',
+    height: 52,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  primarySubmitBtnText: {
+    fontSize: 16,
+    letterSpacing: -0.2,
+  },
+  btnPressed: {
+    opacity: 0.88,
+    transform: [{ scale: 0.98 }],
+  },
+
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 24,
+    gap: 12,
+  },
+  dividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+  },
+  dividerText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+
+  socialStack: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  socialBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 14,
+    borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
   },
-  glassBtnText: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  guestBtn: {
-    marginTop: 8,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  guestBtnText: {
-    color: '#0A84FF',
+  socialBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    textDecorationLine: 'underline',
   },
+
   termsWrap: {
-    marginTop: 32,
-    paddingHorizontal: 16,
+    marginTop: 28,
+    alignItems: 'center',
   },
   termsText: {
-    fontSize: 12,
+    fontSize: 11,
     textAlign: 'center',
-    lineHeight: 17,
+    lineHeight: 16,
   },
   termsLink: {
     textDecorationLine: 'underline',
-  },
-  formWrap: {
-    alignItems: 'center',
-  },
-  formLogoWrap: {
-    marginBottom: 20,
-  },
-  formTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-    textAlign: 'center',
-  },
-  formSub: {
-    fontSize: 13,
-    marginTop: 6,
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  inputContainer: {
-    width: '100%',
-    marginBottom: 16,
-  },
-  inputStack: {
-    width: '100%',
-    gap: 12,
-    marginBottom: 20,
-  },
-  glassInputContainer: {
-    width: '100%',
-    height: 52,
-    borderRadius: 14,
-    overflow: 'hidden',
-    borderWidth: 1,
-  },
-  input: {
-    flex: 1,
-    paddingHorizontal: 16,
-    fontSize: 15,
-  },
-  primaryPillBtn: {
-    width: '100%',
-    height: 52,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primaryPillBtnText: {
-    fontSize: 15,
-    fontWeight: '800',
-  },
-  switchAuthWrap: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  switchAuthText: {
-    fontSize: 13,
-  },
-  switchAuthHighlight: {
-    fontSize: 13,
-    color: '#0A84FF',
-    fontWeight: '600',
-  },
-  emailSentIcon: {
-    marginBottom: 16,
   },
 });
