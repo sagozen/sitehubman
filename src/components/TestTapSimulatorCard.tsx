@@ -1,10 +1,10 @@
 /**
- * TestTapSimulatorCard.tsx — 100% Native Apple Cash / Apple Pay Confirmation Edition.
+ * TestTapSimulatorCard.tsx — NFC profile-sharing interaction demo.
  *
- * Modeled directly after Apple Cash & Apple Pay native iOS interface:
+ * Styled as a premium pass preview:
  *  - Native slate container (#1C1C1E)
  *  - Floating black Apple Pass card with gold/titanium chip
- *  - Bold Apple Headline: 'Smart Card Active ✓' with Apple Blue Check (#0A84FF)
+ *  - Clear demo state that does not imply Wallet issuance
  *  - Crisp HIG typography & haptic response
  */
 import React, { useState } from 'react';
@@ -75,7 +75,7 @@ export function TestTapSimulatorCard({ onSimulateTap }: TestTapSimulatorCardProp
             <ActivityIndicator size="small" color="#1DB954" />
           ) : (
             <AppText style={styles.mainTitle} weight="extrabold">
-              {completed ? 'Smart Pass Active' : 'Test NFC Smart Pass'}
+              {completed ? 'Sharing demo complete' : 'Test NFC profile sharing'}
             </AppText>
           )}
           <AppIcon
@@ -86,8 +86,8 @@ export function TestTapSimulatorCard({ onSimulateTap }: TestTapSimulatorCardProp
         </View>
         <AppText style={styles.subText}>
           {completed
-            ? 'Apple Cash style virtual pass is live. Your digital profile & NFC chip are ready for client meetings.'
-            : 'Tap here to simulate how clients scan & save your executive profile.'}
+            ? 'This demonstrates the in-app sharing interaction. It does not issue an Apple or Google Wallet pass.'
+            : 'Tap here to preview how a contact can scan and save your profile.'}
         </AppText>
       </View>
 

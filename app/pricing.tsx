@@ -4,7 +4,6 @@
 import React, { useCallback, useRef, useState } from 'react';
 import {
   Animated,
-  Dimensions,
   Platform,
   Pressable,
   ScrollView,
@@ -23,7 +22,6 @@ import {
 import { useSubscription } from '@/src/hooks/useSubscription';
 import { AppText } from '@/src/components/AppText';
 
-const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
 
 // ─── Design tokens ───────────────────────────────────────────────────────────
@@ -261,30 +259,21 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 // ─── Main Pricing Screen ──────────────────────────────────────────────────────
 export default function PricingScreen() {
   const router = useRouter();
-  const { currentPlan, upgrade, loading } = useSubscription();
+  const { currentPlan } = useSubscription();
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
-  const handleSelectPlan = async (planId: string) => {
+  const handleSelectPlan = (planId: string) => {
     if (planId === 'free') { router.push('/register'); return; }
-    if (planId === 'enterprise') { router.push('/contact-sales' as any); return; }
-    try {
-      setSelectedPlan(planId);
-      await upgrade(planId, billingPeriod === 'yearly');
-    } catch (e) {
-      console.error('Upgrade failed:', e);
-    } finally {
-      setSelectedPlan(null);
-    }
+    router.push('/contact-sales' as any);
   };
 
   const plans = Object.values(SUBSCRIPTION_PLANS).filter((p) => p.id !== 'enterprise');
 
   const faqs = [
-    { q: 'Can I change plans anytime?', a: 'Yes, upgrade or downgrade at any time. Changes take effect immediately.' },
-    { q: 'What happens to my data if I cancel?', a: 'Your data stays safe for 30 days after cancellation, giving you time to reactivate.' },
-    { q: 'Do you offer refunds?', a: 'Yes — 30-day money-back guarantee on all paid plans. No questions asked.' },
-    { q: 'Is there a setup fee?', a: 'No setup fees. No hidden costs. Just the subscription price.' },
+    { q: 'How do I get a paid plan?', a: 'Use the contact option above. Our team will confirm the right plan, availability, and pricing before you commit.' },
+    { q: 'Can I change plans later?', a: 'Yes. Plan changes are handled with the AVIO team while billing automation is being prepared for general release.' },
+    { q: 'Can I start a property-access pilot?', a: 'Yes. Pilot availability depends on the selected property, hardware integration, and local implementation scope.' },
+    { q: 'Is payment collected here?', a: 'No. This app does not collect payment for paid plans until the production payment flow is live and verified.' },
   ];
 
   return (
@@ -315,7 +304,7 @@ export default function PricingScreen() {
             Choose Your{'\n'}Power Level
           </AppText>
           <AppText style={styles.heroSubtitle}>
-            Start free. Upgrade when you're ready.{'\n'}Cancel anytime.
+            Start free. Upgrade when you&apos;re ready.{'\n'}Cancel anytime.
           </AppText>
         </View>
 
@@ -360,7 +349,7 @@ export default function PricingScreen() {
               plan={plan}
               billingPeriod={billingPeriod}
               isCurrentPlan={currentPlan.id === plan.id}
-              isLoading={selectedPlan === plan.id && loading}
+              isLoading={false}
               onSelect={() => handleSelectPlan(plan.id)}
             />
           ))}
@@ -412,21 +401,21 @@ export default function PricingScreen() {
         {/* Final CTA */}
         <View style={styles.finalCta}>
           <AppText style={styles.finalCtaTitle} weight="extrabold">
-            Ready to go Pro?
+            Ready to explore Pro?
           </AppText>
           <AppText style={styles.finalCtaSubtitle}>
-            Join thousands of professionals already using AVIO
+            Talk with our team about a plan that fits your rollout.
           </AppText>
           <AnimatedPress
             onPress={() => handleSelectPlan('pro')}
             style={styles.finalCtaBtn}
           >
             <AppText style={styles.finalCtaBtnText} weight="bold">
-              Start Free Trial
+              Talk to sales
             </AppText>
             <Ionicons name="arrow-forward" size={16} color="#000000" style={{ marginLeft: 8 }} />
           </AnimatedPress>
-          <AppText style={styles.finalCtaHint}>No credit card required</AppText>
+          <AppText style={styles.finalCtaHint}>No payment is collected in the app.</AppText>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -450,8 +439,8 @@ function getKeyFeatures(plan: any): string[] {
 function getCtaText(planId: string): string {
   switch (planId) {
     case 'free': return 'Start Free';
-    case 'pro': return 'Start Pro Trial';
-    case 'business': return 'Start Business Trial';
+    case 'pro': return 'Talk to sales';
+    case 'business': return 'Talk to sales';
     default: return 'Get Started';
   }
 }

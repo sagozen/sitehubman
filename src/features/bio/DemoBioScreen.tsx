@@ -242,7 +242,7 @@ export function DemoBioScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <AppText style={styles.exchangeTitle} weight="extrabold">Exchange Contact</AppText>
-                <AppText style={styles.exchangeSub}>Send your info to Alex's private CRM</AppText>
+                <AppText style={styles.exchangeSub}>Send your info to Alex&apos;s private CRM</AppText>
               </View>
               <Pressable onPress={() => setShowExchangeModal(false)} hitSlop={10}>
                 <AppIcon name="X" size={18} color="rgba(255,255,255,0.6)" />

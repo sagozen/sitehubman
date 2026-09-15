@@ -29,7 +29,7 @@ export const PRESTIGE_TIERS: Record<PrestigeTierId, PrestigeTier> = {
     color: '#8E8E93',
     bgGradient: ['#1C1C1E', '#121214'],
     minConnections: 0,
-    perks: ['Unlimited NFC Taps', 'Digital Apple Wallet Pass', 'Basic Tap Analytics'],
+    perks: ['Unlimited NFC Taps', 'Profile QR sharing', 'Basic Tap Analytics'],
   },
   titanium: {
     id: 'titanium',

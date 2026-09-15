@@ -33,10 +33,7 @@
       "package": "com.biocloud.nativeapp",
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.NFC",
-        "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.NFC"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/snap-tap-app-icon.png",
@@ -60,17 +57,7 @@
       "dir": "ltr",
       "scope": "/",
       "orientation": "portrait",
-      "preferRelatedApplications": true,
-      "relatedApplications": [
-        {
-          "platform": "itunes",
-          "url": "https://apps.apple.com/app/sitehubman/id0000000000"
-        },
-        {
-          "platform": "play",
-          "url": "https://play.google.com/store/apps/details?id=com.biocloud.nativeapp"
-        }
-      ]
+      "preferRelatedApplications": false
     },
     "plugins": [
       "expo-router",

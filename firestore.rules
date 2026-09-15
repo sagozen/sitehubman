@@ -59,6 +59,14 @@ service cloud.firestore {
       return role() == 'finance';
     }
 
+    function isPropertyManager() {
+      return role() == 'property_manager';
+    }
+
+    function managesProperty(propertyId) {
+      return isAdmin() || (isPropertyManager() && userExists() && userDoc().companyId == propertyId);
+    }
+
     function isCustomer() {
       return role() in ['customer', 'user', 'guest'];
     }
@@ -961,6 +969,37 @@ service cloud.firestore {
       );
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAdmin();
+    }
+
+    // ── Residential property access ──
+    // Door controllers write access decisions through the Admin SDK API only.
+    match /properties/{propertyId} {
+      allow read: if managesProperty(propertyId);
+      allow create: if isAdmin();
+      allow update, delete: if managesProperty(propertyId);
+    }
+
+    match /property_residents/{residentId} {
+      allow read: if isSignedIn() && managesProperty(resource.data.propertyId);
+      allow create: if isSignedIn() && managesProperty(request.resource.data.propertyId);
+      allow update, delete: if isSignedIn() && managesProperty(resource.data.propertyId);
+    }
+
+    match /visitor_passes/{passId} {
+      allow read: if isSignedIn() && managesProperty(resource.data.propertyId);
+      allow create: if isSignedIn() && managesProperty(request.resource.data.propertyId);
+      allow update, delete: if isSignedIn() && managesProperty(resource.data.propertyId);
+    }
+
+    match /access_credentials/{credentialId} {
+      allow read: if isSignedIn() && managesProperty(resource.data.propertyId);
+      allow create: if isSignedIn() && managesProperty(request.resource.data.propertyId);
+      allow update, delete: if isSignedIn() && managesProperty(resource.data.propertyId);
+    }
+
+    match /access_logs/{logId} {
+      allow read: if isSignedIn() && managesProperty(resource.data.propertyId);
+      allow write: if false;
     }
 
     // ── Two-Way Contact Exchange Leads ──

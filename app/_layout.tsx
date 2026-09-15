@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import * as Sentry from '@sentry/react-native';
 import useCachedResources from '@/src/hooks/useCachedResources';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -32,6 +33,18 @@ const isNoise = (args: unknown[]) => {
   const msg = typeof args[0] === 'string' ? args[0] : '';
   return NOISE.some((p) => msg.includes(p));
 };
+
+const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
+
+if (sentryDsn) {
+  Sentry.init({
+    dsn: sentryDsn,
+    enabled: !__DEV__,
+    environment: process.env.EXPO_PUBLIC_APP_ENV || 'production',
+    tracesSampleRate: 0.1,
+    sendDefaultPii: false,
+  });
+}
 
 console.log  = (...a: unknown[]) => { if (!isNoise(a)) originalLog(...a); };
 console.info = (...a: unknown[]) => { if (!isNoise(a)) originalInfo(...a); };
@@ -89,6 +102,7 @@ export default function RootLayout() {
                   <Stack.Screen name="production" />
                   <Stack.Screen name="sales" />
                   <Stack.Screen name="admin" />
+                  <Stack.Screen name="admin/property" options={{ headerShown: true, title: 'Property access' }} />
                   <Stack.Screen name="account" />
                   <Stack.Screen name="customer" />
                   <Stack.Screen name="u/[slug]" options={{ headerShown: false }} />
@@ -104,6 +118,7 @@ export default function RootLayout() {
                   <Stack.Screen name="nfc-demo" options={{ headerShown: false }} />
                   <Stack.Screen name="qr-generator" options={{ headerShown: false }} />
                   <Stack.Screen name="studio" options={{ headerShown: false }} />
+                  <Stack.Screen name="contact-sales" options={{ headerShown: false }} />
                   <Stack.Screen name="guest-analytics" options={{ headerShown: false }} />
                   <Stack.Screen name="guest-design" options={{ headerShown: false }} />
                   <Stack.Screen name="guest-checkout" options={{ headerShown: false }} />

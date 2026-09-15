@@ -5,7 +5,7 @@
  * Replaces abstract NFC card widget with:
  *  - Real lifestyle photography (business executive context)
  *  - Bold, outcome-driven headline
- *  - Live social proof numbers
+ *  - Product capabilities in place of unverified social-proof numbers
  *  - Primary CTA: "Share My Card" (black/white HIG)
  *  - Secondary CTA: "Order Metal Card"
  */
@@ -30,10 +30,10 @@ interface ExecutiveHeroBannerProps {
   onViewProfile: () => void;
 }
 
-const SOCIAL_PROOF_STATS = [
-  { value: '12,400+', label: 'Executives' },
-  { value: '98%', label: 'Scan Rate' },
-  { value: '3.2s', label: 'Avg. Save Time' },
+const SHARING_FEATURES = [
+  { value: 'NFC', label: 'Tap to share' },
+  { value: 'QR', label: 'Camera friendly' },
+  { value: 'LINK', label: 'Share anywhere' },
 ];
 
 export function ExecutiveHeroBanner({
@@ -83,7 +83,7 @@ export function ExecutiveHeroBanner({
             {greeting}{displayName ? `, ${displayName.split(' ')[0]}` : ''}
           </AppText>
           <AppText style={styles.heroHeadline} weight="extrabold">
-            {'Your card is live\nand ready to close deals.'}
+            {'Your profile is ready\nto share.'}
           </AppText>
           <View style={styles.heroLeadsBadge}>
             <AppIcon name="Users" size={13} color="#FFFFFF" />
@@ -112,13 +112,13 @@ export function ExecutiveHeroBanner({
       </View>
 
       <View style={styles.socialProofStrip}>
-        {SOCIAL_PROOF_STATS.map((stat, i) => (
+        {SHARING_FEATURES.map((stat, i) => (
           <React.Fragment key={stat.label}>
             <View style={styles.statItem}>
               <AppText style={styles.statValue} weight="extrabold">{stat.value}</AppText>
               <AppText style={styles.statLabel}>{stat.label}</AppText>
             </View>
-            {i < SOCIAL_PROOF_STATS.length - 1 && <View style={styles.statDivider} />}
+            {i < SHARING_FEATURES.length - 1 && <View style={styles.statDivider} />}
           </React.Fragment>
         ))}
       </View>

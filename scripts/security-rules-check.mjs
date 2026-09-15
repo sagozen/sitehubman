@@ -19,7 +19,6 @@ const firestoreRules = read('firestore.rules');
 const paymentFunctions = read('functions/payments.js');
 const functionsIndex = read('functions/index.js');
 const cloudinaryService = read('src/services/cloudinaryService.ts');
-const qrSecurity = read('src/features/admin/qr/qrSecurity.ts');
 const androidManifest = [
   read('android/app/src/main/AndroidManifest.xml'),
   read('android/app/src/debug/AndroidManifest.xml'),
@@ -69,8 +68,8 @@ check(
   cloudinaryService.includes('MAX_UPLOAD_BYTES') && cloudinaryService.includes('normalizeCloudinaryFolder')
 );
 check(
-  'QR signing has no hardcoded attendance secret',
-  !qrSecurity.includes('ATTENDANCE_APP_SECRET') && !qrSecurity.includes('com.mahaka.attendance')
+  'legacy attendance signing secret is absent from shipped source',
+  !functionsIndex.includes('ATTENDANCE_APP_SECRET') && !functionsIndex.includes('com.mahaka.attendance')
 );
 check(
   'Android manifest disables backup',

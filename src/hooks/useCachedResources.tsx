@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
-import * as SplashScreen from 'expo-splash-screen';
 import { Platform } from 'react-native';
 import { useFonts } from 'expo-font';
 import { useRouter } from 'expo-router';
-import { prefetchCloudinaryUrls } from '@/src/services/cloudinaryUrlCache';
 
 const customFonts: Record<string, any> = {
   'SF-Pro-Display-Bold': require('../../assets/fonts/SF-Pro-Display-Bold.otf'),
@@ -23,6 +21,8 @@ export default function useCachedResources(): boolean {
   const [fontsLoaded, fontError] = useFonts(Platform.OS === 'web' ? {} : customFonts);
   const [isReady, setReady] = useState(false);
   const router = useRouter();
+
+  const resourcesLoaded = Platform.OS === 'web' || fontsLoaded || Boolean(fontError);
 
   useEffect(() => {
     async function prepare() {
@@ -55,11 +55,11 @@ export default function useCachedResources(): boolean {
       }, 1000);
     }
 
-    if (fontsLoaded || fontError) {
+    if (resourcesLoaded) {
       prepare();
     }
-  }, [fontsLoaded, fontError, router]);
+  }, [resourcesLoaded, router]);
 
   // Fix: operator precedence — both conditions must be true before app renders
-  return (fontsLoaded || !!fontError) && isReady;
+  return resourcesLoaded && isReady;
 }

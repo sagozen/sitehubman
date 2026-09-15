@@ -6,7 +6,6 @@ import {
   TextInput,
   Pressable,
   Linking,
-  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -64,13 +63,9 @@ export function HelpCenterScreen() {
     return matchesCategory && matchesQuery;
   });
 
-  const handleSupportClick = (channel: 'telegram' | 'whatsapp') => {
+  const handleSupportClick = () => {
     HapticTap.selection();
-    const url =
-      channel === 'telegram'
-        ? 'https://t.me/aviobrand'
-        : 'https://wa.me/85512345678';
-    Linking.openURL(url).catch(() => undefined);
+    void Linking.openURL('mailto:support@aviobrand.com?subject=AVIO%20support%20request').catch(() => undefined);
   };
 
   return (
@@ -90,28 +85,16 @@ export function HelpCenterScreen() {
           />
         </View>
 
-        {/* Live Support Bridge Cards */}
+        {/* Support */}
         <View style={styles.supportBridges}>
           <Pressable
             style={({ pressed }) => [styles.bridgeCard, styles.bridgeTg, pressed && { opacity: 0.8 }]}
-            onPress={() => handleSupportClick('telegram')}
+            onPress={handleSupportClick}
           >
-            <AppIcon name="Send" size={24} color="#0088CC" />
+            <AppIcon name="Mail" size={24} color="#FFFFFF" />
             <View style={{ flex: 1, marginLeft: 12 }}>
-              <AppText style={styles.bridgeTitle}>Telegram Live Support</AppText>
-              <AppText style={styles.bridgeSub}>Instant 24/7 direct response</AppText>
-            </View>
-            <AppIcon name="ChevronRight" size={18} color="rgba(255,255,255,0.4)" />
-          </Pressable>
-
-          <Pressable
-            style={({ pressed }) => [styles.bridgeCard, styles.bridgeWa, pressed && { opacity: 0.8 }]}
-            onPress={() => handleSupportClick('whatsapp')}
-          >
-            <AppIcon name="MessageCircle" size={24} color="#25D366" />
-            <View style={{ flex: 1, marginLeft: 12 }}>
-              <AppText style={styles.bridgeTitle}>WhatsApp VIP Desk</AppText>
-              <AppText style={styles.bridgeSub}>Priority customer concierge</AppText>
+              <AppText style={styles.bridgeTitle}>Email support</AppText>
+              <AppText style={styles.bridgeSub}>Get help with cards, profiles, and orders</AppText>
             </View>
             <AppIcon name="ChevronRight" size={18} color="rgba(255,255,255,0.4)" />
           </Pressable>
@@ -218,11 +201,7 @@ const styles = StyleSheet.create({
   },
   bridgeTg: {
     borderLeftWidth: 4,
-    borderLeftColor: '#0088CC',
-  },
-  bridgeWa: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#25D366',
+    borderLeftColor: '#FFFFFF',
   },
   bridgeTitle: {
     fontSize: 15,

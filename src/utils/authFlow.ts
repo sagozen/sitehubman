@@ -11,6 +11,7 @@ export const AUTH_ROLES: UserRole[] = [
   'qa_inspector',
   'shipping',
   'finance',
+  'property_manager',
   'admin',
   'super_admin',
 ];
@@ -40,6 +41,7 @@ export function normalizeRole(role: unknown): UserRole {
   if (r === 'qa_inspector') return 'qa_inspector';
   if (r === 'shipping') return 'shipping';
   if (r === 'finance') return 'finance';
+  if (r === 'property_manager') return 'property_manager';
   if (r === 'guest') return 'guest';
   return 'guest';
 }
@@ -48,6 +50,7 @@ export function getDashboardRoute(user: AppUser | null): Href {
   if (!user) return '/auth/login';
   const role = normalizeRole(user.role);
   if (role === 'super_admin' || role === 'admin') return '/admin' as any;
+  if (role === 'property_manager') return '/admin/property' as any;
   if (role === 'sales') return '/sales';
   if (role === 'printer' || role === 'printer_operator' || role === 'qa_inspector') return '/production/queue' as any;
   return '/(tabs)';

@@ -10,10 +10,9 @@ import {
   StyleSheet,
   Image,
   Platform,
-  Dimensions,
   Alert,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   CARD_PRODUCTS,
@@ -27,7 +26,6 @@ import {
 import { useSubscription } from '@/src/hooks/useSubscription';
 import { subscriptionService } from '@/src/services/subscriptionService';
 
-const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
 
 interface OrderItem {
@@ -38,8 +36,7 @@ interface OrderItem {
 
 export default function CardUpgradeScreen() {
   const router = useRouter();
-  const { cardId } = useLocalSearchParams();
-  const { currentPlan, hasAccess } = useSubscription();
+  const { hasAccess } = useSubscription();
   
   const [selectedCard, setSelectedCard] = useState<string>('card_premium');
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
@@ -62,7 +59,7 @@ export default function CardUpgradeScreen() {
 
   useEffect(() => {
     // Track page view for analytics
-    // analytics.track('Card Upgrade Page Viewed', { cardId });
+    // analytics.track('Card Upgrade Page Viewed');
   }, []);
 
   const handleCardSelection = (cardId: string) => {
@@ -119,8 +116,15 @@ export default function CardUpgradeScreen() {
         }
       }
     } catch (error) {
-      console.error('Checkout failed:', error);
-      Alert.alert('Error', 'Failed to proceed to checkout. Please try again.');
+      console.error('Checkout unavailable:', error);
+      Alert.alert(
+        'Online checkout is not available yet',
+        'Contact the AVIO team to discuss physical card availability, pricing, and fulfilment.',
+        [
+          { text: 'Not now', style: 'cancel' },
+          { text: 'Contact AVIO', onPress: () => router.push('/contact-sales' as any) },
+        ],
+      );
     } finally {
       setIsLoading(false);
     }
@@ -282,15 +286,15 @@ export default function CardUpgradeScreen() {
             style={StyleSheet.absoluteFill}
           />
           <Text style={styles.checkoutButtonText}>
-            {isLoading ? 'Processing...' : `Proceed to Checkout • ${formatPrice(pricing.total)}`}
+            {isLoading ? 'Preparing...' : `Request order details • ${formatPrice(pricing.total)}`}
           </Text>
         </Pressable>
 
         {/* Trust Signals */}
         <View style={styles.trustSignals}>
-          <Text style={styles.trustText}>🔒 Secure checkout</Text>
-          <Text style={styles.trustText}>📦 Free shipping over $50</Text>
-          <Text style={styles.trustText}>↩️ 30-day guarantee</Text>
+          <Text style={styles.trustText}>💬 Confirm availability with AVIO</Text>
+          <Text style={styles.trustText}>📦 Delivery scope confirmed before fulfilment</Text>
+          <Text style={styles.trustText}>🧾 Pricing confirmed before payment</Text>
         </View>
       </View>
 

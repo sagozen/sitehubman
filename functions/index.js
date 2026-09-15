@@ -20,6 +20,7 @@ const CLAIM_ROLES = new Set([
   'qa_inspector',
   'shipping',
   'finance',
+  'property_manager',
   'admin',
   'super_admin',
 ]);
@@ -69,8 +70,102 @@ function setCors(req, res) {
   }
   res.set('Vary', 'Origin');
   res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.set('Access-Control-Allow-Headers', 'Content-Type');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 }
+
+async function assertPropertyValidationRateLimit(req, propertyId, limit = 300) {
+  // Never persist the bearer token itself. A short hash makes the bucket stable
+  // for a controller while keeping credentials out of Firestore and logs.
+  const authorization = String(req.get('authorization') || '');
+  const controllerKey = crypto.createHash('sha256').update(authorization).digest('hex').slice(0, 24);
+  const minute = new Date().toISOString().slice(0, 16).replace(/[^0-9]/g, '');
+  const ref = admin.firestore().collection('access_rate_limits').doc(`${propertyId}_${controllerKey}_${minute}`);
+
+  await admin.firestore().runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const count = snap.exists ? Number(snap.data().count || 0) : 0;
+    if (count >= limit) throw new Error('rate_limited');
+    tx.set(ref, {
+      propertyId,
+      controllerKey,
+      count: count + 1,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    }, { merge: true });
+  });
+}
+
+async function requirePropertyController(req, propertyId) {
+  const header = String(req.get('authorization') || '');
+  if (!header.startsWith('Bearer ')) throw new Error('Missing bearer token.');
+  const decoded = await admin.auth().verifyIdToken(header.slice(7));
+  const role = normalizeClaimRole(decoded.role);
+  if (!['admin', 'super_admin', 'property_manager'].includes(role)) throw new Error('Property-manager access required.');
+  if (role === 'property_manager' && decoded.companyId !== propertyId) throw new Error('This manager is not assigned to this property.');
+  return decoded;
+}
+
+/**
+ * Door-controller API.  Deploy as `propertyAccessApi`; devices call:
+ * POST /validate with a manager/controller Firebase bearer token and either
+ * { propertyId, nfcUid } or { propertyId, visitorToken }. Every decision is
+ * atomically persisted to access_logs for the manager dashboard.
+ */
+exports.propertyAccessApi = onRequest({ region: 'us-central1' }, async (req, res) => {
+  setCors(req, res);
+  if (req.method === 'OPTIONS') return res.status(204).send('');
+  if (req.method !== 'POST' || req.path !== '/validate') return res.status(404).json({ error: 'POST /validate required.' });
+
+  const propertyId = String(req.body?.propertyId || '').trim();
+  const nfcUid = String(req.body?.nfcUid || '').trim().toUpperCase();
+  const visitorToken = String(req.body?.visitorToken || '').trim();
+  const door = String(req.body?.door || 'Main entrance').trim().slice(0, 120);
+  if (!propertyId || (!nfcUid && !visitorToken)) return res.status(400).json({ error: 'propertyId and nfcUid or visitorToken are required.' });
+
+  try {
+    await requirePropertyController(req, propertyId);
+    await assertPropertyValidationRateLimit(req, propertyId);
+    const db = admin.firestore();
+    let subjectName = 'Unknown credential';
+    let method = 'nfc';
+    let credentialId = null;
+    let visitorPassId = null;
+    let granted = false;
+
+    if (nfcUid) {
+      const credentials = await db.collection('access_credentials').where('propertyId', '==', propertyId).where('nfcUid', '==', nfcUid).limit(1).get();
+      const credential = credentials.docs[0];
+      if (credential) {
+        const data = credential.data();
+        credentialId = credential.id;
+        subjectName = String(data.label || subjectName);
+        granted = data.status === 'active';
+      }
+    } else {
+      method = 'qr';
+      const passes = await db.collection('visitor_passes').where('propertyId', '==', propertyId).where('token', '==', visitorToken).limit(1).get();
+      const pass = passes.docs[0];
+      if (pass) {
+        const data = pass.data();
+        visitorPassId = pass.id;
+        subjectName = String(data.visitorName || subjectName);
+        granted = data.status === 'active' && new Date(String(data.validFrom)).getTime() <= Date.now() && Date.now() <= new Date(String(data.validUntil)).getTime();
+      }
+    }
+
+    const decision = granted ? 'granted' : 'denied';
+    await db.collection('access_logs').add({ propertyId, credentialId, visitorPassId, subjectName, method, decision, door, occurredAt: new Date().toISOString(), createdAt: admin.firestore.FieldValue.serverTimestamp() });
+    return res.status(200).json({ decision, subjectName, method, door });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (message === 'rate_limited') {
+      return res.status(429).json({ error: 'Too many validation requests.' });
+    }
+    const forbidden = /token|bearer|access|required|assigned/i.test(message);
+    console.error('Property access validation failed', { propertyId, forbidden, message });
+    return res.status(forbidden ? 403 : 500).json({ error: forbidden ? 'Forbidden.' : 'Access validation failed.' });
+  }
+});
 
 function normalizeTelegramPayload(body) {
   const payload = {

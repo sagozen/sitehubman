@@ -203,7 +203,7 @@ export function UsageLimitWarning({
           {isAtLimit ? `${limitType} Limit Reached` : `${limitType} Limit Warning`}
         </Text>
         <Text style={styles.limitText}>
-          You've used {current} of {limit} {limitType.toLowerCase()}{isAtLimit ? '' : ` (${percentage}%)`}
+          You&apos;ve used {current} of {limit} {limitType.toLowerCase()}{isAtLimit ? '' : ` (${percentage}%)`}
         </Text>
       </View>
 

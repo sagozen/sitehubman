@@ -5,6 +5,8 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { getDashboardRoute } from '@/src/utils/authFlow';
 import { HomeSkeleton } from '@/src/components/HomeSkeleton';
 
+import { Platform } from 'react-native';
+
 export default function IndexRoute() {
   const { user, isLoading } = useAuth();
   const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
@@ -19,8 +21,8 @@ export default function IndexRoute() {
     return <HomeSkeleton />;
   }
 
-  // First-time users → onboarding
-  if (!onboardingDone && !user) {
+  // First-time mobile users → onboarding. Web previews load home page directly.
+  if (!onboardingDone && !user && Platform.OS !== 'web') {
     return <Redirect href={'/onboarding' as any} />;
   }
 

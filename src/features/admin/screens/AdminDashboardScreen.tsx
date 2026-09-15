@@ -31,6 +31,7 @@ const MANAGEMENT_ITEMS: {
   { title: 'Users & Permissions', desc: 'Customer, sales, printer & admin accounts', icon: 'Users', route: '/admin/users' },
   { title: 'Master Orders Pipeline', desc: 'Real-time production, NFC writing & logistics', icon: 'CreditCard', route: '/admin/orders' },
   { title: 'Product Catalog', desc: 'NFC smart passes, metal finishes & pricing', icon: 'Package', route: '/admin/products' },
+  { title: 'Property Access', desc: 'Residents, visitor QR passes, NFC credentials & entry logs', icon: 'Home', route: '/admin/property' },
   { title: 'System Configuration', desc: 'Security protocols, cloud triggers & branches', icon: 'Settings', route: '/admin/settings' },
 ];
 
@@ -143,7 +144,7 @@ export default function AdminDashboardScreen() {
             <View style={styles.passFooter}>
               <View style={styles.footerMetric}>
                 <AppText style={styles.footerMetricNum} weight="extrabold">{stats.todayOrders}</AppText>
-                <AppText style={styles.footerMetricLabel}>Today's Orders</AppText>
+                <AppText style={styles.footerMetricLabel}>Today&apos;s Orders</AppText>
               </View>
 
               <View style={styles.footerDivider} />

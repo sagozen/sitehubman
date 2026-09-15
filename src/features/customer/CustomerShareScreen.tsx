@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Alert, Pressable, Share, StyleSheet, View, LayoutChangeEvent } from 'react-native';
+import { Pressable, Share, StyleSheet, View, LayoutChangeEvent } from 'react-native';
 import { router } from 'expo-router';
 import QRCode from 'react-native-qrcode-svg';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -30,7 +30,6 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 
-const SPRING_STD = { damping: 18, stiffness: 260, mass: 0.9 };
 const SPRING_SNAPPY = { damping: 16, stiffness: 340, mass: 0.7 };
 const SPRING_BOUNCY = { damping: 12, stiffness: 280, mass: 1.0 };
 
@@ -75,7 +74,7 @@ function CopyLinkIcon({ isCopied, color }: { isCopied: boolean, color: string })
       scale.value = withTiming(1, { duration: 150 });
       opacity.value = withTiming(1, { duration: 150 });
     }
-  }, [isCopied]);
+  }, [isCopied, opacity, scale]);
 
   const style = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -215,11 +214,19 @@ export function CustomerShareScreen() {
     startPulse(ring1Scale, ring1Opacity, 0);
     startPulse(ring2Scale, ring2Opacity, 600);
     startPulse(ring3Scale, ring3Opacity, 1200);
-  }, []);
+  }, [ring1Opacity, ring1Scale, ring2Opacity, ring2Scale, ring3Opacity, ring3Scale]);
 
-  const getRingStyle = (scale: any, opacity: any) => useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value
+  const ring1Style = useAnimatedStyle(() => ({
+    transform: [{ scale: ring1Scale.value }],
+    opacity: ring1Opacity.value,
+  }));
+  const ring2Style = useAnimatedStyle(() => ({
+    transform: [{ scale: ring2Scale.value }],
+    opacity: ring2Opacity.value,
+  }));
+  const ring3Style = useAnimatedStyle(() => ({
+    transform: [{ scale: ring3Scale.value }],
+    opacity: ring3Opacity.value,
   }));
 
   // Beam now glow
@@ -237,7 +244,7 @@ export function CustomerShareScreen() {
       -1,
       true
     );
-  }, []);
+  }, [beamGlowOpacity, beamGlowScale]);
 
   const beamGlowStyle = useAnimatedStyle(() => ({
     transform: [{ scale: beamGlowScale.value }],
@@ -261,13 +268,10 @@ export function CustomerShareScreen() {
     },
     {
       id: 'wallet',
-      title: 'Apple Wallet Pass',
-      sub: 'Add .pkpass to native iOS Wallet',
+      title: 'Wallet pass preview',
+      sub: 'Wallet issuance is currently in pilot',
       icon: 'Wallet',
-      onPress: () => {
-        HapticTap.light();
-        void Share.share({ message: `Add to Apple Wallet: ${profileUrl}`, url: profileUrl });
-      }
+      onPress: () => router.push(appRoutes.walletPass),
     },
     {
       id: 'studio',
@@ -340,9 +344,9 @@ export function CustomerShareScreen() {
           {/* ── Hero Flippable Card (Complete View with Full Width) ── */}
           <Animated.View style={styles.heroCardContainer} entering={FadeInDown.springify().delay(100)}>
             <View style={styles.radarContainer}>
-              <Animated.View style={[styles.radarRing, getRingStyle(ring1Scale, ring1Opacity), { borderColor: themeColors.text }]} />
-              <Animated.View style={[styles.radarRing, getRingStyle(ring2Scale, ring2Opacity), { borderColor: themeColors.text }]} />
-              <Animated.View style={[styles.radarRing, getRingStyle(ring3Scale, ring3Opacity), { borderColor: themeColors.text }]} />
+              <Animated.View style={[styles.radarRing, ring1Style, { borderColor: themeColors.text }]} />
+              <Animated.View style={[styles.radarRing, ring2Style, { borderColor: themeColors.text }]} />
+              <Animated.View style={[styles.radarRing, ring3Style, { borderColor: themeColors.text }]} />
             </View>
             <FlippableNfcCard
               fullName={displayName}

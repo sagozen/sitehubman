@@ -200,6 +200,7 @@ const ROLE_ACTIONS: Record<UserRole, ReadonlySet<ActionId>> = {
   finance: new Set<ActionId>([
     'view_finance',
   ]),
+  property_manager: new Set<ActionId>([]),
   admin: new Set<ActionId>([
     'edit_profile',
     'place_order',

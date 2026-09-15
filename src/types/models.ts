@@ -8,6 +8,7 @@ export type UserRole =
   | 'qa_inspector'
   | 'shipping'
   | 'finance'
+  | 'property_manager'
   | 'admin'
   | 'super_admin';
 

@@ -3,14 +3,12 @@
  *
  * Design Architecture:
  *  - Solid pure black canvas (#000000)
- *  - Apple Wallet PassKit pass visualizer with live QR and encrypted pass hash
- *  - 1-tap "Add to Apple Wallet" (.pkpass distribution)
- *  - "Double-click Side Button" offline flex instructions
+ *  - Profile QR preview that can be shared immediately
+ *  - Explicit Wallet pilot status until issuer integrations are verified
  */
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Alert,
-  Dimensions,
   Platform,
   Pressable,
   Share,
@@ -34,8 +32,6 @@ interface WalletPassProps {
   cardLink?: string;
 }
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
 export default function WalletPassScreen({
   cardName,
   cardType = 'Titanium Smart Pass',
@@ -43,29 +39,16 @@ export default function WalletPassScreen({
 }: WalletPassProps) {
   const { user } = useAuth();
   const { bioPage } = useBioPage(user?.id ?? '');
-  const [isAdded, setIsAdded] = useState(false);
-
   const displayName = cardName || bioPage?.displayName || user?.displayName || 'Alexander Wright';
   const displayTitle = bioPage?.tagline || bioPage?.headline || 'Founder & CEO · AVIO';
   const passUrl = cardLink || (bioPage?.slug ? `https://aviobrand.com/u/${bioPage.slug}` : 'https://aviobrand.com/u/demo');
 
-  const handleAddAppleWallet = () => {
+  const handleWalletAvailability = () => {
     HapticTap.heavy();
-    setIsAdded(true);
     Alert.alert(
-      ' Apple Wallet Pass Ready',
-      'Your AVIO Smart Pass is saved. You can now double-click the side button of your iPhone to present your card at events even without internet!',
-      [{ text: 'Great' }]
-    );
-  };
-
-  const handleAddGoogleWallet = () => {
-    HapticTap.heavy();
-    setIsAdded(true);
-    Alert.alert(
-      'Google Wallet Pass Ready',
-      'Your AVIO Smart Pass is saved to Google Wallet for instant 1-tap lock screen access.',
-      [{ text: 'Great' }]
+      'Wallet passes are in pilot',
+      'This screen is a profile-pass preview. Apple Wallet and Google Wallet issuance will be available only after issuer credentials and device validation are complete.',
+      [{ text: 'OK' }]
     );
   };
 
@@ -119,56 +102,56 @@ export default function WalletPassScreen({
               </View>
               <AppText style={styles.passUrlText} numberOfLines={1}>{passUrl}</AppText>
               <AppText style={styles.passSecurityText}>
-                PASSKIT ENCRYPTED · OFFLINE SCANNABLE
+                PROFILE QR · SHAREABLE NOW
               </AppText>
             </View>
           </View>
 
-          {/* Primary Action: Add to Apple Wallet */}
+          {/* Wallet issuance is intentionally unavailable until the issuer integration is live. */}
           <Pressable
-            onPress={handleAddAppleWallet}
+            onPress={handleWalletAvailability}
             style={({ pressed }) => [styles.appleWalletBtn, pressed && styles.pressed]}
           >
             <AppIcon name="CreditCard" size={20} color="#000000" />
             <AppText style={styles.appleWalletBtnText} weight="extrabold">
-              {isAdded ? '✓ Added to Apple Wallet' : 'Add to Apple Wallet'}
+              Apple Wallet — coming soon
             </AppText>
           </Pressable>
 
-          {/* Secondary Action: Add to Google Wallet */}
+          {/* Secondary wallet preview */}
           <Pressable
-            onPress={handleAddGoogleWallet}
+            onPress={handleWalletAvailability}
             style={({ pressed }) => [styles.googleWalletBtn, pressed && styles.pressed]}
           >
             <AppIcon name="Smartphone" size={18} color="#FFFFFF" />
             <AppText style={styles.googleWalletBtnText} weight="bold">
-              Add to Google Wallet
+              Google Wallet — coming soon
             </AppText>
           </Pressable>
 
-          {/* The Lock Screen Flex Guide */}
+          {/* Current, supported QR sharing guidance */}
           <View style={styles.guideCard}>
             <View style={styles.guideHeader}>
               <AppIcon name="Sparkles" size={16} color="#FFFFFF" />
               <AppText style={styles.guideTitle} weight="extrabold">
-                HOW TO USE AT EVENTS
+                SHARE YOUR PROFILE
               </AppText>
             </View>
 
             <View style={styles.guideSteps}>
               <View style={styles.stepRow}>
                 <View style={styles.stepBadge}><AppText style={styles.stepNum} weight="extrabold">1</AppText></View>
-                <AppText style={styles.stepText}>Double-click your iPhone side button anytime.</AppText>
+                <AppText style={styles.stepText}>Open this screen at an event and show the QR code.</AppText>
               </View>
 
               <View style={styles.stepRow}>
                 <View style={styles.stepBadge}><AppText style={styles.stepNum} weight="extrabold">2</AppText></View>
-                <AppText style={styles.stepText}>Select your AVIO Executive Pass.</AppText>
+                <AppText style={styles.stepText}>Your contact can scan it with their phone camera.</AppText>
               </View>
 
               <View style={styles.stepRow}>
                 <View style={styles.stepBadge}><AppText style={styles.stepNum} weight="extrabold">3</AppText></View>
-                <AppText style={styles.stepText}>Anyone scans your QR code to save your contact instantly without typing.</AppText>
+                <AppText style={styles.stepText}>They can view your profile and save your contact without typing.</AppText>
               </View>
             </View>
           </View>

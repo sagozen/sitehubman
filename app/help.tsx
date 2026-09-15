@@ -6,7 +6,7 @@ export default function HelpRoute() {
     <>
       <SeoHead
         title="Help & Support"
-        description="AVIO Customer Support Desk — NFC card tapping guides, card activation help, profile customizer, and 24/7 VIP assistance."
+        description="AVIO support for NFC card tapping, card activation, profile setup, and orders."
       />
       <HelpCenterScreen />
     </>

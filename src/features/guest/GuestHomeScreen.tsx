@@ -12,7 +12,10 @@ import {
   TextInput,
   View,
   useWindowDimensions,
+  Dimensions,
 } from 'react-native';
+
+const { width: screenWidth } = Dimensions.get('window');
 import { HapticTap } from '@/src/utils/haptics';
 import { type Href, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -51,6 +54,12 @@ import { BeamNowButton } from '@/src/components/BeamNowButton';
 import { QuickSetupSheet } from '@/src/components/QuickSetupSheet';
 import { computeUserPrestige } from '@/src/services/prestigeTierService';
 import { pageThemes } from '@/src/constants/pageThemes';
+
+// ─── World Class Systems ───
+import { PremiumPaywallModal } from './PremiumPaywallModal';
+import { CardSuccessShareModal } from './CardSuccessShareModal';
+import { AiScannerModal } from './AiScannerModal';
+import { AiBusinessSiteModal } from '@/src/components/AiBusinessSiteModal';
 
 // ─── Telegram-style Avatar Gradient helper ──────────────────────────────────
 const TELEGRAM_GRADIENTS = [
@@ -299,6 +308,26 @@ export function GuestHomeScreen() {
   const [showBeamModal, setShowBeamModal] = useState(false);
   const [showQuickSetup, setShowQuickSetup] = useState(false);
   const [testTapCompleted, setTestTapCompleted] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
+
+  // ─── World Class Systems State ───
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [showCardSuccessModal, setShowCardSuccessModal] = useState(false);
+  const [showAiScannerModal, setShowAiScannerModal] = useState(false);
+  const [showAiSiteModal, setShowAiSiteModal] = useState(false);
+
+  const handleShareProfile = useCallback(async () => {
+    try {
+      HapticTap.light();
+      const url = bioPage?.slug ? `https://aviobrand.com/u/${bioPage.slug}` : 'https://aviobrand.com/u/demo';
+      await Share.share({
+        message: `Check out my digital business card on SiteHubMan: ${url}`,
+        url,
+      });
+    } catch (err) {
+      console.warn('Share error:', err);
+    }
+  }, [bioPage?.slug]);
 
   const cardWidth = Math.min(screenWidth - 40, 380);
 
@@ -452,26 +481,235 @@ export function GuestHomeScreen() {
                   </View>
                 </Pressable>
 
-                <View style={styles.headerRightActions}>
+                <View style={styles.headerActions}>
+                  {/* Share Profile */}
                   <Pressable
-                    onPress={() => { HapticTap.light(); router.push('/scan' as any); }}
-                    style={styles.notifBtn}
-                    hitSlop={8}
+                    onPress={() => { HapticTap.light(); setShowPremiumModal(true); }}
+                    style={({ pressed }) => [styles.instagramButton, pressed && styles.pressed, { backgroundColor: '#3b82f6' }]}
                   >
-                    <AppIcon name="Scan" size={18} color="#FFFFFF" />
+                    <AppIcon name="Crown" size={20} color="#FFFFFF" />
                   </Pressable>
+
+                  {/* QR Code - Triggers Share Sheet */}
                   <Pressable
-                    onPress={() => { HapticTap.light(); router.push(appRoutes.guestDesign as Href); }}
-                    style={styles.notifBtn}
-                    hitSlop={8}
+                    onPress={() => { HapticTap.light(); setShowCardSuccessModal(true); }}
+                    style={({ pressed }) => [styles.instagramButton, pressed && styles.pressed]}
                   >
-                    <AppIcon name="Bell" size={18} color="#FFFFFF" />
+                    <AppIcon name="QrCode" size={20} color="#FFFFFF" />
+                  </Pressable>
+
+                  {/* NFC Scan - Triggers AI Scanner */}
+                  <Pressable
+                    onPress={() => { HapticTap.light(); setShowAiScannerModal(true); }}
+                    style={({ pressed }) => [styles.instagramButton, pressed && styles.pressed]}
+                  >
+                    <AppIcon name="Scan" size={20} color="#FFFFFF" />
+                  </Pressable>
+                  
+                  {/* Messages - Instagram Style */}
+                  <Pressable
+                    onPress={() => { HapticTap.light(); router.push('/messages' as any); }}
+                    style={({ pressed }) => [styles.instagramButton, pressed && styles.pressed]}
+                  >
+                    <AppIcon name="Send" size={20} color="#FFFFFF" />
+                  </Pressable>
+                  
+                  {/* Notifications - Instagram Heart */}
+                  <Pressable 
+                    style={({ pressed }) => [styles.instagramButton, pressed && styles.pressed]}
+                    onPress={() => { HapticTap.light(); router.push('/(tabs)/notifications' as Href); }}
+                  >
+                    <AppIcon name="Heart" size={20} color="#FFFFFF" />
                     {unreadCount > 0 && <View style={styles.notifDot} />}
                   </Pressable>
                 </View>
               </View>
 
-              {/* ── 2. iOS 17.4 Apple Wallet Card Hero ── */}
+              {/* ── 2. NFC Stories - Instagram Style ── */}
+              <View style={styles.nfcStoriesSection}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.nfcStoriesContainer}>
+                  <Pressable style={styles.nfcStoryItem} onPress={() => { HapticTap.light(); router.push('/create-story' as any); }}>
+                    <View style={[styles.nfcStoryAvatar, styles.nfcAddStory]}>
+                      <AppIcon name="Plus" size={16} color="#FFFFFF" />
+                    </View>
+                    <AppText style={styles.nfcStoryName}>Your NFC</AppText>
+                  </Pressable>
+                  
+                  <Pressable style={styles.nfcStoryItem}>
+                    <View style={[styles.nfcStoryAvatar, styles.nfcActiveStory]}>
+                      <AppText style={styles.nfcStoryInitials}>SC</AppText>
+                      <AppText style={styles.nfcCountryFlag}>🇺🇸</AppText>
+                    </View>
+                    <AppText style={styles.nfcStoryName}>Sarah Chen</AppText>
+                  </Pressable>
+                  
+                  <Pressable style={styles.nfcStoryItem}>
+                    <View style={[styles.nfcStoryAvatar, styles.nfcActiveStory]}>
+                      <AppText style={styles.nfcStoryInitials}>LW</AppText>
+                      <AppText style={styles.nfcCountryFlag}>🇨🇳</AppText>
+                    </View>
+                    <AppText style={styles.nfcStoryName}>Liu Wei</AppText>
+                  </Pressable>
+                  
+                  <Pressable style={styles.nfcStoryItem}>
+                    <View style={[styles.nfcStoryAvatar, styles.nfcActiveStory]}>
+                      <AppText style={styles.nfcStoryInitials}>RP</AppText>
+                      <AppText style={styles.nfcCountryFlag}>🇮🇳</AppText>
+                    </View>
+                    <AppText style={styles.nfcStoryName}>Raj Patel</AppText>
+                  </Pressable>
+                  
+                  <Pressable style={styles.nfcStoryItem}>
+                    <View style={[styles.nfcStoryAvatar, styles.nfcActiveStory]}>
+                      <AppText style={styles.nfcStoryInitials}>ES</AppText>
+                      <AppText style={styles.nfcCountryFlag}>🇬🇧</AppText>
+                    </View>
+                    <AppText style={styles.nfcStoryName}>Emma Stone</AppText>
+                  </Pressable>
+                  
+                  <Pressable style={styles.nfcStoryItem}>
+                    <View style={[styles.nfcStoryAvatar, styles.nfcActiveStory]}>
+                      <AppText style={styles.nfcStoryInitials}>CS</AppText>
+                      <AppText style={styles.nfcCountryFlag}>🇧🇷</AppText>
+                    </View>
+                    <AppText style={styles.nfcStoryName}>Carlos Silva</AppText>
+                  </Pressable>
+                </ScrollView>
+              </View>
+
+              {/* ── 3. Business Metrics Dashboard ── */}
+              <View style={styles.businessMetricsSection}>
+                <View style={styles.metricsHeader}>
+                  <AppText style={styles.metricsTitle}>Business Impact Today</AppText>
+                  <View style={styles.liveBadge}>
+                    <View style={styles.liveDot} />
+                    <AppText style={styles.liveText}>LIVE</AppText>
+                  </View>
+                </View>
+                
+                <View style={styles.metricsGrid}>
+                  <View style={styles.metricCard}>
+                    <AppText style={styles.metricValue}>2,847</AppText>
+                    <AppText style={styles.metricLabel}>NFC Taps Today</AppText>
+                    <AppText style={styles.metricGrowth}>+23% vs yesterday</AppText>
+                  </View>
+                  
+                  <View style={styles.metricCard}>
+                    <AppText style={styles.metricValue}>89</AppText>
+                    <AppText style={styles.metricLabel}>Countries Reached</AppText>
+                    <AppText style={styles.metricGrowth}>+5 new today</AppText>
+                  </View>
+                  
+                  <View style={styles.metricCard}>
+                    <AppText style={styles.metricValue}>$4.2K</AppText>
+                    <AppText style={styles.metricLabel}>Paper Cards Saved</AppText>
+                    <AppText style={styles.metricGrowth}>Cost reduction</AppText>
+                  </View>
+                  
+                  <View style={styles.metricCard}>
+                    <AppText style={styles.metricValue}>156</AppText>
+                    <AppText style={styles.metricLabel}>New Connections</AppText>
+                    <AppText style={styles.metricGrowth}>This week</AppText>
+                  </View>
+                </View>
+              </View>
+
+              {/* ── 4. Your NFC Business Card ── */}
+              <View style={styles.nfcCardSection}>
+                <View style={styles.cardHeader}>
+                  <AppText style={styles.cardHeaderTitle}>Your Digital NFC Card</AppText>
+                  <Pressable style={styles.shareButton} onPress={() => { HapticTap.light(); }}>
+                    <AppIcon name="Share2" size={16} color="#FFFFFF" />
+                    <AppText style={styles.shareButtonText}>Share</AppText>
+                  </Pressable>
+                </View>
+                
+                <View style={styles.nfcCardDisplay}>
+                  <LinearGradient
+                    colors={['#667eea', '#764ba2']}
+                    style={styles.nfcCardGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <View style={styles.nfcCardContent}>
+                      <View style={styles.nfcCardTop}>
+                        <AppIcon name="Nfc" size={24} color="#FFFFFF" />
+                        <AppText style={styles.nfcCardBrand}>SiteHubMan</AppText>
+                      </View>
+                      
+                      <View style={styles.nfcCardDetails}>
+                        <AppText style={styles.nfcCardName}>{bioPage?.displayName || user?.displayName || 'Your Name'}</AppText>
+                        <AppText style={styles.nfcCardTitle}>{bioPage?.headline || 'CEO & Founder'}</AppText>
+                        <AppText style={styles.nfcCardCompany}>{bioPage?.company || 'Your Company'}</AppText>
+                      </View>
+                      
+                      <View style={styles.nfcCardStats}>
+                        <View style={styles.nfcCardStat}>
+                          <AppText style={styles.nfcCardStatValue}>2.4K</AppText>
+                          <AppText style={styles.nfcCardStatLabel}>Scans</AppText>
+                        </View>
+                        <View style={styles.nfcCardStat}>
+                          <AppText style={styles.nfcCardStatValue}>89</AppText>
+                          <AppText style={styles.nfcCardStatLabel}>Countries</AppText>
+                        </View>
+                        <View style={styles.nfcCardStat}>
+                          <AppText style={styles.nfcCardStatValue}>97%</AppText>
+                          <AppText style={styles.nfcCardStatLabel}>Success Rate</AppText>
+                        </View>
+                      </View>
+                    </View>
+                  </LinearGradient>
+                </View>
+              </View>
+
+              {/* ── 5. AI Business Mini-Site & NFC POD Card Engine ── */}
+              <View style={styles.carderPromoCard}>
+                <View style={styles.carderBadgeRow}>
+                  <View style={styles.carderPill}>
+                    <AppIcon name="Sparkles" size={12} color="#1DB954" />
+                    <AppText style={styles.carderPillText} weight="bold">NEW REVENUE MODEL</AppText>
+                  </View>
+                  <View style={styles.carderPillWhite}>
+                    <AppIcon name="Nfc" size={12} color="#000000" />
+                    <AppText style={styles.carderPillWhiteText} weight="bold">PHYSICAL POD</AppText>
+                  </View>
+                </View>
+
+                <AppText style={styles.carderTitle} weight="extrabold">
+                  The Link-in-Bio That's an Actual Site.
+                </AppText>
+                <AppText style={styles.carderSubtitle}>
+                  Most link-in-bios are just a list of buttons. SiteHub generates a real site with your menu, prices, hours and 1-tap booking in 30 seconds — paired with a luxury Physical NFC Card.
+                </AppText>
+
+                {/* Micro tags for high-value business customer set */}
+                <View style={styles.carderTagsRow}>
+                  <View style={styles.carderTag}>
+                    <AppText style={styles.carderTagText}>🍽️ Cafés & Menus</AppText>
+                  </View>
+                  <View style={styles.carderTag}>
+                    <AppText style={styles.carderTagText}>💼 Consultants & Rates</AppText>
+                  </View>
+                  <View style={styles.carderTag}>
+                    <AppText style={styles.carderTagText}>💈 Salons & Booking</AppText>
+                  </View>
+                </View>
+
+                <Pressable
+                  style={styles.carderPrimaryBtn}
+                  onPress={() => {
+                    HapticTap.heavy();
+                    setShowAiSiteModal(true);
+                  }}
+                >
+                  <AppIcon name="Sparkles" size={18} color="#000000" />
+                  <AppText style={styles.carderPrimaryBtnText} weight="extrabold">
+                    Generate AI Business Mini-Site (30s)
+                  </AppText>
+                </Pressable>
+              </View>
+
+              {/* ── 6. iOS 17.4 Apple Wallet Card Hero ── */}
               <AppleWalletCardHero
                 displayName={heroName || undefined}
                 tapsCount={bioPage?.taps ?? 42}
@@ -666,7 +904,57 @@ export function GuestHomeScreen() {
         </IosScrollView>
       </SafeAreaView>
 
+      {/* ── QR Code Share Modal ── */}
+      <Modal visible={showQrModal} animationType="fade" transparent>
+        <Pressable style={styles.qrModalOverlay} onPress={() => setShowQrModal(false)}>
+          <View style={styles.qrModalCard}>
+            <View style={styles.qrHeader}>
+              <AppText style={styles.qrTitle} weight="bold">Scan to Connect</AppText>
+              <Pressable onPress={() => setShowQrModal(false)} hitSlop={12}>
+                <AppIcon name="X" size={20} color="#8E8E93" />
+              </Pressable>
+            </View>
+            <View style={styles.qrCodeWrapper}>
+              <QRCode
+                value={bioPage?.slug ? `https://aviobrand.com/u/${bioPage.slug}` : 'https://aviobrand.com/u/demo'}
+                size={220}
+                color="#000000"
+                backgroundColor="#FFFFFF"
+                logoSize={40}
+                logoMargin={2}
+                logoBorderRadius={10}
+              />
+            </View>
+            <AppText style={styles.qrHint} variant="caption">
+              Point your camera at the screen to view this profile.
+            </AppText>
+          </View>
+        </Pressable>
+      </Modal>
+
       <QuickActionModal visible={fabOpen} onClose={() => setFabOpen(false)} />
+
+      {/* ── World Class Systems ── */}
+      <PremiumPaywallModal 
+        visible={showPremiumModal} 
+        onClose={() => setShowPremiumModal(false)} 
+        onUpgrade={() => { setShowPremiumModal(false); /* Handle Payment */ }} 
+      />
+      <CardSuccessShareModal 
+        visible={showCardSuccessModal} 
+        onClose={() => setShowCardSuccessModal(false)} 
+        url={bioPage?.slug ? `https://aviobrand.com/u/${bioPage.slug}` : 'https://aviobrand.com/u/demo'}
+        name={heroName || 'Executive Member'}
+      />
+      <AiScannerModal 
+        visible={showAiScannerModal} 
+        onClose={() => setShowAiScannerModal(false)} 
+      />
+      <AiBusinessSiteModal
+        visible={showAiSiteModal}
+        onClose={() => setShowAiSiteModal(false)}
+        initialBusinessName={heroName || ''}
+      />
 
       {/* ── 30-Second Quick Card Setup ── */}
       <QuickSetupSheet
@@ -743,7 +1031,7 @@ export function GuestHomeScreen() {
               <View style={styles.waitlistSuccess}>
                 <AppIcon name="Check" size={20} color="#FFFFFF" />
                 <AppText style={styles.waitlistSuccessText} weight="bold">
-                  You're on the list! We'll be in touch.
+                  You&apos;re on the list! We&apos;ll be in touch.
                 </AppText>
               </View>
             )}
@@ -851,9 +1139,297 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 22,
   },
-  headerRightActions: {
+  // Instagram-Style Buttons
+  instagramButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
+
+  // NFC Stories Section
+  nfcStoriesSection: {
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+    marginBottom: 16,
+  },
+  nfcStoriesContainer: {
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  nfcStoryItem: {
+    alignItems: 'center',
+    gap: 6,
+    width: 64,
+  },
+  nfcStoryAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  nfcAddStory: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.3)',
+    borderStyle: 'dashed',
+  },
+  nfcActiveStory: {
+    backgroundColor: '#FFD700',
+    borderWidth: 3,
+    borderColor: '#FFD700',
+  },
+  nfcStoryInitials: {
+    fontSize: 14,
+    color: '#000000',
+    fontWeight: '800',
+  },
+  nfcCountryFlag: {
+    fontSize: 10,
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+  },
+  nfcStoryName: {
+    fontSize: 11,
+    color: '#FFFFFF',
+    fontWeight: '500',
+    textAlign: 'center',
+    maxWidth: 64,
+  },
+  // Business Metrics Dashboard
+  businessMetricsSection: {
+    marginBottom: 20,
+    paddingHorizontal: 16,
+  },
+  metricsHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  metricsTitle: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: '800',
+  },
+  liveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FF6B6B',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#FFFFFF',
+  },
+  liveText: {
+    fontSize: 10,
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  metricsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  metricCard: {
+    width: (screenWidth - 56) / 2,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  metricValue: {
+    fontSize: 24,
+    color: '#FFD700',
+    fontWeight: '900',
+    marginBottom: 4,
+  },
+  metricLabel: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  metricGrowth: {
+    fontSize: 10,
+    color: '#50C878',
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+
+  // NFC Card Display Section
+  nfcCardSection: {
+    marginBottom: 20,
+    paddingHorizontal: 16,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  cardHeaderTitle: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  shareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
+  },
+  shareButtonText: {
+    fontSize: 12,
+    color: '#000000',
+    fontWeight: '700',
+  },
+  nfcCardDisplay: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  nfcCardGradient: {
+    padding: 20,
+    minHeight: 160,
+  },
+  nfcCardContent: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  nfcCardTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
+    marginBottom: 16,
+  },
+  nfcCardBrand: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    opacity: 0.9,
+  },
+  nfcCardDetails: {
+    marginBottom: 16,
+  },
+  nfcCardName: {
+    fontSize: 20,
+    color: '#FFFFFF',
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  nfcCardTitle: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '500',
+    opacity: 0.9,
+    marginBottom: 2,
+  },
+  nfcCardCompany: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: '500',
+    opacity: 0.8,
+  },
+  nfcCardStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  nfcCardStat: {
+    alignItems: 'center',
+  },
+  nfcCardStatValue: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '800',
+  },
+  nfcCardStatLabel: {
+    fontSize: 10,
+    color: '#FFFFFF',
+    fontWeight: '500',
+    opacity: 0.8,
+  },
+
+  // Value Proposition Section
+  valuePropositionSection: {
+    marginBottom: 20,
+    paddingHorizontal: 16,
+  },
+  valuePropositionGradient: {
+    borderRadius: 16,
+    padding: 20,
+  },
+  valuePropositionContent: {
+    alignItems: 'center',
+  },
+  valuePropositionTitle: {
+    fontSize: 20,
+    color: '#000000',
+    fontWeight: '900',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  valuePropositionSubtitle: {
+    fontSize: 14,
+    color: '#000000',
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  valuePropositionStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginBottom: 16,
+  },
+  valuePropositionStat: {
+    alignItems: 'center',
+  },
+  valuePropositionStatValue: {
+    fontSize: 18,
+    color: '#000000',
+    fontWeight: '900',
+  },
+  valuePropositionStatLabel: {
+    fontSize: 10,
+    color: '#000000',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  upgradeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#000000',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 24,
+    gap: 8,
+  },
+  upgradeButtonText: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   notifBtn: {
     width: 38,
@@ -946,11 +1522,11 @@ const styles = StyleSheet.create({
   metricItem: {
     gap: 2,
   },
-  metricLabel: {
+  metricsRowLabel: {
     color: 'rgba(255, 255, 255, 0.45)',
     fontSize: 12,
   },
-  metricValue: {
+  metricsRowValue: {
     color: '#FFFFFF',
     fontSize: 26,
     letterSpacing: -0.5,
@@ -1297,7 +1873,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 7,
   },
-  liveDot: {
+  launchLiveDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
@@ -1994,6 +2570,135 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
   },
-});
 
+  // ── QR Modal Styles ──
+  qrModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  qrModalCard: {
+    width: '100%',
+    maxWidth: 340,
+    backgroundColor: '#111114',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  qrHeader: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  qrTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+  },
+  qrCodeWrapper: {
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 20,
+  },
+  qrHint: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    textAlign: 'center',
+  },
+
+  // ── Carder.app AI Mini-Site + POD Card Engine ──
+  carderPromoCard: {
+    backgroundColor: '#111114',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    padding: 20,
+    gap: 12,
+  },
+  carderBadgeRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  carderPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(29, 185, 84, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  carderPillText: {
+    color: '#1DB954',
+    fontSize: 10,
+    letterSpacing: 0.5,
+  },
+  carderPillWhite: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  carderPillWhiteText: {
+    color: '#000000',
+    fontSize: 10,
+    letterSpacing: 0.5,
+  },
+  carderTitle: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    letterSpacing: -0.4,
+    lineHeight: 28,
+  },
+  carderSubtitle: {
+    color: 'rgba(235, 235, 245, 0.7)',
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  carderTagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginVertical: 4,
+  },
+  carderTag: {
+    backgroundColor: '#18181C',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  carderTagText: {
+    color: '#E5E5EA',
+    fontSize: 12,
+  },
+  carderPrimaryBtn: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    height: 52,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 4,
+  },
+  carderPrimaryBtnText: {
+    color: '#000000',
+    fontSize: 15,
+  },
+});
 

@@ -4,7 +4,7 @@
 import { SUBSCRIPTION_PLANS } from '@/src/constants/subscriptionPlans';
 import { app, db } from '@/src/services/firebase/firebase.shared';
 import { getAuth } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 
 const auth = app ? getAuth(app) : (null as any);
 const firestore = db!;
@@ -16,17 +16,6 @@ interface StripeCustomer {
   userId: string;
 }
 
-interface StripeSubscription {
-  id: string;
-  customerId: string;
-  status: 'active' | 'canceled' | 'past_due' | 'trialing' | 'incomplete';
-  planId: string;
-  currentPeriodStart: Date;
-  currentPeriodEnd: Date;
-  cancelAtPeriodEnd: boolean;
-  trialEnd?: Date;
-}
-
 interface UsageData {
   digitalCards: number;
   taps: number;
@@ -36,7 +25,18 @@ interface UsageData {
 }
 
 export class SubscriptionService {
-  private baseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001';
+  /**
+   * Billing must point to an explicitly configured HTTPS backend. Falling back to
+   * localhost makes production CTAs appear to work while silently targeting a
+   * server that does not exist on a customer device.
+   */
+  private get baseUrl(): string {
+    const configuredUrl = process.env.EXPO_PUBLIC_API_URL?.trim().replace(/\/$/, '');
+    if (!configuredUrl || !configuredUrl.startsWith('https://')) {
+      throw new Error('Online billing is not available yet. Please contact the AVIO team for plan or order enquiries.');
+    }
+    return configuredUrl;
+  }
 
   // Create or retrieve Stripe customer
   async createOrGetCustomer(userId: string, email: string, name: string): Promise<StripeCustomer> {
@@ -347,7 +347,7 @@ export class SubscriptionService {
   // Create card order (physical products)
   async createCardOrder(
     userId: string,
-    items: Array<{ productId: string; quantity: number; customization?: any }>
+    items: { productId: string; quantity: number; customization?: any }[]
   ): Promise<{ checkoutUrl: string }> {
     try {
       const response = await fetch(`${this.baseUrl}/api/orders/create`, {

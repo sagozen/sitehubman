@@ -11,7 +11,7 @@ interface QuickActionModalProps {
 }
 
 const ACTIONS: { label: string; icon: AppIconName; route: string; color: string }[] = [
-  { label: 'Apple Wallet Pass', icon: 'CreditCard', route: '/wallet-pass', color: '#FFFFFF' },
+  { label: 'Wallet pass preview', icon: 'CreditCard', route: '/wallet-pass', color: '#FFFFFF' },
   { label: 'Design Card', icon: 'Sparkles', route: '/cards/design', color: '#FFFFFF' },
   { label: 'CRM Leads', icon: 'Users', route: '/connections', color: '#FFFFFF' },
   { label: 'Edit Bio & Links', icon: 'User', route: '/edit-bio', color: '#FFFFFF' },

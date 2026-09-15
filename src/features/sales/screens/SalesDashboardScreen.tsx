@@ -145,7 +145,7 @@ export default function SalesDashboardScreen() {
 
             {/* Revenue Figure */}
             <View style={styles.revenueBlock}>
-              <AppText style={styles.revenueLabel}>TODAY'S REVENUE</AppText>
+              <AppText style={styles.revenueLabel}>TODAY&apos;S REVENUE</AppText>
               <AppText style={styles.revenueAmount} weight="extrabold">
                 ${stats.todayRevenue.toFixed(2)}
               </AppText>

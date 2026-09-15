@@ -122,6 +122,16 @@ const capabilities: Record<UserRole, RoleCapability[]> = {
       description: 'Approve salesman commission payouts and printer wages.',
     },
   ],
+  property_manager: [
+    {
+      title: 'Property access',
+      description: 'Manage residents, visitor passes, NFC credentials, and access history for the assigned property.',
+    },
+    {
+      title: 'Credential safety',
+      description: 'Can block lost access cards and issue replacement NFC or Wallet credentials.',
+    },
+  ],
   admin: [
     {
       title: 'Global operations',
@@ -160,6 +170,7 @@ export function getRoleLabel(role: RoleLike) {
   if (role === 'qa_inspector') return 'QA Inspector';
   if (role === 'shipping') return 'Shipping';
   if (role === 'finance') return 'Finance';
+  if (role === 'property_manager') return 'Property Manager';
   if (role === 'agent') return 'Sales Agent';
   if (role === 'sales') return 'Sales Rep';
   if (role === 'customer') return 'Customer';
@@ -177,6 +188,7 @@ export function getRoleScopeSummary(role: RoleLike) {
   if (role === 'qa_inspector') return 'QA pass/fail and reprint requests only.';
   if (role === 'shipping') return 'Ready-to-ship orders and delivery marking.';
   if (role === 'finance') return 'Manage ledger, wallets, settlements, refunds, invoices, and payouts.';
+  if (role === 'property_manager') return 'Residents, credentials, and entry logs for the assigned property.';
   if (role === 'agent') return 'Territory-scoped customers, orders, and payouts.';
   if (role === 'sales') return 'Own assigned customers, orders, payouts, and CSV imports.';
   if (role === 'customer') return 'Own profile and customer-facing records.';

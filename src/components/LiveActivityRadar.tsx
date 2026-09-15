@@ -1,9 +1,9 @@
 /**
- * LiveActivityRadar.tsx — Barclays Financial Ledger Edition for AVIO Executive Workspace.
+ * LiveActivityRadar.tsx — sample activity layout for the AVIO workspace.
  *
  * Replaces ambient decorative pulses with a crisp, institutional activity ledger:
  *  - Timeline Grouping (TODAY / THIS WEEK)
- *  - Financial-style green status pills (+1 Lead, Saved, Verified)
+ *  - Clearly labelled sample states until live activity is connected
  *  - Flat charcoal card container with 1px translucent borders
  *  - 120fps hardware accelerated interactions
  */
@@ -34,44 +34,44 @@ const LEDGER_ACTIVITIES: LedgerItem[] = [
     id: '1',
     group: 'TODAY',
     type: 'nfc_tap',
-    title: 'Verified Smart Pass Tap',
-    subtitle: 'NFC Beam · Executive Titanium',
-    statusBadge: '+ 1 Lead',
+    title: 'NFC profile sharing',
+    subtitle: 'Connect a card to see real activity',
+    statusBadge: 'Preview',
     statusColor: '#30D158',
-    timeAgo: '12m ago',
+    timeAgo: '—',
     icon: 'Nfc',
   },
   {
     id: '2',
     group: 'TODAY',
     type: 'lead_saved',
-    title: 'Sarah Jenkins',
-    subtitle: 'Partner @ Apex Capital · Exchanged',
-    statusBadge: 'Saved',
+    title: 'Lead capture',
+    subtitle: 'New connections will appear here',
+    statusBadge: 'Preview',
     statusColor: '#0A84FF',
-    timeAgo: '1h ago',
+    timeAgo: '—',
     icon: 'Users',
   },
   {
     id: '3',
     group: 'THIS WEEK',
     type: 'wallet_scan',
-    title: 'Apple Wallet Pass',
-    subtitle: 'PassKit Scan · Singapore Summit',
-    statusBadge: 'Verified',
+    title: 'Wallet pass issuance',
+    subtitle: 'Available after Wallet pilot setup',
+    statusBadge: 'Pilot',
     statusColor: '#FFD60A',
-    timeAgo: '1d ago',
+    timeAgo: '—',
     icon: 'CreditCard',
   },
   {
     id: '4',
     group: 'THIS WEEK',
     type: 'vcard_download',
-    title: 'vCard 3.0 Exported',
-    subtitle: 'Direct Contact Import',
-    statusBadge: 'Completed',
+    title: 'vCard export',
+    subtitle: 'Contact exports will appear here',
+    statusBadge: 'Preview',
     statusColor: 'rgba(255, 255, 255, 0.7)',
-    timeAgo: '3d ago',
+    timeAgo: '—',
     icon: 'UserPlus',
   },
 ];
@@ -95,11 +95,11 @@ export function LiveActivityRadar({
       {/* Header */}
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <AppText style={styles.headerTitle} weight="extrabold">ACTIVITY LEDGER</AppText>
+          <AppText style={styles.headerTitle} weight="extrabold">ACTIVITY PREVIEW</AppText>
         </View>
         <View style={styles.liveAuditPill}>
           <View style={styles.liveDot} />
-          <AppText style={styles.liveAuditText} weight="bold">LIVE AUDIT</AppText>
+          <AppText style={styles.liveAuditText} weight="bold">SAMPLE DATA</AppText>
         </View>
       </View>
 

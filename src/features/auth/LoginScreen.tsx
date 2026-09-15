@@ -593,7 +593,7 @@ export function LoginScreen() {
             {/* Terms Footer */}
             <View style={styles.termsWrap}>
               <AppText style={[styles.termsText, { color: subTextColor }]}>
-                By continuing, you agree to AVIO's{' '}
+                By continuing, you agree to AVIO&apos;s{' '}
                 <AppText
                   style={[styles.termsLink, { color: textColor }]}
                   onPress={() => router.push('/terms-of-service' as any)}

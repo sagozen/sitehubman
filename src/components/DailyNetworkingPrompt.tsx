@@ -28,7 +28,7 @@ const DAILY_PROMPTS = [
   {
     tag: 'AVIO STATUS TIP',
     title: 'Unlock 24K Heritage Gold tier at 25 connections',
-    tip: 'Share your vanity link or add your pass to Apple Wallet to accelerate.',
+    tip: 'Share your vanity link or profile QR code to accelerate.',
     icon: 'Award' as const,
     accent: '#0A84FF',
   },

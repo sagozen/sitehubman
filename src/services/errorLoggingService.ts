@@ -5,6 +5,7 @@
  */
 import { addDoc, collection, getDocs, limit, orderBy, query, serverTimestamp } from 'firebase/firestore';
 import { Platform } from 'react-native';
+import * as Sentry from '@sentry/react-native';
 import { db, auth } from '@/src/services/firebaseClient';
 import { firebaseCollections } from '@/src/constants/collections';
 
@@ -57,13 +58,25 @@ export async function recordAppError(
       createdAt: serverTimestamp(),
     };
 
-    console.warn('[Telemetry Logger] Logging error:', payload.errorMessage);
+    // Sentry is a no-op until EXPO_PUBLIC_SENTRY_DSN is configured. Keep the
+    // Firestore record as the operational fallback, but send a release-aware
+    // crash signal when production monitoring is enabled.
+    Sentry.captureException(errObj, {
+      tags: { platform: Platform.OS, route: payload.route || 'unknown' },
+      extra: { source: context?.extra?.source || 'app' },
+    });
+
+    if (__DEV__) {
+      console.log('[Telemetry Logger] Error recorded:', payload.errorMessage);
+    }
 
     const docRef = await addDoc(collection(db, firebaseCollections.errorLogs), payload);
     return docRef.id;
-  } catch (loggingErr) {
-    // Failure in error logger should never crash the app
-    console.error('[Telemetry Logger Failure]', loggingErr);
+  } catch (loggingErr: any) {
+    // Failure in error logger should never crash the app or produce alarming console errors
+    if (__DEV__) {
+      console.debug('[Telemetry Logger] Remote log skipped:', loggingErr?.code || loggingErr?.message || 'Network blocked');
+    }
     return null;
   }
 }

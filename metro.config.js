@@ -1,3 +1,57 @@
+const fs = require('fs');
+const util = require('util');
+const gracefulFs = require('graceful-fs');
+gracefulFs.gracefulify(fs);
+
+if (fs.promises) {
+  if (gracefulFs.readFile) fs.promises.readFile = util.promisify(gracefulFs.readFile);
+  if (gracefulFs.writeFile) fs.promises.writeFile = util.promisify(gracefulFs.writeFile);
+  if (gracefulFs.open) fs.promises.open = util.promisify(gracefulFs.open);
+  if (gracefulFs.stat) fs.promises.stat = util.promisify(gracefulFs.stat);
+  if (gracefulFs.lstat) fs.promises.lstat = util.promisify(gracefulFs.lstat);
+  if (gracefulFs.readdir) fs.promises.readdir = util.promisify(gracefulFs.readdir);
+}
+
+try {
+  const { FileStore } = require('metro-cache');
+  if (FileStore && FileStore.prototype) {
+    const origGet = FileStore.prototype.get;
+    const origSet = FileStore.prototype.set;
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    FileStore.prototype.get = async function patchedGet(...args) {
+      for (let attempt = 0; attempt < 5; attempt++) {
+        try {
+          return await origGet.apply(this, args);
+        } catch (err) {
+          if (err && (err.code === 'EMFILE' || err.code === 'EBUSY')) {
+            await sleep(50 * (attempt + 1));
+            continue;
+          }
+          return null;
+        }
+      }
+      return null;
+    };
+
+    FileStore.prototype.set = async function patchedSet(...args) {
+      for (let attempt = 0; attempt < 5; attempt++) {
+        try {
+          return await origSet.apply(this, args);
+        } catch (err) {
+          if (err && (err.code === 'EMFILE' || err.code === 'EBUSY')) {
+            await sleep(50 * (attempt + 1));
+            continue;
+          }
+          return;
+        }
+      }
+    };
+  }
+} catch (e) {
+  // Ignore if metro-cache is unavailable
+}
+
 const path = require('path');
 const { getDefaultConfig } = require('expo/metro-config');
 
