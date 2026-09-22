@@ -60,6 +60,7 @@ import { PremiumPaywallModal } from './PremiumPaywallModal';
 import { CardSuccessShareModal } from './CardSuccessShareModal';
 import { AiScannerModal } from './AiScannerModal';
 import { AiBusinessSiteModal } from '@/src/components/AiBusinessSiteModal';
+import { saveGuestCardDraft } from '@/src/services/guestDraftService';
 
 // ─── Telegram-style Avatar Gradient helper ──────────────────────────────────
 const TELEGRAM_GRADIENTS = [
@@ -315,6 +316,26 @@ export function GuestHomeScreen() {
   const [showCardSuccessModal, setShowCardSuccessModal] = useState(false);
   const [showAiScannerModal, setShowAiScannerModal] = useState(false);
   const [showAiSiteModal, setShowAiSiteModal] = useState(false);
+
+  const handleAiSiteComplete = useCallback(async (
+    data: { businessName: string; category: { name: string; ctaText: string }; contact: string }
+  ) => {
+    try {
+      await saveGuestCardDraft({
+        displayName: data.businessName,
+        jobTitle: data.category.name,
+        company: data.businessName,
+        email: data.contact.includes('@') ? data.contact : '',
+        phone: !data.contact.includes('@') ? data.contact : '',
+        product: 'pvc_card',
+        cardDesign: 'classic_black',
+        cardChoice: 'physical',
+        gradientIndex: 0,
+      });
+    } catch {
+      // non-blocking — draft already saved inside modal
+    }
+  }, []);
 
   const handleShareProfile = useCallback(async () => {
     try {
@@ -954,6 +975,7 @@ export function GuestHomeScreen() {
         visible={showAiSiteModal}
         onClose={() => setShowAiSiteModal(false)}
         initialBusinessName={heroName || ''}
+        onComplete={handleAiSiteComplete}
       />
 
       {/* ── 30-Second Quick Card Setup ── */}

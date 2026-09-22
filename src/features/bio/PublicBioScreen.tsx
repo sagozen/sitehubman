@@ -41,6 +41,8 @@ import type { BioPage, TapActionBlock, TapActionItem } from '@/src/types/models'
 import { BAN_NGUYEN_SEED_BIO } from '@/src/data/seedBanNguyenBio';
 import { HapticTap } from '@/src/utils/haptics';
 
+import { ConnectIntentModal } from '@/src/components/ConnectIntentModal';
+
 interface Props {
   slug?: string;
   cardId?: string;
@@ -59,6 +61,7 @@ export function PublicBioScreen({ slug, cardId }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [showQrModal, setShowQrModal] = useState(false);
   const [showExchangeModal, setShowExchangeModal] = useState(false);
+  const [showConnectModal, setShowConnectModal] = useState(false);
   const [lang, setLang] = useState<'vi' | 'en'>('vi');
 
   // Lead exchange state
@@ -388,13 +391,13 @@ export function PublicBioScreen({ slug, cardId }: Props) {
               <Pressable
                 onPress={() => {
                   HapticTap.medium();
-                  setShowExchangeModal(true);
+                  setShowConnectModal(true);
                 }}
                 style={({ pressed }) => [styles.exchangeContactBtn, pressed && styles.pressed]}
               >
-                <AppIcon name="Users" size={16} color="#FFFFFF" />
+                <AppIcon name="Zap" size={16} color="#FFFFFF" />
                 <AppText style={styles.exchangeContactBtnText} weight="extrabold">
-                  Trao đổi liên hệ với {bio.displayName.split(' ')[0]}
+                  Connect & Interested Intake with {bio.displayName.split(' ')[0]}
                 </AppText>
               </Pressable>
             </View>
@@ -535,13 +538,18 @@ export function PublicBioScreen({ slug, cardId }: Props) {
               <AppText style={styles.viralSub}>
                 Tạo trang danh tính AVIO Smart Pass trong 60 giây. Đối tác không cần cài ứng dụng.
               </AppText>
-              <View style={styles.viralCta}>
-                <AppText style={styles.viralCtaText} weight="extrabold">Tạo thẻ của tôi →</AppText>
-              </View>
             </View>
           </Pressable>
         </IosScrollView>
       </SafeAreaView>
+
+      {/* Connect Intent Intake Modal */}
+      <ConnectIntentModal
+        visible={showConnectModal}
+        onClose={() => setShowConnectModal(false)}
+        ownerId={bio.userId || bio.id}
+        ownerName={bio.displayName}
+      />
 
       {/* QR Code Modal */}
       <Modal visible={showQrModal} animationType="slide" transparent>

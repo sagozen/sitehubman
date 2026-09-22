@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SiteHub Blueprint - Architecture & Diagram Editor</title>
+<style>
+  :root {
+    --bg-dark: #080808;
+    --card-bg: #141414;
+    --border-color: #292929;
+    --yellow: #ffd900;
+    --accent-blue: #0a84ff;
+    --accent-green: #30d158;
+    --text-primary: #ffffff;
+    --text-muted: #858585;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    line-height: 1.5;
+    padding: 24px;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 24px;
+  }
+
+  .logo { display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 900; }
+
+  .logo-icon {
+    width: 40px; height: 40px; background: var(--yellow); color: #000;
+    border-radius: 12px; display: grid; place-items: center; font-weight: 950; transform: rotate(-6deg);
+  }
+
+  .controls { display: flex; gap: 12px; }
+
+  button {
+    background: #202020; color: #fff; border: 1px solid var(--border-color);
+    padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 13px;
+    cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 8px;
+  }
+
+  button:hover { background: #2e2e2e; border-color: #444; }
+
+  button.btn-primary { background: var(--yellow); color: #000; border: none; }
+  button.btn-primary:hover { background: #e6c300; }
+
+  .editable-area {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 20px; padding: 24px; margin-bottom: 24px; outline: none;
+  }
+  .editable-area:focus { border-color: var(--yellow); }
+
+  h1 { font-size: 32px; color: var(--yellow); margin-bottom: 12px; }
+  h2 { font-size: 22px; margin-top: 24px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+
+  p { color: var(--text-muted); margin-bottom: 16px; font-size: 14px; }
+
+  /* DIAGRAM CONTAINER */
+  .diagram-box {
+    background: #0d0d0d; border: 1px solid var(--border-color);
+    border-radius: 20px; padding: 20px; margin-bottom: 24px; text-align: center;
+  }
+
+  .diagram-img {
+    width: 100%; height: auto; border-radius: 14px;
+    border: 1px solid var(--border-color); box-shadow: 0 12px 40px rgba(0,0,0,0.8);
+  }
+
+  /* CANVAS DIAGRAM DRAWING AREA */
+  .canvas-wrap {
+    margin-top: 24px; background: #111; border: 1px solid var(--border-color);
+    border-radius: 20px; padding: 20px; text-align: center;
+  }
+
+  canvas {
+    background: #080808; border: 1px solid #333; border-radius: 14px;
+    cursor: crosshair; touch-action: none;
+  }
+
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; background: var(--yellow); color: #000;
+    padding: 12px 20px; border-radius: 14px; font-weight: 800; font-size: 13px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); opacity: 0; transform: translateY(20px);
+    transition: all 0.3s ease; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">S</div>
+      SiteHub Architecture & Visual Diagram Editor
+    </div>
+    <div class="controls">
+      <button onclick="toggleEditMode()" id="editBtn">✏️ Edit Text & Diagram</button>
+      <button class="btn-primary" onclick="savePage()">💾 Save Local Changes</button>
+      <button onclick="downloadHTML()">⬇️ Export HTML File</button>
+    </div>
+  </header>
+
+  <div id="contentArea" class="editable-area" contenteditable="false">
+    <h1>SiteHub Platform Architecture Diagram</h1>
+    <p>Visual system flow illustrating the post-NFC recipient intake, lead qualification workflow, push notification alerts, and monthly SaaS monetization flywheel.</p>
+  </div>
+
+  <!-- VISUAL HIGH-RES DIAGRAM -->
+  <div class="diagram-box">
+    <img src="https://file-link.local/diagram.jpg" class="diagram-img" alt="SiteHub Visual Architecture Flow Diagram" id="visualDiagram">
+  </div>
+
+  <!-- INTERACTIVE DRAWING & ANNOTATION CANVAS -->
+  <div class="canvas-wrap">
+    <h2>Interactive Flow Annotation & Sketch Board</h2>
+    <p>Draw or mark up adjustments on the canvas below:</p>
+    <div style="margin-bottom: 12px; display: flex; justify-content: center; gap: 10px;">
+      <button onclick="setBrush('#ffd900')">💛 Yellow</button>
+      <button onclick="setBrush('#0a84ff')">💙 Blue</button>
+      <button onclick="setBrush('#30d158')">💚 Green</button>
+      <button onclick="setBrush('#ffffff')">🤍 White</button>
+      <button onclick="clearCanvas()">🗑️ Clear Sketch</button>
+    </div>
+    <canvas id="sketchCanvas" width="1120" height="500"></canvas>
+  </div>
+</div>
+
+<div id="toast" class="toast">Saved!</div>
+
+<script>
+  // Canvas sketching logic
+  const canvas = document.getElementById('sketchCanvas');
+  const ctx = canvas.getContext('2d');
+  let drawing = false;
+  let currentColor = '#ffd900';
+
+  function setBrush(color) { currentColor = color; }
+
+  function clearCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawGrid();
+  }
+
+  function drawGrid() {
+    ctx.strokeStyle = '#181818';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < canvas.width; x += 40) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+    }
+    for (let y = 0; y < canvas.height; y += 40) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+    }
+  }
+
+  drawGrid();
+
+  canvas.addEventListener('mousedown', (e) => { drawing = true; draw(e); });
+  canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
+  canvas.addEventListener('mousemove', draw);
+
+  function draw(e) {
+    if (!drawing) return;
+    const rect = canvas.getBoundingClientRect();
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = currentColor;
+
+    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+  }
+
+  let isEditing = false;
+  function toggleEditMode() {
+    isEditing = !isEditing;
+    document.getElementById('contentArea').contentEditable = isEditing;
+    showToast(isEditing ? 'Live Editing Enabled' : 'Editing Locked');
+  }
+
+  function savePage() {
+    localStorage.setItem('sitehub_diagram_saved', document.documentElement.outerHTML);
+    showToast('💾 Saved to LocalStorage!');
+  }
+
+  function downloadHTML() {
+    const blob = new Blob([document.documentElement.outerHTML], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ARCHITECTURE_DIAGRAM.html';
+    a.click();
+    showToast('⬇️ Exported!');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+</script>
+</body>
+</html>

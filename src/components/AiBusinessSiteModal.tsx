@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -9,10 +9,24 @@ import {
   Dimensions,
   Platform,
   ActivityIndicator,
+  Share,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  FadeInUp,
+  FadeOut,
+  ZoomIn,
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  Easing,
+  interpolate,
+} from 'react-native-reanimated';
 import { AppText } from '@/src/components/AppText';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { HapticTap } from '@/src/utils/haptics';
@@ -20,21 +34,27 @@ import { saveGuestCardDraft } from '@/src/services/guestDraftService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+// ─── Business Category Data ───────────────────────────────────────────────────
+
 export interface BusinessCategory {
   id: string;
   name: string;
+  emoji: string;
   icon: AppIconName;
   tagline: string;
   sampleItems: { name: string; price: string; desc: string }[];
   defaultHours: string;
   ctaText: string;
   ctaAction: string;
+  accentColor: string;
+  cardGradient: readonly [string, string, string];
 }
 
 export const BUSINESS_CATEGORIES: BusinessCategory[] = [
   {
     id: 'food',
     name: 'Café & Restaurant',
+    emoji: '🍽️',
     icon: 'Coffee',
     tagline: 'Artisanal coffee, fresh brunch & organic pastries',
     sampleItems: [
@@ -42,74 +62,225 @@ export const BUSINESS_CATEGORIES: BusinessCategory[] = [
       { name: 'Truffle Avocado Toast', price: '$14.00', desc: 'Poached eggs, sourdough, shaved black truffle' },
       { name: 'Matcha Basque Cheesecake', price: '$8.50', desc: 'Kyoto Uji matcha with burnt caramelized crust' },
     ],
-    defaultHours: 'Mon - Sun: 7:30 AM – 9:00 PM',
+    defaultHours: 'Mon – Sun: 7:30 AM – 9:00 PM',
     ctaText: 'Order / Reserve Table',
     ctaAction: 'Order Online',
+    accentColor: '#FF9F0A',
+    cardGradient: ['#2D1B00', '#1C1200', '#0D0800'],
   },
   {
     id: 'consultant',
     name: 'Consultant & Agency',
+    emoji: '💼',
     icon: 'Briefcase',
     tagline: 'High-ticket strategic advisory & growth consulting',
     sampleItems: [
-      { name: '1-on-1 Growth Audit', price: '$350', desc: '60-min deep dive session + action plan' },
-      { name: 'Monthly Advisory Retainer', price: '$2,500/mo', desc: 'Bi-weekly sprints, team Slack access & review' },
+      { name: '1-on-1 Growth Audit', price: '$350', desc: '60-min deep dive session + action plan document' },
+      { name: 'Monthly Advisory Retainer', price: '$2,500/mo', desc: 'Bi-weekly sprints, Slack access & review' },
       { name: 'Enterprise Architecture Review', price: 'Custom', desc: 'Full infrastructure security & scale audit' },
     ],
-    defaultHours: 'Mon - Fri: 9:00 AM – 6:00 PM (By Appt)',
+    defaultHours: 'Mon – Fri: 9:00 AM – 6:00 PM (By Appt)',
     ctaText: 'Book 30-Min Discovery Call',
     ctaAction: 'Schedule Call',
+    accentColor: '#0A84FF',
+    cardGradient: ['#001230', '#000D22', '#000814'],
   },
   {
     id: 'salon',
-    name: 'Salon & Aesthetic Clinic',
+    name: 'Salon & Beauty Clinic',
+    emoji: '💇',
     icon: 'Sparkles',
     tagline: 'Luxury bespoke grooming, skincare & styling',
     sampleItems: [
-      { name: 'Signature Executive Cut & Beard', price: '$65', desc: 'Hot towel ritual, scalp massage & styling' },
+      { name: 'Signature Executive Cut & Beard', price: '$65', desc: 'Hot towel ritual, scalp massage & finish' },
       { name: 'Hydra-Glow Facial Treatment', price: '$120', desc: 'Deep exfoliation, peptide infusion & LED mask' },
-      { name: 'Balayage & Gloss Styling', price: '$180+', desc: 'Custom master colorist treatment & bond builder' },
+      { name: 'Balayage & Gloss Styling', price: '$180+', desc: 'Custom master colorist & bond builder treatment' },
     ],
-    defaultHours: 'Tue - Sat: 10:00 AM – 8:00 PM',
+    defaultHours: 'Tue – Sat: 10:00 AM – 8:00 PM',
     ctaText: 'Book Appointment',
     ctaAction: 'Book Now',
+    accentColor: '#FF375F',
+    cardGradient: ['#2D0014', '#1C000D', '#0D0007'],
   },
   {
     id: 'realestate',
     name: 'Real Estate & Property',
+    emoji: '🏡',
     icon: 'Home',
-    tagline: 'Prime residential & commercial acquisitions',
+    tagline: 'Prime residential & commercial property acquisitions',
     sampleItems: [
       { name: 'Penthouse Marina Bay View', price: '$1,850,000', desc: '3 Bed, 3 Bath, Private elevator, 2,400 sqft' },
-      { name: 'Modern Minimalist Villa', price: '$920,000', desc: 'Infinity pool, smart home automated, 4 Bed' },
-      { name: 'Free Property Valuation Report', price: 'Free', desc: 'Comprehensive neighborhood comp & price estimate' },
+      { name: 'Modern Minimalist Villa', price: '$920,000', desc: 'Infinity pool, smart home, 4 Bed 4 Bath' },
+      { name: 'Free Property Valuation', price: 'FREE', desc: 'Comprehensive neighborhood comp & price estimate' },
     ],
-    defaultHours: 'Mon - Sun: 8:00 AM – 7:00 PM',
+    defaultHours: 'Mon – Sun: 8:00 AM – 7:00 PM',
     ctaText: 'Request Private Tour',
     ctaAction: 'View Listings',
+    accentColor: '#30D158',
+    cardGradient: ['#002820', '#001A14', '#000D0A'],
   },
   {
     id: 'contractor',
     name: 'Trades & Contractors',
+    emoji: '🔧',
     icon: 'Tool',
     tagline: 'Licensed electrical, plumbing & HVAC engineering',
     sampleItems: [
       { name: 'Emergency Diagnostic Callout', price: '$89', desc: 'On-site within 45 minutes, 24/7 dispatched' },
-      { name: 'Full HVAC System Tune-Up', price: '$180', desc: 'Refrigerant check, coil cleaning & safety test' },
-      { name: 'Commercial Installation Quote', price: '$0', desc: 'Free on-premise inspection & detailed estimate' },
+      { name: 'Full HVAC System Tune-Up', price: '$180', desc: 'Refrigerant check, coil clean & safety test' },
+      { name: 'Commercial Installation Quote', price: 'FREE', desc: 'Free on-premise inspection & detailed estimate' },
     ],
     defaultHours: '24/7 Dispatch Available',
     ctaText: 'Call Dispatch Now',
     ctaAction: 'Call Now',
+    accentColor: '#FFD60A',
+    cardGradient: ['#2D2500', '#1C1700', '#0D0B00'],
+  },
+  {
+    id: 'fitness',
+    name: 'Fitness & Personal Training',
+    emoji: '💪',
+    icon: 'Zap',
+    tagline: 'Elite coaching, body transformation & peak performance',
+    sampleItems: [
+      { name: '1-on-1 Personal Training', price: '$120/hr', desc: 'Custom program design, form coaching & results' },
+      { name: '12-Week Body Transformation', price: '$899', desc: 'Full nutrition plan, check-ins & app access' },
+      { name: 'Online Coaching Program', price: '$199/mo', desc: 'Remote coaching, macro plans & weekly calls' },
+    ],
+    defaultHours: 'Mon – Sat: 6:00 AM – 9:00 PM',
+    ctaText: 'Book Free Intro Session',
+    ctaAction: 'Book Now',
+    accentColor: '#BF5AF2',
+    cardGradient: ['#1A0030', '#110020', '#080010'],
+  },
+  {
+    id: 'retail',
+    name: 'Retail & E-Commerce',
+    emoji: '🛍️',
+    icon: 'ShoppingBag',
+    tagline: 'Premium curated products & exclusive limited collections',
+    sampleItems: [
+      { name: 'Signature Collection Drop', price: '$189', desc: 'Hand-picked, limited edition seasonal pieces' },
+      { name: 'Custom Monogram Bundle', price: '$89', desc: 'Personalized gift sets, next-day dispatch' },
+      { name: 'VIP Loyalty Member Offer', price: '20% OFF', desc: 'Exclusive pre-launch access & free shipping' },
+    ],
+    defaultHours: 'Mon – Sat: 10:00 AM – 7:00 PM',
+    ctaText: 'Shop Latest Collection',
+    ctaAction: 'Shop Now',
+    accentColor: '#FF6B35',
+    cardGradient: ['#2D1200', '#1C0C00', '#0D0600'],
+  },
+  {
+    id: 'medical',
+    name: 'Healthcare & Wellness',
+    emoji: '⚕️',
+    icon: 'Heart',
+    tagline: 'Personalised healthcare, wellness & concierge medicine',
+    sampleItems: [
+      { name: 'Comprehensive Health Screening', price: '$250', desc: 'Full blood panel, cardiac & metabolic workup' },
+      { name: 'Concierge GP Consult (Virtual)', price: '$95', desc: '30-min telemedicine with same-day prescriptions' },
+      { name: 'IV Wellness Infusion Therapy', price: '$180', desc: 'Custom vitamin drips, NAD+, glutathione' },
+    ],
+    defaultHours: 'Mon – Fri: 8:00 AM – 6:00 PM',
+    ctaText: 'Book Consultation',
+    ctaAction: 'Book Now',
+    accentColor: '#32D74B',
+    cardGradient: ['#002810', '#001A0A', '#000D05'],
   },
 ];
+
+// ─── Generation Phase Steps ───────────────────────────────────────────────────
+
+const GENERATION_STEPS = [
+  { icon: '🎯', text: 'Analyzing business niche & target audience...' },
+  { icon: '📋', text: 'Generating services, pricing & descriptions...' },
+  { icon: '📅', text: 'Configuring booking engine & business hours...' },
+  { icon: '🎴', text: 'Designing Physical NFC Print-on-Demand card...' },
+  { icon: '✅', text: 'Mini-site is live and ready to share!' },
+];
+
+// ─── Props ────────────────────────────────────────────────────────────────────
 
 interface AiBusinessSiteModalProps {
   visible: boolean;
   onClose: () => void;
-  onComplete?: (siteData: { businessName: string; category: BusinessCategory; contact: string }) => void;
+  onComplete?: (siteData: {
+    businessName: string;
+    category: BusinessCategory;
+    contact: string;
+  }) => void;
   initialBusinessName?: string;
 }
+
+// ─── Pulsing Ring Component ───────────────────────────────────────────────────
+
+function PulsingRing({ color = '#1DB954' }: { color?: string }) {
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(0.6);
+
+  useEffect(() => {
+    scale.value = withRepeat(
+      withSequence(
+        withTiming(1.4, { duration: 900, easing: Easing.out(Easing.quad) }),
+        withTiming(1, { duration: 600, easing: Easing.in(Easing.quad) })
+      ),
+      -1
+    );
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(0, { duration: 900 }),
+        withTiming(0.5, { duration: 600 })
+      ),
+      -1
+    );
+  }, []);
+
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
+  return (
+    <View style={pulseStyles.wrapper}>
+      <Animated.View
+        style={[
+          pulseStyles.ring,
+          { borderColor: color },
+          animStyle,
+        ]}
+      />
+      <View style={[pulseStyles.innerCircle, { backgroundColor: `${color}20` }]}>
+        <AppIcon name="Sparkles" size={32} color={color} />
+      </View>
+    </View>
+  );
+}
+
+const pulseStyles = StyleSheet.create({
+  wrapper: {
+    width: 96,
+    height: 96,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 28,
+  },
+  ring: {
+    position: 'absolute',
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    borderWidth: 2,
+  },
+  innerCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 export function AiBusinessSiteModal({
   visible,
@@ -125,29 +296,36 @@ export function AiBusinessSiteModal({
   const [generationPhase, setGenerationPhase] = useState(0);
   const [activeTab, setActiveTab] = useState<'site' | 'card'>('site');
 
-  const generationSteps = [
-    'Analyzing business niche & target audience...',
-    'Generating services, item descriptions & pricing...',
-    'Configuring live business hours & fast booking engine...',
-    'Designing Physical NFC Print-on-Demand card face...',
-  ];
+  // Reset on open
+  useEffect(() => {
+    if (visible) {
+      setStep('input');
+      setBusinessName(initialBusinessName);
+      setSelectedCategory(BUSINESS_CATEGORIES[0]);
+      setTagline(BUSINESS_CATEGORIES[0].tagline);
+      setContact('');
+      setGenerationPhase(0);
+      setActiveTab('site');
+    }
+  }, [visible]);
 
-  const handleSelectCategory = (cat: BusinessCategory) => {
+  const handleSelectCategory = useCallback((cat: BusinessCategory) => {
     HapticTap.light();
     setSelectedCategory(cat);
     setTagline(cat.tagline);
-  };
+  }, []);
 
-  const handleStartAiGeneration = () => {
+  const handleStartAiGeneration = useCallback(() => {
     if (!businessName.trim()) return;
     HapticTap.heavy();
     setStep('generating');
     setGenerationPhase(0);
 
-    const timer1 = setTimeout(() => setGenerationPhase(1), 700);
-    const timer2 = setTimeout(() => setGenerationPhase(2), 1400);
-    const timer3 = setTimeout(() => setGenerationPhase(3), 2100);
-    const timer4 = setTimeout(async () => {
+    const timers = GENERATION_STEPS.map((_, idx) =>
+      setTimeout(() => setGenerationPhase(idx), idx * 600)
+    );
+
+    setTimeout(async () => {
       try {
         await saveGuestCardDraft({
           displayName: businessName.trim(),
@@ -160,199 +338,329 @@ export function AiBusinessSiteModal({
           cardChoice: 'physical',
           gradientIndex: 0,
         });
-      } catch (err) {
+      } catch {
         // non-blocking
       }
       setStep('preview');
       HapticTap.success();
-    }, 2800);
+    }, GENERATION_STEPS.length * 600 + 400);
 
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      clearTimeout(timer3);
-      clearTimeout(timer4);
-    };
-  };
+    return () => timers.forEach(clearTimeout);
+  }, [businessName, selectedCategory, contact]);
 
-  const handleReset = () => {
+  const handleShareSite = useCallback(async () => {
+    HapticTap.light();
+    try {
+      await Share.share({
+        message: `Check out my business mini-site powered by SiteHub!\n\n📍 ${businessName}\n🔗 sitehub.app/${businessName.toLowerCase().replace(/\s+/g, '-')}`,
+        title: `${businessName} — Business Mini-Site`,
+      });
+    } catch {
+      // ignore
+    }
+  }, [businessName]);
+
+  const handleReset = useCallback(() => {
+    HapticTap.light();
     setStep('input');
-  };
+  }, []);
+
+  const accent = selectedCategory.accentColor;
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <BlurView intensity={85} tint="dark" style={StyleSheet.absoluteFill} />
+      <BlurView intensity={90} tint="dark" style={StyleSheet.absoluteFill} />
       <View style={styles.container}>
-        {/* Header */}
+
+        {/* ── Header ─────────────────────────────────────────────────────── */}
         <View style={styles.header}>
-          <View>
+          <View style={{ flex: 1 }}>
             <View style={styles.badgeRow}>
               <View style={styles.sparkleBadge}>
-                <AppIcon name="Sparkles" size={12} color="#1DB954" />
+                <AppIcon name="Sparkles" size={11} color="#1DB954" />
                 <AppText style={styles.badgeText} weight="bold">AI MINI-SITE ENGINE</AppText>
               </View>
               <View style={styles.podBadge}>
-                <AppIcon name="Nfc" size={12} color="#FFFFFF" />
+                <AppIcon name="Nfc" size={11} color="#FFFFFF" />
                 <AppText style={styles.podBadgeText} weight="bold">NFC POD CARD</AppText>
               </View>
             </View>
             <AppText style={styles.headerTitle} weight="extrabold">
-              {step === 'preview' ? 'Your AI Mini-Site is Live' : 'AI Business Mini-Site'}
+              {step === 'preview' ? '🚀 Your Mini-Site is Live!' : 'AI Business Mini-Site'}
+            </AppText>
+            <AppText style={styles.headerSubtitle}>
+              {step === 'preview'
+                ? 'Share it, publish it, or order your NFC card'
+                : 'From nothing to a real business site in 30 seconds'}
             </AppText>
           </View>
           <Pressable onPress={onClose} style={styles.closeBtn} hitSlop={12}>
-            <AppIcon name="X" size={20} color="#FFFFFF" />
+            <AppIcon name="X" size={18} color="#FFFFFF" />
           </Pressable>
         </View>
 
-        {/* STEP 1: Input & Customization */}
+        {/* ── STEP 1: Input ──────────────────────────────────────────────── */}
         {step === 'input' && (
           <ScrollView
             style={styles.bodyScroll}
             contentContainerStyle={styles.bodyContent}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
-            <View style={styles.explainerCard}>
-              <AppText style={styles.explainerQuote} weight="bold">
-                "Most link-in-bios are just a list of buttons. SiteHub generates an actual site with your menu, prices, hours and 1-tap booking in 30 seconds."
-              </AppText>
-            </View>
+            {/* Value Prop Card */}
+            <Animated.View entering={FadeInDown.delay(50).springify()} style={styles.explainerCard}>
+              <View style={styles.explainerIconRow}>
+                <AppText style={styles.explainerEmoji}>⚡</AppText>
+                <AppText style={styles.explainerQuote} weight="medium">
+                  "Most link-in-bios are just a list of buttons. SiteHub generates an actual site with your menu, prices, hours & 1-tap booking in 30 seconds."
+                </AppText>
+              </View>
+            </Animated.View>
 
-            <AppText style={styles.sectionLabel} weight="bold">1. Select Your Business Industry</AppText>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryChips}>
-              {BUSINESS_CATEGORIES.map((cat) => {
-                const isSelected = cat.id === selectedCategory.id;
-                return (
-                  <Pressable
-                    key={cat.id}
-                    onPress={() => handleSelectCategory(cat)}
-                    style={[styles.categoryChip, isSelected && styles.categoryChipActive]}
-                  >
-                    <AppIcon name={cat.icon} size={16} color={isSelected ? '#000000' : '#FFFFFF'} />
-                    <AppText
-                      style={[styles.categoryChipText, isSelected && styles.categoryChipTextActive]}
-                      weight="bold"
+            {/* Step 1 – Industry */}
+            <Animated.View entering={FadeInDown.delay(100).springify()}>
+              <AppText style={styles.sectionLabel} weight="bold">1. Select Your Industry</AppText>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.categoryChips}
+              >
+                {BUSINESS_CATEGORIES.map((cat, idx) => {
+                  const isSelected = cat.id === selectedCategory.id;
+                  return (
+                    <Pressable
+                      key={cat.id}
+                      onPress={() => handleSelectCategory(cat)}
+                      style={[
+                        styles.categoryChip,
+                        isSelected && {
+                          backgroundColor: cat.accentColor,
+                          borderColor: cat.accentColor,
+                        },
+                      ]}
                     >
-                      {cat.name}
-                    </AppText>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
+                      <AppText style={styles.categoryChipEmoji}>{cat.emoji}</AppText>
+                      <AppText
+                        style={[styles.categoryChipText, isSelected && { color: '#000000' }]}
+                        weight="bold"
+                      >
+                        {cat.name}
+                      </AppText>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            </Animated.View>
 
-            <AppText style={styles.sectionLabel} weight="bold">2. Business Details</AppText>
-            <View style={styles.inputGroup}>
-              <AppText style={styles.fieldTitle}>Business or Professional Name *</AppText>
-              <View style={styles.inputBox}>
-                <AppIcon name="Building" size={18} color="#8E8E93" />
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="e.g. Apex Architecture, Kroma Salon, Chef Daniel"
-                  placeholderTextColor="#636366"
-                  value={businessName}
-                  onChangeText={setBusinessName}
-                />
+            {/* Step 2 – Business Details */}
+            <Animated.View entering={FadeInDown.delay(150).springify()}>
+              <AppText style={styles.sectionLabel} weight="bold">2. Business Details</AppText>
+              <View style={styles.inputGroup}>
+                <AppText style={styles.fieldTitle}>Business or Professional Name *</AppText>
+                <View style={styles.inputBox}>
+                  <AppIcon name="Building" size={18} color="#8E8E93" />
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="e.g. Apex Architects, Kroma Salon, Chef Daniel"
+                    placeholderTextColor="#555558"
+                    value={businessName}
+                    onChangeText={setBusinessName}
+                    returnKeyType="next"
+                  />
+                </View>
               </View>
-            </View>
 
-            <View style={styles.inputGroup}>
-              <AppText style={styles.fieldTitle}>One-Line Tagline or Specialty</AppText>
-              <View style={styles.inputBox}>
-                <AppIcon name="Tag" size={18} color="#8E8E93" />
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="What makes your service exceptional?"
-                  placeholderTextColor="#636366"
-                  value={tagline}
-                  onChangeText={setTagline}
-                />
+              <View style={styles.inputGroup}>
+                <AppText style={styles.fieldTitle}>One-Line Tagline (or your specialty)</AppText>
+                <View style={styles.inputBox}>
+                  <AppIcon name="Tag" size={18} color="#8E8E93" />
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="What makes your service exceptional?"
+                    placeholderTextColor="#555558"
+                    value={tagline}
+                    onChangeText={setTagline}
+                    returnKeyType="next"
+                  />
+                </View>
               </View>
-            </View>
 
-            <View style={styles.inputGroup}>
-              <AppText style={styles.fieldTitle}>WhatsApp, Phone or Booking URL</AppText>
-              <View style={styles.inputBox}>
-                <AppIcon name="Phone" size={18} color="#8E8E93" />
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="+1 555 019 2831 or calendly.com/you"
-                  placeholderTextColor="#636366"
-                  value={contact}
-                  onChangeText={setContact}
-                  autoCapitalize="none"
-                />
+              <View style={styles.inputGroup}>
+                <AppText style={styles.fieldTitle}>WhatsApp, Phone or Booking URL</AppText>
+                <View style={styles.inputBox}>
+                  <AppIcon name="Phone" size={18} color="#8E8E93" />
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="+1 555 019 2831 or calendly.com/you"
+                    placeholderTextColor="#555558"
+                    value={contact}
+                    onChangeText={setContact}
+                    autoCapitalize="none"
+                    keyboardType="url"
+                    returnKeyType="done"
+                  />
+                </View>
               </View>
-            </View>
+            </Animated.View>
 
-            <Pressable
-              onPress={handleStartAiGeneration}
-              disabled={!businessName.trim()}
-              style={({ pressed }) => [
-                styles.generateCta,
-                !businessName.trim() && styles.generateCtaDisabled,
-                pressed && { opacity: 0.85 },
-              ]}
-            >
-              <AppIcon name="Sparkles" size={20} color={businessName.trim() ? '#000000' : '#8E8E93'} />
-              <AppText style={[styles.generateCtaText, !businessName.trim() && { color: '#8E8E93' }]} weight="extrabold">
-                Generate AI Mini-Site & NFC Card (30s)
+            {/* Feature Bullets */}
+            <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.featureBullets}>
+              {[
+                { icon: '📋', text: 'AI-generated services & pricing table' },
+                { icon: '📅', text: 'Live booking & business hours engine' },
+                { icon: '🎴', text: 'Physical NFC Print-on-Demand card' },
+                { icon: '🔗', text: 'Custom shareable link for all platforms' },
+              ].map((f, i) => (
+                <View key={i} style={styles.featureBullet}>
+                  <AppText style={styles.featureBulletEmoji}>{f.icon}</AppText>
+                  <AppText style={styles.featureBulletText}>{f.text}</AppText>
+                </View>
+              ))}
+            </Animated.View>
+
+            {/* CTA */}
+            <Animated.View entering={FadeInDown.delay(250).springify()}>
+              <Pressable
+                onPress={handleStartAiGeneration}
+                disabled={!businessName.trim()}
+                style={({ pressed }) => [
+                  styles.generateCta,
+                  !businessName.trim() && styles.generateCtaDisabled,
+                  pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
+                ]}
+              >
+                <LinearGradient
+                  colors={
+                    businessName.trim()
+                      ? ['#FFFFFF', '#E5E5EA']
+                      : ['#2C2C2E', '#2C2C2E']
+                  }
+                  style={styles.generateCtaGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <AppText style={styles.generateCtaEmoji}>✨</AppText>
+                  <AppText
+                    style={[styles.generateCtaText, !businessName.trim() && { color: '#8E8E93' }]}
+                    weight="extrabold"
+                  >
+                    Generate AI Mini-Site & NFC Card
+                  </AppText>
+                  <View style={styles.generateCtaBadge}>
+                    <AppText style={styles.generateCtaBadgeText} weight="bold">30s</AppText>
+                  </View>
+                </LinearGradient>
+              </Pressable>
+              <AppText style={styles.bottomMicroText}>
+                No credit card required · Instant mobile preview
               </AppText>
-            </Pressable>
-            <AppText style={styles.bottomMicroText}>No credit card required · Instant mobile preview</AppText>
+            </Animated.View>
           </ScrollView>
         )}
 
-        {/* STEP 2: Generating Sequence */}
+        {/* ── STEP 2: Generating ─────────────────────────────────────────── */}
         {step === 'generating' && (
           <Animated.View entering={FadeIn} exiting={FadeOut} style={styles.generatingContainer}>
-            <View style={styles.loadingSpinnerRing}>
-              <ActivityIndicator size="large" color="#1DB954" />
-            </View>
+            <PulsingRing color={accent} />
+
             <AppText style={styles.generatingTitle} weight="extrabold">
-              Synthesizing Business Mini-Site
+              Synthesizing Your Mini-Site
             </AppText>
-            <AppText style={styles.generatingStatus} weight="medium">
-              {generationSteps[generationPhase]}
+            <AppText style={[styles.generatingBiz, { color: accent }]} weight="bold">
+              {businessName}
             </AppText>
+
+            {/* Step List */}
+            <View style={styles.stepsList}>
+              {GENERATION_STEPS.map((s, idx) => {
+                const isDone = idx < generationPhase;
+                const isActive = idx === generationPhase;
+                return (
+                  <View key={idx} style={styles.stepRow}>
+                    <View style={[
+                      styles.stepDot,
+                      isDone && { backgroundColor: '#30D158' },
+                      isActive && { backgroundColor: accent, borderColor: accent },
+                    ]}>
+                      {isDone
+                        ? <AppIcon name="Check" size={10} color="#000000" />
+                        : isActive
+                          ? <ActivityIndicator size="small" color="#000000" />
+                          : null
+                      }
+                    </View>
+                    <AppText
+                      style={[
+                        styles.stepText,
+                        isDone && { color: '#30D158' },
+                        isActive && { color: '#FFFFFF' },
+                      ]}
+                    >
+                      {GENERATION_STEPS[idx].icon} {s.text}
+                    </AppText>
+                  </View>
+                );
+              })}
+            </View>
+
+            {/* Progress Bar */}
             <View style={styles.progressTrack}>
-              <View style={[styles.progressBar, { width: `${(generationPhase + 1) * 25}%` }]} />
+              <Animated.View
+                style={[
+                  styles.progressBar,
+                  {
+                    width: `${Math.min(100, ((generationPhase + 1) / GENERATION_STEPS.length) * 100)}%`,
+                    backgroundColor: accent,
+                  },
+                ]}
+              />
             </View>
           </Animated.View>
         )}
 
-        {/* STEP 3: World-Class Dual Preview (Mini-Site + NFC POD Card) */}
+        {/* ── STEP 3: Preview ────────────────────────────────────────────── */}
         {step === 'preview' && (
-          <Animated.View entering={FadeInDown} style={styles.previewContainer}>
-            {/* Segmented Toggle: Mini-Site vs Physical NFC Card */}
+          <Animated.View entering={FadeInUp.springify()} style={styles.previewContainer}>
+
+            {/* Tab Switcher */}
             <View style={styles.segmentedControl}>
               <Pressable
                 onPress={() => { HapticTap.light(); setActiveTab('site'); }}
                 style={[styles.segmentBtn, activeTab === 'site' && styles.segmentBtnActive]}
               >
-                <AppIcon name="Globe" size={16} color={activeTab === 'site' ? '#000000' : '#FFFFFF'} />
-                <AppText style={[styles.segmentText, activeTab === 'site' && styles.segmentTextActive]} weight="bold">
-                  AI Mini-Site (Live)
+                <AppText style={[styles.segmentText, activeTab === 'site' && styles.segmentTextActive]}>
+                  🌐 AI Mini-Site
                 </AppText>
               </Pressable>
               <Pressable
                 onPress={() => { HapticTap.light(); setActiveTab('card'); }}
                 style={[styles.segmentBtn, activeTab === 'card' && styles.segmentBtnActive]}
               >
-                <AppIcon name="CreditCard" size={16} color={activeTab === 'card' ? '#000000' : '#FFFFFF'} />
-                <AppText style={[styles.segmentText, activeTab === 'card' && styles.segmentTextActive]} weight="bold">
-                  Physical NFC POD Card
+                <AppText style={[styles.segmentText, activeTab === 'card' && styles.segmentTextActive]}>
+                  🎴 NFC POD Card
                 </AppText>
               </Pressable>
             </View>
 
             {activeTab === 'site' ? (
               <ScrollView style={styles.siteScroll} showsVerticalScrollIndicator={false}>
-                {/* Simulated Phone Shell for Mini-Site */}
+                {/* Phone Mockup */}
                 <View style={styles.phoneMockup}>
-                  {/* Top Bar */}
+                  {/* URL Bar */}
+                  <View style={styles.urlBar}>
+                    <AppIcon name="Globe" size={12} color="#30D158" />
+                    <AppText style={styles.urlText} weight="medium">
+                      sitehub.app/{businessName.toLowerCase().replace(/\s+/g, '-')}
+                    </AppText>
+                    <View style={styles.secureBadge}>
+                      <AppIcon name="Lock" size={10} color="#30D158" />
+                    </View>
+                  </View>
+
+                  {/* Business Header */}
                   <View style={styles.mockupHeader}>
-                    <View style={styles.mockupAvatar}>
-                      <AppText style={styles.mockupAvatarText} weight="bold">
+                    <View style={[styles.mockupAvatar, { backgroundColor: accent }]}>
+                      <AppText style={styles.mockupAvatarText} weight="extrabold">
                         {(businessName[0] || 'B').toUpperCase()}
                       </AppText>
                     </View>
@@ -368,98 +676,169 @@ export function AiBusinessSiteModal({
 
                   <AppText style={styles.mockupTagline}>{tagline}</AppText>
 
-                  {/* Hours & Instant Booking Bar */}
-                  <View style={styles.hoursCard}>
-                    <AppIcon name="Clock" size={16} color="#1DB954" />
+                  {/* Hours Card */}
+                  <View style={[styles.hoursCard, { borderLeftColor: accent }]}>
+                    <AppIcon name="Clock" size={14} color={accent} />
                     <AppText style={styles.hoursText}>{selectedCategory.defaultHours}</AppText>
                   </View>
 
                   {/* Primary CTA */}
-                  <Pressable style={styles.sitePrimaryCta}>
-                    <AppText style={styles.sitePrimaryCtaText} weight="bold">
+                  <Pressable style={[styles.sitePrimaryCta, { backgroundColor: accent }]}>
+                    <AppText
+                      style={[styles.sitePrimaryCtaText, { color: '#000000' }]}
+                      weight="extrabold"
+                    >
                       {selectedCategory.ctaText}
                     </AppText>
                   </Pressable>
 
-                  {/* Menu / Services & Real Pricing Table */}
+                  {/* Contact Row */}
+                  {contact.trim() !== '' && (
+                    <View style={styles.contactRow}>
+                      <AppIcon name="Phone" size={14} color="#8E8E93" />
+                      <AppText style={styles.contactText}>{contact}</AppText>
+                    </View>
+                  )}
+
+                  {/* Services & Pricing Table */}
                   <View style={styles.menuSection}>
                     <View style={styles.menuHeaderRow}>
                       <AppText style={styles.menuTitle} weight="extrabold">
-                        {selectedCategory.id === 'food' ? 'Featured Menu' : 'Services & Pricing'}
+                        {selectedCategory.id === 'food' ? '🍽️ Featured Menu' : '📋 Services & Pricing'}
                       </AppText>
-                      <AppText style={styles.currencyBadge}>USD ($)</AppText>
+                      <View style={[styles.aiGenBadge, { backgroundColor: `${accent}20` }]}>
+                        <AppText style={[styles.aiGenBadgeText, { color: accent }]} weight="bold">
+                          AI GENERATED
+                        </AppText>
+                      </View>
                     </View>
 
                     {selectedCategory.sampleItems.map((item, idx) => (
-                      <View key={idx} style={styles.menuItemRow}>
+                      <Animated.View
+                        key={idx}
+                        entering={FadeInDown.delay(idx * 80).springify()}
+                        style={styles.menuItemRow}
+                      >
                         <View style={styles.menuItemLeft}>
                           <AppText style={styles.menuItemName} weight="bold">{item.name}</AppText>
                           <AppText style={styles.menuItemDesc}>{item.desc}</AppText>
                         </View>
-                        <View style={styles.menuPriceBadge}>
-                          <AppText style={styles.menuPriceText} weight="extrabold">{item.price}</AppText>
+                        <View style={[styles.menuPriceBadge, { borderColor: `${accent}40` }]}>
+                          <AppText style={[styles.menuPriceText, { color: accent }]} weight="extrabold">
+                            {item.price}
+                          </AppText>
                         </View>
-                      </View>
+                      </Animated.View>
+                    ))}
+                  </View>
+
+                  {/* Social Share Row */}
+                  <View style={styles.socialShareRow}>
+                    <AppText style={styles.socialShareLabel}>Share via:</AppText>
+                    {['Share2', 'MessageCircle', 'Instagram', 'Linkedin'].map((icon, i) => (
+                      <Pressable key={i} style={styles.socialShareIcon} onPress={handleShareSite}>
+                        <AppIcon name={icon as AppIconName} size={18} color="#FFFFFF" />
+                      </Pressable>
                     ))}
                   </View>
                 </View>
               </ScrollView>
             ) : (
-              <ScrollView style={styles.siteScroll} contentContainerStyle={styles.cardTabContainer}>
-                {/* Physical NFC POD Card Mockup */}
-                <View style={styles.physicalCardWrapper}>
+              <ScrollView
+                style={styles.siteScroll}
+                contentContainerStyle={styles.cardTabContainer}
+                showsVerticalScrollIndicator={false}
+              >
+                {/* Physical Card Mockup */}
+                <Animated.View entering={ZoomIn.springify()} style={styles.physicalCardWrapper}>
                   <LinearGradient
-                    colors={['#1c1c1e', '#000000', '#111114']}
+                    colors={selectedCategory.cardGradient}
                     style={styles.physicalCardFront}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                   >
+                    {/* Card Top */}
                     <View style={styles.cardChipRow}>
                       <View style={styles.goldChip}>
-                        <View style={styles.chipInner} />
+                        <View style={styles.chipGrid}>
+                          {[0, 1, 2, 3, 4, 5].map(i => (
+                            <View key={i} style={styles.chipCell} />
+                          ))}
+                        </View>
                       </View>
-                      <AppIcon name="Nfc" size={26} color="#FFFFFF" />
+                      <AppIcon name="Nfc" size={24} color="rgba(255,255,255,0.7)" />
                     </View>
+
+                    {/* Card Middle — Category Accent Line */}
+                    <View style={[styles.cardAccentLine, { backgroundColor: accent }]} />
+
+                    {/* Card Bottom */}
                     <View style={styles.cardBottomRow}>
                       <View>
-                        <AppText style={styles.cardBizLabel} weight="medium">SMART NFC SMARTPASS</AppText>
+                        <AppText style={styles.cardBizLabel} weight="medium">
+                          {selectedCategory.name.toUpperCase()}
+                        </AppText>
                         <AppText style={styles.cardBizName} weight="extrabold">
                           {businessName.toUpperCase()}
                         </AppText>
+                        {contact.trim() !== '' && (
+                          <AppText style={styles.cardContact}>{contact}</AppText>
+                        )}
                       </View>
-                      <AppText style={styles.cardPodMark} weight="bold">SITEHUB POD</AppText>
+                      <View style={styles.cardPodMarkContainer}>
+                        <AppText style={styles.cardPodMark} weight="bold">SITEHUB</AppText>
+                        <AppText style={styles.cardPodSubMark}>POD</AppText>
+                      </View>
                     </View>
                   </LinearGradient>
-                </View>
+                </Animated.View>
 
+                {/* POD Specs */}
                 <View style={styles.podSpecsCard}>
-                  <View style={styles.specRow}>
-                    <AppIcon name="Check" size={16} color="#1DB954" />
-                    <AppText style={styles.specText}>1-Tap Beams Your Mini-Site without Any App</AppText>
-                  </View>
-                  <View style={styles.specRow}>
-                    <AppIcon name="Check" size={16} color="#1DB954" />
-                    <AppText style={styles.specText}>Matte Black Luxury Scratch-Proof Finish</AppText>
-                  </View>
-                  <View style={styles.specRow}>
-                    <AppIcon name="Check" size={16} color="#1DB954" />
-                    <AppText style={styles.specText}>Print-on-Demand (POD) Worldwide Free Express</AppText>
-                  </View>
+                  {[
+                    { icon: '✅', text: '1-Tap beams your mini-site to any phone without an app' },
+                    { icon: '🎨', text: 'Matte luxury scratch-proof finish, full-color print' },
+                    { icon: '🌍', text: 'Print-on-Demand worldwide with free express shipping' },
+                    { icon: '🔄', text: 'Update your site anytime — card always stays current' },
+                  ].map((spec, i) => (
+                    <Animated.View
+                      key={i}
+                      entering={FadeInDown.delay(i * 60).springify()}
+                      style={styles.specRow}
+                    >
+                      <AppText style={styles.specEmoji}>{spec.icon}</AppText>
+                      <AppText style={styles.specText}>{spec.text}</AppText>
+                    </Animated.View>
+                  ))}
                 </View>
 
-                <Pressable style={styles.orderPodCta} onPress={() => { HapticTap.heavy(); onClose(); }}>
-                  <AppIcon name="ShoppingBag" size={18} color="#000000" />
+                {/* Order CTA */}
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.orderPodCta,
+                    pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
+                  ]}
+                  onPress={() => { HapticTap.heavy(); onClose(); }}
+                >
+                  <AppText style={styles.orderPodCtaEmoji}>🛍️</AppText>
                   <AppText style={styles.orderPodCtaText} weight="extrabold">
                     Order Physical NFC Card — $29.95
                   </AppText>
                 </Pressable>
+
+                <AppText style={styles.podFreeShipping}>✈️ Free worldwide express shipping · Delivered in 5–7 days</AppText>
               </ScrollView>
             )}
 
-            {/* Bottom Action Footer */}
+            {/* Footer Actions */}
             <View style={styles.footerActions}>
+              <Pressable style={styles.shareBtn} onPress={handleShareSite}>
+                <AppIcon name="Share2" size={18} color="#FFFFFF" />
+                <AppText style={styles.shareBtnText} weight="bold">Share</AppText>
+              </Pressable>
               <Pressable style={styles.editBtn} onPress={handleReset}>
-                <AppText style={styles.editBtnText} weight="bold">Modify Details</AppText>
+                <AppIcon name="Edit3" size={16} color="#FFFFFF" />
+                <AppText style={styles.editBtnText} weight="bold">Edit</AppText>
               </Pressable>
               <Pressable
                 style={styles.activateBtn}
@@ -470,31 +849,36 @@ export function AiBusinessSiteModal({
                 }}
               >
                 <AppText style={styles.activateBtnText} weight="extrabold">
-                  Publish Mini-Site Now
+                  🚀 Publish Mini-Site
                 </AppText>
               </Pressable>
             </View>
           </Animated.View>
         )}
+
       </View>
     </Modal>
   );
 }
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000000',
-    paddingTop: Platform.OS === 'ios' ? 54 : 32,
+    paddingTop: Platform.OS === 'ios' ? 54 : 30,
   },
+
+  // ── Header
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingBottom: 14,
     borderBottomWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(255,255,255,0.07)',
   },
   badgeRow: {
     flexDirection: 'row',
@@ -509,98 +893,110 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(29,185,84,0.3)',
   },
   badgeText: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#1DB954',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   podBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
   },
   podBadgeText: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#FFFFFF',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   headerTitle: {
     fontSize: 22,
     color: '#FFFFFF',
     letterSpacing: -0.3,
   },
+  headerSubtitle: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.45)',
+    marginTop: 2,
+  },
   closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 4,
   },
-  bodyScroll: {
-    flex: 1,
-  },
-  bodyContent: {
-    padding: 20,
-    paddingBottom: 60,
-  },
+
+  // ── Input Step
+  bodyScroll: { flex: 1 },
+  bodyContent: { padding: 20, paddingBottom: 60 },
+
   explainerCard: {
     backgroundColor: '#111114',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255,255,255,0.08)',
     padding: 16,
-    marginBottom: 20,
+    marginBottom: 24,
   },
+  explainerIconRow: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'flex-start',
+  },
+  explainerEmoji: { fontSize: 22, marginTop: 2 },
   explainerQuote: {
+    flex: 1,
     color: '#E5E5EA',
     fontSize: 13,
     lineHeight: 20,
     fontStyle: 'italic',
   },
+
   sectionLabel: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14,
     marginBottom: 12,
+    letterSpacing: 0.2,
   },
   categoryChips: {
-    gap: 10,
+    gap: 8,
+    paddingBottom: 4,
     marginBottom: 24,
   },
   categoryChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 7,
     backgroundColor: '#1C1C1E',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
     borderRadius: 24,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 10,
   },
-  categoryChipActive: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#FFFFFF',
-  },
+  categoryChipEmoji: { fontSize: 15 },
   categoryChipText: {
     color: '#FFFFFF',
     fontSize: 13,
   },
-  categoryChipTextActive: {
-    color: '#000000',
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
+
+  inputGroup: { marginBottom: 14 },
   fieldTitle: {
-    color: 'rgba(235,235,245,0.7)',
+    color: 'rgba(235,235,245,0.6)',
     fontSize: 12,
     marginBottom: 6,
+    letterSpacing: 0.2,
   },
   inputBox: {
     flexDirection: 'row',
@@ -618,74 +1014,127 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 15,
   },
+
+  featureBullets: {
+    backgroundColor: '#0D0D10',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.07)',
+    padding: 14,
+    gap: 10,
+    marginBottom: 20,
+  },
+  featureBullet: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  featureBulletEmoji: { fontSize: 16 },
+  featureBulletText: {
+    color: 'rgba(235,235,245,0.75)',
+    fontSize: 13,
+  },
+
   generateCta: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    height: 56,
+    overflow: 'hidden',
+    marginTop: 4,
+  },
+  generateCtaDisabled: {
+    opacity: 0.5,
+  },
+  generateCtaGradient: {
+    height: 58,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    marginTop: 12,
+    paddingHorizontal: 20,
   },
-  generateCtaDisabled: {
-    backgroundColor: '#2C2C2E',
-  },
+  generateCtaEmoji: { fontSize: 20 },
   generateCtaText: {
     color: '#000000',
     fontSize: 16,
   },
+  generateCtaBadge: {
+    backgroundColor: '#000000',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  generateCtaBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    letterSpacing: 0.5,
+  },
   bottomMicroText: {
-    color: 'rgba(255,255,255,0.4)',
-    fontSize: 12,
+    color: 'rgba(255,255,255,0.35)',
+    fontSize: 11,
     textAlign: 'center',
     marginTop: 10,
   },
+
+  // ── Generating Step
   generatingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 30,
   },
-  loadingSpinnerRing: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(29, 185, 84, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-  },
   generatingTitle: {
     color: '#FFFFFF',
     fontSize: 22,
-    marginBottom: 10,
+    marginBottom: 4,
     textAlign: 'center',
   },
-  generatingStatus: {
-    color: '#1DB954',
-    fontSize: 14,
+  generatingBiz: {
+    fontSize: 16,
+    marginBottom: 28,
     textAlign: 'center',
-    marginBottom: 24,
+  },
+  stepsList: {
+    width: '100%',
+    gap: 12,
+    marginBottom: 28,
+  },
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  stepDot: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#1C1C1E',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepText: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 13,
+    flex: 1,
   },
   progressTrack: {
-    width: 240,
+    width: '100%',
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     overflow: 'hidden',
   },
   progressBar: {
     height: '100%',
-    backgroundColor: '#1DB954',
+    borderRadius: 2,
   },
-  previewContainer: {
-    flex: 1,
-  },
+
+  // ── Preview Step
+  previewContainer: { flex: 1 },
   segmentedControl: {
     flexDirection: 'row',
     marginHorizontal: 20,
-    marginTop: 12,
+    marginTop: 14,
     marginBottom: 12,
     backgroundColor: '#1C1C1E',
     borderRadius: 12,
@@ -700,65 +1149,81 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 9,
   },
-  segmentBtnActive: {
-    backgroundColor: '#FFFFFF',
-  },
-  segmentText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-  },
-  segmentTextActive: {
-    color: '#000000',
-  },
-  siteScroll: {
-    flex: 1,
-  },
+  segmentBtnActive: { backgroundColor: '#FFFFFF' },
+  segmentText: { color: '#FFFFFF', fontSize: 13 },
+  segmentTextActive: { color: '#000000' },
+
+  siteScroll: { flex: 1 },
+
   phoneMockup: {
     marginHorizontal: 20,
-    backgroundColor: '#111114',
-    borderRadius: 24,
+    backgroundColor: '#0D0D10',
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    padding: 18,
-    marginBottom: 20,
+    borderColor: 'rgba(255,255,255,0.1)',
+    padding: 16,
+    marginBottom: 24,
+  },
+  urlBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#18181C',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    marginBottom: 14,
+  },
+  urlText: {
+    flex: 1,
+    color: 'rgba(255,255,255,0.55)',
+    fontSize: 11,
+  },
+  secureBadge: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: 'rgba(48,209,88,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   mockupHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   mockupAvatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#FFFFFF',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
   mockupAvatarText: {
     color: '#000000',
-    fontSize: 22,
+    fontSize: 20,
   },
-  mockupMeta: {
-    flex: 1,
-  },
+  mockupMeta: { flex: 1 },
   mockupBizName: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 17,
   },
   mockupCategory: {
-    color: 'rgba(255,255,255,0.5)',
+    color: 'rgba(255,255,255,0.45)',
     fontSize: 12,
+    marginTop: 2,
   },
   liveOpenBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: 'rgba(48, 209, 88, 0.15)',
+    backgroundColor: 'rgba(48, 209, 88, 0.12)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(48,209,88,0.3)',
   },
   liveGreenDot: {
     width: 6,
@@ -769,56 +1234,61 @@ const styles = StyleSheet.create({
   liveOpenText: {
     color: '#30D158',
     fontSize: 10,
+    letterSpacing: 0.5,
   },
   mockupTagline: {
     color: '#E5E5EA',
-    fontSize: 14,
+    fontSize: 13,
     lineHeight: 20,
-    marginBottom: 16,
+    marginBottom: 12,
+    fontStyle: 'italic',
   },
   hoursCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     backgroundColor: '#18181C',
-    padding: 12,
+    padding: 11,
     borderRadius: 10,
-    marginBottom: 16,
+    marginBottom: 12,
+    borderLeftWidth: 3,
   },
-  hoursText: {
-    color: '#E5E5EA',
-    fontSize: 12,
-  },
+  hoursText: { color: '#E5E5EA', fontSize: 12 },
   sitePrimaryCta: {
-    backgroundColor: '#1DB954',
     borderRadius: 12,
-    paddingVertical: 14,
+    paddingVertical: 13,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 12,
   },
-  sitePrimaryCtaText: {
-    color: '#000000',
-    fontSize: 15,
+  sitePrimaryCtaText: { fontSize: 15 },
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    marginBottom: 12,
+  },
+  contactText: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 12,
   },
   menuSection: {
     borderTopWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    paddingTop: 16,
+    borderColor: 'rgba(255,255,255,0.06)',
+    paddingTop: 14,
   },
   menuHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 12,
   },
-  menuTitle: {
-    color: '#FFFFFF',
-    fontSize: 16,
+  menuTitle: { color: '#FFFFFF', fontSize: 15 },
+  aiGenBadge: {
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 5,
   },
-  currencyBadge: {
-    color: '#8E8E93',
-    fontSize: 11,
-  },
+  aiGenBadgeText: { fontSize: 9, letterSpacing: 0.5 },
   menuItemRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -827,46 +1297,56 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: 'rgba(255,255,255,0.04)',
   },
-  menuItemLeft: {
-    flex: 1,
-    paddingRight: 12,
-  },
-  menuItemName: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    marginBottom: 3,
-  },
-  menuItemDesc: {
-    color: '#8E8E93',
-    fontSize: 12,
-    lineHeight: 16,
-  },
+  menuItemLeft: { flex: 1, paddingRight: 12 },
+  menuItemName: { color: '#FFFFFF', fontSize: 13, marginBottom: 3 },
+  menuItemDesc: { color: '#8E8E93', fontSize: 11, lineHeight: 16 },
   menuPriceBadge: {
-    backgroundColor: '#1C1C1E',
+    borderWidth: 1,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 6,
+    borderRadius: 8,
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
-  menuPriceText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-  },
-  cardTabContainer: {
-    padding: 20,
+  menuPriceText: { fontSize: 13 },
+  socialShareRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 10,
+    marginTop: 14,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
+  socialShareLabel: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 12,
+    flex: 1,
+  },
+  socialShareIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#1C1C1E',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+
+  // NFC Card
+  cardTabContainer: { padding: 20, alignItems: 'center', paddingBottom: 40 },
   physicalCardWrapper: {
     width: '100%',
     aspectRatio: 1.586,
     borderRadius: 18,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.18)',
+    borderColor: 'rgba(255,255,255,0.15)',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.6,
-    shadowRadius: 20,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.7,
+    shadowRadius: 24,
+    elevation: 16,
     marginBottom: 20,
   },
   physicalCardFront: {
@@ -881,17 +1361,28 @@ const styles = StyleSheet.create({
   },
   goldChip: {
     width: 44,
-    height: 34,
-    borderRadius: 6,
+    height: 32,
+    borderRadius: 5,
     backgroundColor: '#D4AF37',
-    padding: 4,
-    justifyContent: 'center',
+    overflow: 'hidden',
+    padding: 3,
   },
-  chipInner: {
+  chipGrid: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#996515',
-    borderRadius: 3,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 2,
+  },
+  chipCell: {
+    width: '30%',
+    height: 8,
+    backgroundColor: '#B8860B',
+    borderRadius: 1,
+  },
+  cardAccentLine: {
+    height: 2,
+    borderRadius: 1,
+    width: '40%',
   },
   cardBottomRow: {
     flexDirection: 'row',
@@ -899,21 +1390,34 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   cardBizLabel: {
-    color: '#8E8E93',
-    fontSize: 9,
-    letterSpacing: 1,
+    color: 'rgba(255,255,255,0.45)',
+    fontSize: 8,
+    letterSpacing: 1.5,
     marginBottom: 3,
   },
   cardBizName: {
     color: '#FFFFFF',
-    fontSize: 17,
-    letterSpacing: 0.5,
+    fontSize: 16,
+    letterSpacing: 0.8,
   },
-  cardPodMark: {
-    color: 'rgba(255,255,255,0.4)',
+  cardContact: {
+    color: 'rgba(255,255,255,0.5)',
     fontSize: 10,
-    letterSpacing: 1,
+    marginTop: 3,
   },
+  cardPodMarkContainer: { alignItems: 'flex-end' },
+  cardPodMark: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 9,
+    letterSpacing: 1.5,
+  },
+  cardPodSubMark: {
+    color: 'rgba(255,255,255,0.3)',
+    fontSize: 8,
+    letterSpacing: 2,
+    textAlign: 'right',
+  },
+
   podSpecsCard: {
     width: '100%',
     backgroundColor: '#111114',
@@ -921,64 +1425,79 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
     padding: 16,
-    gap: 10,
-    marginBottom: 20,
+    gap: 12,
+    marginBottom: 16,
   },
   specRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
-  specText: {
-    color: '#E5E5EA',
-    fontSize: 13,
-  },
+  specEmoji: { fontSize: 16 },
+  specText: { color: '#E5E5EA', fontSize: 13, flex: 1, lineHeight: 18 },
+
   orderPodCta: {
     backgroundColor: '#FFFFFF',
     width: '100%',
-    height: 54,
-    borderRadius: 14,
+    height: 56,
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 10,
+    marginBottom: 10,
   },
-  orderPodCtaText: {
-    color: '#000000',
-    fontSize: 15,
+  orderPodCtaEmoji: { fontSize: 20 },
+  orderPodCtaText: { color: '#000000', fontSize: 15 },
+  podFreeShipping: {
+    color: 'rgba(255,255,255,0.35)',
+    fontSize: 11,
+    textAlign: 'center',
   },
+
+  // Footer
   footerActions: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 8,
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderTopWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(255,255,255,0.07)',
     backgroundColor: '#000000',
   },
+  shareBtn: {
+    height: 50,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
+  },
+  shareBtnText: { color: '#FFFFFF', fontSize: 13 },
   editBtn: {
+    height: 50,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
+  },
+  editBtnText: { color: '#FFFFFF', fontSize: 13 },
+  activateBtn: {
     flex: 1,
     height: 50,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
   },
-  editBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-  },
-  activateBtn: {
-    flex: 1.5,
-    height: 50,
-    borderRadius: 12,
-    backgroundColor: '#1DB954',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  activateBtnText: {
-    color: '#000000',
-    fontSize: 14,
-  },
+  activateBtnText: { color: '#000000', fontSize: 14 },
 });

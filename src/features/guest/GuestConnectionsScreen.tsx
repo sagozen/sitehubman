@@ -10,6 +10,7 @@
  */
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import {
+  Modal,
   Pressable,
   StyleSheet,
   TextInput,
@@ -426,40 +427,47 @@ export function GuestConnectionsScreen() {
           />
 
           {/* ── Contact Detail Popup ── */}
-          {modalVisible && selectedContact && (
-            <View style={StyleSheet.absoluteFill}>
-              <BlurView style={StyleSheet.absoluteFill} tint={isDark ? "dark" : "light"} intensity={40} />
+          <Modal
+            visible={modalVisible && Boolean(selectedContact)}
+            animationType="fade"
+            transparent
+            onRequestClose={handleCloseModal}
+          >
+            <View style={styles.modalBackdrop}>
+              <BlurView style={StyleSheet.absoluteFill} tint={isDark ? "dark" : "light"} intensity={70} />
               <Pressable style={StyleSheet.absoluteFillObject} onPress={handleCloseModal} />
-              <View style={styles.modalOverlay}>
-                <Animated.View entering={FadeInUp.springify().damping(16)} style={[styles.modalCard, { backgroundColor: isDark ? '#121216' : '#FFFFFF', borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0,0,0,0.08)' }]}>
-                  
-                  {/* Modal Avatar */}
-                  <LinearGradient colors={getGradientForName(selectedContact.name) as any} style={styles.modalAvatar}>
-                    <AppText style={styles.modalAvatarText} weight="extrabold">
-                      {(selectedContact.name || 'C')[0].toUpperCase()}
-                    </AppText>
-                  </LinearGradient>
+              <View style={styles.modalCenterContainer} pointerEvents="box-none">
+                {selectedContact && (
+                  <Animated.View entering={FadeInUp.springify().damping(18).stiffness(200)} style={[styles.modalCard, { backgroundColor: isDark ? '#141418' : '#FFFFFF', borderColor: isDark ? 'rgba(255, 255, 255, 0.14)' : 'rgba(0,0,0,0.1)' }]}>
+                    
+                    {/* Modal Avatar */}
+                    <LinearGradient colors={getGradientForName(selectedContact.name) as any} style={styles.modalAvatar}>
+                      <AppText style={styles.modalAvatarText} weight="extrabold">
+                        {(selectedContact.name || 'C')[0].toUpperCase()}
+                      </AppText>
+                    </LinearGradient>
 
-                  {/* Modal Contact Info */}
-                  <AppText style={[styles.modalName, { color: textColor }]} weight="extrabold">{selectedContact.name}</AppText>
-                  <AppText style={[styles.modalSub, { color: subTextColor }]}>{selectedContact.subtitle || 'Executive Contact'}</AppText>
-                  <AppText style={[styles.modalMeta, { color: subTextColor }]}>Verified NFC Exchange · Direct Lead</AppText>
+                    {/* Modal Contact Info */}
+                    <AppText style={[styles.modalName, { color: textColor }]} weight="extrabold">{selectedContact.name}</AppText>
+                    <AppText style={[styles.modalSub, { color: subTextColor }]}>{selectedContact.subtitle || 'Executive Contact'}</AppText>
+                    <AppText style={[styles.modalMeta, { color: subTextColor }]}>Verified NFC Exchange · Direct Lead</AppText>
 
-                  {/* Action Bubbles Row */}
-                  <View style={styles.modalActionsRow}>
-                    <ActionBubble icon="Phone" label="Call" onPress={() => { handleCall(selectedContact); handleCloseModal(); }} colors={['#34e89e', '#0f3443']} isDark={isDark} />
-                    <ActionBubble icon="MessageSquare" label="WhatsApp" onPress={() => { handleWhatsApp(selectedContact); handleCloseModal(); }} colors={['#25D366', '#128C7E']} isDark={isDark} />
-                    <ActionBubble icon="Mail" label="Email" onPress={() => { handleEmail(selectedContact); handleCloseModal(); }} colors={['#00C6FF', '#0072FF']} isDark={isDark} />
-                    <ActionBubble icon="Bookmark" label="Save" onPress={() => { handleSave(selectedContact); handleCloseModal(); }} colors={['#f12711', '#f5af19']} isDark={isDark} />
-                  </View>
+                    {/* Action Bubbles Row */}
+                    <View style={styles.modalActionsRow}>
+                      <ActionBubble icon="Phone" label="Call" onPress={() => { handleCall(selectedContact); handleCloseModal(); }} colors={['#0A84FF', '#0055B3']} isDark={isDark} />
+                      <ActionBubble icon="MessageSquare" label="WhatsApp" onPress={() => { handleWhatsApp(selectedContact); handleCloseModal(); }} colors={['#30D158', '#1E8E3E']} isDark={isDark} />
+                      <ActionBubble icon="Mail" label="Email" onPress={() => { handleEmail(selectedContact); handleCloseModal(); }} colors={['#5E5CE6', '#3634A3']} isDark={isDark} />
+                      <ActionBubble icon="Bookmark" label="Save" onPress={() => { handleSave(selectedContact); handleCloseModal(); }} colors={['#FF9F0A', '#C27200']} isDark={isDark} />
+                    </View>
 
-                  <Pressable style={styles.modalCloseBtn} onPress={handleCloseModal}>
-                    <AppText style={[styles.modalCloseText, { color: subTextColor }]}>Dismiss</AppText>
-                  </Pressable>
-                </Animated.View>
+                    <Pressable style={styles.modalCloseBtn} onPress={handleCloseModal} hitSlop={12}>
+                      <AppText style={[styles.modalCloseText, { color: subTextColor }]} weight="bold">Dismiss</AppText>
+                    </Pressable>
+                  </Animated.View>
+                )}
               </View>
             </View>
-          )}
+          </Modal>
         </View>
       </SafeAreaView>
     </LinearGradient>
@@ -632,13 +640,18 @@ const styles = StyleSheet.create({
   },
 
   // ── Modal ──
-  modalOverlay: {
+  modalBackdrop: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
-    justifyContent: 'flex-end', // Bottom sheet style
+    justifyContent: 'center',
     zIndex: 999,
-    padding: 20,
-    paddingBottom: 40,
+  },
+  modalCenterContainer: {
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
   },
   modalCard: {
     width: '100%',
