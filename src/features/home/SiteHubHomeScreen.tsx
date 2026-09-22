@@ -43,11 +43,11 @@ const TILE_BG = '#13131A';
 
 // ── Custom premium icon images ───────────────────────────────────────────────
 const CUSTOM_ICONS = {
-  accounts:  require('@/../assets/images/icon_accounts.jpg'),
-  transfers: require('@/../assets/images/icon_transfers.jpg'),
-  payments:  require('@/../assets/images/icon_payments.jpg'),
-  analytics: require('@/../assets/images/icon_analytics.jpg'),
-  favorites: require('@/../assets/images/icon_favorites.jpg'),
+  accounts:  require('@/assets/images/icon_accounts.jpg'),
+  transfers: require('@/assets/images/icon_transfers.jpg'),
+  payments:  require('@/assets/images/icon_payments.jpg'),
+  analytics: require('@/assets/images/icon_analytics.jpg'),
+  favorites: require('@/assets/images/icon_favorites.jpg'),
 } as const;
 
 // ── Bento data ────────────────────────────────────────────────────────────────
