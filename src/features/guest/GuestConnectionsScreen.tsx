@@ -88,7 +88,7 @@ const ContactRow = ({ item, index, handleOpenContact, isDark }: any) => {
 
   return (
     <Pressable
-      style={({ pressed }) => [styles.contactRow, { borderBottomColor: borderColor, opacity: pressed ? 0.75 : 1 }]}
+      style={({ pressed }) => [styles.contactRow, { opacity: pressed ? 0.75 : 1 }]}
       onPress={() => handleOpenContact(item)}
     >
       <View style={[styles.avatarCircle, { backgroundColor: avatarBg }]}>
@@ -394,7 +394,7 @@ export function GuestConnectionsScreen() {
               <Pressable style={StyleSheet.absoluteFillObject} onPress={handleCloseModal} />
               <View style={styles.modalCenterContainer} pointerEvents="box-none">
                 {selectedContact && (
-                  <Animated.View entering={FadeInUp.springify().damping(18).stiffness(200)} style={[styles.modalCard, { backgroundColor: isDark ? '#141418' : '#FFFFFF', borderColor: isDark ? 'rgba(255, 255, 255, 0.14)' : 'rgba(0,0,0,0.1)' }]}>
+                  <Animated.View entering={FadeInUp.springify().damping(18).stiffness(200)} style={[styles.modalCard, { backgroundColor: isDark ? '#141418' : '#FFFFFF' }]}>
                     
                     {/* Modal Avatar */}
                     <View style={[styles.modalAvatar, { backgroundColor: getAvatarColor(selectedContact.name) }]}>
@@ -496,11 +496,10 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 14,
+    borderRadius: 12,
     paddingHorizontal: 14,
     height: 44,
     gap: 10,
-    borderWidth: 1,
   },
   searchInput: {
     flex: 1,
@@ -536,8 +535,7 @@ const styles = StyleSheet.create({
   contactRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
+    paddingVertical: 12,
     gap: 14,
   },
   avatarCircle: {
@@ -546,10 +544,6 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
   },
   avatarText: {
     color: '#FFFFFF',
@@ -612,8 +606,7 @@ const styles = StyleSheet.create({
   modalCard: {
     width: '100%',
     maxWidth: 400,
-    borderRadius: 32,
-    borderWidth: 1,
+    borderRadius: 20,
     padding: 24,
     alignItems: 'center',
     gap: 6,

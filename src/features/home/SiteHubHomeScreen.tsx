@@ -275,14 +275,12 @@ export function SiteHubHomeScreen() {
                 </AppText>
                 <AppText style={styles.statLabel}>Card Taps</AppText>
               </View>
-              <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <AppText style={styles.statValue} weight="bold">
                   36
                 </AppText>
                 <AppText style={styles.statLabel}>Saved Contacts</AppText>
               </View>
-              <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <AppText style={[styles.statValue, { color: '#0A84FF' }]} weight="bold">
                   {leads.length}
@@ -331,10 +329,7 @@ export function SiteHubHomeScreen() {
                 {leads.slice(0, 4).map((lead, idx) => (
                   <View
                     key={lead.id ?? `lead-${idx}`}
-                    style={[
-                      styles.leadRow,
-                      idx < Math.min(leads.length, 4) - 1 && styles.leadRowBorder,
-                    ]}
+                    style={styles.leadRow}
                   >
                     <View style={styles.leadAvatar}>
                       <AppText style={styles.leadInitials} weight="bold">
@@ -343,29 +338,11 @@ export function SiteHubHomeScreen() {
                     </View>
 
                     <View style={styles.leadInfo}>
-                      <View style={styles.leadNameRow}>
-                        <AppText style={styles.leadName} weight="medium">
-                          {lead.name}
-                        </AppText>
-                        <View
-                          style={[
-                            styles.intentBadge,
-                            lead.followedUp && styles.intentBadgeDone,
-                          ]}
-                        >
-                          <AppText
-                            style={[
-                              styles.intentBadgeText,
-                              lead.followedUp && styles.intentBadgeTextDone,
-                            ]}
-                            weight="medium"
-                          >
-                            {lead.followedUp ? 'Done' : lead.intentLabel}
-                          </AppText>
-                        </View>
-                      </View>
+                      <AppText style={styles.leadName} weight="medium">
+                        {lead.name}
+                      </AppText>
                       <AppText style={styles.leadContact} numberOfLines={1}>
-                        {lead.contactInfo}
+                        {lead.intentLabel ? `${lead.intentLabel} · ` : ''}{lead.contactInfo}
                       </AppText>
                     </View>
 
@@ -400,9 +377,7 @@ export function SiteHubHomeScreen() {
                 onPress={() => router.push('/(tabs)/profile' as any)}
                 hitSlop={8}
               >
-                <View style={styles.toolIcon}>
-                  <AppIcon name="Edit3" size={18} color="#0A84FF" />
-                </View>
+                <AppIcon name="Edit3" size={18} color="#0A84FF" />
                 <AppText style={styles.toolLabel} weight="medium">
                   Edit Card
                 </AppText>
@@ -413,9 +388,7 @@ export function SiteHubHomeScreen() {
                 onPress={() => setShowShareModal(true)}
                 hitSlop={8}
               >
-                <View style={styles.toolIcon}>
-                  <AppIcon name="QrCode" size={18} color="#0A84FF" />
-                </View>
+                <AppIcon name="QrCode" size={18} color="#0A84FF" />
                 <AppText style={styles.toolLabel} weight="medium">
                   QR Code
                 </AppText>
@@ -426,9 +399,7 @@ export function SiteHubHomeScreen() {
                 onPress={handleExportCSV}
                 hitSlop={8}
               >
-                <View style={styles.toolIcon}>
-                  <AppIcon name="Download" size={18} color="#0A84FF" />
-                </View>
+                <AppIcon name="Download" size={18} color="#0A84FF" />
                 <AppText style={styles.toolLabel} weight="medium">
                   Export CSV
                 </AppText>
@@ -439,9 +410,7 @@ export function SiteHubHomeScreen() {
                 onPress={() => router.push('/(tabs)/settings' as any)}
                 hitSlop={8}
               >
-                <View style={styles.toolIcon}>
-                  <AppIcon name="Settings" size={18} color="#0A84FF" />
-                </View>
+                <AppIcon name="Settings" size={18} color="#0A84FF" />
                 <AppText style={styles.toolLabel} weight="medium">
                   Settings
                 </AppText>
@@ -514,11 +483,9 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#1C1C20',
+    backgroundColor: '#1C1C22',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   avatarInitials: {
     color: '#FFFFFF',
@@ -556,23 +523,19 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#111114',
+    backgroundColor: '#141416',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
 
   // ── Business Card ──
   cardSection: {
     marginTop: 8,
-    marginBottom: 24,
+    marginBottom: 28,
   },
   cardPreview: {
-    backgroundColor: '#111114',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: '#141416',
+    borderRadius: 14,
     padding: 20,
   },
   cardHeader: {
@@ -588,7 +551,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
-    backgroundColor: 'rgba(10, 132, 255, 0.1)',
+    backgroundColor: 'rgba(10, 132, 255, 0.12)',
   },
   cardChipText: {
     color: '#0A84FF',
@@ -633,10 +596,8 @@ const styles = StyleSheet.create({
   secondaryActionButton: {
     flex: 1,
     height: 44,
-    backgroundColor: '#1C1C20',
+    backgroundColor: '#1E1E24',
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -649,19 +610,19 @@ const styles = StyleSheet.create({
 
   // ── Sections ──
   section: {
-    marginBottom: 24,
+    marginBottom: 32,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   sectionHeading: {
     color: '#FFFFFF',
     fontSize: 16,
     letterSpacing: -0.2,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   sectionLink: {
     color: '#0A84FF',
@@ -671,57 +632,37 @@ const styles = StyleSheet.create({
   // ── Activity Stats ──
   statsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#111114',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    paddingVertical: 14,
+    justifyContent: 'space-between',
   },
   statItem: {
     flex: 1,
-    alignItems: 'center',
   },
   statValue: {
     color: '#FFFFFF',
-    fontSize: 20,
+    fontSize: 24,
     letterSpacing: -0.5,
   },
   statLabel: {
     color: '#8E8E93',
-    fontSize: 11,
-    marginTop: 2,
-  },
-  statDivider: {
-    width: 1,
-    height: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    fontSize: 12,
+    marginTop: 4,
   },
 
   // ── Recent Connections List ──
   leadsList: {
-    backgroundColor: '#111114',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    overflow: 'hidden',
+    gap: 12,
   },
   leadRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 6,
     gap: 12,
-  },
-  leadRowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
   },
   leadAvatar: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#1C1C20',
+    backgroundColor: '#16161A',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -732,41 +673,20 @@ const styles = StyleSheet.create({
   leadInfo: {
     flex: 1,
   },
-  leadNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
   leadName: {
     color: '#FFFFFF',
-    fontSize: 14,
-  },
-  intentBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 159, 10, 0.12)',
-  },
-  intentBadgeDone: {
-    backgroundColor: 'rgba(48, 209, 88, 0.12)',
-  },
-  intentBadgeText: {
-    color: '#FF9F0A',
-    fontSize: 10,
-  },
-  intentBadgeTextDone: {
-    color: '#30D158',
+    fontSize: 15,
   },
   leadContact: {
     color: '#8E8E93',
-    fontSize: 12,
+    fontSize: 13,
     marginTop: 2,
   },
   checkButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#1C1C20',
+    backgroundColor: '#16161A',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -776,10 +696,8 @@ const styles = StyleSheet.create({
 
   // ── Empty Connections ──
   emptyConnections: {
-    backgroundColor: '#111114',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: '#141416',
+    borderRadius: 14,
     padding: 24,
     alignItems: 'center',
   },
@@ -812,21 +730,11 @@ const styles = StyleSheet.create({
   },
   toolItem: {
     flex: 1,
-    backgroundColor: '#111114',
+    backgroundColor: '#141416',
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     paddingVertical: 14,
     alignItems: 'center',
     gap: 8,
-  },
-  toolIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    backgroundColor: 'rgba(10, 132, 255, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   toolLabel: {
     color: '#8E8E93',
@@ -838,12 +746,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 90,
     alignSelf: 'center',
-    backgroundColor: '#1C1C20',
+    backgroundColor: '#1C1C22',
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   toastText: {
     color: '#FFFFFF',
