@@ -43,58 +43,35 @@ const FILTERS = [
   { id: 'recent', label: 'Recent' },
 ] as const;
 
-const AVATAR_GRADIENTS = [
-  ['#FF512F', '#DD2476'],
-  ['#4776E6', '#8E54E9'],
-  ['#00B4DB', '#0083B0'],
-  ['#7b4397', '#dc2430'],
-  ['#1D976C', '#93F9B9'],
-  ['#EB3349', '#F45C43'],
+const AVATAR_COLORS = [
+  '#2C2C30',
+  '#1E293B',
+  '#1E242B',
+  '#252830',
+  '#26262B',
+  '#1F2428',
 ];
 
-function getGradientForName(name: string) {
+function getAvatarColor(name: string) {
   const hash = (name || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return AVATAR_GRADIENTS[hash % AVATAR_GRADIENTS.length] as [string, string];
+  return AVATAR_COLORS[hash % AVATAR_COLORS.length];
 }
 
 const EmptyState = ({ isDark }: { isDark: boolean }) => {
-  const floatAnim = useSharedValue(0);
   const textColor = isDark ? '#FFFFFF' : '#000000';
   const subColor = isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)';
   const iconColor = isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.35)';
 
-  useEffect(() => {
-    floatAnim.value = withRepeat(
-      withSequence(
-        withTiming(-8, { duration: 1200 }),
-        withTiming(8, { duration: 1200 })
-      ),
-      -1,
-      true
-    );
-  }, [floatAnim]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: floatAnim.value }]
-  }));
-
   return (
     <View style={styles.emptyState}>
-      <Animated.View style={animatedStyle}>
-        <AppIcon name="Search" size={32} color={iconColor} />
-      </Animated.View>
-      <AppText style={[styles.emptyTitle, { color: textColor }]} weight="bold">No contacts found</AppText>
-      <AppText style={[styles.emptySub, { color: subColor }]}>Try searching for another keyword.</AppText>
+      <AppIcon name="Search" size={28} color={iconColor} />
+      <AppText style={[styles.emptyTitle, { color: textColor }]} weight="medium">No contacts found</AppText>
+      <AppText style={[styles.emptySub, { color: subColor }]}>Try searching with a different name or title.</AppText>
     </View>
   );
 };
 
 const ContactRow = ({ item, index, handleOpenContact, isDark }: any) => {
-  const scale = useSharedValue(1);
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }]
-  }));
-
   const initials = (item.name || 'C')
     .split(' ')
     .map((n: string) => n[0])
@@ -102,76 +79,55 @@ const ContactRow = ({ item, index, handleOpenContact, isDark }: any) => {
     .join('')
     .toUpperCase();
 
-  const gradient = getGradientForName(item.name);
-  const isUnread = index < 2; // Simulated unread state for recent items
+  const avatarBg = getAvatarColor(item.name);
+  const isUnread = index < 2;
 
   const textColor = isDark ? '#FFFFFF' : '#000000';
   const subTextColor = isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)';
   const borderColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
 
   return (
-    <Animated.View entering={FadeInDown.delay(index * 60).springify().damping(18)}>
-      <Pressable
-        onPressIn={() => {
-          scale.value = withSpring(0.95, SPRING_SNAPPY);
-          HapticTap.light();
-        }}
-        onPressOut={() => {
-          scale.value = withSpring(1, SPRING_SNAPPY);
-        }}
-        onPress={() => handleOpenContact(item)}
-      >
-        <Animated.View style={[styles.contactRow, { borderBottomColor: borderColor }, animatedStyle]}>
-          <LinearGradient colors={gradient as any} style={styles.avatarCircle}>
-            <AppText style={styles.avatarText} weight="bold">{initials}</AppText>
-          </LinearGradient>
+    <Pressable
+      style={({ pressed }) => [styles.contactRow, { borderBottomColor: borderColor, opacity: pressed ? 0.75 : 1 }]}
+      onPress={() => handleOpenContact(item)}
+    >
+      <View style={[styles.avatarCircle, { backgroundColor: avatarBg }]}>
+        <AppText style={styles.avatarText} weight="bold">{initials}</AppText>
+      </View>
 
-          <View style={styles.contactDetails}>
-            <View style={styles.nameHeaderRow}>
-              <AppText style={[styles.contactName, { color: textColor }]} weight="bold" numberOfLines={1}>
-                {item.name}
-              </AppText>
-              <AppText style={[styles.timeText, { color: subTextColor }]}>
-                {item.occurredAt instanceof Date ? item.occurredAt.toLocaleDateString() : 'Today'}
-              </AppText>
-            </View>
-            <AppText style={[styles.contactSub, { color: subTextColor }]} numberOfLines={1}>
-              {item.subtitle || 'NFC Tap Contact'}
-            </AppText>
-          </View>
+      <View style={styles.contactDetails}>
+        <View style={styles.nameHeaderRow}>
+          <AppText style={[styles.contactName, { color: textColor }]} weight="medium" numberOfLines={1}>
+            {item.name}
+          </AppText>
+          <AppText style={[styles.timeText, { color: subTextColor }]}>
+            {item.occurredAt instanceof Date ? item.occurredAt.toLocaleDateString() : 'Today'}
+          </AppText>
+        </View>
+        <AppText style={[styles.contactSub, { color: subTextColor }]} numberOfLines={1}>
+          {item.subtitle || 'NFC Tap Contact'}
+        </AppText>
+      </View>
 
-          {isUnread && <View style={styles.unreadDot} />}
-          <AppIcon name="ChevronRight" size={16} color={subTextColor} />
-        </Animated.View>
-      </Pressable>
-    </Animated.View>
+      {isUnread && <View style={styles.unreadDot} />}
+      <AppIcon name="ChevronRight" size={16} color={subTextColor} />
+    </Pressable>
   );
 };
 
-const ActionBubble = ({ icon, label, onPress, colors, isDark }: any) => {
-  const scale = useSharedValue(1);
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }]
-  }));
-
+const ActionBubble = ({ icon, label, onPress, color, isDark }: any) => {
   return (
     <Pressable
-      onPressIn={() => {
-        scale.value = withSpring(0.9, SPRING_SNAPPY);
-        HapticTap.selection();
-      }}
-      onPressOut={() => {
-        scale.value = withSpring(1, SPRING_SNAPPY);
-      }}
       onPress={onPress}
-      style={styles.bubbleContainer}
+      style={({ pressed }) => [styles.bubbleContainer, { opacity: pressed ? 0.75 : 1 }]}
+      hitSlop={8}
     >
-      <Animated.View style={[styles.bubbleWrapper, animatedStyle]}>
-        <LinearGradient colors={colors} style={styles.bubbleGradient}>
-          <AppIcon name={icon} size={22} color="#FFFFFF" />
-        </LinearGradient>
+      <View style={[styles.bubbleWrapper]}>
+        <View style={[styles.bubbleIconWrap, { backgroundColor: color }]}>
+          <AppIcon name={icon} size={20} color="#FFFFFF" />
+        </View>
         <AppText style={[styles.bubbleLabel, { color: isDark ? '#FFFFFF' : '#000000' }]} weight="medium">{label}</AppText>
-      </Animated.View>
+      </View>
     </Pressable>
   );
 };
@@ -441,23 +397,23 @@ export function GuestConnectionsScreen() {
                   <Animated.View entering={FadeInUp.springify().damping(18).stiffness(200)} style={[styles.modalCard, { backgroundColor: isDark ? '#141418' : '#FFFFFF', borderColor: isDark ? 'rgba(255, 255, 255, 0.14)' : 'rgba(0,0,0,0.1)' }]}>
                     
                     {/* Modal Avatar */}
-                    <LinearGradient colors={getGradientForName(selectedContact.name) as any} style={styles.modalAvatar}>
-                      <AppText style={styles.modalAvatarText} weight="extrabold">
+                    <View style={[styles.modalAvatar, { backgroundColor: getAvatarColor(selectedContact.name) }]}>
+                      <AppText style={styles.modalAvatarText} weight="bold">
                         {(selectedContact.name || 'C')[0].toUpperCase()}
                       </AppText>
-                    </LinearGradient>
+                    </View>
 
                     {/* Modal Contact Info */}
-                    <AppText style={[styles.modalName, { color: textColor }]} weight="extrabold">{selectedContact.name}</AppText>
+                    <AppText style={[styles.modalName, { color: textColor }]} weight="bold">{selectedContact.name}</AppText>
                     <AppText style={[styles.modalSub, { color: subTextColor }]}>{selectedContact.subtitle || 'Executive Contact'}</AppText>
                     <AppText style={[styles.modalMeta, { color: subTextColor }]}>Verified NFC Exchange · Direct Lead</AppText>
 
                     {/* Action Bubbles Row */}
                     <View style={styles.modalActionsRow}>
-                      <ActionBubble icon="Phone" label="Call" onPress={() => { handleCall(selectedContact); handleCloseModal(); }} colors={['#0A84FF', '#0055B3']} isDark={isDark} />
-                      <ActionBubble icon="MessageSquare" label="WhatsApp" onPress={() => { handleWhatsApp(selectedContact); handleCloseModal(); }} colors={['#30D158', '#1E8E3E']} isDark={isDark} />
-                      <ActionBubble icon="Mail" label="Email" onPress={() => { handleEmail(selectedContact); handleCloseModal(); }} colors={['#5E5CE6', '#3634A3']} isDark={isDark} />
-                      <ActionBubble icon="Bookmark" label="Save" onPress={() => { handleSave(selectedContact); handleCloseModal(); }} colors={['#FF9F0A', '#C27200']} isDark={isDark} />
+                      <ActionBubble icon="Phone" label="Call" onPress={() => { handleCall(selectedContact); handleCloseModal(); }} color="#0A84FF" isDark={isDark} />
+                      <ActionBubble icon="MessageSquare" label="WhatsApp" onPress={() => { handleWhatsApp(selectedContact); handleCloseModal(); }} color="#30D158" isDark={isDark} />
+                      <ActionBubble icon="Mail" label="Email" onPress={() => { handleEmail(selectedContact); handleCloseModal(); }} color="#5E5CE6" isDark={isDark} />
+                      <ActionBubble icon="Bookmark" label="Save" onPress={() => { handleSave(selectedContact); handleCloseModal(); }} color="#FF9F0A" isDark={isDark} />
                     </View>
 
                     <Pressable style={styles.modalCloseBtn} onPress={handleCloseModal} hitSlop={12}>
@@ -704,16 +660,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  bubbleGradient: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+  bubbleIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
   },
   bubbleLabel: {
     fontSize: 12,

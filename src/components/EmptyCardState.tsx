@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Image,
   Pressable,
   StyleSheet,
   View,
@@ -36,51 +35,37 @@ export function EmptyCardState({ onCreateCard, onViewContacts }: EmptyCardStateP
 
   return (
     <View style={styles.container}>
-      {/* 3D Illustration Hero */}
-      <View style={styles.illustrationWrap}>
-        <View style={styles.illustrationBackdrop} />
-        <View style={styles.iconBox}>
-          <AppIcon name="CreditCard" size={54} color="#0A84FF" />
-        </View>
+      <View style={styles.iconWrap}>
+        <AppIcon name="CreditCard" size={24} color="#0A84FF" />
       </View>
 
-      <AppText style={styles.title} weight="extrabold">
-        No NFC Business Card Yet
+      <AppText style={styles.title} weight="bold">
+        No business card yet
       </AppText>
 
       <AppText style={styles.subtitle}>
-        Create your digital business card in 60 seconds. Capture qualified leads, track taps, and turn contacts into recurring revenue.
+        Create your digital business card to share your details and collect contacts via NFC.
       </AppText>
 
-      {/* Action Buttons */}
-      <View style={styles.actionSection}>
+      <View style={styles.actionGroup}>
         <Pressable
-          style={({ pressed }) => [styles.createBtn, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.primaryButton, pressed && styles.buttonPressed]}
           onPress={handleCreate}
           hitSlop={12}
         >
-          <AppIcon name="Plus" size={20} color="#FFFFFF" />
-          <AppText style={styles.createBtnText} weight="extrabold">
-            CREATE BUSINESS CARD
+          <AppIcon name="Plus" size={16} color="#FFFFFF" />
+          <AppText style={styles.primaryButtonText} weight="bold">
+            Create Business Card
           </AppText>
         </Pressable>
 
-        <View style={styles.dividerRow}>
-          <View style={styles.dividerLine} />
-          <AppText style={styles.dividerText} weight="bold">
-            Or
-          </AppText>
-          <View style={styles.dividerLine} />
-        </View>
-
         <Pressable
-          style={({ pressed }) => [styles.contactsBtn, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.secondaryButton, pressed && styles.buttonPressed]}
           onPress={handleContacts}
           hitSlop={12}
         >
-          <AppIcon name="Users" size={18} color="#FFFFFF" />
-          <AppText style={styles.contactsBtnText} weight="extrabold">
-            CONTACTS DIRECTORY
+          <AppText style={styles.secondaryButtonText} weight="medium">
+            View Contacts Directory
           </AppText>
         </Pressable>
       </View>
@@ -93,101 +78,62 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
     paddingHorizontal: 20,
     alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: '#111114',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 24,
+    borderRadius: 16,
     marginVertical: 16,
   },
-  illustrationWrap: {
-    width: 120,
-    height: 120,
+  iconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: 'rgba(10, 132, 255, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
-    position: 'relative',
-  },
-  illustrationBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(10, 132, 255, 0.12)',
-    borderRadius: 60,
-  },
-  iconBox: {
-    width: 80,
-    height: 80,
-    borderRadius: 24,
-    backgroundColor: '#1A1A1E',
-    borderWidth: 1,
-    borderColor: 'rgba(10, 132, 255, 0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginBottom: 16,
   },
   title: {
-    fontSize: 22,
+    fontSize: 18,
     color: '#FFFFFF',
     textAlign: 'center',
-    letterSpacing: -0.6,
   },
   subtitle: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 20,
     color: '#8E8E93',
     textAlign: 'center',
-    marginTop: 8,
-    maxWidth: 320,
+    marginTop: 6,
+    maxWidth: 300,
   },
-  actionSection: {
+  actionGroup: {
     width: '100%',
-    marginTop: 28,
-  },
-  createBtn: {
-    height: 52,
-    backgroundColor: '#0A84FF',
-    borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  createBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    letterSpacing: 0.5,
-  },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 16,
+    marginTop: 24,
     gap: 12,
   },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  dividerText: {
-    color: '#8E8E93',
-    fontSize: 12,
-  },
-  contactsBtn: {
+  primaryButton: {
     height: 48,
-    backgroundColor: '#1A1A1E',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    borderRadius: 16,
+    backgroundColor: '#0A84FF',
+    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
   },
-  contactsBtnText: {
+  primaryButtonText: {
     color: '#FFFFFF',
-    fontSize: 13,
-    letterSpacing: 0.5,
+    fontSize: 15,
   },
-  pressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.98 }],
+  secondaryButton: {
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryButtonText: {
+    color: '#8E8E93',
+    fontSize: 14,
+  },
+  buttonPressed: {
+    opacity: 0.75,
   },
 });

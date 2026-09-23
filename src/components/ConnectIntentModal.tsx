@@ -56,7 +56,7 @@ export function ConnectIntentModal({
 
       HapticTap.heavy();
       Alert.alert(
-        'Connection Sent! ✦',
+        'Connection Sent',
         `Thanks ${name.trim()}! ${ownerName} has been notified that you are interested in ${intentObj?.label.toLowerCase() ?? 'connecting'}.`
       );
 
@@ -79,14 +79,11 @@ export function ConnectIntentModal({
           <View style={styles.handle} />
 
           <View style={styles.header}>
-            <View style={styles.iconCircle}>
-              <AppIcon name="Zap" size={22} color="#FFFFFF" />
-            </View>
-            <AppText style={styles.title} weight="extrabold">
+            <AppText style={styles.title} weight="bold">
               Connect with {ownerName}
             </AppText>
             <AppText style={styles.subtitle}>
-              What are you interested in?
+              What are you interested in discussing?
             </AppText>
           </View>
 
@@ -147,8 +144,8 @@ export function ConnectIntentModal({
             {submitting ? (
               <ActivityIndicator color="#080808" />
             ) : (
-              <AppText style={styles.submitBtnText} weight="extrabold">
-                Send Connection Request →
+              <AppText style={styles.submitBtnText} weight="bold">
+                Send Request
               </AppText>
             )}
           </Pressable>
@@ -166,38 +163,29 @@ const styles = StyleSheet.create({
   },
   sheet: {
     backgroundColor: '#141414',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     borderWidth: 1,
     borderColor: '#292929',
     padding: 20,
     paddingBottom: 36,
   },
   handle: {
-    width: 38,
+    width: 36,
     height: 4,
     borderRadius: 2,
     backgroundColor: '#333333',
     alignSelf: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 18,
-  },
-  iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: '#0A84FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
+    marginBottom: 20,
   },
   title: {
-    fontSize: 22,
+    fontSize: 20,
     color: '#FFFFFF',
-    letterSpacing: -0.6,
+    letterSpacing: -0.4,
   },
   subtitle: {
     fontSize: 13,
