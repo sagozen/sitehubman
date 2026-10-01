@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Linking, Platform, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Linking, Modal, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
+import * as Haptics from 'expo-haptics';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '@/src/services/firebaseClient';
+import { useAuth } from '@/src/hooks/useAuth';
 import { AppButton } from '@/src/components/AppButton';
 import { AppHeader } from '@/src/components/AppHeader';
 import { AppIcon } from '@/src/components/AppIcon';
@@ -114,6 +120,80 @@ export default function PaymentStatusRoute() {
     }
   }
 
+  const { user } = useAuth();
+  const [showProofModal, setShowProofModal] = useState(false);
+  const [proofImageUri, setProofImageUri] = useState<string | null>(null);
+  const [bankRefCode, setBankRefCode] = useState('');
+  const [uploadingProof, setUploadingProof] = useState(false);
+  const [proofSubmitted, setProofSubmitted] = useState(false);
+
+  const handlePickReceipt = async () => {
+    try {
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.8,
+      });
+      if (!res.canceled && res.assets && res.assets[0]?.uri) {
+        setProofImageUri(res.assets[0].uri);
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+    } catch {
+      Alert.alert('Permission required', 'Please enable photo library access to upload your bank slip.');
+    }
+  };
+
+  const handleUploadProof = async () => {
+    if (!proofImageUri) {
+      Alert.alert('Attach Slip', 'Please select an image of your bank transfer confirmation.');
+      return;
+    }
+    if (!intent?.orderId) return;
+
+    setUploadingProof(true);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    try {
+      const resp = await fetch(proofImageUri);
+      const blob = await resp.blob();
+
+      const ownerId = user?.id || 'guest-payer';
+      const fileId = `${Date.now()}`;
+      const storageRef = ref(storage, `payment_proofs/${ownerId}/${intent.orderId}/${fileId}.jpg`);
+
+      await uploadBytes(storageRef, blob, { contentType: 'image/jpeg' });
+      const downloadUrl = await getDownloadURL(storageRef);
+
+      // Update payment intent doc
+      const intentRef = doc(db, 'payment_intents', intentId);
+      await updateDoc(intentRef, {
+        status: 'proof_submitted',
+        proofUrl: downloadUrl,
+        bankRef: bankRefCode.trim(),
+        proofSubmittedAt: serverTimestamp(),
+      });
+
+      // Update order doc
+      const orderRef = doc(db, 'orders', intent.orderId);
+      await updateDoc(orderRef, {
+        paymentProofUrl: downloadUrl,
+        bankReference: bankRefCode.trim(),
+        status: 'payment_proof_submitted',
+        updatedAt: serverTimestamp(),
+      });
+
+      setProofSubmitted(true);
+      setShowProofModal(false);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (err: any) {
+      console.error('Proof upload error:', err);
+      Alert.alert('Upload Failed', 'Could not upload transfer slip. Check your internet connection.');
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } finally {
+      setUploadingProof(false);
+    }
+  };
+
   const copy = statusCopy(intent?.status ?? 'pending');
   const expiredByClock = intent?.expiresAt
     ? new Date(intent.expiresAt).getTime() < Date.now()
@@ -223,15 +303,112 @@ export default function PaymentStatusRoute() {
           </View>
 
           {intent.status !== 'paid' && intent.status !== 'failed' && intent.status !== 'expired' ? (
-            <View style={styles.waitingRow}>
-              <ActivityIndicator color={theme.colors.primary} />
-              <AppText variant="caption" tone="muted" weight="semibold">
-                Listening for gateway confirmation
-              </AppText>
-            </View>
+            <>
+              {proofSubmitted || intent.status === ('proof_submitted' as any) ? (
+                <View style={styles.proofConfirmedBox}>
+                  <View style={styles.proofBadgeRow}>
+                    <View style={styles.proofDot} />
+                    <AppText style={styles.proofBadgeText}>PROOF OF PAYMENT SUBMITTED</AppText>
+                  </View>
+                  <AppText style={styles.proofConfirmedTitle}>Priority Verification Queue</AppText>
+                  <AppText style={styles.proofConfirmedDesc}>
+                    Your transfer slip has been uploaded to our finance desk. Your order will be verified and queued for production within 5 minutes.
+                  </AppText>
+                </View>
+              ) : (
+                <View style={styles.proofCard}>
+                  <View style={styles.proofHeaderRow}>
+                    <AppIcon name="UploadCloud" size={22} color={theme.colors.primary} />
+                    <View style={{ flex: 1 }}>
+                      <AppText style={styles.proofTitle}>Paid in your Banking App?</AppText>
+                      <AppText style={styles.proofSub}>Upload transfer slip to bypass gateway delay</AppText>
+                    </View>
+                  </View>
+                  <AppButton
+                    label="Attach Transfer Receipt 📄"
+                    variant="outline"
+                    size="md"
+                    fullWidth
+                    onPress={() => setShowProofModal(true)}
+                    style={{ marginTop: 12 }}
+                  />
+                </View>
+              )}
+
+              <View style={styles.waitingRow}>
+                <ActivityIndicator color={theme.colors.primary} />
+                <AppText variant="caption" tone="muted" weight="semibold">
+                  Listening for gateway webhook confirmation
+                </AppText>
+              </View>
+            </>
           ) : null}
         </IosScrollView>
       )}
+
+      {/* PROOF OF PAYMENT UPLOAD MODAL */}
+      <Modal visible={showProofModal} transparent animationType="slide">
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <AppText style={styles.modalTitle}>Upload Proof of Payment</AppText>
+              <Pressable
+                onPress={() => setShowProofModal(false)}
+                hitSlop={12}
+                style={styles.modalCloseBtn}
+              >
+                <AppIcon name="X" size={18} color="#FFFFFF" />
+              </Pressable>
+            </View>
+
+            <AppText style={styles.modalDesc}>
+              Attach a screenshot of your bank transfer receipt (ABA Pay, KHQR, Acleda, Wing, or wire transfer).
+            </AppText>
+
+            <Pressable onPress={handlePickReceipt} style={styles.pickerBox}>
+              {proofImageUri ? (
+                <Image source={{ uri: proofImageUri }} style={styles.slipPreview} resizeMode="contain" />
+              ) : (
+                <View style={styles.pickerEmpty}>
+                  <AppIcon name="Camera" size={32} color={theme.colors.primary} />
+                  <AppText style={styles.pickerPrompt}>Tap to select receipt from gallery</AppText>
+                  <AppText style={styles.pickerSizeLimit}>PNG, JPG up to 10MB</AppText>
+                </View>
+              )}
+            </Pressable>
+
+            <View style={styles.inputGroup}>
+              <AppText style={styles.inputLabel}>BANK REFERENCE / TRANSACTION ID (OPTIONAL)</AppText>
+              <TextInput
+                value={bankRefCode}
+                onChangeText={setBankRefCode}
+                placeholder="e.g. ABA-TXN-892301"
+                placeholderTextColor="rgba(255,255,255,0.3)"
+                style={styles.refInput}
+              />
+            </View>
+
+            <View style={styles.modalActionRow}>
+              <AppButton
+                label="Cancel"
+                variant="outline"
+                size="lg"
+                style={{ flex: 1 }}
+                onPress={() => setShowProofModal(false)}
+              />
+              <AppButton
+                label={uploadingProof ? 'Submitting...' : 'Confirm Upload ➔'}
+                variant="primary"
+                size="lg"
+                loading={uploadingProof}
+                disabled={!proofImageUri || uploadingProof}
+                style={{ flex: 1.4 }}
+                onPress={() => void handleUploadProof()}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -377,5 +554,161 @@ const styles = StyleSheet.create({
   errorText: {
     color: theme.colors.danger,
     textAlign: 'center',
+  },
+  proofCard: {
+    backgroundColor: '#16161A',
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: 'rgba(59, 130, 246, 0.3)',
+    padding: 18,
+    gap: 8,
+  },
+  proofHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  proofTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
+  },
+  proofSub: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontWeight: '500',
+  },
+  proofConfirmedBox: {
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
+    padding: 20,
+    alignItems: 'center',
+    gap: 8,
+  },
+  proofBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  proofDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#10B981',
+  },
+  proofBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#10B981',
+    letterSpacing: 0.8,
+  },
+  proofConfirmedTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  proofConfirmedDesc: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.88)',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 500,
+    backgroundColor: '#16161B',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 24,
+    gap: 16,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
+  },
+  modalCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalDesc: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.65)',
+    lineHeight: 18,
+  },
+  pickerBox: {
+    width: '100%',
+    height: 180,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderStyle: 'dashed',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  pickerEmpty: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  pickerPrompt: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  pickerSizeLimit: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.4)',
+  },
+  slipPreview: {
+    width: '100%',
+    height: '100%',
+  },
+  inputGroup: {
+    gap: 6,
+  },
+  inputLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: 'rgba(255, 255, 255, 0.5)',
+    letterSpacing: 0.6,
+  },
+  refInput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  modalActionRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 6,
   },
 });

@@ -292,33 +292,39 @@ exports.syncUserAccessClaims = onDocumentWritten(
     const uid = event.params.uid;
     if (!uid) return;
 
-    let nextAccessClaims = {
-      role: 'guest',
-      isActive: false,
-      companyId: undefined,
-      branch: undefined,
-    };
-
     const after = event.data?.after;
-    if (after?.exists) {
-      const data = after.data() || {};
-      nextAccessClaims = {
-        role: normalizeClaimRole(data.role),
-        isActive: data.isActive !== false,
-        companyId: compactStringClaim(data.companyId),
-        branch: compactStringClaim(data.branch),
-      };
+
+    // Handle user account deletion by cleaning up auth claims
+    if (!after?.exists) {
+      try {
+        await admin.auth().setCustomUserClaims(uid, null);
+        return;
+      } catch (err) {
+        console.error('[syncUserAccessClaims] Failed to clear claims on deletion', err);
+        return;
+      }
     }
 
+    const data = after.data() || {};
+
+    // Map properties securely. Empty or missing fields fall back to undefined/false.
+    const nextAccessClaims = {
+      role: data.role ? String(data.role).trim().toLowerCase() : 'customer',
+      isActive: data.isActive !== false,
+      companyId: (data.companyId && String(data.companyId).trim() !== '') ? String(data.companyId).trim() : undefined,
+      branch: (data.branch && String(data.branch).trim() !== '') ? String(data.branch).trim() : undefined,
+    };
+
     try {
-      const user = await admin.auth().getUser(uid);
-      await admin.auth().setCustomUserClaims(uid, {
-        ...(user.customClaims || {}),
-        ...nextAccessClaims,
-      });
+      // 1. Commit the custom claims directly to the Firebase Auth token
+      await admin.auth().setCustomUserClaims(uid, nextAccessClaims);
+      
+      // 2. Force token revocation so the React Native client re-authenticates and pulls the claims instantly
+      await admin.auth().revokeRefreshTokens(uid);
+      
     } catch (error) {
       if (error?.code !== 'auth/user-not-found') {
-        console.error('[syncUserAccessClaims] failed', { uid, error });
+        console.error('[syncUserAccessClaims] Custom claims synchronization failed', { uid, error });
         throw error;
       }
     }

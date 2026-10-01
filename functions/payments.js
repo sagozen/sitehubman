@@ -62,26 +62,8 @@ function webhookRateKey(req) {
 }
 
 async function assertWebhookRateLimit(req, provider, limit = 120) {
-  const key = webhookRateKey(req);
-  const bucketId = `${provider}_${key}_${new Date().toISOString().slice(0, 16)}`;
-  const ref = db().collection('payment_events').doc(`rate_${bucketId.replace(/[^a-zA-Z0-9_-]/g, '_')}`);
-  await db().runTransaction(async (tx) => {
-    const snap = await tx.get(ref);
-    const count = snap.exists ? Number(snap.data().count ?? 0) : 0;
-    if (count >= limit) {
-      throw new Error('rate_limited');
-    }
-    tx.set(
-      ref,
-      {
-        provider,
-        key,
-        count: count + 1,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    );
-  });
+  // Rate limiting moved to infrastructure (Cloud Armor / App Check) to prevent DB transaction DDoS.
+  return;
 }
 
 function idempotencyKey(orderId, methodId) {
@@ -357,7 +339,10 @@ exports.createPaymentIntent = onCall(
       throw new HttpsError('failed-precondition', 'Order already paid.');
     }
 
-    const amount = Number(order.amount ?? 0);
+    const amount = getOrderAmount(order);
+    if (amount <= 0) {
+      throw new HttpsError('invalid-argument', 'Calculated order amount must be greater than zero.');
+    }
     const currency = order.currency === 'USD' ? 'USD' : 'KHR';
     const expiresAt = admin.firestore.Timestamp.fromDate(new Date(Date.now() + 30 * 60 * 1000));
 
@@ -393,6 +378,7 @@ exports.createPaymentIntent = onCall(
     });
 
     await orderRef.update({
+      amount,
       paymentIntentId: intentRef.id,
       paymentMethod: methodId,
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),

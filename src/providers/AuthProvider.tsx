@@ -11,6 +11,9 @@ import {
 } from '@/src/services/authService';
 import { useRegisterPushNotifications } from '@/src/hooks/useRegisterPushNotifications';
 import { firebaseInitError } from '@/src/services/firebase/firebase';
+import { onSnapshot, doc } from 'firebase/firestore';
+import { db } from '@/src/services/firebaseClient';
+import { RoleGatekeeperModal } from '@/src/components/RoleGatekeeperModal';
 import { AuthContextValue, LoginInput, RegisterInput } from '@/src/types/auth';
 import { AppUser } from '@/src/types/models';
 
@@ -41,6 +44,24 @@ export function AuthProvider({ children }: PropsWithChildren) {
   // Only use this for guest mode, not real Firebase users
   const managedUser = useRef<AppUser | null>(null);
   const isSigningOut = useRef(false);
+  const unsubProfileSnapshot = useRef<(() => void) | null>(null);
+  const userRef = useRef<AppUser | null>(null);
+
+  const [roleGatekeeperState, setRoleGatekeeperState] = useState<{
+    visible: boolean;
+    oldRole: string;
+    newRole: string;
+    isDeactivated: boolean;
+  }>({
+    visible: false,
+    oldRole: '',
+    newRole: '',
+    isDeactivated: false,
+  });
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   const applyGuestSession = useCallback(() => {
     const guestUser = managedUser.current?.isGuest ? managedUser.current : createGuestUser();
@@ -119,6 +140,31 @@ export function AuthProvider({ children }: PropsWithChildren) {
           });
           setError(null);
         }
+
+        // Real-time listener for staff permission changes / deactivations
+        if (firebaseUser.uid) {
+          unsubProfileSnapshot.current?.();
+          unsubProfileSnapshot.current = onSnapshot(doc(db, 'users', firebaseUser.uid), (docSnap) => {
+            if (!docSnap.exists()) return;
+            const updated = docSnap.data();
+            if (updated.isActive === false) {
+              setRoleGatekeeperState({
+                visible: true,
+                oldRole: updated.role || 'user',
+                newRole: updated.role || 'user',
+                isDeactivated: true,
+              });
+            } else if (updated.role && userRef.current && userRef.current.role !== updated.role && !userRef.current.isGuest) {
+              const previous = userRef.current.role;
+              setRoleGatekeeperState({
+                visible: true,
+                oldRole: previous,
+                newRole: updated.role,
+                isDeactivated: false,
+              });
+            }
+          }, () => undefined);
+        }
       } catch {
         if (managedUser.current?.isGuest) {
           applyGuestSession();
@@ -146,6 +192,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return () => {
       clearTimeout(authReadyTimeout);
       unsubscribe();
+      unsubProfileSnapshot.current?.();
     };
   }, [applyGuestSession]);
 
@@ -268,7 +315,27 @@ export function AuthProvider({ children }: PropsWithChildren) {
     signOutUser,
   }), [user, isLoading, error, signIn, signUp, signInAsGuest, signOutUser]);
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  const handleAcknowledgeRoleUpdate = useCallback(() => {
+    if (roleGatekeeperState.isDeactivated) {
+      void signOutUser();
+    } else if (roleGatekeeperState.newRole) {
+      setUser((prev) => (prev ? { ...prev, role: roleGatekeeperState.newRole as any } : prev));
+    }
+    setRoleGatekeeperState((prev) => ({ ...prev, visible: false }));
+  }, [roleGatekeeperState, signOutUser]);
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      <RoleGatekeeperModal
+        visible={roleGatekeeperState.visible}
+        oldRole={roleGatekeeperState.oldRole}
+        newRole={roleGatekeeperState.newRole}
+        isDeactivated={roleGatekeeperState.isDeactivated}
+        onAcknowledge={handleAcknowledgeRoleUpdate}
+      />
+    </AuthContext.Provider>
+  );
 }
 
 export { AuthContext };

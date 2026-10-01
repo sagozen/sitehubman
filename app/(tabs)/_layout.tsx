@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { PanResponder, View, StyleSheet } from 'react-native';
 import { AuthGate } from '@/src/components/AuthGate';
 import { LiquidTabBar } from '@/src/components/LiquidTabBar';
+import { OfflineStateBanner } from '@/src/components/OfflineStateBanner';
 
 const CONSUMER_TABS = ['index', 'connections', 'share', 'profile', 'settings'];
 
@@ -40,6 +41,7 @@ export default function TabsLayout() {
   return (
     <AuthGate allowedRoles={['guest', 'customer']}>
       <View style={styles.container} {...panResponder.panHandlers}>
+        <OfflineStateBanner />
         <Tabs
           tabBar={(props) => <LiquidTabBar {...props} />}
           screenOptions={{ headerShown: false }}

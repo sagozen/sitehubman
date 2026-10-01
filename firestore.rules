@@ -13,22 +13,18 @@ service cloud.firestore {
       return isSignedIn() && exists(userPath());
     }
 
-    function userDoc() {
-      return get(userPath()).data;
-    }
-
     function role() {
       return isSignedIn() && ('role' in request.auth.token)
         ? request.auth.token.role
-        : (userExists() ? userDoc().role : 'guest');
+        : 'guest';
     }
 
     function isAdmin() {
-      return role() in ['admin', 'super_admin'];
+      return role() in ['admin', 'super_admin', 'owner'];
     }
 
     function isSuperAdmin() {
-      return role() == 'super_admin';
+      return role() in ['super_admin', 'owner'];
     }
 
     function isSales() {
@@ -64,7 +60,7 @@ service cloud.firestore {
     }
 
     function managesProperty(propertyId) {
-      return isAdmin() || (isPropertyManager() && userExists() && userDoc().companyId == propertyId);
+      return isAdmin() || (isPropertyManager() && isSignedIn() && ('companyId' in request.auth.token) && request.auth.token.companyId == propertyId);
     }
 
     function isCustomer() {
@@ -76,19 +72,17 @@ service cloud.firestore {
     }
 
     function sameCompany(data) {
-      return !('companyId' in data)
-        || !('companyId' in userDoc())
-        || data.companyId == ''
-        || userDoc().companyId == ''
-        || userDoc().companyId == data.companyId;
+      return isSignedIn() 
+        && ('companyId' in request.auth.token) 
+        && request.auth.token.companyId != '' 
+        && data.companyId == request.auth.token.companyId;
     }
 
     function sameBranch(data) {
       return sameCompany(data) && (
-        !('branch' in data)
-        || !('branch' in userDoc())
-        || data.branch == ''
-        || userDoc().branch == data.branch
+        ('branch' in request.auth.token)
+        && request.auth.token.branch != ''
+        && data.branch == request.auth.token.branch
       );
     }
 
@@ -441,8 +435,7 @@ service cloud.firestore {
         || validAdminUserCreate()
       );
       allow update: if isSignedIn() && (
-        validSelfProfileUpdate(userId)
-        || validGuestConversionUpdate(userId)
+        (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'companyId', 'isActive']) && (validSelfProfileUpdate(userId) || validGuestConversionUpdate(userId)))
         || validAdminUserUpdate()
       );
       allow delete: if isSuperAdmin()
@@ -604,7 +597,8 @@ service cloud.firestore {
           && request.resource.data.paymentStatus in ['unpaid', 'pending_payment']
           && request.resource.data.quantity is int
           && request.resource.data.quantity >= 1
-          && request.resource.data.quantity <= 100)
+          && request.resource.data.quantity <= 100
+          && (!('amount' in request.resource.data) || request.resource.data.amount == 0))
       );
       allow update: if validOrderData(request.resource.data) && isSignedIn()
         && (
@@ -662,6 +656,8 @@ service cloud.firestore {
           && onlyChanged(['status', 'updatedAt', 'updatedBy']))
         || (isShipping()
           && sameBranch(resource.data)
+          && request.resource.data.status == 'shipped'
+          && resource.data.status == 'ready_to_ship'
           && onlyChanged([
             'status', 'carrier', 'trackingNumber', 'trackingNote', 'shippedAt',
             'commissionAccruedAt', 'updatedAt', 'updatedBy'
