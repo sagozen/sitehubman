@@ -54,7 +54,7 @@ export function CardSuccessShareModal({ visible, onClose, url, name }: CardSucce
             <Pressable onPress={onClose}><AppText style={styles.skipText}>Skip</AppText></Pressable>
           </View>
           <AppText style={styles.sheetSub}>
-            Let's start off by sharing your new card with people you already know.
+            Let&apos;s start off by sharing your new card with people you already know.
           </AppText>
           
           <Pressable style={styles.searchBtn}>

@@ -109,7 +109,7 @@ function SettingRow({
     <Animated.View entering={FadeInDown.delay(delay).springify()} style={[styles.row, animatedStyle]}>
       <View style={[styles.iconBox, isDestructive && styles.iconBoxDestructive, !isDark && styles.iconBoxLight]}>
         {isDestructive && (
-          <Animated.View style={[StyleSheet.absoluteFillObject, { backgroundColor: '#FF453A', borderRadius: 10 }, glowStyle]} />
+          <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: '#FF453A', borderRadius: 10 }, glowStyle]} />
         )}
         <AppIcon
           name={icon}
@@ -245,7 +245,7 @@ export function SettingsScreen() {
     <View style={styles.screen}>
       <LinearGradient
         colors={isDark ? ['#000000', '#07090E', '#0D1017'] : ['#F4F7FB', '#FAFCFF', '#FFFFFF']}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
       <SafeAreaView style={styles.screen} edges={['top']}>
         <ScrollView
@@ -421,9 +421,9 @@ export function SettingsScreen() {
 
       {/* ── Sign Out Sheet ── */}
       <Modal visible={showSignOutSheet} transparent animationType="fade">
-        <View style={StyleSheet.absoluteFillObject}>
-          <BlurView intensity={isDark ? 40 : 60} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFillObject} />
-          <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setShowSignOutSheet(false)} />
+        <View style={StyleSheet.absoluteFill}>
+          <BlurView intensity={isDark ? 40 : 60} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setShowSignOutSheet(false)} />
           <View style={styles.sheetWrapper}>
             <View style={[styles.sheetContainer, !isDark && styles.sheetContainerLight]}>
               <AppText style={[styles.sheetTitle, !isDark && { color: '#000000' }]} weight="bold">
@@ -458,9 +458,9 @@ export function SettingsScreen() {
 
       {/* ── Reset Preferences Sheet ── */}
       <Modal visible={showResetSheet} transparent animationType="fade">
-        <View style={StyleSheet.absoluteFillObject}>
-          <BlurView intensity={isDark ? 40 : 60} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFillObject} />
-          <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setShowResetSheet(false)} />
+        <View style={StyleSheet.absoluteFill}>
+          <BlurView intensity={isDark ? 40 : 60} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setShowResetSheet(false)} />
           <View style={styles.sheetWrapper}>
             <View style={[styles.sheetContainer, !isDark && styles.sheetContainerLight]}>
               <AppText style={[styles.sheetTitle, !isDark && { color: '#000000' }]} weight="bold">

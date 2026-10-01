@@ -107,11 +107,11 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   cardGraphic: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     opacity: 0.35,
   },
   cardGraphicOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
   cardHeaderRow: {

@@ -281,7 +281,7 @@ const AppIconRaw = ({
             name={mapping.fill}
             size={resolvedSize}
             color={resolvedColor}
-            style={[StyleSheet.absoluteFillObject, { opacity: 0.15 }]}
+            style={[StyleSheet.absoluteFill, { opacity: 0.15 }]}
           />
           {/* Duotone Layer 2: Full opacity outline shape */}
           <Ionicons

@@ -256,7 +256,7 @@ export function GuestDesignScreen() {
         <LinearGradient
           colors={['#050506', BG]}
           locations={[0, 1]}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
         />
 
         {/* ── Header ── */}
@@ -273,7 +273,7 @@ export function GuestDesignScreen() {
             <LinearGradient
               colors={['#FFFFFF', '#F4F4F5']}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFillObject}
+              style={StyleSheet.absoluteFill}
             />
             <AppText style={styles.priceT}>{formatFooterDualPrice(priceUsd)}</AppText>
           </View>

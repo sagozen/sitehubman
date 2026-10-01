@@ -750,7 +750,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   coverOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.38)',
   },
   coverAvatarWrap: {
@@ -1068,7 +1068,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   viralImgOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.62)',
   },
   viralCardContent: {

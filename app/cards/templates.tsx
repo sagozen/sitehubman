@@ -137,7 +137,7 @@ export default function CustomerTemplatesRoute() {
               <View style={styles.cardPreviewContainer}>
                 <LinearGradient
                   colors={['rgba(255,255,255,0.8)', 'rgba(255,255,255,0)']}
-                  style={StyleSheet.absoluteFillObject}
+                  style={StyleSheet.absoluteFill}
                 />
                 <View style={styles.previewShadow}>
                   <NfcGlobalCardFace

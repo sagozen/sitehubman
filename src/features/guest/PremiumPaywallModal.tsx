@@ -28,7 +28,7 @@ export function PremiumPaywallModal({ visible, onClose, onUpgrade }: PremiumPayw
       <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
       <View style={styles.container}>
         <Animated.View entering={FadeIn.delay(100)} style={styles.heroSection}>
-          <LinearGradient colors={['#e0e7ff', '#c7d2fe']} style={StyleSheet.absoluteFillObject} />
+          <LinearGradient colors={['#e0e7ff', '#c7d2fe']} style={StyleSheet.absoluteFill} />
           <Pressable onPress={() => { HapticTap.light(); onClose(); }} style={styles.closeBtn}>
             <AppIcon name="X" size={24} color="#000" />
           </Pressable>

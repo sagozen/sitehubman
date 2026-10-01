@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.22,
   },
   brandGlow: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: SNAP_TAP_BRAND_SOFT,
     opacity: 0.55,
   },

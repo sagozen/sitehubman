@@ -397,7 +397,6 @@ export function GuestConnectionsScreen() {
                 description={query ? "Try searching with a different name." : "Your scanned leads and connections will appear here."}
               />
             }
-            estimatedItemSize={72}
           />
 
           {/* ── Contact Detail Popup ── */}
@@ -409,7 +408,7 @@ export function GuestConnectionsScreen() {
           >
             <View style={styles.modalBackdrop}>
               <BlurView style={StyleSheet.absoluteFill} tint={isDark ? "dark" : "light"} intensity={70} />
-              <Pressable style={StyleSheet.absoluteFillObject} onPress={handleCloseModal} />
+              <Pressable style={StyleSheet.absoluteFill} onPress={handleCloseModal} />
               <View style={styles.modalCenterContainer} pointerEvents="box-none">
                 {selectedContact && (
                   <Animated.View entering={FadeInUp.springify().damping(18).stiffness(200)} style={[styles.modalCard, { backgroundColor: isDark ? '#141418' : '#FFFFFF' }]}>
@@ -617,7 +616,7 @@ const styles = StyleSheet.create({
 
   // ── Modal ──
   modalBackdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 999,

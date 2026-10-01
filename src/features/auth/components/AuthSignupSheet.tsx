@@ -322,7 +322,7 @@ const viewStyles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0, 0, 0, 0.82)',
   },
   keyboard: {

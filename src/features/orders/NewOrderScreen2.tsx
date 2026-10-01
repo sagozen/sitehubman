@@ -1901,8 +1901,8 @@ const styles = StyleSheet.create({
   previewFlagT: { fontSize: 10, fontWeight: '800', color: '#FFFFFF' },
   // kept for compat — no longer used for card body
   previewCard: { aspectRatio: 1.586, borderRadius: 18, overflow: 'hidden', padding: 18, justifyContent: 'space-between' },
-  previewImage: { ...StyleSheet.absoluteFillObject },
-  previewOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.28)' },
+  previewImage: { ...StyleSheet.absoluteFill },
+  previewOverlay: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.28)' },
   previewTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   previewChip: { width: 46, height: 34, borderRadius: 9, borderWidth: StyleSheet.hairlineWidth, padding: 7, justifyContent: 'space-between', backgroundColor: 'rgba(255,255,255,0.14)' },
   previewChipLine: { height: 1.2, opacity: 0.9 },

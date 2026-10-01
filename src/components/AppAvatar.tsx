@@ -58,9 +58,9 @@ export function AppAvatar({
         ]}
       >
         {source && typeof source === 'object' && 'uri' in source && typeof source.uri === 'string' ? (
-          <CachedImage uri={source.uri} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+          <CachedImage uri={source.uri} style={StyleSheet.absoluteFill} contentFit="cover" />
         ) : source ? (
-          <Image source={source} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
+          <Image source={source} style={StyleSheet.absoluteFill} resizeMode="cover" />
         ) : iconName ? (
           <AppIcon name={iconName} color={theme.colors.textInverse} size={iconSize} />
         ) : (

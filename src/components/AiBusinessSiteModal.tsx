@@ -412,7 +412,7 @@ export function AiBusinessSiteModal({
               <View style={styles.explainerIconRow}>
                 <AppText style={styles.explainerEmoji}>⚡</AppText>
                 <AppText style={styles.explainerQuote} weight="medium">
-                  "Most link-in-bios are just a list of buttons. SiteHub generates an actual site with your menu, prices, hours & 1-tap booking in 30 seconds."
+                  &ldquo;Most link-in-bios are just a list of buttons. SiteHub generates an actual site with your menu, prices, hours &amp; 1-tap booking in 30 seconds.&rdquo;
                 </AppText>
               </View>
             </Animated.View>

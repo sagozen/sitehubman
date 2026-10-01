@@ -80,7 +80,7 @@ export default function SalesPayoutsScreen() {
             colors={['rgba(255, 255, 255, 0.9)', 'rgba(241, 245, 249, 0.8)']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
           />
           <View style={styles.hero}>
             <AppText style={styles.heroLabel}>

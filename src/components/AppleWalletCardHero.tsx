@@ -151,11 +151,11 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   heroCardBg: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     opacity: 0.38,
   },
   heroCardOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0, 0, 0, 0.45)',
   },
   cardHeaderRow: {

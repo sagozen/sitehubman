@@ -495,7 +495,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   radarContainer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: -1,

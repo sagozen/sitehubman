@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     opacity: 0.92,
   },
   customPlaceholder: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
@@ -265,11 +265,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   shinePrimary: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     opacity: 0.85,
   },
   shineSecondary: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     opacity: 0.7,
   },
   decorBand: {

@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
   container: { gap: 12 },
   heroImageWrapper: { borderRadius: 20, overflow: 'hidden', height: 240, backgroundColor: '#111114' },
   heroImage: { width: '100%', height: '100%' },
-  heroGradient: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0, 0, 0, 0.52)' },
+  heroGradient: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0, 0, 0, 0.52)' },
   heroOverlayContent: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20, gap: 6 },
   heroGreeting: { color: 'rgba(255, 255, 255, 0.7)', fontSize: 13, letterSpacing: 0.2 },
   heroHeadline: { color: '#FFFFFF', fontSize: 22, lineHeight: 28, letterSpacing: -0.3 },

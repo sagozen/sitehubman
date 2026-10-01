@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   gradient: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   content: {
     flexDirection: 'row',
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   buttonGradient: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   buttonText: {
     fontSize: 14,

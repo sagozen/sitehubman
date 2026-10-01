@@ -48,7 +48,7 @@ export function AiScannerModal({ visible, onClose }: AiScannerModalProps) {
         <View style={styles.bottomSheet}>
           <AppText style={styles.sheetTitle} weight="extrabold">Building richer contacts</AppText>
           <AppText style={styles.sheetSub}>
-            Capture what you have and we'll enrich the rest, including LinkedIn, email, phone number and more.
+            Capture what you have and we&apos;ll enrich the rest, including LinkedIn, email, phone number and more.
           </AppText>
           <Pressable style={styles.actionBtn} onPress={onClose}>
             <AppText style={styles.actionBtnText} weight="bold">Got it</AppText>

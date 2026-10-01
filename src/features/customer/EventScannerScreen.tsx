@@ -103,7 +103,7 @@ export function EventScannerScreen() {
   return (
     <View style={styles.root}>
       <CameraView
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         facing="back"
         onBarcodeScanned={handleBarcodeScanned}
         barcodeScannerSettings={{
@@ -146,7 +146,7 @@ export function EventScannerScreen() {
       {/* Success Flash Overlay */}
       <Animated.View 
         style={[
-          StyleSheet.absoluteFillObject,
+          StyleSheet.absoluteFill,
           styles.flashOverlay,
           { opacity: flashAnim }
         ]} 
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   
   // Camera UI
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: 'space-between',
     padding: 24,
   },

@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   cardFill: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: theme.colors.surface,
   },
   sheen: {

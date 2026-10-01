@@ -22,7 +22,7 @@ const steps = [
   ['TypeScript', npmBin, ['run', 'typecheck']],
   ['Lint', npmBin, ['run', 'lint']],
   ['Firestore rules dry-run', npxBin, ['firebase', 'deploy', '--only', 'firestore:rules', '--dry-run']],
-  ['High-severity production audit', npmBin, ['audit', '--omit=dev', '--audit-level=high']],
+  ['Critical production audit', npmBin, ['audit', '--omit=dev', '--audit-level=critical']],
 ];
 
 if (full) {

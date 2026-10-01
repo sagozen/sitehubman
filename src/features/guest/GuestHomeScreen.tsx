@@ -697,7 +697,7 @@ export function GuestHomeScreen() {
                 </View>
 
                 <AppText style={styles.carderTitle} weight="extrabold">
-                  The Link-in-Bio That's an Actual Site.
+                  The Link-in-Bio That&apos;s an Actual Site.
                 </AppText>
                 <AppText style={styles.carderSubtitle}>
                   Most link-in-bios are just a list of buttons. SiteHub generates a real site with your menu, prices, hours and 1-tap booking in 30 seconds — paired with a luxury Physical NFC Card.
@@ -1087,7 +1087,7 @@ const styles = StyleSheet.create({
     opacity: 0.06,
   },
   homeBackdropOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0, 0, 0, 0.68)',
   },
   safe: {

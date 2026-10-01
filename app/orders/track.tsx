@@ -38,9 +38,9 @@ function LaserEngraveOverlay({ width, height }: { width: number; height: number 
   }, [height]);
 
   return (
-    <View style={[StyleSheet.absoluteFillObject, { overflow: 'hidden', borderRadius: 16 }]} pointerEvents="none">
+    <View style={[StyleSheet.absoluteFill, { overflow: 'hidden', borderRadius: 16 }]} pointerEvents="none">
       {/* Production tint */}
-      <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(17,24,39,0.2)' }} />
+      <View style={{ ...StyleSheet.absoluteFill, backgroundColor: 'rgba(17,24,39,0.2)' }} />
       {/* Neon sweep laser beam */}
       <Animated.View
         style={{
