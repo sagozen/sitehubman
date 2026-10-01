@@ -54,6 +54,7 @@ audit-expo-*.err.log
 expo-*.log
 codex-*.log
 
-# disconnected external cloud websites
-avio-cloud/
+# preview exports & audit screenshots
+dist-preview/
+audit/screenshots/
 

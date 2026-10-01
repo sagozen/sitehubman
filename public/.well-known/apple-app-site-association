@@ -1,0 +1,22 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.com.sagozen.oneapp",
+        "paths": [
+          "/u/*",
+          "/public/*",
+          "/c/*",
+          "/card/*",
+          "/activate/*"
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": [
+      "TEAMID.com.sagozen.oneapp"
+    ]
+  }
+}
