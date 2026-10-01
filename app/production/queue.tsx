@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   headerTop: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 4 },
   backBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', 
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  title: { fontSize: 26, fontWeight: '900', color: '#111111', letterSpacing: -0.6, fontFamily: 'Inter_900Black' },
+  title: { fontSize: 26, fontWeight: '800', color: '#111111', letterSpacing: -0.6, fontFamily: 'SF-Pro-Display-Regular' },
   subtitle: { fontSize: 13, fontWeight: '500', color: '#6E6E73' },
   scroll: { padding: 20 },
   emptyCard: { 
@@ -46,5 +46,5 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0,0,0,0.08)',
     shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 3 
   },
-  emptyText: { fontSize: 14, fontWeight: '600', color: '#6E6E73', fontFamily: 'Inter_600SemiBold' },
+  emptyText: { fontSize: 14, fontWeight: '600', color: '#6E6E73', fontFamily: 'SF-Pro-Display-Regular' },
 });

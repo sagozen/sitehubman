@@ -26,13 +26,13 @@ const isWeb = Platform.OS === 'web';
 
 // ─── Design tokens ───────────────────────────────────────────────────────────
 const D = {
-  bg: '#000000',
-  surface: '#111114',
-  border: 'rgba(255,255,255,0.08)',
-  borderStrong: 'rgba(255,255,255,0.18)',
-  text: '#FFFFFF',
-  muted: 'rgba(255,255,255,0.45)',
-  mutedMid: 'rgba(255,255,255,0.6)',
+  bg: '#F5F7FA',
+  surface: '#FFFFFF',
+  border: 'rgba(0,0,0,0.08)',
+  borderStrong: 'rgba(0,0,0,0.18)',
+  text: '#111111',
+  muted: '#6E6E73',
+  mutedMid: 'rgba(0,0,0,0.6)',
   green: '#10B981',
   accent: '#D97706',
   destructive: '#FF453A',

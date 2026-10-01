@@ -306,20 +306,20 @@ const styles = StyleSheet.create({
   brandMarkText: {
     fontSize: 14,
     fontWeight: '900',
-    fontFamily: 'Inter_900Black',
+    fontFamily: 'SF-Pro-Display-Regular',
   },
   brandName: {
     fontSize: 9,
     fontWeight: '900',
     letterSpacing: 1.1,
     color: 'rgba(255,255,255,0.92)',
-    fontFamily: 'Inter_900Black',
+    fontFamily: 'SF-Pro-Display-Regular',
   },
   brandSub: {
     fontSize: 8,
     fontWeight: '700',
     color: 'rgba(255,255,255,0.58)',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'SF-Pro-Display-Regular',
   },
   nfcChip: {
     flexDirection: 'row',
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: 'rgba(255,255,255,0.9)',
     letterSpacing: 0.4,
-    fontFamily: 'Inter_900Black',
+    fontFamily: 'SF-Pro-Display-Regular',
   },
   bottomPanel: {
     flexDirection: 'row',
@@ -358,13 +358,13 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '900',
     letterSpacing: 0.4,
-    fontFamily: 'Inter_900Black',
+    fontFamily: 'SF-Pro-Display-Regular',
   },
   subtitle: {
     fontSize: 11,
     fontWeight: '700',
     color: 'rgba(255,255,255,0.74)',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'SF-Pro-Display-Regular',
   },
   contactStack: {
     gap: 3,
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '600',
     color: 'rgba(255,255,255,0.62)',
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'SF-Pro-Display-Regular',
   },
   qrModule: {
     width: 42,

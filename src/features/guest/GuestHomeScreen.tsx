@@ -105,7 +105,7 @@ const ACTIONS = [
     icon: 'Users' as AppIconName,
     bg: '#E2F16D', // Lime Yellow
     color: '#000000',
-    image: require('@/assets/images/3d_share_card_v2.png'),
+    image: require('@/assets/images/3d_share_card.png'),
   },
   {
     label: 'Instant Share',
@@ -114,7 +114,7 @@ const ACTIONS = [
     icon: 'Nfc' as AppIconName,
     bg: '#E57A65', // Terracotta
     color: '#FFFFFF',
-    image: require('@/assets/images/3d_signals_v2.png'),
+    image: require('@/assets/images/3d_scan_card.png'),
   },
   {
     label: 'Track Order',
@@ -123,7 +123,7 @@ const ACTIONS = [
     icon: 'Truck' as AppIconName,
     bg: '#2563EB', // Sapphire Blue
     color: '#FFFFFF',
-    image: require('@/assets/images/3d_track_card_v2.png'),
+    image: require('@/assets/images/3d_track_card.png'),
   },
   {
     label: 'Order Cards',
@@ -132,7 +132,7 @@ const ACTIONS = [
     icon: 'Plus' as AppIconName,
     bg: '#FF5733', // Coral Red
     color: '#FFFFFF',
-    image: require('@/assets/images/3d_create_card_v2.png'),
+    image: require('@/assets/images/3d_create_card.png'),
   },
 ];
 
@@ -456,7 +456,7 @@ export function GuestHomeScreen() {
       {/* Low opacity ambient brand collage background */}
       <View style={[styles.homeBackdropWrap, { pointerEvents: 'none' as any }]}>
         <Image
-          source={require('@/assets/images/savee_background.png')}
+          source={require('@/assets/images/snap-tap-hero.png')}
           style={styles.homeBackdropImg}
           resizeMode="cover"
         />
@@ -529,7 +529,7 @@ export function GuestHomeScreen() {
                   
                   {/* Messages - Instagram Style */}
                   <Pressable
-                    onPress={() => { HapticTap.light(); router.push('/messages' as any); }}
+                    onPress={() => { HapticTap.light(); router.push('/(tabs)/connections' as any); }}
                     style={({ pressed }) => [styles.instagramButton, pressed && styles.pressed]}
                   >
                     <AppIcon name="Send" size={20} color="#FFFFFF" />
@@ -549,7 +549,7 @@ export function GuestHomeScreen() {
               {/* ── 2. NFC Stories - Instagram Style ── */}
               <View style={styles.nfcStoriesSection}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.nfcStoriesContainer}>
-                  <Pressable style={styles.nfcStoryItem} onPress={() => { HapticTap.light(); router.push('/create-story' as any); }}>
+                  <Pressable style={styles.nfcStoryItem} onPress={() => { HapticTap.light(); router.push('/studio' as any); }}>
                     <View style={[styles.nfcStoryAvatar, styles.nfcAddStory]}>
                       <AppIcon name="Plus" size={16} color="#FFFFFF" />
                     </View>

@@ -24,6 +24,9 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import Animated, { FadeInDown, FadeInUp, useSharedValue, useAnimatedStyle, withSpring, withTiming, withRepeat, withSequence } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
+import Swipeable from 'react-native-gesture-handler/Swipeable';
+import { EmptyStateV2 } from '@/src/components/EmptyStateV2';
+import { useToast } from '@/src/providers/ToastProvider';
 
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
@@ -57,21 +60,7 @@ function getAvatarColor(name: string) {
   return AVATAR_COLORS[hash % AVATAR_COLORS.length];
 }
 
-const EmptyState = ({ isDark }: { isDark: boolean }) => {
-  const textColor = isDark ? '#FFFFFF' : '#000000';
-  const subColor = isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)';
-  const iconColor = isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.35)';
-
-  return (
-    <View style={styles.emptyState}>
-      <AppIcon name="Search" size={28} color={iconColor} />
-      <AppText style={[styles.emptyTitle, { color: textColor }]} weight="medium">No contacts found</AppText>
-      <AppText style={[styles.emptySub, { color: subColor }]}>Try searching with a different name or title.</AppText>
-    </View>
-  );
-};
-
-const ContactRow = ({ item, index, handleOpenContact, isDark }: any) => {
+const ContactRow = ({ item, index, handleOpenContact, isDark, onDelete }: any) => {
   const initials = (item.name || 'C')
     .split(' ')
     .map((n: string) => n[0])
@@ -86,32 +75,42 @@ const ContactRow = ({ item, index, handleOpenContact, isDark }: any) => {
   const subTextColor = isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)';
   const borderColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
 
-  return (
-    <Pressable
-      style={({ pressed }) => [styles.contactRow, { opacity: pressed ? 0.75 : 1 }]}
-      onPress={() => handleOpenContact(item)}
-    >
-      <View style={[styles.avatarCircle, { backgroundColor: avatarBg }]}>
-        <AppText style={styles.avatarText} weight="bold">{initials}</AppText>
-      </View>
+  const renderRightActions = () => {
+    return (
+      <Pressable style={styles.deleteAction} onPress={() => onDelete(item.id)}>
+        <AppIcon name="Trash2" size={20} color="#FFFFFF" />
+      </Pressable>
+    );
+  };
 
-      <View style={styles.contactDetails}>
-        <View style={styles.nameHeaderRow}>
-          <AppText style={[styles.contactName, { color: textColor }]} weight="medium" numberOfLines={1}>
-            {item.name}
-          </AppText>
-          <AppText style={[styles.timeText, { color: subTextColor }]}>
-            {item.occurredAt instanceof Date ? item.occurredAt.toLocaleDateString() : 'Today'}
+  return (
+    <Swipeable renderRightActions={renderRightActions} overshootRight={false}>
+      <Pressable
+        style={({ pressed }) => [styles.contactRow, { opacity: pressed ? 0.75 : 1, backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}
+        onPress={() => handleOpenContact(item)}
+      >
+        <View style={[styles.avatarCircle, { backgroundColor: avatarBg }]}>
+          <AppText style={styles.avatarText} weight="bold">{initials}</AppText>
+        </View>
+
+        <View style={styles.contactDetails}>
+          <View style={styles.nameHeaderRow}>
+            <AppText style={[styles.contactName, { color: textColor }]} weight="medium" numberOfLines={1}>
+              {item.name}
+            </AppText>
+            <AppText style={[styles.timeText, { color: subTextColor }]}>
+              {item.occurredAt instanceof Date ? item.occurredAt.toLocaleDateString() : 'Today'}
+            </AppText>
+          </View>
+          <AppText style={[styles.contactSub, { color: subTextColor }]} numberOfLines={1}>
+            {item.subtitle || 'NFC Tap Contact'}
           </AppText>
         </View>
-        <AppText style={[styles.contactSub, { color: subTextColor }]} numberOfLines={1}>
-          {item.subtitle || 'NFC Tap Contact'}
-        </AppText>
-      </View>
 
-      {isUnread && <View style={styles.unreadDot} />}
-      <AppIcon name="ChevronRight" size={16} color={subTextColor} />
-    </Pressable>
+        {isUnread && <View style={styles.unreadDot} />}
+        <AppIcon name="ChevronRight" size={16} color={subTextColor} />
+      </Pressable>
+    </Swipeable>
   );
 };
 
@@ -141,11 +140,11 @@ export function GuestConnectionsScreen() {
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'vip' | 'recent'>('all');
 
-  const allMoments = useMemo(() => SEED_MOMENTS, []);
+  const [moments, setMoments] = useState(SEED_MOMENTS);
   const debouncedSearch = useDebounce(query, 300);
 
   const filteredMoments = useMemo(() => {
-    let result = allMoments;
+    let result = moments;
     if (activeFilter === 'vip') {
       result = result.filter(
         (m) =>
@@ -163,7 +162,7 @@ export function GuestConnectionsScreen() {
     return result.filter((moment) =>
       `${moment.name} ${moment.subtitle ?? ''}`.toLowerCase().includes(lower),
     );
-  }, [allMoments, activeFilter, debouncedSearch]);
+  }, [moments, activeFilter, debouncedSearch]);
 
   const handleExportCSV = useCallback(async () => {
     HapticTap.medium();
@@ -236,6 +235,18 @@ export function GuestConnectionsScreen() {
     }, 300); // Give time for exit animation if we add one
   }, []);
 
+  const { showToast } = useToast();
+
+  const handleDelete = useCallback((id: string) => {
+    HapticTap.medium();
+    setMoments(prev => prev.filter(m => m.id !== id));
+    showToast({
+      message: 'Connection deleted',
+      type: 'success',
+      icon: 'Trash2',
+    });
+  }, [showToast]);
+
   const renderContactRow = useCallback(
     ({ item, index }: { item: TapMoment; index: number }) => (
       <ContactRow 
@@ -243,9 +254,10 @@ export function GuestConnectionsScreen() {
         index={index} 
         handleOpenContact={handleOpenContact} 
         isDark={isDark}
+        onDelete={handleDelete}
       />
     ),
-    [handleOpenContact, isDark],
+    [handleOpenContact, isDark, handleDelete],
   );
 
   // Search Animation
@@ -378,7 +390,13 @@ export function GuestConnectionsScreen() {
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            ListEmptyComponent={<EmptyState isDark={isDark} />}
+            ListEmptyComponent={
+              <EmptyStateV2
+                icon="Users"
+                title="No connections yet"
+                description={query ? "Try searching with a different name." : "Your scanned leads and connections will appear here."}
+              />
+            }
             estimatedItemSize={72}
           />
 
@@ -445,7 +463,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   listContent: {
-    paddingHorizontal: 20,
     paddingBottom: 130, // Clearance for floating capsule dock
   },
 
@@ -536,7 +553,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
+    paddingHorizontal: 20, // Move horizontal padding here for swipe context
     gap: 14,
+  },
+  deleteAction: {
+    backgroundColor: '#FF3B30',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    width: 80,
+    height: '100%',
+    paddingRight: 24,
   },
   avatarCircle: {
     width: 44,

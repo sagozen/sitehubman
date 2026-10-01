@@ -43,10 +43,10 @@ const APPLE_CARD_LIGHT = '#FFFFFF';
 const APPLE_TEXT_LIGHT = '#000000';
 
 const ACTIONS = [
-  { label: 'Edit Profile', subtitle: 'Update bio & links', route: appRoutes.guestDesign as Href, icon: 'PenLine' as AppIconName, image: require('@/assets/images/3d_create_card_v2.png'), color: APPLE_BLUE },
-  { label: 'My Network', subtitle: 'Manage leads & contacts', route: appRoutes.customerConnections as Href, icon: 'Users' as AppIconName, image: require('@/assets/images/3d_share_card_v2.png'), color: APPLE_BLUE },
-  { label: 'Tap Analytics', subtitle: 'Track scans & CTR', route: appRoutes.customerAnalysis as Href, icon: 'BarChart2' as AppIconName, image: require('@/assets/images/3d_analytics_v2.png'), color: APPLE_BLUE },
-  { label: 'NFC Hardware', subtitle: 'Link tag or badge', route: appRoutes.nfcDemo as Href, icon: 'Nfc' as AppIconName, image: require('@/assets/images/3d_signals_v2.png'), color: APPLE_BLUE },
+  { label: 'Edit Profile', subtitle: 'Update bio & links', route: appRoutes.guestDesign as Href, icon: 'PenLine' as AppIconName, image: require('@/assets/images/3d_create_card.png'), color: APPLE_BLUE },
+  { label: 'My Network', subtitle: 'Manage leads & contacts', route: appRoutes.customerConnections as Href, icon: 'Users' as AppIconName, image: require('@/assets/images/3d_share_card.png'), color: APPLE_BLUE },
+  { label: 'Tap Analytics', subtitle: 'Track scans & CTR', route: appRoutes.customerAnalysis as Href, icon: 'BarChart2' as AppIconName, image: require('@/assets/images/3d_track_card.png'), color: APPLE_BLUE },
+  { label: 'NFC Hardware', subtitle: 'Link tag or badge', route: appRoutes.nfcDemo as Href, icon: 'Nfc' as AppIconName, image: require('@/assets/images/3d_scan_card.png'), color: APPLE_BLUE },
 ];
 
 function orderStatus(s: string): { label: string; color: string } {
@@ -344,9 +344,9 @@ export function CustomerAccountScreen() {
             <View style={styles.statsSection}>
               <View style={styles.statsRow}>
                 {[
-                  { label: 'Orders', value: String(insights.totalOrders), image: require('@/assets/images/3d_track_card_v2.png'), color: APPLE_BLUE },
-                  { label: 'Active', value: String(insights.activeOrders), image: require('@/assets/images/3d_signals_v2.png'), color: APPLE_ORANGE },
-                  { label: 'Delivered', value: String(insights.deliveredOrders), image: require('@/assets/images/3d_scan_card_v2.png'), color: APPLE_GREEN },
+                  { label: 'Orders', value: String(insights.totalOrders), image: require('@/assets/images/3d_track_card.png'), color: APPLE_BLUE },
+                  { label: 'Active', value: String(insights.activeOrders), image: require('@/assets/images/3d_scan_card.png'), color: APPLE_ORANGE },
+                  { label: 'Delivered', value: String(insights.deliveredOrders), image: require('@/assets/images/3d_scan_card.png'), color: APPLE_GREEN },
                 ].map((stat, index) => (
                   <StatCard
                     key={stat.label}

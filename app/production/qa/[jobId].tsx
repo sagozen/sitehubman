@@ -34,10 +34,10 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 },
   backBtn: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)', ...createShadow({ color: '#000', offset: { width: 0, height: 2 }, opacity: 0.03, radius: 6, elevation: 2 }) },
   headerCopy: { flex: 1 },
-  title: { fontSize: 26, fontWeight: '900', color: '#111827', letterSpacing: -0.6, fontFamily: 'Inter_900Black' },
+  title: { fontSize: 26, fontWeight: '800', color: '#111827', letterSpacing: -0.6, fontFamily: 'SF-Pro-Display-Regular' },
   subtitle: { fontSize: 13, fontWeight: '500', color: '#8E8E93' },
   container: { flex: 1, padding: 20, justifyContent: 'center', alignItems: 'center' },
   statusBox: { backgroundColor: '#FFFFFF', borderRadius: 24, padding: 32, alignItems: 'center', borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.04)', ...createShadow({ color: '#000', offset: { width: 0, height: 4 }, opacity: 0.02, radius: 10, elevation: 2 }) },
-  statusTitle: { fontSize: 20, fontWeight: '800', color: '#111827', marginBottom: 8, fontFamily: 'Inter_800ExtraBold' },
-  statusSub: { fontSize: 14, color: '#8E8E93', textAlign: 'center', fontFamily: 'Inter_500Medium' },
+  statusTitle: { fontSize: 20, fontWeight: '800', color: '#111827', marginBottom: 8, fontFamily: 'SF-Pro-Display-Regular' },
+  statusSub: { fontSize: 14, color: '#8E8E93', textAlign: 'center', fontFamily: 'SF-Pro-Display-Regular' },
 });

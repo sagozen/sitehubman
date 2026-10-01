@@ -4,16 +4,14 @@
     "slug": "bio-cloud-native",
     "version": "1.0.0",
     "description": "AVIO lets you create premium NFC digital business cards, share your bio instantly via tap or QR code, and track every card interaction in real time. CONNECT · IDENTIFY · EMPOWER.",
-    "keywords": "AVIO, NFC card, digital business card, smart card, bio link, QR code, contactless sharing, tap to share, NFC tag, networking, profile link",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "avio",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.sagozen.oneapp",
-      "buildNumber": "63",
+      "buildNumber": "64",
       "usesAppleSignIn": true,
       "infoPlist": {
         "NSCameraUsageDescription": "SiteHub needs camera access to scan QR codes on NFC cards.",
@@ -82,7 +80,24 @@
           "project": "sitehubman"
         }
       ],
-      "react-native-compressor"
+      "react-native-compressor",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#111111",
+          "channels": {
+            "payment_alerts": {
+              "name": "Payment & Order Alerts",
+              "description": "Real-time alerts for incoming bank settlements and production factory queue updates.",
+              "importance": "max",
+              "vibration": true,
+              "sound": "default",
+              "showBadge": true
+            }
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

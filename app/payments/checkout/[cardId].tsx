@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View, Image } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useNetInfo } from '@react-native-community/netinfo';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppButton } from '@/src/components/AppButton';
 import { AppHeader } from '@/src/components/AppHeader';
@@ -59,6 +60,8 @@ export default function GuestCheckoutRoute() {
   const params = useLocalSearchParams<{ cardId: string }>();
   const cardId = typeof params.cardId === 'string' ? params.cardId : '';
   const { user } = useAuth();
+  const netInfo = useNetInfo();
+  const isOffline = netInfo.isConnected === false && netInfo.type !== 'unknown';
   useProductCatalog();
   const materialOptions = getActiveMaterialProductOptions();
   const [card, setCard] = useState<GuestCloudCard | null>(null);
@@ -384,10 +387,11 @@ export default function GuestCheckoutRoute() {
             Go live instantly with your digital profile. No credit card, no payment - full access for {CUSTOMER_TRIAL_DAYS} days.
           </AppText>
           <AppButton
-            label={submitting ? 'Starting trial...' : 'Start free trial'}
+            label={isOffline ? 'Offline' : (submitting ? 'Starting trial...' : 'Start free trial')}
             iconName="Zap"
             variant="dark"
             loading={submitting}
+            disabled={submitting || isOffline}
             onPress={() => void handleStartFreeTrial()}
           />
         </View>
@@ -443,10 +447,11 @@ export default function GuestCheckoutRoute() {
         {error ? <AppText style={styles.error}>{error}</AppText> : null}
 
         <AppButton
-          label={submitting ? 'Creating order...' : 'Create Order'}
+          label={isOffline ? 'Offline - Reconnecting...' : (submitting ? 'Creating order...' : 'Create Order')}
           iconName="CreditCard"
           variant="dark"
           loading={submitting}
+          disabled={submitting || isOffline}
           onPress={() => void handleCreateOrder()}
         />
       </IosScrollView>

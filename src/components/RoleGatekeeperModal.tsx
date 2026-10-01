@@ -75,7 +75,7 @@ export function RoleGatekeeperModal({
                 <AppText style={styles.roleLabel}>PREVIOUS ROLE</AppText>
                 <AppText style={styles.rolePrev}>{getRoleLabel(oldRole as any)}</AppText>
               </View>
-              <AppIcon name="ArrowRight" size={18} color="rgba(255,255,255,0.4)" />
+              <AppIcon name="ArrowRight" size={18} color="rgba(0,0,0,0.2)" />
               <View style={styles.roleCol}>
                 <AppText style={styles.roleLabel}>ASSIGNED ROLE</AppText>
                 <AppText style={styles.roleNext}>{getRoleLabel(newRole as any)}</AppText>
@@ -109,10 +109,10 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 420,
-    backgroundColor: '#121217',
-    borderRadius: 24,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
     padding: 26,
     alignItems: 'center',
   },
@@ -137,14 +137,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: '#111111',
+    fontFamily: 'SF-Pro-Display-Regular',
     textAlign: 'center',
     marginBottom: 10,
     letterSpacing: -0.4,
   },
   description: {
     fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.65)',
+    color: '#6E6E73',
+    fontFamily: 'SF-Pro-Display-Regular',
     textAlign: 'center',
     lineHeight: 19,
     marginBottom: 20,
@@ -154,10 +156,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: '#F5F7FA',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(0, 0, 0, 0.08)',
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginBottom: 22,
@@ -169,13 +171,13 @@ const styles = StyleSheet.create({
   roleLabel: {
     fontSize: 9,
     fontWeight: '800',
-    color: 'rgba(255, 255, 255, 0.4)',
+    color: '#6E6E73',
     letterSpacing: 0.8,
   },
   rolePrev: {
     fontSize: 13,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: 'rgba(0, 0, 0, 0.4)',
     textDecorationLine: 'line-through',
   },
   roleNext: {

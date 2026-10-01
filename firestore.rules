@@ -424,6 +424,11 @@ service cloud.firestore {
       allow write: if isAdmin() && docId != 'payment_secrets';
     }
 
+    match /system_health/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
     match /users/{userId} {
       allow read: if isSignedIn() && (
         request.auth.uid == userId

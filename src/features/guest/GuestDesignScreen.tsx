@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNetInfo } from '@react-native-community/netinfo';
 import { HapticTap } from '@/src/utils/haptics';
 import { MotionScale } from '@/src/utils/motion';
 import { usePerformanceMonitor } from '@/src/utils/performanceMonitor';
@@ -132,6 +133,8 @@ export function GuestDesignScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { measure } = usePerformanceMonitor();
+  const netInfo = useNetInfo();
+  const isOffline = netInfo.isConnected === false && netInfo.type !== 'unknown';
 
   const [name, setName]       = useState('');
   const [jobTitle, setJobTitle] = useState('');
@@ -442,11 +445,11 @@ export function GuestDesignScreen() {
           )}
 
           <AppButton
-            label={cardType === 'physical' ? 'Order NFC Physical Card' : 'Create & Activate Digital Card'}
+            label={isOffline ? 'Offline - Reconnecting...' : (cardType === 'physical' ? 'Order NFC Physical Card' : 'Create & Activate Digital Card')}
             variant="white"
             size="bottomCTA"
             onPress={() => void handleSave()}
-            disabled={!infoComplete}
+            disabled={!infoComplete || isOffline}
             loading={saving}
             fullWidth={true}
             haptic="medium"

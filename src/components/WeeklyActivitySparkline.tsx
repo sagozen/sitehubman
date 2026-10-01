@@ -152,6 +152,21 @@ export function WeeklyActivitySparkline({
           </AppText>
         </Pressable>
       </View>
+
+      {/* Animated Sparkline Bar Chart */}
+      <View style={styles.chartContainer}>
+        {[0.4, 0.7, 0.5, 0.8, 1.0, 0.9, 0.6].map((heightRatio, i) => (
+          <View key={i} style={styles.barTrack}>
+            <View 
+              style={[
+                styles.barFill, 
+                { height: `${heightRatio * 100}%` },
+                i === 4 && { backgroundColor: '#30D158' } // Today is green
+              ]} 
+            />
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
@@ -271,6 +286,27 @@ const styles = StyleSheet.create({
   dayCardSubToday: {
     fontSize: 9.5,
     color: 'rgba(255, 255, 255, 0.6)',
+  },
+  chartContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    height: 48,
+    marginTop: 8,
+    paddingHorizontal: 8,
+  },
+  barTrack: {
+    width: 24,
+    height: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 6,
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+  },
+  barFill: {
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    borderRadius: 6,
   },
 });
 

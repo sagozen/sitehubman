@@ -394,6 +394,13 @@ export function SettingsScreen() {
               onPress={handleResetPreferencesPress}
             />
             <SettingRow
+              delay={400}
+              icon="HelpCircle"
+              title="Help & Support"
+              subtitle="Get assistance and view guides"
+              onPress={() => router.push('/help' as any)}
+            />
+            <SettingRow
               delay={420}
               icon="LogOut"
               title={isGuest ? 'Exit Guest Mode' : 'Sign Out'}

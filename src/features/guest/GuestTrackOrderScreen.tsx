@@ -76,7 +76,7 @@ export function GuestTrackOrderScreen() {
 
   async function handleCompletePayment(orderToPay: Order) {
     if (orderToPay.paymentIntentId) {
-      router.push(`/payment/${orderToPay.paymentIntentId}` as Href);
+      router.push(`/payments/${orderToPay.paymentIntentId}` as Href);
       return;
     }
     setPaymentBusy(true);
@@ -86,7 +86,7 @@ export function GuestTrackOrderScreen() {
           ? orderToPay.paymentMethod
           : 'khqr';
       const intent = await initiatePayment(orderToPay.id, method);
-      router.push(`/payment/${intent.intentId}` as Href);
+      router.push(`/payments/${intent.intentId}` as Href);
     } catch (err) {
       Alert.alert('Payment unavailable', getAuthErrorMessage(err));
     } finally {

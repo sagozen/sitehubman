@@ -1,4 +1,4 @@
-﻿/**
+/**
  * GuestAnalyticsScreen.tsx — Apple HIG Luxury Executive Analytics.
  *
  * Design Architecture:
@@ -26,6 +26,7 @@ import { PageHeader } from '@/src/components/PageHeader';
 import { FlippableNfcCard } from '@/src/components/FlippableNfcCard';
 import { WeeklyActivitySparkline } from '@/src/components/WeeklyActivitySparkline';
 import { IosScrollView } from '@/src/components/IosScrollView';
+import { AnalyticsSkeleton } from '@/src/components/AnalyticsSkeleton';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useBioPage } from '@/src/hooks/useBioPage';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
@@ -72,6 +73,14 @@ export function GuestAnalyticsScreen() {
   const totalTaps = insights?.totalOrders ? insights.totalOrders * 12 + 18 : 28;
   const leadSaves = Math.round(totalTaps * 0.42);
   const ctrRate = '42.8%';
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+        <AnalyticsSkeleton />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>

@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
   bg: { flex: 1, backgroundColor: BG },
   blob: { position: 'absolute', opacity: 0.8 },
   scroll: { paddingHorizontal: 16, paddingBottom: 120 },
-  title: { fontSize: 30, fontWeight: '900', color: INK, letterSpacing: -0.6, fontFamily: 'Inter_900Black' },
+  title: { fontSize: 30, fontWeight: '900', color: INK, letterSpacing: -0.6, fontFamily: 'SF-Pro-Display-Regular' },
 
   heroWrap: {
     borderRadius: 24, overflow: 'hidden',

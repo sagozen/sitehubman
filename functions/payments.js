@@ -3,7 +3,11 @@
  */
 const admin = require('firebase-admin');
 const crypto = require('crypto');
-const { onCall, onRequest, HttpsError } = require('firebase-functions/v2/https');
+const {
+  onCall,
+  onRequest,
+  HttpsError,
+} = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 
 const paymentSandboxSecret = defineSecret('PAYMENT_SANDBOX_SECRET');
@@ -41,7 +45,10 @@ function shouldEnforceAppCheck() {
 function intentExpired(intent) {
   const expiresAt = intent?.expiresAt;
   if (!expiresAt) return false;
-  const ms = typeof expiresAt.toDate === 'function' ? expiresAt.toDate().getTime() : new Date(expiresAt).getTime();
+  const ms =
+    typeof expiresAt.toDate === 'function'
+      ? expiresAt.toDate().getTime()
+      : new Date(expiresAt).getTime();
   return Number.isFinite(ms) && Date.now() > ms;
 }
 
@@ -53,12 +60,16 @@ function normalizeRole(role) {
 function timingSafeStringEqual(actual, expected) {
   const actualBuffer = Buffer.from(String(actual || ''), 'utf8');
   const expectedBuffer = Buffer.from(String(expected || ''), 'utf8');
-  return actualBuffer.length === expectedBuffer.length
-    && crypto.timingSafeEqual(actualBuffer, expectedBuffer);
+  return (
+    actualBuffer.length === expectedBuffer.length &&
+    crypto.timingSafeEqual(actualBuffer, expectedBuffer)
+  );
 }
 
 function webhookRateKey(req) {
-  return String(req.ip || req.get('x-forwarded-for') || 'unknown').split(',')[0].trim();
+  return String(req.ip || req.get('x-forwarded-for') || 'unknown')
+    .split(',')[0]
+    .trim();
 }
 
 async function assertWebhookRateLimit(req, provider, limit = 120) {
@@ -82,22 +93,24 @@ async function publishGuestCard(orderId) {
       paymentVerifiedAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     },
-    { merge: true }
+    { merge: true },
   );
 }
 
 async function notifyUser(userId, title, message, actionUrl) {
   if (!userId) return;
-  await db().collection(NOTIFICATIONS).add({
-    userId,
-    title,
-    message,
-    isRead: false,
-    priority: 'high',
-    actionUrl: actionUrl || null,
-    createdBy: 'system',
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-  });
+  await db()
+    .collection(NOTIFICATIONS)
+    .add({
+      userId,
+      title,
+      message,
+      isRead: false,
+      priority: 'high',
+      actionUrl: actionUrl || null,
+      createdBy: 'system',
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
 }
 
 async function getActor(auth) {
@@ -112,7 +125,8 @@ async function getActor(auth) {
   return {
     uid,
     role: claimRole !== 'guest' ? claimRole : profileRole,
-    isActive: snap.exists && data.isActive !== false && auth?.token?.isActive !== false,
+    isActive:
+      snap.exists && data.isActive !== false && auth?.token?.isActive !== false,
   };
 }
 
@@ -131,7 +145,10 @@ function assertFinanceAccess(actor, order, options = {}) {
   if (isAdminRole(actor.role)) return;
   if (isSalesRole(actor.role) && order.assignedSalesman === actor.uid) return;
   if (options.allowCustomer && order.createdBy === actor.uid) return;
-  throw new HttpsError('permission-denied', 'You cannot manage finance for this order.');
+  throw new HttpsError(
+    'permission-denied',
+    'You cannot manage finance for this order.',
+  );
 }
 
 function assertActiveActor(actor) {
@@ -148,14 +165,21 @@ function getOrderAmount(order) {
 }
 
 function normalizeRefundAmount(rawAmount, remainingAmount) {
-  const amount = rawAmount === undefined || rawAmount === null || rawAmount === ''
-    ? remainingAmount
-    : Number(rawAmount);
+  const amount =
+    rawAmount === undefined || rawAmount === null || rawAmount === ''
+      ? remainingAmount
+      : Number(rawAmount);
   if (!Number.isFinite(amount) || amount <= 0) {
-    throw new HttpsError('invalid-argument', 'Refund amount must be greater than zero.');
+    throw new HttpsError(
+      'invalid-argument',
+      'Refund amount must be greater than zero.',
+    );
   }
   if (amount > remainingAmount + 0.0001) {
-    throw new HttpsError('failed-precondition', 'Refund amount exceeds the remaining paid balance.');
+    throw new HttpsError(
+      'failed-precondition',
+      'Refund amount exceeds the remaining paid balance.',
+    );
   }
   return Math.round(amount * 100) / 100;
 }
@@ -173,7 +197,13 @@ function pdfEscape(value) {
     .replace(/[^\x20-\x7E]/g, '?');
 }
 
-function buildSimpleInvoicePdfBuffer({ invoiceNumber, order, lineItems, amount, currency }) {
+function buildSimpleInvoicePdfBuffer({
+  invoiceNumber,
+  order,
+  lineItems,
+  amount,
+  currency,
+}) {
   const lines = [
     `Invoice ${invoiceNumber}`,
     `Order: ${order.orderNumber || order.id || ''}`,
@@ -181,9 +211,10 @@ function buildSimpleInvoicePdfBuffer({ invoiceNumber, order, lineItems, amount, 
     `Issued: ${new Date().toISOString().slice(0, 10)}`,
     '',
     'Items',
-    ...lineItems.map((item) => (
-      `${item.description} x${item.quantity} - ${currency} ${item.amount}`
-    )),
+    ...lineItems.map(
+      (item) =>
+        `${item.description} x${item.quantity} - ${currency} ${item.amount}`,
+    ),
     '',
     `Total: ${currency} ${amount}`,
     `Payment status: ${order.paymentStatus || 'paid'}`,
@@ -256,7 +287,10 @@ async function markOrderPaidInternal(orderId, intentId, providerRef) {
   const intentRef = db().doc(`${INTENTS}/${intentId}`);
 
   await db().runTransaction(async (tx) => {
-    const [orderSnap, intentSnap] = await Promise.all([tx.get(orderRef), tx.get(intentRef)]);
+    const [orderSnap, intentSnap] = await Promise.all([
+      tx.get(orderRef),
+      tx.get(intentRef),
+    ]);
     if (!orderSnap.exists) throw new Error('Order not found.');
     if (!intentSnap.exists) throw new Error('Payment intent not found.');
 
@@ -298,14 +332,14 @@ async function markOrderPaidInternal(orderId, intentId, providerRef) {
     customerId,
     'Payment confirmed',
     `Order ${order.orderNumber || orderId} is paid. Production will begin after sales approval.`,
-    `/guest-track-order?orderId=${encodeURIComponent(orderId)}`
+    `/guest-track-order?orderId=${encodeURIComponent(orderId)}`,
   );
   if (order.assignedSalesman) {
     await notifyUser(
       order.assignedSalesman,
       'Payment received',
       `${order.customerName || 'Customer'} paid ${order.currency || 'KHR'} ${order.amount || ''}.`,
-      `/order-detail/${orderId}`
+      `/order-detail/${orderId}`,
     );
   }
 }
@@ -323,7 +357,10 @@ exports.createPaymentIntent = onCall(
     const orderId = String(request.data?.orderId || '').trim();
     const methodId = String(request.data?.methodId || '').trim();
     if (!orderId || !methodId) {
-      throw new HttpsError('invalid-argument', 'orderId and methodId are required.');
+      throw new HttpsError(
+        'invalid-argument',
+        'orderId and methodId are required.',
+      );
     }
 
     const orderRef = db().doc(`${ORDERS}/${orderId}`);
@@ -341,16 +378,21 @@ exports.createPaymentIntent = onCall(
 
     const amount = getOrderAmount(order);
     if (amount <= 0) {
-      throw new HttpsError('invalid-argument', 'Calculated order amount must be greater than zero.');
+      throw new HttpsError(
+        'invalid-argument',
+        'Calculated order amount must be greater than zero.',
+      );
     }
     const currency = order.currency === 'USD' ? 'USD' : 'KHR';
-    const expiresAt = admin.firestore.Timestamp.fromDate(new Date(Date.now() + 30 * 60 * 1000));
+    const expiresAt = admin.firestore.Timestamp.fromDate(
+      new Date(Date.now() + 30 * 60 * 1000),
+    );
 
     const provider = process.env.PAYMENT_PROVIDER || 'sandbox';
     if (provider !== 'sandbox') {
       throw new HttpsError(
         'failed-precondition',
-        'Production payment provider is not configured. Use sandbox mode or complete the merchant API integration.'
+        'Production payment provider is not configured. Use sandbox mode or complete the merchant API integration.',
       );
     }
 
@@ -358,7 +400,9 @@ exports.createPaymentIntent = onCall(
     const idem = idempotencyKey(orderId, methodId);
     const qrPayload = `SITEHUB|${intentRef.id}|${amount}|${currency}|${methodId}`;
     const abaDeeplink =
-      methodId === 'aba' || methodId === 'aba_pay' ? `ababank://pay?ref=${intentRef.id}` : null;
+      methodId === 'aba' || methodId === 'aba_pay'
+        ? `ababank://pay?ref=${intentRef.id}`
+        : null;
 
     await intentRef.set({
       orderId,
@@ -391,7 +435,7 @@ exports.createPaymentIntent = onCall(
       expiresAt: expiresAt.toDate().toISOString(),
       status: 'pending',
     };
-  }
+  },
 );
 
 async function resolveSandboxSecret() {
@@ -434,14 +478,14 @@ exports.generatePaymentSandboxSecret = onCall(
         rotatedBy: request.auth.uid,
         updatedAt: now,
       },
-      { merge: true }
+      { merge: true },
     );
 
     return {
       sandboxSecret: secret,
       rotatedAt: new Date().toISOString(),
     };
-  }
+  },
 );
 
 /** Dev/sandbox: POST { intentId, secret } to simulate bank confirmation. */
@@ -458,7 +502,9 @@ exports.paymentWebhookSandbox = onRequest(
     }
 
     const secret = await resolveSandboxSecret();
-    const bodySecret = String(req.body?.secret || req.get('x-payment-secret') || '');
+    const bodySecret = String(
+      req.body?.secret || req.get('x-payment-secret') || '',
+    );
     if (!secret || !timingSafeStringEqual(bodySecret, secret)) {
       res.status(403).json({ error: 'Invalid sandbox secret' });
       return;
@@ -486,14 +532,16 @@ exports.paymentWebhookSandbox = onRequest(
     const intent = intentSnap.data();
     const providerRef = `SANDBOX-${crypto.randomBytes(6).toString('hex')}`;
 
-    await db().collection(EVENTS).add({
-      provider: 'sandbox',
-      intentId,
-      orderId: intent.orderId,
-      providerRef,
-      raw: req.body || {},
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
+    await db()
+      .collection(EVENTS)
+      .add({
+        provider: 'sandbox',
+        intentId,
+        orderId: intent.orderId,
+        providerRef,
+        raw: req.body || {},
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
 
     try {
       await markOrderPaidInternal(intent.orderId, intentId, providerRef);
@@ -503,77 +551,217 @@ exports.paymentWebhookSandbox = onRequest(
       const status = message.includes('expired') ? 410 : 500;
       res.status(status).json({ error: message });
     }
-  }
+  },
 );
+
+function generateAbaSignature(payload, secretKey) {
+  const { req_time, merchant_id, tran_id, amount, status, payment_type } =
+    payload;
+  const rawString =
+    (req_time || '') +
+    (merchant_id || '') +
+    (tran_id || '') +
+    (amount || '') +
+    (status || '') +
+    (payment_type || '');
+  return crypto
+    .createHmac('sha256', secretKey)
+    .update(rawString)
+    .digest('base64');
+}
 
 /** Production ABA webhook — verify HMAC then mark paid. */
 exports.paymentWebhookAba = onRequest(
   { secrets: [abaWebhookSecret], cors: false },
   async (req, res) => {
+    // 1. Enforce POST request isolation
     if (req.method !== 'POST') {
-      res.status(405).send('Method not allowed');
-      return;
+      res.setHeader('Allow', 'POST');
+      return res.status(405).end('Method Not Allowed');
     }
 
-    let secret = '';
+    const payload = req.body || {};
+    const clientSignature = req.headers['x-aba-signature'] || payload.hash;
+
+    let systemSecret = '';
     try {
-      secret = abaWebhookSecret.value();
+      systemSecret = abaWebhookSecret.value();
     } catch {
-      secret = process.env.ABA_WEBHOOK_SECRET || '';
+      systemSecret = process.env.ABA_WEBHOOK_SECRET || '';
     }
 
-    const signature = String(req.get('x-aba-signature') || '');
-    const rawBody = JSON.stringify(req.body || {});
-    const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
-    if (!secret || !timingSafeStringEqual(signature, expected)) {
-      res.status(403).json({ error: 'Invalid signature' });
-      return;
+    // 2. Strict Input Presence Sanitization
+    if (!clientSignature || !payload.tran_id || !payload.status) {
+      console.error(
+        '[WEBHOOK EXPLOIT ALERT] Missing essential cryptographic payload parameters.',
+      );
+      return res
+        .status(400)
+        .send('Bad Request: Missing validation structures.');
     }
+
+    // 3. Cryptographic Signature Validation
+    const expectedSignature = generateAbaSignature(payload, systemSecret);
+
+    // Use timingSafeEqual to neutralize side-channel timing analysis attacks
+    const clientSigBuffer = Buffer.from(clientSignature, 'utf8');
+    const expectedSigBuffer = Buffer.from(expectedSignature, 'utf8');
+
+    if (
+      clientSigBuffer.length !== expectedSigBuffer.length ||
+      !crypto.timingSafeEqual(clientSigBuffer, expectedSigBuffer)
+    ) {
+      console.error(
+        `[SECURITY ALERT] Invalid webhook signature mismatch targeting Transaction ID: ${payload.tran_id}`,
+      );
+      return res
+        .status(401)
+        .send('Unauthorized: Cryptographic verification signature failed.');
+    }
+
+    const intentId = payload.tran_id; // Maps directly to payment_intents collection document ID
+    const intentRef = db().collection('payment_intents').doc(intentId);
 
     try {
-      await assertWebhookRateLimit(req, 'aba');
-    } catch {
-      res.status(429).json({ error: 'Too many requests' });
-      return;
+      let targetUid = null;
+      let targetOrderId = null;
+      let transactionAmount = 0;
+      let isNewlyPaid = false;
+
+      // 4. Run an atomic database transaction to prevent webhook payload racing duplicates
+      await db().runTransaction(async (transaction) => {
+        const intentDoc = await transaction.get(intentRef);
+
+        if (!intentDoc.exists) {
+          throw new Error(
+            `PaymentIntent ID context ${intentId} not registered in platform.`,
+          );
+        }
+
+        const intentData = intentDoc.data();
+
+        targetUid = intentData.userId || intentData.createdBy;
+        targetOrderId = intentData.orderId;
+        transactionAmount = Number(payload.amount);
+
+        // Prevent reprocessing an already settled paid state
+        if (intentData.status === 'paid') {
+          console.log(
+            `[WEBHOOK SYNC] Intent ID ${intentId} already settled as paid.`,
+          );
+          return;
+        }
+
+        // Evaluate banking status payload returned from ABA Bank Gateway
+        if (payload.status === '0') {
+          isNewlyPaid = true;
+          // TRANSACTION SUCCESSFUL
+          transaction.update(intentRef, {
+            status: 'paid',
+            amount: transactionAmount,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+
+          // If your intent record holds a direct reference to the parent order, elevate its status
+          if (intentData.orderId) {
+            const orderRef = db().collection('orders').doc(intentData.orderId);
+            transaction.update(orderRef, {
+              paymentStatus: 'paid',
+              status: 'printing',
+              paidAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+            console.log(
+              `[FACTORY EVENT] Order ${intentData.orderId} moved to production queue successfully.`,
+            );
+          }
+        } else {
+          // TRANSACTION DECLINED/FAILED
+          transaction.update(intentRef, {
+            status: 'failed',
+            failureReason:
+              payload.description ||
+              `Gateway error code status: ${payload.status}`,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        }
+      });
+
+      // 5. Trigger the Push Notification Pipeline ONLY if the payment just cleared successfully
+      if (isNewlyPaid && targetUid) {
+        // Fetch the user's registered FCM push tokens
+        const userTokensDoc = await db()
+          .collection('users')
+          .doc(targetUid)
+          .get();
+        const userData = userTokensDoc.exists ? userTokensDoc.data() : {};
+        const pushToken = userData.fcmPushToken; // Expected to exist from client app registration
+
+        if (
+          pushToken &&
+          typeof pushToken === 'string' &&
+          pushToken.trim() !== ''
+        ) {
+          const notificationMessage = {
+            token: pushToken,
+            notification: {
+              title: 'Payment Received Successfully 🟢',
+              body: `Your payment of $${transactionAmount.toFixed(2)} has cleared. Your order is entering the factory printing queue!`,
+            },
+            android: {
+              priority: 'high',
+              notification: {
+                sound: 'default',
+                channelId: 'payment_alerts',
+              },
+            },
+            apns: {
+              payload: {
+                aps: {
+                  sound: 'default',
+                  badge: 1,
+                },
+              },
+            },
+            data: {
+              click_action: 'FLUTTER_NOTIFICATION_CLICK',
+              routingPath: `/order-receipt/${targetOrderId}`,
+              intentId: intentId,
+              orderId: targetOrderId || '',
+            },
+          };
+
+          try {
+            const response = await admin.messaging().send(notificationMessage);
+            console.log(
+              '[PUSH NOTIFICATION SUCCESS] Notification sent cleanly via FCM:',
+              response,
+            );
+          } catch (pushError) {
+            console.error(
+              '[PUSH NOTIFICATION ERROR] Failed to dispatch messaging packet payload:',
+              pushError,
+            );
+          }
+        } else {
+          console.log(
+            `[PUSH NOTIFICATION SKIP] User ${targetUid} has no active FCM push tokens registered.`,
+          );
+        }
+      }
+
+      return res
+        .status(200)
+        .json({ status: 'ok', msg: 'Webhook verified and processed.' });
+    } catch (error) {
+      console.error(
+        `[WEBHOOK PROCESSING CRASH] Exception inside Transaction Context for ID: ${intentId}`,
+        error,
+      );
+      return res
+        .status(500)
+        .send('Internal Server Error: Database pipeline failure.');
     }
-
-    const intentId = String(req.body?.intentId || req.body?.reference || '').trim();
-    const providerRef = String(req.body?.transactionId || '').trim();
-    if (!intentId) {
-      res.status(400).json({ error: 'Missing reference' });
-      return;
-    }
-
-    const intentSnap = await db().doc(`${INTENTS}/${intentId}`).get();
-    if (!intentSnap.exists) {
-      res.status(404).json({ error: 'Unknown intent' });
-      return;
-    }
-    const intent = intentSnap.data();
-
-    const eventId = providerRef || intentId;
-    const dup = await db()
-      .collection(EVENTS)
-      .where('providerRef', '==', eventId)
-      .limit(1)
-      .get();
-    if (!dup.empty) {
-      res.json({ ok: true, duplicate: true });
-      return;
-    }
-
-    await db().collection(EVENTS).add({
-      provider: 'aba',
-      intentId,
-      orderId: intent.orderId,
-      providerRef: eventId,
-      raw: req.body,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
-
-    await markOrderPaidInternal(intent.orderId, intentId, providerRef);
-    res.json({ ok: true });
-  }
+  },
 );
 
 exports.initiateRefund = onCall(
@@ -602,20 +790,32 @@ exports.initiateRefund = onCall(
     assertFinanceAccess(actor, order);
 
     if (order.paymentStatus !== 'paid') {
-      throw new HttpsError('failed-precondition', 'Only paid orders can be refunded.');
+      throw new HttpsError(
+        'failed-precondition',
+        'Only paid orders can be refunded.',
+      );
     }
 
     const orderAmount = getOrderAmount(order);
     const currency = order.currency === 'USD' ? 'USD' : 'KHR';
-    const priorRefunds = await db().collection(REFUNDS).where('orderId', '==', orderId).get();
+    const priorRefunds = await db()
+      .collection(REFUNDS)
+      .where('orderId', '==', orderId)
+      .get();
     const reservedAmount = priorRefunds.docs.reduce((sum, doc) => {
       const data = doc.data();
       if (data.status === 'failed' || data.status === 'cancelled') return sum;
       return sum + Number(data.amount ?? 0);
     }, 0);
-    const remainingAmount = Math.max(0, Math.round((orderAmount - reservedAmount) * 100) / 100);
+    const remainingAmount = Math.max(
+      0,
+      Math.round((orderAmount - reservedAmount) * 100) / 100,
+    );
     if (remainingAmount <= 0) {
-      throw new HttpsError('failed-precondition', 'This order has already been fully refunded.');
+      throw new HttpsError(
+        'failed-precondition',
+        'This order has already been fully refunded.',
+      );
     }
 
     const amount = normalizeRefundAmount(request.data?.amount, remainingAmount);
@@ -626,7 +826,8 @@ exports.initiateRefund = onCall(
     const refundRef = db().collection(REFUNDS).doc();
     const eventRef = db().collection(EVENTS).doc();
     const now = admin.firestore.FieldValue.serverTimestamp();
-    const nextReservedAmount = Math.round((reservedAmount + amount) * 100) / 100;
+    const nextReservedAmount =
+      Math.round((reservedAmount + amount) * 100) / 100;
     const fullyRefunded = nextReservedAmount >= orderAmount - 0.0001;
 
     const batch = db().batch();
@@ -663,10 +864,14 @@ exports.initiateRefund = onCall(
       updatedAt: now,
     });
     if (fullyRefunded && isSandbox && order.paymentIntentId) {
-      batch.set(db().doc(`${INTENTS}/${order.paymentIntentId}`), {
-        status: 'refunded',
-        updatedAt: now,
-      }, { merge: true });
+      batch.set(
+        db().doc(`${INTENTS}/${order.paymentIntentId}`),
+        {
+          status: 'refunded',
+          updatedAt: now,
+        },
+        { merge: true },
+      );
     }
     await batch.commit();
 
@@ -674,7 +879,7 @@ exports.initiateRefund = onCall(
       order.createdBy,
       fullyRefunded ? 'Order refunded' : 'Partial refund processed',
       `Refund ${currency} ${amount} has been ${status} for order ${order.orderNumber || orderId}.`,
-      `/order-receipt/${encodeURIComponent(orderId)}`
+      `/order-receipt/${encodeURIComponent(orderId)}`,
     );
 
     return {
@@ -684,7 +889,7 @@ exports.initiateRefund = onCall(
       status,
       fullyRefunded,
     };
-  }
+  },
 );
 
 exports.generateInvoice = onCall(
@@ -709,10 +914,17 @@ exports.generateInvoice = onCall(
     assertFinanceAccess(actor, order, { allowCustomer: true });
 
     if (order.paymentStatus !== 'paid') {
-      throw new HttpsError('failed-precondition', 'Invoice can only be generated after payment is confirmed.');
+      throw new HttpsError(
+        'failed-precondition',
+        'Invoice can only be generated after payment is confirmed.',
+      );
     }
 
-    const existing = await db().collection(INVOICES).where('orderId', '==', orderId).limit(1).get();
+    const existing = await db()
+      .collection(INVOICES)
+      .where('orderId', '==', orderId)
+      .limit(1)
+      .get();
     if (!existing.empty) {
       const invoiceDoc = existing.docs[0];
       const invoice = invoiceDoc.data();
@@ -738,8 +950,17 @@ exports.generateInvoice = onCall(
       },
     ];
     const invoiceNumber = invoiceNumberFor(orderId);
-    const pdfBuffer = buildSimpleInvoicePdfBuffer({ invoiceNumber, order, lineItems, amount, currency });
-    const { pdfPath, pdfUrl, pdfError } = await saveInvoicePdf(invoiceRef.id, pdfBuffer);
+    const pdfBuffer = buildSimpleInvoicePdfBuffer({
+      invoiceNumber,
+      order,
+      lineItems,
+      amount,
+      currency,
+    });
+    const { pdfPath, pdfUrl, pdfError } = await saveInvoicePdf(
+      invoiceRef.id,
+      pdfBuffer,
+    );
     const now = admin.firestore.FieldValue.serverTimestamp();
 
     await db().runTransaction(async (tx) => {
@@ -770,7 +991,7 @@ exports.generateInvoice = onCall(
       order.createdBy,
       'Invoice ready',
       `Invoice ${invoiceNumber} is ready for order ${order.orderNumber || orderId}.`,
-      `/order-receipt/${encodeURIComponent(orderId)}`
+      `/order-receipt/${encodeURIComponent(orderId)}`,
     );
 
     return {
@@ -779,5 +1000,5 @@ exports.generateInvoice = onCall(
       pdfUrl,
       status: 'issued',
     };
-  }
+  },
 );

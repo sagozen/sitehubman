@@ -21,6 +21,7 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { useRoleFlags } from '@/src/hooks/useRoleFlags';
 import { fetchAdminOrderStats, fetchTodayOrderCount } from '@/src/services/adminStatsService';
 import { HapticTap } from '@/src/utils/haptics';
+import { FactoryOpsDashboard } from '@/src/components/FactoryOpsDashboard';
 
 const MANAGEMENT_ITEMS: {
   title: string;
@@ -163,6 +164,9 @@ export default function AdminDashboardScreen() {
             </View>
           </LinearGradient>
         </View>
+
+        {/* ── 2b. Live Factory Operations Pipeline (CEO Showcase) ── */}
+        <FactoryOpsDashboard embedded />
 
         {/* ── Divider ── */}
         <View style={styles.hairlineDivider} />

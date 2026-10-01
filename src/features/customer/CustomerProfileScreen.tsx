@@ -29,6 +29,7 @@ import Animated, { FadeInDown, FadeInUp, useSharedValue, useAnimatedStyle, withS
 const SPRING_SNAPPY = { damping: 16, stiffness: 340, mass: 0.7 };
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNetInfo } from '@react-native-community/netinfo';
 import * as ImagePicker from 'expo-image-picker';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
@@ -103,6 +104,8 @@ const DebouncedInput = memo(function DebouncedInput({
 // ── Main component ───────────────────────────────────────────────────────────
 export function CustomerProfileScreen() {
   const { user, signOutUser } = useAuth();
+  const netInfo = useNetInfo();
+  const isOffline = netInfo.isConnected === false && netInfo.type !== 'unknown';
   
   // Use the activeProfileId from the user object to load the correct bio page
   const activeType = user?.activeProfileId === 'social' ? 'social' : 'professional';
@@ -544,8 +547,9 @@ export function CustomerProfileScreen() {
 
               {/* Save Button */}
               <Pressable
-                style={({ pressed }) => [styles.primarySaveBtn, pressed && styles.pressed]}
+                style={({ pressed }) => [styles.primarySaveBtn, (pressed || isOffline) && styles.pressed]}
                 onPress={() => void handleSave()}
+                disabled={isOffline || isSaving}
                 accessibilityRole="button"
                 accessibilityLabel="Save profile changes"
               >
@@ -553,7 +557,7 @@ export function CustomerProfileScreen() {
                   <ActivityIndicator color="#000000" size="small" />
                 ) : (
                   <AppText style={styles.primarySaveBtnText} weight="extrabold">
-                    {saveMsg ?? 'Save Profile'}
+                    {isOffline ? 'Offline - Cannot Save' : (saveMsg ?? 'Save Profile')}
                   </AppText>
                 )}
               </Pressable>
@@ -650,10 +654,11 @@ export function CustomerProfileScreen() {
               </View>
 
               <Pressable
-                style={({ pressed }) => [styles.primarySaveBtn, pressed && styles.pressed]}
+                style={({ pressed }) => [styles.primarySaveBtn, (pressed || isOffline) && styles.pressed]}
                 onPress={() => void handleSave()}
+                disabled={isOffline || isSaving}
               >
-                {isSaving ? <ActivityIndicator color="#000000" size="small" /> : <AppText style={styles.primarySaveBtnText} weight="extrabold">Save Social Links</AppText>}
+                {isSaving ? <ActivityIndicator color="#000000" size="small" /> : <AppText style={styles.primarySaveBtnText} weight="extrabold">{isOffline ? 'Offline - Cannot Save' : 'Save Social Links'}</AppText>}
               </Pressable>
             </View>
           )}
