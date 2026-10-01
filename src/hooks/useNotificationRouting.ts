@@ -32,21 +32,21 @@ export function useNotificationRouting() {
     if (Platform.OS === 'web') return;
 
     try {
-      const fbMessaging = require('@react-native-firebase/messaging');
-      const messagingInstance = fbMessaging.default();
-      const unsubscribe = fbMessaging.default().onNotificationOpenedApp((remoteMessage: any) => {
-        console.log('[PUSH INTERCEPT] Notification opened from background:', remoteMessage?.data);
-        const targetPath = remoteMessage?.data?.routingPath;
+      const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+        const data = response?.notification?.request?.content?.data as Record<string, any> | undefined;
+        console.log('[PUSH INTERCEPT] Notification opened from background:', data);
+        const targetPath = data?.routingPath;
         if (targetPath && typeof targetPath === 'string') {
           router.replace(targetPath as any);
         }
       });
 
-      fbMessaging.default().getInitialNotification()
-        .then((remoteMessage: any) => {
-          if (remoteMessage) {
-            console.log('[PUSH INTERCEPT] Notification triggered cold launch:', remoteMessage.data);
-            const targetPath = remoteMessage.data?.routingPath;
+      void Notifications.getLastNotificationResponseAsync()
+        .then((response) => {
+          if (response) {
+            const data = response?.notification?.request?.content?.data as Record<string, any> | undefined;
+            console.log('[PUSH INTERCEPT] Notification triggered cold launch:', data);
+            const targetPath = data?.routingPath;
             if (targetPath && typeof targetPath === 'string') {
               setTimeout(() => {
                 router.replace(targetPath as any);
@@ -55,16 +55,15 @@ export function useNotificationRouting() {
           }
         })
         .catch((err) => {
-          console.warn('[PUSH INTERCEPT] getInitialNotification error:', err);
+          console.warn('[PUSH INTERCEPT] getLastNotificationResponseAsync error:', err);
         });
 
       return () => {
-        if (typeof unsubscribe === 'function') {
-          unsubscribe();
-        }
+        subscription.remove();
       };
     } catch (e) {
-      console.warn('[PUSH INTERCEPT] Native messaging initialization deferred:', e);
+      console.warn('[PUSH INTERCEPT] Native notification routing initialization deferred:', e);
     }
   }, [router]);
 }
+
