@@ -52,7 +52,7 @@ export function ScreenContainer({
 
   const layout = (
     <GlassScreenBackdrop isDark={resolvedIsDark}>
-      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right', 'bottom']}>
         {scroll ? (
           <IosScrollView
             style={styles.scroll}

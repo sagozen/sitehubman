@@ -28,3 +28,4 @@ local-credentials
 .DS_Store
 *.pem
 *.tsbuildinfo
+mcp-server

@@ -115,10 +115,6 @@ export default function RootLayout() {
                     <Stack.Screen name="production" />
                     <Stack.Screen name="sales" />
                     <Stack.Screen name="admin" />
-                    <Stack.Screen
-                      name="admin/property"
-                      options={{ headerShown: true, title: 'Property access' }}
-                    />
                     <Stack.Screen name="account" />
                     <Stack.Screen name="customer" />
                     <Stack.Screen

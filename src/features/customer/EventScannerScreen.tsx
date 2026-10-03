@@ -148,9 +148,8 @@ export function EventScannerScreen() {
         style={[
           StyleSheet.absoluteFill,
           styles.flashOverlay,
-          { opacity: flashAnim }
+          { opacity: flashAnim, pointerEvents: 'none' as any }
         ]} 
-        pointerEvents="none"
       />
     </View>
   );

@@ -1,13 +1,14 @@
 import { IosScrollView } from '@/src/components/IosScrollView';
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/src/components/AppText';
 import { router } from 'expo-router';
 import { AppIcon } from '@/src/components/AppIcon';
 
 export default function TermsOfServiceScreen() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <AppIcon name="ArrowLeft" size={24} color="#9A9AA0" />
@@ -93,7 +94,7 @@ export default function TermsOfServiceScreen() {
           </AppText>
         </View>
       </IosScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -108,7 +109,6 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(255, 255, 255, 0.08)',
     paddingVertical: 12,
     paddingHorizontal: 16,
-    paddingTop: 50,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

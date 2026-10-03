@@ -1,5 +1,5 @@
 import { FirebaseApp, getApp, getApps, initializeApp } from 'firebase/app';
-import { Firestore, getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
+import { Firestore, getFirestore, initializeFirestore } from 'firebase/firestore';
 import { FirebaseStorage, getStorage } from 'firebase/storage';
 import { getFirebaseConfig, getFirebaseConfigError, isFirebaseConfigured } from '@/src/services/firebase/firebaseConfig';
 import { initFirebaseAppCheck } from '@/src/services/firebase/firebase.appCheck';
@@ -29,7 +29,6 @@ export const firebaseInitError = (() => {
       db = initializeFirestore(app, {
         ignoreUndefinedProperties: true,
         experimentalAutoDetectLongPolling: true,
-        localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
       });
     } catch {
       db = getFirestore(app);

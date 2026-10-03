@@ -77,7 +77,7 @@ export function ConfettiBurst({
   if (!visible) return null;
 
   return (
-    <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.layer]}>
+    <View style={[[StyleSheet.absoluteFill, styles.layer], { pointerEvents: 'none' }]}>
       {particles.map((particle) => (
         <Particle
           key={particle.id}

@@ -43,5 +43,25 @@ export function createShadow({
   radius = 4,
   elevation = 2,
 }: ShadowOptions = {}): ViewStyle {
-  return {};
+  if (Platform.OS === 'web') {
+    const rgba = hexToRgba(color, opacity);
+    const blur = radius;
+    const x = offset.width;
+    const y = offset.height;
+    return {
+      boxShadow: `${x}px ${y}px ${blur}px ${rgba}`,
+    } as ViewStyle;
+  }
+
+  if (Platform.OS === 'android') {
+    return { elevation } as ViewStyle;
+  }
+
+  // iOS
+  return {
+    shadowColor: color,
+    shadowOffset: offset,
+    shadowOpacity: opacity,
+    shadowRadius: radius,
+  } as ViewStyle;
 }

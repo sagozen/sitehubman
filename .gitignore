@@ -57,4 +57,5 @@ codex-*.log
 # preview exports & audit screenshots
 dist-preview/
 audit/screenshots/
+mcp-server/
 

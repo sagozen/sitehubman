@@ -5,7 +5,7 @@ import { AuthGate } from '@/src/components/AuthGate';
 import { LiquidTabBar } from '@/src/components/LiquidTabBar';
 import { OfflineStateBanner } from '@/src/components/OfflineStateBanner';
 
-const CONSUMER_TABS = ['index', 'connections', 'share', 'profile', 'settings'];
+const CONSUMER_TABS = ['index', 'share', 'profile', 'orders', 'settings'];
 
 export default function TabsLayout() {
   const router = useRouter();
@@ -47,12 +47,13 @@ export default function TabsLayout() {
           screenOptions={{ headerShown: false }}
         >
           <Tabs.Screen name="index" options={{ title: 'Home' }} />
-          <Tabs.Screen name="connections" options={{ title: 'Contacts' }} />
-          <Tabs.Screen name="share" options={{ title: 'Share' }} />
-          {/* Hidden alias for older attendance route names / cached bundles */}
+          <Tabs.Screen name="share" options={{ title: 'Cards' }} />
+          <Tabs.Screen name="profile" options={{ title: 'NFC' }} />
+          <Tabs.Screen name="orders" options={{ title: 'Orders' }} />
+          <Tabs.Screen name="settings" options={{ title: 'Me' }} />
+          {/* Hidden legacy routes */}
+          <Tabs.Screen name="connections" options={{ href: null }} />
           <Tabs.Screen name="attendance" options={{ href: null }} />
-          <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
-          <Tabs.Screen name="settings" options={{ title: 'Settings' }} />
           <Tabs.Screen name="notifications" options={{ href: null, tabBarStyle: { display: 'none' } }} />
         </Tabs>
       </View>

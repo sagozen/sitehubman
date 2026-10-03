@@ -104,7 +104,7 @@ export function LiveTapSuccess({
           {subtitle ? <AppText style={styles.subtitle}>{subtitle}</AppText> : null}
         </Animated.View>
 
-        <View pointerEvents="none" style={styles.confetti}>
+        <View style={[styles.confetti, { pointerEvents: 'none' }]}>
           <ConfettiBurst count={32} origin={{ x: 0.5, y: 0.42 }} durationMs={1500} />
         </View>
       </Pressable>

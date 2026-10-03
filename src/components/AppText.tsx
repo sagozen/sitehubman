@@ -76,3 +76,6 @@ export const Headline = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} va
 export const Title1 = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} variant="title1" />;
 export const Title2 = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} variant="title2" />;
 export const Title3 = (p: Omit<AppTextProps, 'variant'>) => <AppText {...p} variant="title3" />;
+
+export default AppText;
+

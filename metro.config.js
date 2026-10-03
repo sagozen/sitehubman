@@ -74,6 +74,9 @@ config.resolver.blockList = [
   new RegExp(`${projectRoot}/legacy/`),
   new RegExp(`${projectRoot}/functions/node_modules/`),
   new RegExp(`${projectRoot}/print-bridge/node_modules/`),
+  new RegExp(`${projectRoot}/web/node_modules/`),
+  new RegExp(`${projectRoot}/backups/`),
+  new RegExp(`${projectRoot}/audit/`),
   new RegExp(/node_modules[/\\]pngjs[/\\].*/),
 ];
 

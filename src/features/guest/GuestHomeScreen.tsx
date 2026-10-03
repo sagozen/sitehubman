@@ -1,29 +1,21 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Animated,
   Image,
   InteractionManager,
-  Linking,
   Modal,
   Pressable,
-  ScrollView,
   Share,
   StyleSheet,
-  TextInput,
   View,
   useWindowDimensions,
-  Dimensions,
 } from 'react-native';
 
-const { width: screenWidth } = Dimensions.get('window');
 import { HapticTap } from '@/src/utils/haptics';
 import { type Href, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
 import QRCode from 'react-native-qrcode-svg';
-import { LinearGradient } from 'expo-linear-gradient';
 import { appRoutes } from '@/src/constants/navigation';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -41,341 +33,54 @@ import {
 } from '@/src/services/guestCardDraftService';
 import { useBioPage } from '@/src/hooks/useBioPage';
 import type { Order } from '@/src/types/models';
-import { FAB } from '@/src/components/FAB';
-import { QuickActionModal } from '@/src/components/QuickActionModal';
 import { NfcBeamModal } from '@/src/components/NfcBeamModal';
-import { LiveActivityRadar } from '@/src/components/LiveActivityRadar';
-import { LuxuryBentoGrid } from '@/src/components/LuxuryBentoGrid';
-import { WeeklyActivitySparkline } from '@/src/components/WeeklyActivitySparkline';
-import { DailyNetworkingPrompt } from '@/src/components/DailyNetworkingPrompt';
-import { AppleWalletCardHero } from '@/src/components/AppleWalletCardHero';
-import { TestTapSimulatorCard } from '@/src/components/TestTapSimulatorCard';
-import { BeamNowButton } from '@/src/components/BeamNowButton';
 import { QuickSetupSheet } from '@/src/components/QuickSetupSheet';
 import { computeUserPrestige } from '@/src/services/prestigeTierService';
 import { pageThemes } from '@/src/constants/pageThemes';
 
-// ─── World Class Systems ───
-import { PremiumPaywallModal } from './PremiumPaywallModal';
-import { CardSuccessShareModal } from './CardSuccessShareModal';
-import { AiScannerModal } from './AiScannerModal';
-import { AiBusinessSiteModal } from '@/src/components/AiBusinessSiteModal';
-import { saveGuestCardDraft } from '@/src/services/guestDraftService';
-
-// ─── Telegram-style Avatar Gradient helper ──────────────────────────────────
-const TELEGRAM_GRADIENTS = [
-  ['#FF512F', '#DD2476'], // Sunset Pink/Orange
-  ['#4776E6', '#8E54E9'], // Purple Violet
-  ['#00B4DB', '#0083B0'], // Ocean Cyan
-  ['#11998E', '#38EF7D'], // Emerald Green
-  ['#FC4A1A', '#F7B733'], // Bright Amber
-  ['#8E2DE2', '#4A00E0'], // Deep Royal Purple
-  ['#F857A6', '#FF5858'], // Rose Coral
-] as const;
-
-function getTelegramColors(name: string) {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  return TELEGRAM_GRADIENTS[Math.abs(hash) % TELEGRAM_GRADIENTS.length];
-}
+// ─── Bento Grid Theme Tokens (Japanese Minimalist: Pure Black Canvas, Fine Divisions) ───
 const HOME_THEME = pageThemes.home;
-const INK = HOME_THEME.text;
-const MUTED = HOME_THEME.muted;
-const SURFACE = HOME_THEME.surface;
-const SURFACE_BORDER = HOME_THEME.border;
-const BG = HOME_THEME.canvas;
+const INK = HOME_THEME.text; // #F5F5F7
+const MUTED = HOME_THEME.muted; // #9A9AA0
+const CANVAS = '#000000';
+const BENTO_SURFACE = '#111114';
+const BENTO_SURFACE_RAISED = '#18181C';
+const BENTO_BORDER = 'rgba(255, 255, 255, 0.08)';
+const ACCENT = '#6366f1'; // Bento Accent from design specification
 
-const SPACING = {
-  xs: 6,
-  sm: 8,
-  md: 12,
-  base: 16,
-  lg: 20,
-  xl: 24,
-  xxl: 28,
-  section: 40,
-};
-
-// ─── Quick actions ───────────────────────────────────────────────────────────
-const ACTIONS = [
-  {
-    label: 'Lead CRM',
-    subtitle: 'Manage & export contacts',
-    route: appRoutes.customerConnections as Href,
-    icon: 'Users' as AppIconName,
-    bg: '#E2F16D', // Lime Yellow
-    color: '#000000',
-    image: require('@/assets/images/3d_share_card.png'),
-  },
-  {
-    label: 'Instant Share',
-    subtitle: 'Live QR & NFC beam',
-    route: appRoutes.nfcDemo as Href,
-    icon: 'Nfc' as AppIconName,
-    bg: '#E57A65', // Terracotta
-    color: '#FFFFFF',
-    image: require('@/assets/images/3d_scan_card.png'),
-  },
-  {
-    label: 'Track Order',
-    subtitle: 'Card production status',
-    route: appRoutes.guestTrackOrder as Href,
-    icon: 'Truck' as AppIconName,
-    bg: '#2563EB', // Sapphire Blue
-    color: '#FFFFFF',
-    image: require('@/assets/images/3d_track_card.png'),
-  },
-  {
-    label: 'Order Cards',
-    subtitle: 'Metal & obsidian fleet',
-    route: appRoutes.customer.templates as Href,
-    icon: 'Plus' as AppIconName,
-    bg: '#FF5733', // Coral Red
-    color: '#FFFFFF',
-    image: require('@/assets/images/3d_create_card.png'),
-  },
-];
-
-const TRUST_POINTS = [
-  { label: 'Executive Bio', icon: 'UserRound' as AppIconName },
-  { label: 'Smart NFC Card', icon: 'CreditCard' as AppIconName },
-  { label: 'Lead CRM & Export', icon: 'Users' as AppIconName },
-];
-
-// ─── Order status ────────────────────────────────────────────────────────────
 function orderStatus(s: string): { label: string; color: string } {
-  if (
-    [
-      'production_approved',
-      'printer_assigned',
-      'printing',
-      'nfc_writing',
-      'nfc_verification',
-      'qa_pending',
-      'qa_failed',
-    ].includes(s)
-  )
+  if (['production_approved', 'printing', 'nfc_writing', 'qa_pending'].includes(s)) {
     return { label: 'In Production', color: '#F59E0B' };
-  if (['shipped', 'ready_to_ship'].includes(s))
-    return { label: 'Shipped', color: '#10B981' };
+  }
+  if (['shipped', 'ready_to_ship'].includes(s)) return { label: 'Shipped', color: '#10B981' };
   if (s === 'delivered') return { label: 'Delivered', color: '#0A84FF' };
-  return { label: 'Processing', color: '#FFFFFF' };
+  return { label: 'Active', color: MUTED };
 }
 
-// ─── Loading Skeleton ───────────────────────────────────────────────────────
-const SkeletonLoader = () => (
-  <View style={styles.skeletonContainer}>
-    <View style={styles.skeletonAvatar} />
-    <View style={styles.skeletonText}>
-      <View style={[styles.skeletonLine, { width: '60%' }]} />
-      <View style={[styles.skeletonLine, { width: '80%' }]} />
-      <View style={[styles.skeletonLine, { width: '50%' }]} />
-    </View>
-    <View style={styles.skeletonCard} />
-  </View>
-);
-
-// ─── Error State ───────────────────────────────────────────────────────────
-const ErrorBanner = ({
-  message,
-  onRetry,
-}: {
-  message: string;
-  onRetry: () => void;
-}) => (
-  <View style={styles.errorBanner}>
-    <AppText variant="caption" weight="medium" style={{ color: '#FF453A' }}>
-      {message}
-    </AppText>
-    <Pressable onPress={onRetry} style={{ padding: 4 }}>
-      <AppText
-        variant="caption"
-        weight="bold"
-        style={{ color: '#FFFFFF', textDecorationLine: 'underline' }}
-      >
-        Retry
-      </AppText>
-    </Pressable>
-  </View>
-);
-
-// ─── Order Row Component ───────────────────────────────────────────────────
-function OrderRow({ order, onPress }: { order: Order; onPress: () => void }) {
-  const st = orderStatus(order.status);
-  const date = order.createdAt
-    ? new Date(order.createdAt).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-      })
-    : '';
-  const amt = order.amount != null ? `$${order.amount.toFixed(0)}` : 'N/A';
-
-  return (
-    <Pressable
-      onPress={() => {
-        HapticTap.light();
-        onPress();
-      }}
-      style={({ pressed }) => [
-        pressed && { backgroundColor: 'rgba(255,255,255,0.03)' },
-      ]}
-      hitSlop={12}
-    >
-      <View style={styles.orderRow}>
-        <View style={styles.orderIcon}>
-          <AppIcon name="CreditCard" size={20} color="#FFFFFF" />
-        </View>
-        <View style={styles.orderInfo}>
-          <AppText variant="body" weight="semibold" style={{ color: INK }}>
-            {order.customerName || 'NFC Card'}
-          </AppText>
-          <AppText variant="caption" style={{ color: MUTED }}>
-            {order.quantity ?? 1} x {order.cardDesign?.replace(/_/g, ' ')}
-          </AppText>
-        </View>
-        <View style={styles.orderMeta}>
-          <View
-            style={[
-              styles.orderBadge,
-              { backgroundColor: 'rgba(255,255,255,0.08)' },
-            ]}
-          >
-            <AppText
-              variant="caption"
-              weight="medium"
-              style={{ color: st.color }}
-            >
-              {st.label}
-            </AppText>
-          </View>
-          <AppText variant="bodySmall" weight="bold" style={{ color: INK }}>
-            {amt}
-          </AppText>
-          <AppText variant="caption" style={{ color: MUTED }}>
-            {date}
-          </AppText>
-        </View>
-        <AppIcon name="ChevronRight" size={15} color={MUTED} />
-      </View>
-    </Pressable>
-  );
-}
-
-// ─── Stats Card Component (Bento style) ────────────────────────────────────
-function StatCard({
-  label,
-  value,
-  icon,
-  style,
-}: {
-  label: string;
-  value: string;
-  icon: AppIconName;
-  style?: any;
-}) {
-  return (
-    <View style={[styles.statCard, style]}>
-      <AppIcon name={icon} size={15} color="rgba(255,255,255,0.5)" />
-      <AppText variant="title1" weight="extrabold" style={{ color: INK }}>
-        {value}
-      </AppText>
-      <AppText style={styles.statLabel} weight="bold">
-        {label}
-      </AppText>
-    </View>
-  );
-}
-
-// ─── Main HomeScreen Component ─────────────────────────────────────────────
 export function GuestHomeScreen() {
-  const { width: screenWidth } = useWindowDimensions();
   const { user } = useAuth();
   const isGuest = useIsGuest();
   const { requireAccount } = useRequireAccount();
   const { bioPage } = useBioPage(user?.id ?? '');
 
   const [error, setError] = useState<string | null>(null);
-  const { unreadCount, items } = useNotifications();
+  const { unreadCount } = useNotifications();
   const { orders } = useOrders(user?.role ?? 'guest', user?.id ?? '');
   const [insights, setInsights] = useState<CustomerInsights | null>(null);
-  const [cloudCard, setCloudCard] =
-    useState<Awaited<ReturnType<typeof loadCustomerCloudCard>>>(null);
+  const [cloudCard, setCloudCard] = useState<Awaited<ReturnType<typeof loadCustomerCloudCard>>>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [fabOpen, setFabOpen] = useState(false);
-  const [showWaitlist, setShowWaitlist] = useState(false);
-  const [waitlistEmail, setWaitlistEmail] = useState('');
-  const [waitlistSent, setWaitlistSent] = useState(false);
-  const [showQuickModal, setShowQuickModal] = useState(false);
   const [showBeamModal, setShowBeamModal] = useState(false);
   const [showQuickSetup, setShowQuickSetup] = useState(false);
-  const [testTapCompleted, setTestTapCompleted] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
-
-  // ─── World Class Systems State ───
-  const [showPremiumModal, setShowPremiumModal] = useState(false);
-  const [showCardSuccessModal, setShowCardSuccessModal] = useState(false);
-  const [showAiScannerModal, setShowAiScannerModal] = useState(false);
-  const [showAiSiteModal, setShowAiSiteModal] = useState(false);
-
-  const handleAiSiteComplete = useCallback(async (
-    data: { businessName: string; category: { name: string; ctaText: string }; contact: string }
-  ) => {
-    try {
-      await saveGuestCardDraft({
-        displayName: data.businessName,
-        jobTitle: data.category.name,
-        company: data.businessName,
-        email: data.contact.includes('@') ? data.contact : '',
-        phone: !data.contact.includes('@') ? data.contact : '',
-        product: 'pvc_card',
-        cardDesign: 'classic_black',
-        cardChoice: 'physical',
-        gradientIndex: 0,
-      });
-    } catch {
-      // non-blocking — draft already saved inside modal
-    }
-  }, []);
-
-  const handleShareProfile = useCallback(async () => {
-    try {
-      HapticTap.light();
-      const url = bioPage?.slug ? `https://aviobrand.com/u/${bioPage.slug}` : 'https://aviobrand.com/u/demo';
-      await Share.share({
-        message: `Check out my digital business card on SiteHubMan: ${url}`,
-        url,
-      });
-    } catch (err) {
-      console.warn('Share error:', err);
-    }
-  }, [bioPage?.slug]);
-
-  const cardWidth = Math.min(screenWidth - 40, 380);
-
-  // NFC Live pulse animation — 60fps native driver
-  const pulseOpacity = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseOpacity, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
-        Animated.timing(pulseOpacity, { toValue: 1, duration: 1000, useNativeDriver: true }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulseOpacity]);
 
   const loadData = useCallback(async () => {
     setError(null);
     try {
-      // Retry guest session migration in background if user is logged in but guest session is still active
       if (!isGuest && user) {
         try {
           const { finalizeGuestAccountUpgrade } = await import('@/src/utils/guestAccountUpgrade');
           await finalizeGuestAccountUpgrade(user);
-        } catch (err) {
-          console.warn('GuestHomeScreen: Background guest upgrade retry failed:', err);
-        }
+        } catch {}
       }
 
       let loadedCard: Awaited<ReturnType<typeof loadCustomerCloudCard>> = null;
@@ -383,687 +88,448 @@ export function GuestHomeScreen() {
         loadedCard = isGuest
           ? await loadGuestCloudCard()
           : await loadCustomerCloudCard(user?.id ?? '');
-      } catch (err) {
-        console.warn('GuestHomeScreen: Failed to load cloud card:', err);
-      }
+      } catch {}
       setCloudCard(loadedCard);
 
       let computedInsights: CustomerInsights | null = null;
       try {
         computedInsights = await getCustomerInsights(user?.id ?? '');
-      } catch (err) {
-        console.warn('GuestHomeScreen: Failed to load customer insights:', err);
-      }
+      } catch {}
       setInsights(computedInsights);
-    } catch (err) {
-      console.error('GuestHomeScreen: loadData error:', err);
-      setError('Could not load card insights. Please try again.');
+    } catch {
+      setError('Unable to load card data.');
     } finally {
       setIsLoading(false);
     }
   }, [isGuest, user?.id]);
 
   useEffect(() => {
-    // Render the screen first, then load cloud data after animations settle
     const task = InteractionManager.runAfterInteractions(() => {
       void loadData();
     });
     return () => task.cancel();
   }, [loadData]);
 
-  const recentOrders = useMemo(() => orders.slice(0, 3), [orders]);
+  const heroName = bioPage?.displayName || user?.displayName || (isGuest ? 'Thean Coc' : 'Your Name');
+  const heroRole = bioPage?.tagline || bioPage?.headline || 'Digital Identity · NFC Active';
+  const heroCompany = bioPage?.company || 'Sitehub';
 
-  const heroName =
-    bioPage?.displayName || user?.displayName || (isGuest ? 'Guest Draft' : '');
-  const heroTitle =
-    bioPage?.headline || (isGuest ? 'Customize this design' : '');
-  const heroPhone = '';
-  const heroEmail = bioPage?.email || user?.email || '';
+  const profileUrl = bioPage?.slug
+    ? `https://aviobrand.com/u/${bioPage.slug}`
+    : 'https://aviobrand.com/u/thean';
+
+  const tapsCount = bioPage?.taps ?? 326;
+  const viewsCount = bioPage?.views ?? 1284;
+  const leadsCount = insights?.totalOrders ? insights.totalOrders + 4 : 12;
 
   const handleShare = () => {
     if (isGuest) {
       requireAccount(undefined, { message: 'Sign in to share your card.' });
     } else {
-      router.push('/(tabs)/profile');
+      setShowBeamModal(true);
     }
   };
 
-  // ── Profile Completion Score ──────────────────────────────────────
-  const profileSteps = useMemo(() => [
-    { label: 'Add your name', done: !!(bioPage?.displayName || heroName) },
-    { label: 'Add a photo', done: !!bioPage?.photoUrl },
-    { label: 'Add your title', done: !!(bioPage?.tagline || bioPage?.headline) },
-    { label: 'Add email or WhatsApp', done: !!(bioPage?.email || bioPage?.whatsapp) },
-    { label: 'Share your card', done: !!(bioPage?.taps && bioPage.taps > 0) },
-  ], [bioPage, heroName]);
+  const handleNativeShare = async () => {
+    try {
+      HapticTap.light();
+      await Share.share({
+        message: `Connect with ${heroName}: ${profileUrl}`,
+        url: profileUrl,
+      });
+    } catch {}
+  };
 
-  const profileScore = useMemo(() => {
-    const done = profileSteps.filter((s) => s.done).length;
-    return Math.round((done / profileSteps.length) * 100);
-  }, [profileSteps]);
-
-  const nextStep = useMemo(() => profileSteps.find((s) => !s.done), [profileSteps]);
-  const profileComplete = profileScore === 100;
-
-  // ── Executive Prestige Tier Stats ──────────────────────────────────
-  const prestigeStats = useMemo(() => {
-    const totalCount = (bioPage?.taps || 0) + (insights?.totalOrders || 0);
-    return computeUserPrestige(totalCount);
-  }, [bioPage?.taps, insights?.totalOrders]);
+  const recentOrders = useMemo(() => orders.slice(0, 2), [orders]);
 
   return (
     <View style={styles.root}>
-      {/* Low opacity ambient brand collage background */}
-      <View style={[styles.homeBackdropWrap, { pointerEvents: 'none' as any }]}>
-        <Image
-          source={require('@/assets/images/snap-tap-hero.png')}
-          style={styles.homeBackdropImg}
-          resizeMode="cover"
-        />
-        <View style={styles.homeBackdropOverlay} />
-      </View>
-
       <SafeAreaView style={styles.safe} edges={['top']}>
         <IosScrollView
           style={styles.scroll}
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          {isLoading ? (
-            <SkeletonLoader />
-          ) : error ? (
-            <ErrorBanner message={error} onRetry={() => setIsLoading(true)} />
-          ) : (
-            <>
-              {/* ── 1. Executive Top Header ── */}
-              <View style={styles.topGreetingRow}>
-                <Pressable
-                  onPress={() => { HapticTap.light(); router.push('/profile' as any); }}
-                  style={styles.greetingLeft}
-                >
-                  {bioPage?.photoUrl ? (
-                    <Image source={{ uri: bioPage.photoUrl }} style={styles.greetingAvatarImg} />
-                  ) : (
-                    <View style={styles.executiveAvatarSeal}>
-                      <AppText style={styles.executiveAvatarLetter} weight="extrabold">
-                        {(heroName?.[0] || 'A').toUpperCase()}
-                      </AppText>
-                    </View>
-                  )}
-                  <View style={styles.executiveTitles}>
-                    <View style={styles.prestigePill}>
-                      <AppText style={styles.prestigePillText} weight="bold">
-                        {prestigeStats.currentTier.badge} {prestigeStats.currentTier.name.toUpperCase()}
-                      </AppText>
-                    </View>
-                    <AppText style={styles.greetingName} weight="extrabold">
-                      {heroName || 'Executive Member'}
-                    </AppText>
-                  </View>
-                </Pressable>
-
-                <View style={styles.headerActions}>
-                  {/* Share Profile */}
-                  <Pressable
-                    onPress={() => { HapticTap.light(); setShowPremiumModal(true); }}
-                    style={({ pressed }) => [styles.instagramButton, pressed && styles.pressed, { backgroundColor: '#3b82f6' }]}
-                  >
-                    <AppIcon name="Crown" size={20} color="#FFFFFF" />
-                  </Pressable>
-
-                  {/* QR Code - Triggers Share Sheet */}
-                  <Pressable
-                    onPress={() => { HapticTap.light(); setShowCardSuccessModal(true); }}
-                    style={({ pressed }) => [styles.instagramButton, pressed && styles.pressed]}
-                  >
-                    <AppIcon name="QrCode" size={20} color="#FFFFFF" />
-                  </Pressable>
-
-                  {/* NFC Scan - Triggers AI Scanner */}
-                  <Pressable
-                    onPress={() => { HapticTap.light(); setShowAiScannerModal(true); }}
-                    style={({ pressed }) => [styles.instagramButton, pressed && styles.pressed]}
-                  >
-                    <AppIcon name="Scan" size={20} color="#FFFFFF" />
-                  </Pressable>
-                  
-                  {/* Messages - Instagram Style */}
-                  <Pressable
-                    onPress={() => { HapticTap.light(); router.push('/(tabs)/connections' as any); }}
-                    style={({ pressed }) => [styles.instagramButton, pressed && styles.pressed]}
-                  >
-                    <AppIcon name="Send" size={20} color="#FFFFFF" />
-                  </Pressable>
-                  
-                  {/* Notifications - Instagram Heart */}
-                  <Pressable 
-                    style={({ pressed }) => [styles.instagramButton, pressed && styles.pressed]}
-                    onPress={() => { HapticTap.light(); router.push('/(tabs)/notifications' as Href); }}
-                  >
-                    <AppIcon name="Heart" size={20} color="#FFFFFF" />
-                    {unreadCount > 0 && <View style={styles.notifDot} />}
-                  </Pressable>
-                </View>
-              </View>
-
-              {/* ── 2. NFC Stories - Instagram Style ── */}
-              <View style={styles.nfcStoriesSection}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.nfcStoriesContainer}>
-                  <Pressable style={styles.nfcStoryItem} onPress={() => { HapticTap.light(); router.push('/studio' as any); }}>
-                    <View style={[styles.nfcStoryAvatar, styles.nfcAddStory]}>
-                      <AppIcon name="Plus" size={16} color="#FFFFFF" />
-                    </View>
-                    <AppText style={styles.nfcStoryName}>Your NFC</AppText>
-                  </Pressable>
-                  
-                  <Pressable style={styles.nfcStoryItem}>
-                    <View style={[styles.nfcStoryAvatar, styles.nfcActiveStory]}>
-                      <AppText style={styles.nfcStoryInitials}>SC</AppText>
-                      <AppText style={styles.nfcCountryFlag}>🇺🇸</AppText>
-                    </View>
-                    <AppText style={styles.nfcStoryName}>Sarah Chen</AppText>
-                  </Pressable>
-                  
-                  <Pressable style={styles.nfcStoryItem}>
-                    <View style={[styles.nfcStoryAvatar, styles.nfcActiveStory]}>
-                      <AppText style={styles.nfcStoryInitials}>LW</AppText>
-                      <AppText style={styles.nfcCountryFlag}>🇨🇳</AppText>
-                    </View>
-                    <AppText style={styles.nfcStoryName}>Liu Wei</AppText>
-                  </Pressable>
-                  
-                  <Pressable style={styles.nfcStoryItem}>
-                    <View style={[styles.nfcStoryAvatar, styles.nfcActiveStory]}>
-                      <AppText style={styles.nfcStoryInitials}>RP</AppText>
-                      <AppText style={styles.nfcCountryFlag}>🇮🇳</AppText>
-                    </View>
-                    <AppText style={styles.nfcStoryName}>Raj Patel</AppText>
-                  </Pressable>
-                  
-                  <Pressable style={styles.nfcStoryItem}>
-                    <View style={[styles.nfcStoryAvatar, styles.nfcActiveStory]}>
-                      <AppText style={styles.nfcStoryInitials}>ES</AppText>
-                      <AppText style={styles.nfcCountryFlag}>🇬🇧</AppText>
-                    </View>
-                    <AppText style={styles.nfcStoryName}>Emma Stone</AppText>
-                  </Pressable>
-                  
-                  <Pressable style={styles.nfcStoryItem}>
-                    <View style={[styles.nfcStoryAvatar, styles.nfcActiveStory]}>
-                      <AppText style={styles.nfcStoryInitials}>CS</AppText>
-                      <AppText style={styles.nfcCountryFlag}>🇧🇷</AppText>
-                    </View>
-                    <AppText style={styles.nfcStoryName}>Carlos Silva</AppText>
-                  </Pressable>
-                </ScrollView>
-              </View>
-
-              {/* ── 3. Business Metrics Dashboard ── */}
-              <View style={styles.businessMetricsSection}>
-                <View style={styles.metricsHeader}>
-                  <AppText style={styles.metricsTitle}>Business Impact Today</AppText>
-                  <View style={styles.liveBadge}>
-                    <View style={styles.liveDot} />
-                    <AppText style={styles.liveText}>LIVE</AppText>
-                  </View>
-                </View>
-                
-                <View style={styles.metricsGrid}>
-                  <View style={styles.metricCard}>
-                    <AppText style={styles.metricValue}>2,847</AppText>
-                    <AppText style={styles.metricLabel}>NFC Taps Today</AppText>
-                    <AppText style={styles.metricGrowth}>+23% vs yesterday</AppText>
-                  </View>
-                  
-                  <View style={styles.metricCard}>
-                    <AppText style={styles.metricValue}>89</AppText>
-                    <AppText style={styles.metricLabel}>Countries Reached</AppText>
-                    <AppText style={styles.metricGrowth}>+5 new today</AppText>
-                  </View>
-                  
-                  <View style={styles.metricCard}>
-                    <AppText style={styles.metricValue}>$4.2K</AppText>
-                    <AppText style={styles.metricLabel}>Paper Cards Saved</AppText>
-                    <AppText style={styles.metricGrowth}>Cost reduction</AppText>
-                  </View>
-                  
-                  <View style={styles.metricCard}>
-                    <AppText style={styles.metricValue}>156</AppText>
-                    <AppText style={styles.metricLabel}>New Connections</AppText>
-                    <AppText style={styles.metricGrowth}>This week</AppText>
-                  </View>
-                </View>
-              </View>
-
-              {/* ── 4. Your NFC Business Card ── */}
-              <View style={styles.nfcCardSection}>
-                <View style={styles.cardHeader}>
-                  <AppText style={styles.cardHeaderTitle}>Your Digital NFC Card</AppText>
-                  <Pressable style={styles.shareButton} onPress={() => { HapticTap.light(); }}>
-                    <AppIcon name="Share2" size={16} color="#FFFFFF" />
-                    <AppText style={styles.shareButtonText}>Share</AppText>
-                  </Pressable>
-                </View>
-                
-                <View style={styles.nfcCardDisplay}>
-                  <LinearGradient
-                    colors={['#667eea', '#764ba2']}
-                    style={styles.nfcCardGradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  >
-                    <View style={styles.nfcCardContent}>
-                      <View style={styles.nfcCardTop}>
-                        <AppIcon name="Nfc" size={24} color="#FFFFFF" />
-                        <AppText style={styles.nfcCardBrand}>SiteHubMan</AppText>
-                      </View>
-                      
-                      <View style={styles.nfcCardDetails}>
-                        <AppText style={styles.nfcCardName}>{bioPage?.displayName || user?.displayName || 'Your Name'}</AppText>
-                        <AppText style={styles.nfcCardTitle}>{bioPage?.headline || 'CEO & Founder'}</AppText>
-                        <AppText style={styles.nfcCardCompany}>{bioPage?.company || 'Your Company'}</AppText>
-                      </View>
-                      
-                      <View style={styles.nfcCardStats}>
-                        <View style={styles.nfcCardStat}>
-                          <AppText style={styles.nfcCardStatValue}>2.4K</AppText>
-                          <AppText style={styles.nfcCardStatLabel}>Scans</AppText>
-                        </View>
-                        <View style={styles.nfcCardStat}>
-                          <AppText style={styles.nfcCardStatValue}>89</AppText>
-                          <AppText style={styles.nfcCardStatLabel}>Countries</AppText>
-                        </View>
-                        <View style={styles.nfcCardStat}>
-                          <AppText style={styles.nfcCardStatValue}>97%</AppText>
-                          <AppText style={styles.nfcCardStatLabel}>Success Rate</AppText>
-                        </View>
-                      </View>
-                    </View>
-                  </LinearGradient>
-                </View>
-              </View>
-
-              {/* ── 5. AI Business Mini-Site & NFC POD Card Engine ── */}
-              <View style={styles.carderPromoCard}>
-                <View style={styles.carderBadgeRow}>
-                  <View style={styles.carderPill}>
-                    <AppIcon name="Sparkles" size={12} color="#1DB954" />
-                    <AppText style={styles.carderPillText} weight="bold">NEW REVENUE MODEL</AppText>
-                  </View>
-                  <View style={styles.carderPillWhite}>
-                    <AppIcon name="Nfc" size={12} color="#000000" />
-                    <AppText style={styles.carderPillWhiteText} weight="bold">PHYSICAL POD</AppText>
-                  </View>
-                </View>
-
-                <AppText style={styles.carderTitle} weight="extrabold">
-                  The Link-in-Bio That&apos;s an Actual Site.
-                </AppText>
-                <AppText style={styles.carderSubtitle}>
-                  Most link-in-bios are just a list of buttons. SiteHub generates a real site with your menu, prices, hours and 1-tap booking in 30 seconds — paired with a luxury Physical NFC Card.
-                </AppText>
-
-                {/* Micro tags for high-value business customer set */}
-                <View style={styles.carderTagsRow}>
-                  <View style={styles.carderTag}>
-                    <AppText style={styles.carderTagText}>🍽️ Cafés & Menus</AppText>
-                  </View>
-                  <View style={styles.carderTag}>
-                    <AppText style={styles.carderTagText}>💼 Consultants & Rates</AppText>
-                  </View>
-                  <View style={styles.carderTag}>
-                    <AppText style={styles.carderTagText}>💈 Salons & Booking</AppText>
-                  </View>
-                </View>
-
-                <Pressable
-                  style={styles.carderPrimaryBtn}
-                  onPress={() => {
-                    HapticTap.heavy();
-                    setShowAiSiteModal(true);
-                  }}
-                >
-                  <AppIcon name="Sparkles" size={18} color="#000000" />
-                  <AppText style={styles.carderPrimaryBtnText} weight="extrabold">
-                    Generate AI Business Mini-Site (30s)
+          {/* ── Top Header: Clean, Uncluttered ── */}
+          <View style={styles.header}>
+            <Pressable
+              onPress={() => {
+                HapticTap.light();
+                router.push('/(tabs)/settings' as any);
+              }}
+              style={styles.headerProfile}
+              hitSlop={8}
+            >
+              {bioPage?.photoUrl ? (
+                <Image source={{ uri: bioPage.photoUrl }} style={styles.avatarImg} />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <AppText style={styles.avatarInitial} weight="semibold">
+                    {(heroName?.[0] || 'T').toUpperCase()}
                   </AppText>
-                </Pressable>
+                </View>
+              )}
+              <View style={styles.headerTextGroup}>
+                <AppText style={styles.headerGreeting}>Good morning,</AppText>
+                <AppText style={styles.headerName} weight="semibold" numberOfLines={1}>
+                  {heroName}
+                </AppText>
+              </View>
+            </Pressable>
+
+            <View style={styles.headerActions}>
+              <Pressable
+                onPress={() => {
+                  HapticTap.light();
+                  setShowQrModal(true);
+                }}
+                style={({ pressed }) => [styles.iconBtn, pressed && styles.pressed]}
+                hitSlop={8}
+                accessibilityLabel="Show QR code"
+              >
+                <AppIcon name="QrCode" size={19} color={INK} />
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  HapticTap.light();
+                  router.push('/(tabs)/notifications' as Href);
+                }}
+                style={({ pressed }) => [styles.iconBtn, pressed && styles.pressed]}
+                hitSlop={8}
+                accessibilityLabel="Notifications"
+              >
+                <AppIcon name="Bell" size={19} color={INK} />
+                {unreadCount > 0 && <View style={styles.notifDot} />}
+              </Pressable>
+            </View>
+          </View>
+
+          {/* ── BENTO CELL 1: Hero Physical NFC Pass Compartment ── */}
+          <View style={styles.heroPassCard}>
+            <View style={styles.passHeaderRow}>
+              <View style={styles.passBrandGroup}>
+                <AppIcon name="CreditCard" size={15} color={MUTED} />
+                <AppText style={styles.passBrandTitle} weight="medium">
+                  NFC GLOBAL PASS
+                </AppText>
+              </View>
+              <View style={styles.livePill}>
+                <View style={styles.liveDot} />
+                <AppText style={styles.liveText} weight="medium">
+                  ACTIVE
+                </AppText>
+              </View>
+            </View>
+
+            <View style={styles.passBody}>
+              <AppText style={styles.passHolderName} weight="bold" numberOfLines={1}>
+                {heroName.toUpperCase()}
+              </AppText>
+              <AppText style={styles.passHolderRole} numberOfLines={1}>
+                {heroRole}
+              </AppText>
+            </View>
+
+            <View style={styles.passDivider} />
+
+            <View style={styles.passActionsRow}>
+              <Pressable
+                onPress={() => {
+                  HapticTap.heavy();
+                  handleShare();
+                }}
+                style={({ pressed }) => [styles.bentoPrimaryBtn, pressed && styles.pressed]}
+              >
+                <AppIcon name="Nfc" size={16} color="#000000" />
+                <AppText style={styles.bentoPrimaryBtnText} weight="bold">
+                  TAP TO SHARE
+                </AppText>
+              </Pressable>
+
+              <Pressable
+                onPress={handleNativeShare}
+                style={({ pressed }) => [styles.bentoGhostBtn, pressed && styles.pressed]}
+                hitSlop={6}
+              >
+                <AppIcon name="Share2" size={16} color={INK} />
+              </Pressable>
+            </View>
+          </View>
+
+          {/* ── BENTO CELL 2 & 3: Modular 2-Column Metrics & CRM Compartments ── */}
+          <View style={styles.bentoGridRow}>
+            {/* Cell 2A: Tap Analytics & Views */}
+            <Pressable
+              onPress={() => {
+                HapticTap.light();
+                router.push('/analytics' as any);
+              }}
+              style={({ pressed }) => [styles.bentoColCard, pressed && styles.pressed]}
+            >
+              <View style={styles.bentoColHeader}>
+                <AppText style={styles.bentoColLabel} weight="medium">
+                  NFC TAPS
+                </AppText>
+                <AppIcon name="Activity" size={14} color={MUTED} />
+              </View>
+              <AppText style={styles.bentoColValue} weight="bold">
+                {tapsCount}
+              </AppText>
+              <View style={styles.bentoSubRow}>
+                <AppText style={styles.bentoSubText}>{viewsCount} profile views</AppText>
               </View>
 
-              {/* ── 6. iOS 17.4 Apple Wallet Card Hero ── */}
-              <AppleWalletCardHero
-                displayName={heroName || undefined}
-                tapsCount={bioPage?.taps ?? 42}
-                leadsCount={insights?.totalOrders ? insights.totalOrders + 2 : 12}
-                onShareCard={handleShare}
-                onOrderCard={() => { HapticTap.medium(); router.push(appRoutes.customer.templates as Href); }}
-                onViewLeads={() => { HapticTap.light(); router.push('/connections' as any); }}
-              />
+              {/* Minimalist 5-bar spark indicator */}
+              <View style={styles.miniSparkRow}>
+                {[40, 65, 80, 55, 95].map((h, i) => (
+                  <View key={i} style={[styles.miniBar, { height: (h * 16) / 100 }]} />
+                ))}
+              </View>
+            </Pressable>
 
-              {/* ── BEAM NOW — #1 CTA for businessmen at events ── */}
-              <BeamNowButton
-                tapsCount={bioPage?.taps ?? 0}
-                onPress={() => {
-                  // If no name yet: open 30-second setup first, then beam
-                  if (!heroName && isGuest) {
-                    setShowQuickSetup(true);
-                  } else {
-                    HapticTap.heavy();
-                    setShowBeamModal(true);
-                  }
-                }}
-              />
+            {/* Cell 2B: Captured Leads & CRM Vault */}
+            <Pressable
+              onPress={() => {
+                HapticTap.light();
+                router.push('/connections' as any);
+              }}
+              style={({ pressed }) => [styles.bentoColCard, pressed && styles.pressed]}
+            >
+              <View style={styles.bentoColHeader}>
+                <AppText style={styles.bentoColLabel} weight="medium">
+                  CONTACTS
+                </AppText>
+                <AppIcon name="Users" size={14} color={MUTED} />
+              </View>
+              <AppText style={styles.bentoColValue} weight="bold">
+                {leadsCount}
+              </AppText>
+              <View style={styles.bentoSubRow}>
+                <AppText style={styles.bentoSubText}>Captured leads</AppText>
+              </View>
 
-              {/* ── 4. Day-1 Activation Card (Shown when user has 0 taps) ── */}
-              {(bioPage?.taps ?? 0) === 0 && !testTapCompleted && (
-                <TestTapSimulatorCard
-                  onSimulateTap={() => {
-                    setTestTapCompleted(true);
-                  }}
+              <View style={styles.bentoActionLink}>
+                <AppText style={styles.bentoActionLinkText} weight="medium">
+                  View CRM →
+                </AppText>
+              </View>
+            </Pressable>
+          </View>
+
+          {/* ── BENTO CELL 4 & 5: Fast Actions Grid (QR & Studio) ── */}
+          <View style={styles.bentoGridRow}>
+            {/* Cell 3A: Instant QR Pass */}
+            <Pressable
+              onPress={() => {
+                HapticTap.light();
+                setShowQrModal(true);
+              }}
+              style={({ pressed }) => [styles.bentoColCard, pressed && styles.pressed]}
+            >
+              <View style={styles.bentoColHeader}>
+                <AppText style={styles.bentoColLabel} weight="medium">
+                  MY QR
+                </AppText>
+                <AppIcon name="QrCode" size={14} color={MUTED} />
+              </View>
+              <View style={styles.bentoQrMiniWrapper}>
+                <QRCode
+                  value={profileUrl}
+                  size={54}
+                  color="#FFFFFF"
+                  backgroundColor="transparent"
                 />
-              )}
+              </View>
+              <AppText style={styles.bentoSubText} numberOfLines={1}>
+                Scan to connect
+              </AppText>
+            </Pressable>
 
-              {/* ── 5. Profile Completion Bar (hidden when 100%) ── */}
-              {!profileComplete && !isGuest && (
+            {/* Cell 3B: Hardware & Studio */}
+            <Pressable
+              onPress={() => {
+                HapticTap.light();
+                router.push(appRoutes.studio as Href);
+              }}
+              style={({ pressed }) => [styles.bentoColCard, pressed && styles.pressed]}
+            >
+              <View style={styles.bentoColHeader}>
+                <AppText style={styles.bentoColLabel} weight="medium">
+                  STUDIO
+                </AppText>
+                <AppIcon name="Wand2" size={14} color={MUTED} />
+              </View>
+              <View style={styles.bentoHardwareBlock}>
+                <AppText style={styles.bentoHardwareTitle} weight="semibold">
+                  Card Editor
+                </AppText>
+                <AppText style={styles.bentoSubText}>Style & appearance</AppText>
+              </View>
+              <View style={styles.bentoActionLink}>
+                <AppText style={styles.bentoActionLinkText} weight="medium">
+                  Customize →
+                </AppText>
+              </View>
+            </Pressable>
+          </View>
+
+          {/* ── BENTO CELL 6: Today's Activity Timeline (Content-Rich, No Clutter) ── */}
+          <View style={styles.bentoFullCard}>
+            <View style={styles.bentoSectionHeader}>
+              <AppText style={styles.bentoSectionTitle} weight="semibold">
+                Activity
+              </AppText>
+              <Pressable
+                onPress={() => {
+                  HapticTap.light();
+                  router.push('/activity' as any);
+                }}
+                hitSlop={8}
+              >
+                <AppText style={styles.bentoSectionAction} weight="medium">
+                  Timeline →
+                </AppText>
+              </Pressable>
+            </View>
+
+            <View style={styles.timelineList}>
+              <View style={styles.timelineItem}>
+                <AppText style={styles.timelineTime}>09:42</AppText>
+                <View style={styles.timelineDot} />
+                <View style={styles.timelineContent}>
+                  <AppText style={styles.timelineTitle} weight="medium">
+                    NFC tap detected
+                  </AppText>
+                  <AppText style={styles.timelineSub}>Direct card interaction</AppText>
+                </View>
+              </View>
+
+              <View style={styles.timelineDivider} />
+
+              <View style={styles.timelineItem}>
+                <AppText style={styles.timelineTime}>09:18</AppText>
+                <View style={styles.timelineDot} />
+                <View style={styles.timelineContent}>
+                  <AppText style={styles.timelineTitle} weight="medium">
+                    Profile view
+                  </AppText>
+                  <AppText style={styles.timelineSub}>Web bio page opened</AppText>
+                </View>
+              </View>
+
+              <View style={styles.timelineDivider} />
+
+              <View style={styles.timelineItem}>
+                <AppText style={styles.timelineTime}>08:51</AppText>
+                <View style={styles.timelineDot} />
+                <View style={styles.timelineContent}>
+                  <AppText style={styles.timelineTitle} weight="medium">
+                    QR code scanned
+                  </AppText>
+                  <AppText style={styles.timelineSub}>Physical badge scan</AppText>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* ── BENTO CELL 7: Recent Orders (Only if exist) ── */}
+          {recentOrders.length > 0 && (
+            <View style={styles.bentoFullCard}>
+              <View style={styles.bentoSectionHeader}>
+                <AppText style={styles.bentoSectionTitle} weight="semibold">
+                  Orders
+                </AppText>
                 <Pressable
-                  onPress={() => { HapticTap.light(); router.push('/edit-bio' as any); }}
-                  style={({ pressed }) => [styles.completionCard, pressed && styles.pressed]}
+                  onPress={() => {
+                    HapticTap.light();
+                    router.push('/orders/track' as any);
+                  }}
+                  hitSlop={8}
                 >
-                  <View style={styles.completionHeader}>
-                    <AppText style={styles.completionTitle} weight="extrabold">
-                      Complete your profile
-                    </AppText>
-                    <AppText style={styles.completionScore} weight="extrabold">
-                      {profileScore}%
-                    </AppText>
-                  </View>
-                  <View style={styles.completionTrack}>
-                    <View style={[styles.completionFill, { width: `${profileScore}%` as any }]} />
-                  </View>
-                  {nextStep && (
-                    <View style={styles.completionNextRow}>
-                      <AppIcon name="ArrowRight" size={12} color="rgba(255,255,255,0.5)" />
-                      <AppText style={styles.completionNextText} weight="bold">
-                        Next: {nextStep.label}
-                      </AppText>
-                    </View>
-                  )}
+                  <AppText style={styles.bentoSectionAction} weight="medium">
+                    All →
+                  </AppText>
                 </Pressable>
-              )}
+              </View>
 
-              {/* ── 6. 2x2 High-Contrast Luxury Bento Grid ── */}
-              <LuxuryBentoGrid
-                onPressBeam={() => {
-                  setShowBeamModal(true);
-                }}
-                onPressWallet={() => {
-                  router.push('/wallet-pass' as any);
-                }}
-                onPressLeads={() => {
-                  router.push('/connections' as any);
-                }}
-                onPressStudio={() => {
-                  router.push(appRoutes.guestDesign as Href);
-                }}
-                leadsCount={insights?.totalOrders ? insights.totalOrders + 2 : 3}
-              />
-
-              {/* ── 7. 7-Day Networking Activity Pulse ── */}
-              <WeeklyActivitySparkline
-                totalTaps={bioPage?.taps ?? 0}
-                onPress={() => {
-                  router.push('/connections' as any);
-                }}
-              />
-
-              {/* ── 8. Live Activity Radar Feed (Active Networking Pulse) ── */}
-              <LiveActivityRadar
-                totalTaps={bioPage?.taps ?? 0}
-                totalViews={bioPage?.views ?? 0}
-                onPressItem={() => {
-                  router.push('/connections' as any);
-                }}
-              />
-
-              {/* ── 9. Daily Executive Networking Focus ── */}
-              <DailyNetworkingPrompt
-                onPress={() => {
-                  setShowBeamModal(true);
-                }}
-              />
-
-              {/* ── Divider ── */}
-              <View style={styles.hairlineDivider} />
-
-              {/* ── 6. Bespoke Hardware Concierge ── */}
-              <Pressable
-                onPress={() => {
-                  HapticTap.medium();
-                  setShowWaitlist(true);
-                }}
-                style={({ pressed }) => [styles.commerceRow, pressed && styles.pressed]}
-              >
-                <View style={styles.commerceLeft}>
-                  <AppText style={styles.commerceTitle} weight="extrabold">Bespoke Metal NFC Card</AppText>
-                  <AppText style={styles.commerceSub}>Laser-Engraved Titanium · 24K Gold · Limited</AppText>
-                </View>
-                <View style={styles.commerceRight}>
-                  <AppText style={styles.commerceLink} weight="bold">Join Waitlist →</AppText>
-                </View>
-              </Pressable>
-
-              {/* ── 7. Pro Upgrade Nudge ── */}
-              <Pressable
-                onPress={() => {
-                  HapticTap.medium();
-                  router.push('/pricing' as any);
-                }}
-                style={({ pressed }) => [styles.proNudgeCard, pressed && styles.pressed]}
-              >
-                <View style={styles.proNudgeBadge}>
-                  <AppText style={styles.proNudgeBadgeText} weight="extrabold">PRO</AppText>
-                </View>
-                <View style={styles.proNudgeContent}>
-                  <AppText style={styles.proNudgeTitle} weight="extrabold">
-                    Unlock your full identity
-                  </AppText>
-                  <View style={styles.proFeatureList}>
-                    {[
-                      'Unlimited bio links & social channels',
-                      'Analytics: views, taps & saves',
-                      'Custom domain  (you.com)',
-                      'Priority card production',
-                    ].map((f) => (
-                      <View key={f} style={styles.proFeatureRow}>
-                        <AppIcon name="Check" size={12} color="#000000" />
-                        <AppText style={styles.proFeatureText} weight="bold">{f}</AppText>
+              {recentOrders.map((order, i) => {
+                const st = orderStatus(order.status);
+                return (
+                  <Pressable
+                    key={order.id}
+                    onPress={() => {
+                      HapticTap.light();
+                      router.push(`/orders/detail/${order.id}` as any);
+                    }}
+                    style={({ pressed }) => [styles.orderRow, pressed && styles.pressed]}
+                  >
+                    <View style={styles.orderLeft}>
+                      <AppText style={styles.orderTitle} weight="medium">
+                        {order.customerName || 'NFC Metal Card'}
+                      </AppText>
+                      <AppText style={styles.orderSub}>Order #{order.id.slice(0, 6)}</AppText>
+                    </View>
+                    <View style={styles.orderRight}>
+                      <View style={[styles.orderPill, { borderColor: st.color + '40' }]}>
+                        <AppText style={[styles.orderPillText, { color: st.color }]} weight="medium">
+                          {st.label}
+                        </AppText>
                       </View>
-                    ))}
-                  </View>
-                </View>
-                <View style={styles.proNudgeArrow}>
-                  <AppIcon name="ChevronRight" size={16} color="#000000" />
-                </View>
-              </Pressable>
-
-              {/* ── 8. Viral Referral Invite (Free Pro Incentive) ── */}
-              <Pressable
-                onPress={async () => {
-                  HapticTap.medium();
-                  const slug = bioPage?.slug || 'join';
-                  const shareUrl = `https://aviobrand.com/?ref=${encodeURIComponent(slug)}`;
-                  try {
-                    await Share.share({
-                      message: `Get your own executive AVIO Smart Pass NFC business card for free! Use my invite link: ${shareUrl}`,
-                      url: shareUrl,
-                      title: 'Invite to AVIO Smart Pass',
-                    });
-                  } catch {
-                    // ignore
-                  }
-                }}
-                style={({ pressed }) => [styles.referralCard, pressed && styles.pressed]}
-              >
-                <View style={styles.referralIconBox}>
-                  <AppIcon name="Gift" size={20} color="#FFFFFF" />
-                </View>
-                <View style={styles.referralContent}>
-                  <AppText style={styles.referralTitle} weight="extrabold">
-                    Give Free Card, Get 1 Mo Pro
-                  </AppText>
-                  <AppText style={styles.referralSub}>
-                    Share your invite link with a colleague or friend.
-                  </AppText>
-                </View>
-                <View style={styles.referralShareBtn}>
-                  <AppText style={styles.referralShareBtnText} weight="bold">Invite →</AppText>
-                </View>
-              </Pressable>
-            </>
-
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
           )}
         </IosScrollView>
       </SafeAreaView>
 
-      {/* ── QR Code Share Modal ── */}
+      {/* ── QR Modal: Clean Monochrome Dialog ── */}
       <Modal visible={showQrModal} animationType="fade" transparent>
-        <Pressable style={styles.qrModalOverlay} onPress={() => setShowQrModal(false)}>
-          <View style={styles.qrModalCard}>
-            <View style={styles.qrHeader}>
-              <AppText style={styles.qrTitle} weight="bold">Scan to Connect</AppText>
+        <Pressable style={styles.modalOverlay} onPress={() => setShowQrModal(false)}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <AppText style={styles.modalTitle} weight="semibold">
+                Scan to Connect
+              </AppText>
               <Pressable onPress={() => setShowQrModal(false)} hitSlop={12}>
-                <AppIcon name="X" size={20} color="#8E8E93" />
+                <AppIcon name="X" size={18} color="#6E6E73" />
               </Pressable>
             </View>
-            <View style={styles.qrCodeWrapper}>
+            <View style={styles.modalQrContainer}>
               <QRCode
-                value={bioPage?.slug ? `https://aviobrand.com/u/${bioPage.slug}` : 'https://aviobrand.com/u/demo'}
-                size={220}
+                value={profileUrl}
+                size={200}
                 color="#000000"
                 backgroundColor="#FFFFFF"
-                logoSize={40}
-                logoMargin={2}
-                logoBorderRadius={10}
               />
             </View>
-            <AppText style={styles.qrHint} variant="caption">
-              Point your camera at the screen to view this profile.
+            <AppText style={styles.modalHint}>
+              Point any smartphone camera to open {heroName}'s digital card.
             </AppText>
           </View>
         </Pressable>
       </Modal>
 
-      <QuickActionModal visible={fabOpen} onClose={() => setFabOpen(false)} />
-
-      {/* ── World Class Systems ── */}
-      <PremiumPaywallModal 
-        visible={showPremiumModal} 
-        onClose={() => setShowPremiumModal(false)} 
-        onUpgrade={() => { setShowPremiumModal(false); /* Handle Payment */ }} 
-      />
-      <CardSuccessShareModal 
-        visible={showCardSuccessModal} 
-        onClose={() => setShowCardSuccessModal(false)} 
-        url={bioPage?.slug ? `https://aviobrand.com/u/${bioPage.slug}` : 'https://aviobrand.com/u/demo'}
-        name={heroName || 'Executive Member'}
-      />
-      <AiScannerModal 
-        visible={showAiScannerModal} 
-        onClose={() => setShowAiScannerModal(false)} 
-      />
-      <AiBusinessSiteModal
-        visible={showAiSiteModal}
-        onClose={() => setShowAiSiteModal(false)}
-        initialBusinessName={heroName || ''}
-        onComplete={handleAiSiteComplete}
-      />
-
-      {/* ── 30-Second Quick Card Setup ── */}
-      <QuickSetupSheet
-        visible={showQuickSetup}
-        initialName={heroName || ''}
-        onClose={() => setShowQuickSetup(false)}
-        onComplete={(name, title, contact) => {
-          setShowQuickSetup(false);
-          // Immediately open the beam modal so they can share right away
-          setTimeout(() => setShowBeamModal(true), 300);
-        }}
-      />
-
-      {/* ── NFC Beam Modal ── */}
+      {/* ── Core NFC Beam Modal ── */}
       <NfcBeamModal
         visible={showBeamModal}
         onClose={() => setShowBeamModal(false)}
-        fullName={heroName || 'Your Name'}
-        title={bioPage?.tagline || bioPage?.headline || ''}
-        url={bioPage?.slug ? `https://aviobrand.com/u/${bioPage.slug}` : 'https://aviobrand.com/u/demo'}
+        fullName={heroName}
+        title={heroRole}
+        url={profileUrl}
       />
 
-      {/* ── Physical Card Waitlist Modal ── */}
-      <Modal visible={showWaitlist} animationType="slide" transparent>
-        <Pressable style={styles.waitlistOverlay} onPress={() => setShowWaitlist(false)}>
-          <Pressable style={styles.waitlistCard} onPress={() => {}}>
-            <View style={styles.waitlistHandle} />
-            <View style={styles.waitlistIconSeal}>
-              <AppIcon name="CreditCard" size={22} color="#FFFFFF" />
-            </View>
-            <AppText style={styles.waitlistTitle} weight="extrabold">
-              Bespoke Metal NFC Card
-            </AppText>
-            <AppText style={styles.waitlistSub}>
-              Laser-engraved titanium or 24K gold plated. Limited production runs. Drop your email and we will notify you first.
-            </AppText>
-            {!waitlistSent ? (
-              <>
-                <TextInput
-                  style={styles.waitlistInput}
-                  value={waitlistEmail}
-                  onChangeText={setWaitlistEmail}
-                  placeholder="your@email.com"
-                  placeholderTextColor="rgba(255,255,255,0.3)"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-                <Pressable
-                  style={({ pressed }) => [styles.waitlistBtn, pressed && { opacity: 0.85 }]}
-                  onPress={() => {
-                    if (!waitlistEmail.includes('@')) return;
-                    HapticTap.heavy();
-                    // Store in Firestore waitlist collection
-                    import('@/src/services/firebaseClient').then(({ db }) => {
-                      import('firebase/firestore').then(({ collection, addDoc, serverTimestamp }) => {
-                        addDoc(collection(db, 'metal_card_waitlist'), {
-                          email: waitlistEmail.trim().toLowerCase(),
-                          userId: user?.id ?? 'guest',
-                          name: heroName ?? '',
-                          createdAt: serverTimestamp(),
-                        }).catch(() => undefined);
-                      });
-                    });
-                    setWaitlistSent(true);
-                  }}
-                >
-                  <AppText style={styles.waitlistBtnText} weight="extrabold">
-                    Reserve My Spot
-                  </AppText>
-                </Pressable>
-              </>
-            ) : (
-              <View style={styles.waitlistSuccess}>
-                <AppIcon name="Check" size={20} color="#FFFFFF" />
-                <AppText style={styles.waitlistSuccessText} weight="bold">
-                  You&apos;re on the list! We&apos;ll be in touch.
-                </AppText>
-              </View>
-            )}
-            <Pressable onPress={() => { setShowWaitlist(false); setWaitlistSent(false); }} style={styles.waitlistClose} hitSlop={12}>
-              <AppText style={styles.waitlistCloseText} weight="bold">Close</AppText>
-            </Pressable>
-          </Pressable>
-        </Pressable>
-      </Modal>
-
+      {/* ── Quick Setup Sheet ── */}
+      <QuickSetupSheet
+        visible={showQuickSetup}
+        initialName={heroName}
+        onClose={() => setShowQuickSetup(false)}
+        onComplete={() => {
+          setShowQuickSetup(false);
+          setTimeout(() => setShowBeamModal(true), 300);
+        }}
+      />
     </View>
   );
 }
@@ -1071,24 +537,7 @@ export function GuestHomeScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: BG,
-  },
-  homeBackdropWrap: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 380,
-    overflow: 'hidden',
-  },
-  homeBackdropImg: {
-    width: '100%',
-    height: '100%',
-    opacity: 0.06,
-  },
-  homeBackdropOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0, 0, 0, 0.68)',
+    backgroundColor: CANVAS,
   },
   safe: {
     flex: 1,
@@ -1097,1630 +546,384 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: SPACING.base,
-    paddingTop: SPACING.xs,
-    paddingBottom: 130, // Clearance for floating capsule dock
-    gap: 14,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 120,
+    gap: 12,
     maxWidth: 640,
     width: '100%',
     alignSelf: 'center',
   },
-  topGreetingRow: {
+  pressed: {
+    opacity: 0.75,
+  },
+
+  // ── Top Header ──
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: SPACING.xs,
+    paddingVertical: 4,
+    marginBottom: 4,
   },
-  greetingLeft: {
+  headerProfile: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
+    flex: 1,
   },
-  executiveAvatarSeal: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#FFFFFF',
+  avatarImg: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: BENTO_SURFACE_RAISED,
+  },
+  avatarPlaceholder: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: BENTO_SURFACE_RAISED,
+    borderWidth: 1,
+    borderColor: BENTO_BORDER,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  executiveAvatarLetter: {
-    color: '#000000',
-    fontSize: 18,
+  avatarInitial: {
+    color: INK,
+    fontSize: 16,
   },
-  executiveTitles: {
+  headerTextGroup: {
+    flex: 1,
     gap: 1,
   },
-  executiveEyebrow: {
-    color: 'rgba(255, 255, 255, 0.45)',
-    fontSize: 10,
-    letterSpacing: 1.2,
-  },
-  prestigePill: {
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 6,
-    backgroundColor: '#18181C',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    alignSelf: 'flex-start',
-    marginBottom: 2,
-  },
-  prestigePillText: {
-    color: '#E5E5EA',
-    fontSize: 9,
-    letterSpacing: 1,
-  },
-  greetingAvatarImg: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-  },
-  greetingName: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    lineHeight: 22,
-  },
-  // Instagram-Style Buttons
-  instagramButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 8,
-  },
-
-  // NFC Stories Section
-  nfcStoriesSection: {
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
-    marginBottom: 16,
-  },
-  nfcStoriesContainer: {
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  nfcStoryItem: {
-    alignItems: 'center',
-    gap: 6,
-    width: 64,
-  },
-  nfcStoryAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  nfcAddStory: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.3)',
-    borderStyle: 'dashed',
-  },
-  nfcActiveStory: {
-    backgroundColor: '#FFD700',
-    borderWidth: 3,
-    borderColor: '#FFD700',
-  },
-  nfcStoryInitials: {
-    fontSize: 14,
-    color: '#000000',
-    fontWeight: '800',
-  },
-  nfcCountryFlag: {
-    fontSize: 10,
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-  },
-  nfcStoryName: {
+  headerGreeting: {
+    color: MUTED,
     fontSize: 11,
-    color: '#FFFFFF',
-    fontWeight: '500',
-    textAlign: 'center',
-    maxWidth: 64,
+    letterSpacing: 0.2,
   },
-  // Business Metrics Dashboard
-  businessMetricsSection: {
-    marginBottom: 20,
-    paddingHorizontal: 16,
+  headerName: {
+    color: INK,
+    fontSize: 15,
   },
-  metricsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  metricsTitle: {
-    fontSize: 18,
-    color: '#FFFFFF',
-    fontWeight: '800',
-  },
-  liveBadge: {
+  headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FF6B6B',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
     gap: 4,
   },
-  liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#FFFFFF',
-  },
-  liveText: {
-    fontSize: 10,
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  metricsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  metricCard: {
-    width: (screenWidth - 56) / 2,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-  },
-  metricValue: {
-    fontSize: 24,
-    color: '#FFD700',
-    fontWeight: '900',
-    marginBottom: 4,
-  },
-  metricLabel: {
-    fontSize: 12,
-    color: '#FFFFFF',
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  metricGrowth: {
-    fontSize: 10,
-    color: '#50C878',
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-
-  // NFC Card Display Section
-  nfcCardSection: {
-    marginBottom: 20,
-    paddingHorizontal: 16,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  cardHeaderTitle: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  shareButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFD700',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    gap: 6,
-  },
-  shareButtonText: {
-    fontSize: 12,
-    color: '#000000',
-    fontWeight: '700',
-  },
-  nfcCardDisplay: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  nfcCardGradient: {
-    padding: 20,
-    minHeight: 160,
-  },
-  nfcCardContent: {
-    flex: 1,
-    justifyContent: 'space-between',
-  },
-  nfcCardTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
-  },
-  nfcCardBrand: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    fontWeight: '600',
-    opacity: 0.9,
-  },
-  nfcCardDetails: {
-    marginBottom: 16,
-  },
-  nfcCardName: {
-    fontSize: 20,
-    color: '#FFFFFF',
-    fontWeight: '800',
-    marginBottom: 4,
-  },
-  nfcCardTitle: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    fontWeight: '500',
-    opacity: 0.9,
-    marginBottom: 2,
-  },
-  nfcCardCompany: {
-    fontSize: 12,
-    color: '#FFFFFF',
-    fontWeight: '500',
-    opacity: 0.8,
-  },
-  nfcCardStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  nfcCardStat: {
-    alignItems: 'center',
-  },
-  nfcCardStatValue: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    fontWeight: '800',
-  },
-  nfcCardStatLabel: {
-    fontSize: 10,
-    color: '#FFFFFF',
-    fontWeight: '500',
-    opacity: 0.8,
-  },
-
-  // Value Proposition Section
-  valuePropositionSection: {
-    marginBottom: 20,
-    paddingHorizontal: 16,
-  },
-  valuePropositionGradient: {
-    borderRadius: 16,
-    padding: 20,
-  },
-  valuePropositionContent: {
-    alignItems: 'center',
-  },
-  valuePropositionTitle: {
-    fontSize: 20,
-    color: '#000000',
-    fontWeight: '900',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  valuePropositionSubtitle: {
-    fontSize: 14,
-    color: '#000000',
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  valuePropositionStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    marginBottom: 16,
-  },
-  valuePropositionStat: {
-    alignItems: 'center',
-  },
-  valuePropositionStatValue: {
-    fontSize: 18,
-    color: '#000000',
-    fontWeight: '900',
-  },
-  valuePropositionStatLabel: {
-    fontSize: 10,
-    color: '#000000',
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  upgradeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#000000',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 24,
-    gap: 8,
-  },
-  upgradeButtonText: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  notifBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#121214',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+  iconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: BENTO_SURFACE,
+    borderWidth: 1,
+    borderColor: BENTO_BORDER,
   },
   notifDot: {
     position: 'absolute',
     top: 6,
     right: 6,
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: '#FF3B30',
-    borderWidth: 1,
-    borderColor: '#000000',
   },
 
-  // ── Refined Unboxed Elements ──
-  subtleFlipHint: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.4)',
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  refinedShareBtn: {
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 2,
-  },
-  refinedShareText: {
-    color: '#000000',
-    fontSize: 15,
-  },
-  secondaryActionRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  secondaryActionBtn: {
-    flex: 1,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: '#121214',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  secondaryActionText: {
-    color: 'rgba(255, 255, 255, 0.85)',
-    fontSize: 13,
-  },
-  hairlineDivider: {
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    marginVertical: 4,
-  },
-  infoSection: {
-    gap: 12,
-    paddingHorizontal: 4,
-  },
-  infoHeader: {
-    gap: 2,
-  },
-  infoTitle: {
-    color: '#FFFFFF',
-    fontSize: 16,
-  },
-  infoCardCode: {
-    color: 'rgba(255, 255, 255, 0.45)',
-    fontSize: 12,
-  },
-  metricsRow: {
-    flexDirection: 'row',
-    gap: 48,
-    marginTop: 2,
-  },
-  metricItem: {
-    gap: 2,
-  },
-  metricsRowLabel: {
-    color: 'rgba(255, 255, 255, 0.45)',
-    fontSize: 12,
-  },
-  metricsRowValue: {
-    color: '#FFFFFF',
-    fontSize: 26,
-    letterSpacing: -0.5,
-  },
-  commerceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-  },
-  commerceLeft: {
-    gap: 2,
-  },
-  commerceTitle: {
-    color: '#FFFFFF',
-    fontSize: 14,
-  },
-  commerceSub: {
-    color: 'rgba(255, 255, 255, 0.45)',
-    fontSize: 12,
-  },
-  commerceRight: {},
-  commerceLink: {
-    color: 'rgba(255, 255, 255, 0.75)',
-    fontSize: 13,
-  },
-  // ── Stats row ─────────────────────────────────────────────────
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginVertical: 16,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#111114',
+  // ── BENTO CELL 1: Hero Pass Card ──
+  heroPassCard: {
+    backgroundColor: BENTO_SURFACE,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    paddingVertical: 14,
-    paddingHorizontal: 10,
-    alignItems: 'center',
-    gap: 4,
-  },
-  statValue: {
-    color: '#FFFFFF',
-    fontSize: 22,
-    lineHeight: 26,
-  },
-  statLabel: {
-    color: 'rgba(255,255,255,0.4)',
-    fontSize: 10,
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  // ── Primary CTA row ───────────────────────────────────────────
-  primaryCtaRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
-  },
-  ctaShare: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    height: 52,
-    borderRadius: 999,
-    backgroundColor: '#FFFFFF',
-  },
-  ctaShareText: {
-    color: '#000000',
-    fontSize: 15,
-  },
-  ctaDesign: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    height: 52,
-    borderRadius: 999,
-    backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-  },
-  ctaDesignText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-  },
-  // ── Section title ─────────────────────────────────────────────
-  sectionTitle: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    marginBottom: 12,
-  },
-  // ── Quick 2×2 grid ────────────────────────────────────────────
-  quickGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginBottom: 24,
-  },
-  quickCard: {
-    width: '47%',
-    borderRadius: 20,
-    padding: 16,
-    minHeight: 120,
-    justifyContent: 'flex-end',
-    gap: 4,
-  },
-  quickCardIcon: {
-    marginBottom: 6,
-  },
-  quickCardLabel: {
-    fontSize: 14,
-  },
-  quickCardSub: {
-    fontSize: 11,
-    lineHeight: 14,
-  },
-  primaryPillRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  myCardPill: {
-    flex: 1,
-    minHeight: 48,
-    borderRadius: 24,
-    backgroundColor: '#FF5722',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  myCardPillText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-  },
-  viewProfilePill: {
-    flex: 1,
-    minHeight: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderWidth: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  viewProfilePillText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-  },
-  profileDetailsQrCard: {
-    backgroundColor: 'transparent',
-    borderWidth: 0,
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    borderColor: BENTO_BORDER,
+    padding: 18,
     gap: 14,
   },
-  detailsCopyWrap: {
-    flex: 1,
-    gap: 3,
-  },
-  detailsLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: MUTED,
-    textTransform: 'uppercase',
-  },
-  detailsName: {
-    fontSize: 16,
-    color: '#FFFFFF',
-  },
-  detailsSub: {
-    fontSize: 12,
-    color: MUTED,
-    lineHeight: 16,
-  },
-  detailsQrWrap: {
-    width: 68,
-    height: 68,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 5,
-  },
-  bentoGridRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  bentoCard: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  bentoIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bentoTitle: {
-    color: '#FFFFFF',
-    fontSize: 14,
-  },
-  orderHardwareBento: {
-    width: '100%',
-    backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 16,
-    padding: 16,
+  passHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
   },
-  orderHardwareLeft: {
-    flex: 1,
+  passBrandGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 6,
   },
-  nfcIconWrap: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0, 102, 255, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 102, 255, 0.25)',
+  passBrandTitle: {
+    color: MUTED,
+    fontSize: 11,
+    letterSpacing: 0.8,
+  },
+  livePill: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: BENTO_BORDER,
   },
-  orderHardwareTitle: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    letterSpacing: -0.2,
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#30D158',
   },
-  laserPill: {
-    backgroundColor: 'rgba(0, 102, 255, 0.18)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  laserPillText: {
-    fontSize: 9,
-    color: '#2997FF',
+  liveText: {
+    color: INK,
+    fontSize: 10,
     letterSpacing: 0.5,
   },
-  orderHardwareSub: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.5)',
-    marginTop: 2,
-    lineHeight: 16,
+  passBody: {
+    gap: 4,
+    paddingVertical: 4,
   },
-  fbAvatarBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 0,
-    backgroundColor: SURFACE,
-    borderWidth: 1,
-    borderColor: SURFACE_BORDER,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
+  passHolderName: {
+    color: INK,
+    fontSize: 22,
+    letterSpacing: 0.5,
   },
-  fbAvatarImg: {
-    width: '100%',
-    height: '100%',
-  },
-  avatarNoBg: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.sm,
-  },
-  inboxBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: SURFACE,
-    borderWidth: 1,
-    borderColor: SURFACE_BORDER,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 0,
-  },
-  inboxBtnText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  neonBadgePill: {
-    backgroundColor: '#30D158',
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 8,
-    minWidth: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  neonBadgeNum: {
-    color: '#000000',
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  headerIconNoBg: {
-    width: 38,
-    height: 38,
-    borderRadius: 0,
-    backgroundColor: SURFACE,
-    borderWidth: 1,
-    borderColor: SURFACE_BORDER,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.96 }],
-  },
-  launchHero: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: 'rgba(17, 17, 20, 0.92)',
-    borderRadius: 18,
-    padding: 16,
-    gap: 10,
-  },
-  launchEyebrowRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-  },
-  launchLiveDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#30D158',
-  },
-  launchEyebrow: {
+  passHolderRole: {
     color: MUTED,
-    fontSize: 11,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 0,
-  },
-  launchTitle: {
-    color: '#FFFFFF',
-    fontSize: 24,
-    lineHeight: 30,
-    fontWeight: '900',
-  },
-  launchSub: {
-    color: '#A1A1AA',
     fontSize: 13,
-    lineHeight: 19,
-    fontWeight: '600',
   },
-  launchCtaRow: {
+  passDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: BENTO_BORDER,
+  },
+  passActionsRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 10,
-    marginTop: 2,
   },
-  launchPrimary: {
+  bentoPrimaryBtn: {
     flex: 1,
-    minHeight: 46,
-    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     backgroundColor: '#FFFFFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 7,
-  },
-  launchPrimaryText: {
-    color: '#020617',
-    fontSize: 14,
-    fontWeight: '900',
-  },
-  launchSecondary: {
-    flex: 1,
-    minHeight: 46,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    flexDirection: 'row',
+    paddingVertical: 12,
+  },
+  bentoPrimaryBtnText: {
+    color: '#000000',
+    fontSize: 13,
+    letterSpacing: 0.6,
+  },
+  bentoGhostBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 7,
+    backgroundColor: BENTO_SURFACE_RAISED,
+    borderWidth: 1,
+    borderColor: BENTO_BORDER,
   },
-  launchSecondaryText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '900',
-  },
-  trustRow: {
+
+  // ── BENTO 2-COLUMN GRID ──
+  bentoGridRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    gap: 12,
+  },
+  bentoColCard: {
+    flex: 1,
+    backgroundColor: BENTO_SURFACE,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: BENTO_BORDER,
+    padding: 16,
+    justifyContent: 'space-between',
+    minHeight: 126,
     gap: 8,
   },
-  trustPill: {
-    minHeight: 30,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(125, 211, 252, 0.22)',
-    backgroundColor: 'rgba(14, 165, 233, 0.08)',
+  bentoColHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    justifyContent: 'space-between',
   },
-  trustPillText: {
-    color: '#D4D4D8',
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  cardContainer: {
-    marginVertical: SPACING.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-  },
-  cardElevation: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: '#111111',
-  },
-  oceanShareCard: {
-    backgroundColor: '#111114',
-    width: '100%',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    marginVertical: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  oceanShareIconWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  shareSubtitle: {
-    fontSize: 10,
-    fontWeight: '800',
+  bentoColLabel: {
     color: MUTED,
-    letterSpacing: 0,
+    fontSize: 10,
+    letterSpacing: 0.8,
   },
-  shareTitle: {
-    fontSize: 16,
-    color: '#FFFFFF',
+  bentoColValue: {
+    color: INK,
+    fontSize: 28,
+    lineHeight: 32,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  actionScrollView: {
-    marginHorizontal: -SPACING.base,
-    marginBottom: SPACING.xs,
-  },
-  actionScroll: {
-    gap: SPACING.md,
-    paddingHorizontal: SPACING.base,
-  },
-  actionCard: {
-    width: 200,
-    height: 96,
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: SURFACE_BORDER,
-    backgroundColor: SURFACE,
+  bentoSubRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  actionCardPressed: {
-    opacity: 0.75,
-    transform: [{ scale: 0.97 }],
+  bentoSubText: {
+    color: MUTED,
+    fontSize: 11,
   },
-  actionTextWrap: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  actionCardHeader: {
+  miniSparkRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     gap: 4,
-    marginBottom: 4,
+    height: 16,
+    marginTop: 4,
   },
-  actionIconContainer: {
-    width: 20,
-    height: 20,
-    borderRadius: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  miniBar: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    borderRadius: 2,
+  },
+  bentoActionLink: {
+    alignSelf: 'flex-start',
+    marginTop: 4,
+  },
+  bentoActionLinkText: {
+    color: INK,
+    fontSize: 11,
+  },
+  bentoQrMiniWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 4,
   },
-  actionImageWrap: {
-    width: 56,
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
+  bentoHardwareBlock: {
+    gap: 2,
   },
-  actionImage: {
-    width: 48,
-    height: 48,
+  bentoHardwareTitle: {
+    color: INK,
+    fontSize: 14,
   },
-  ordersSection: {
-    marginVertical: 4,
-  },
-  ordersCard: {
-    backgroundColor: SURFACE,
+
+  // ── BENTO FULL-WIDTH MODULAR CELL ──
+  bentoFullCard: {
+    backgroundColor: BENTO_SURFACE,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: SURFACE_BORDER,
-    paddingVertical: 0,
-    marginTop: SPACING.md,
-    overflow: 'hidden',
+    borderColor: BENTO_BORDER,
+    padding: 16,
+    gap: 12,
   },
+  bentoSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  bentoSectionTitle: {
+    color: INK,
+    fontSize: 13,
+    letterSpacing: 0.4,
+  },
+  bentoSectionAction: {
+    color: MUTED,
+    fontSize: 12,
+  },
+
+  // ── Timeline List (Clean Divisions) ──
+  timelineList: {
+    gap: 10,
+  },
+  timelineItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  timelineTime: {
+    color: MUTED,
+    fontSize: 11,
+    fontVariant: ['tabular-nums'],
+    width: 36,
+  },
+  timelineDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+  },
+  timelineContent: {
+    flex: 1,
+  },
+  timelineTitle: {
+    color: INK,
+    fontSize: 13,
+  },
+  timelineSub: {
+    color: MUTED,
+    fontSize: 11,
+  },
+  timelineDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: BENTO_BORDER,
+    marginLeft: 46,
+  },
+
+  // ── Order Rows ──
   orderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    gap: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: SURFACE_BORDER,
-  },
-  orderIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  orderInfo: {
-    flex: 1,
-  },
-  orderMeta: {
-    alignItems: 'flex-end',
-    gap: 2,
-    marginRight: 4,
-  },
-  orderBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  guestBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 14,
-    backgroundColor: SURFACE,
-    borderWidth: 1,
-    borderColor: SURFACE_BORDER,
-    borderRadius: 16,
-    marginVertical: 8,
-  },
-  guestBannerIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  guestBannerCopy: {
-    flex: 1,
-    gap: 2,
-  },
-  skeletonContainer: {
-    padding: SPACING.base,
-    gap: 16,
-  },
-  skeletonAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: SURFACE,
-  },
-  skeletonText: {
-    gap: 8,
-  },
-  skeletonLine: {
-    height: 16,
-    backgroundColor: SURFACE,
-  },
-  skeletonCard: {
-    height: 200,
-    backgroundColor: SURFACE,
-  },
-  errorBanner: {
-    backgroundColor: 'rgba(255, 69, 58, 0.08)',
-    borderColor: 'rgba(255, 69, 58, 0.25)',
-    borderWidth: 1,
-    padding: 12,
-    borderRadius: 0,
-    flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    paddingVertical: 4,
   },
-  chatOsHeader: {
-    gap: 12,
-    marginBottom: 16,
+  orderLeft: {
+    gap: 2,
   },
-  searchBarPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1E1E22',
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    height: 48,
-    gap: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-  },
-  searchBarText: {
-    color: 'rgba(255,255,255,0.5)',
-    fontSize: 14,
-  },
-  tagScroll: {
-    flexDirection: 'row',
-  },
-  tagPill: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    marginRight: 8,
-  },
-  tagPillActive: {
-    backgroundColor: '#FFFFFF',
-  },
-  tagPillText: {
+  orderTitle: {
+    color: INK,
     fontSize: 13,
-    color: 'rgba(255,255,255,0.6)',
   },
-  tagPillActiveText: {
-    color: '#000000',
-  },
-  chatOsGrid: {
-    gap: 16,
-    marginTop: 20,
-    marginBottom: 40,
-  },
-  chatOsCard: {
-    backgroundColor: '#111114',
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    overflow: 'hidden',
-    height: 240,
-    position: 'relative',
-  },
-  chatOsCardVisual: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#070708',
-  },
-  chatOsSphere: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-  },
-  chatOsCardFooter: {
-    padding: 16,
-    backgroundColor: '#111114',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.05)',
-  },
-  chatOsCardName: {
-    fontSize: 18,
-    color: '#FFFFFF',
-  },
-  chatOsCardRole: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.5)',
-    marginTop: 2,
-  },
-  floatingActionContainer: {
-    position: 'absolute',
-    bottom: 24,
-    alignSelf: 'center',
-    zIndex: 999,
-  },
-  floatingActionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 999,
-    paddingLeft: 20,
-    paddingRight: 6,
-    paddingVertical: 6,
-    gap: 8,
-    height: 48,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  floatingActionText: {
-    color: '#000000',
-    fontSize: 14,
-  },
-  floatingActionPlus: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#000000',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  floatingActionPlusText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-  },
-
-  // NFC Live pulse badge
-  liveBadgeWrap: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 999,
-    gap: 6,
-  },
-  liveBadgeText: {
-    color: '#FFFFFF',
+  orderSub: {
+    color: MUTED,
     fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5,
   },
-
-  // ── Profile Completion Bar ──
-  completionCard: {
-    borderRadius: 14,
-    backgroundColor: '#111114',
+  orderRight: {},
+  orderPill: {
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    padding: 14,
-    gap: 10,
+    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
   },
-  completionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  completionTitle: {
-    color: '#FFFFFF',
-    fontSize: 13,
-  },
-  completionScore: {
-    color: '#FFFFFF',
-    fontSize: 13,
-  },
-  completionTrack: {
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    overflow: 'hidden',
-  },
-  completionFill: {
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: '#FFFFFF',
-  },
-  completionNextRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  completionNextText: {
-    color: 'rgba(255, 255, 255, 0.5)',
-    fontSize: 12,
+  orderPillText: {
+    fontSize: 10,
   },
 
-  cardHintBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    alignSelf: 'center',
-    marginTop: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 999,
-  },
-  cardHintText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    letterSpacing: -0.2,
-  },
-
-  // Wide Primary Share Card Button
-  widePrimaryShareBtn: {
-    width: '100%',
-    height: 54,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginTop: 16,
-    marginBottom: 12,
-  },
-  widePrimaryShareText: {
-    color: '#000000',
-    fontSize: 16,
-    letterSpacing: -0.2,
-  },
-
-  // Secondary CTA buttons
-  ctaSecondaryBtn: {
-    flex: 1,
-    height: 48,
-    backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    borderRadius: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  ctaSecondaryText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-  },
-  // ── Waitlist Modal ──
-  waitlistOverlay: {
+  // ── QR Modal ──
+  modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
-    justifyContent: 'flex-end',
-  },
-  waitlistCard: {
-    backgroundColor: '#111114',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: 24,
-    gap: 14,
-    paddingBottom: 40,
   },
-  waitlistHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    alignSelf: 'center',
-    marginBottom: 4,
-  },
-  waitlistIconSeal: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+  modalCard: {
     backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  waitlistTitle: {
-    color: '#FFFFFF',
-    fontSize: 20,
-  },
-  waitlistSub: {
-    color: 'rgba(255, 255, 255, 0.55)',
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  waitlistInput: {
-    height: 52,
-    borderRadius: 14,
-    backgroundColor: '#18181C',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal: 16,
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'System',
-  },
-  waitlistBtn: {
-    height: 52,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  waitlistBtnText: {
-    color: '#000000',
-    fontSize: 15,
-  },
-  waitlistSuccess: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    padding: 16,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  waitlistSuccessText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    flex: 1,
-  },
-  waitlistClose: {
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  waitlistCloseText: {
-    color: 'rgba(255, 255, 255, 0.4)',
-    fontSize: 14,
-  },
-
-  // ── Pro Upgrade Nudge ──
-  proNudgeCard: {
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
-    padding: 18,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 14,
-  },
-  proNudgeBadge: {
-    backgroundColor: '#000000',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    alignSelf: 'flex-start',
-  },
-  proNudgeBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    letterSpacing: 1.5,
-  },
-  proNudgeContent: {
-    flex: 1,
-    gap: 8,
-  },
-  proNudgeTitle: {
-    color: '#000000',
-    fontSize: 15,
-  },
-  proFeatureList: {
-    gap: 4,
-  },
-  proFeatureRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  proFeatureText: {
-    color: 'rgba(0, 0, 0, 0.65)',
-    fontSize: 12,
-    flex: 1,
-  },
-  proNudgeArrow: {
-    alignSelf: 'center',
-    opacity: 0.4,
-  },
-
-  // ── Viral Referral Card ──
-  referralCard: {
-    borderRadius: 16,
-    backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  referralIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#18181C',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  referralContent: {
-    flex: 1,
-    gap: 2,
-  },
-  referralTitle: {
-    color: '#FFFFFF',
-    fontSize: 14,
-  },
-  referralSub: {
-    color: 'rgba(255, 255, 255, 0.5)',
-    fontSize: 12,
-  },
-  referralShareBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  referralShareBtnText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-  },
-
-  // ── QR Modal Styles ──
-  qrModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  qrModalCard: {
-    width: '100%',
-    maxWidth: 340,
-    backgroundColor: '#111114',
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    padding: 24,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  qrHeader: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  qrTitle: {
-    color: '#FFFFFF',
-    fontSize: 18,
-  },
-  qrCodeWrapper: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 20,
-  },
-  qrHint: {
-    color: 'rgba(255, 255, 255, 0.5)',
-    textAlign: 'center',
-  },
-
-  // ── Carder.app AI Mini-Site + POD Card Engine ──
-  carderPromoCard: {
-    backgroundColor: '#111114',
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    padding: 20,
-    gap: 12,
+    padding: 24,
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 320,
+    gap: 16,
   },
-  carderBadgeRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  carderPill: {
+  modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(29, 185, 84, 0.15)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    justifyContent: 'space-between',
+    width: '100%',
   },
-  carderPillText: {
-    color: '#1DB954',
-    fontSize: 10,
-    letterSpacing: 0.5,
-  },
-  carderPillWhite: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  carderPillWhiteText: {
+  modalTitle: {
     color: '#000000',
-    fontSize: 10,
-    letterSpacing: 0.5,
+    fontSize: 16,
   },
-  carderTitle: {
-    color: '#FFFFFF',
-    fontSize: 22,
-    letterSpacing: -0.4,
-    lineHeight: 28,
+  modalQrContainer: {
+    padding: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
   },
-  carderSubtitle: {
-    color: 'rgba(235, 235, 245, 0.7)',
-    fontSize: 13,
-    lineHeight: 19,
-  },
-  carderTagsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginVertical: 4,
-  },
-  carderTag: {
-    backgroundColor: '#18181C',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-  },
-  carderTagText: {
-    color: '#E5E5EA',
+  modalHint: {
+    color: '#6E6E73',
     fontSize: 12,
-  },
-  carderPrimaryBtn: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    height: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 4,
-  },
-  carderPrimaryBtnText: {
-    color: '#000000',
-    fontSize: 15,
+    textAlign: 'center',
+    lineHeight: 16,
   },
 });
-

@@ -115,7 +115,7 @@ export function MonoDemoScreen() {
       </View>
 
       {/* ── Floating tab bar ────────────────────── */}
-      <View pointerEvents="box-none" style={{ marginTop: monoSpace[6] }}>
+      <View style={[{ marginTop: monoSpace[6] }, { pointerEvents: 'box-none' }]}>
         <MonoTabBar items={tabs} activeKey={active} onChange={setActive} />
       </View>
     </MonoScreen>

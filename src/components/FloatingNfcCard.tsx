@@ -154,7 +154,7 @@ export function FloatingNfcCard({
       <Animated.View style={[styles.glow, { backgroundColor: colors.surfaceSoft }, pulseStyle]} />
       <Animated.View style={[styles.card, floatTransform, { shadowColor: roleTheme.primary }]}>
         <View style={styles.cardFill} />
-        <Animated.View pointerEvents="none" style={[styles.sheen, sheenTransform]} />
+        <Animated.View style={[styles.sheen, sheenTransform, { pointerEvents: 'none' }]} />
         <View style={styles.cardTop}>
           <View style={[styles.nfcMark, { backgroundColor: colors.surfaceSoft }]}>
             <AppIcon name="Nfc" size={22} color={colors.textPrimary} />

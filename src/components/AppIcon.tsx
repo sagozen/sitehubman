@@ -357,3 +357,6 @@ const AppIconRaw = ({
 
 // MEMOIZE: Prevent unnecessary re-renders when props are unchanged
 export const AppIcon = memo(AppIconRaw);
+
+export default AppIcon;
+

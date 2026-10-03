@@ -1,20 +1,18 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
+  Image,
   Pressable,
   StyleSheet,
   View,
-  Image,
-  ScrollView,
-  useWindowDimensions,
-  Alert,
   Share,
+  Alert,
+  useWindowDimensions,
 } from 'react-native';
 import { HapticTap } from '@/src/utils/haptics';
 import { type Href, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
-import { AppButton } from '@/src/components/AppButton';
 import { NfcGlobalCardFace } from '@/src/components/NfcGlobalCardFace';
 import { appRoutes } from '@/src/constants/navigation';
 import { IosScrollView } from '@/src/components/IosScrollView';
@@ -28,107 +26,105 @@ import { FAB } from '@/src/components/FAB';
 import { QuickActionModal } from '@/src/components/QuickActionModal';
 import { pageThemes } from '@/src/constants/pageThemes';
 
-// ─── Apple HIG System Colors ────────────────────────────────────────────────
-const APPLE_BLUE      = '#007AFF';   // system blue (light)
-const APPLE_GRAY      = '#8E8E93';   // system gray
-const APPLE_GREEN     = '#34C759';   // system green (light)
-const APPLE_ORANGE    = '#FF9500';   // system orange (light)
-// Dark mode surfaces
-const APPLE_BG_DARK   = pageThemes.home.canvas;
-const APPLE_CARD_DARK = pageThemes.home.surface;
-const APPLE_TEXT_DARK = pageThemes.home.text;
-// Light mode surfaces (Apple HIG: F2F2F7 grouped background, #000 label)
-const APPLE_BG_LIGHT   = '#F2F2F7';
-const APPLE_CARD_LIGHT = '#FFFFFF';
-const APPLE_TEXT_LIGHT = '#000000';
+// ─── Design tokens ────────────────────────────────────────────────────────────
+const T = pageThemes.home;
+const INK = T.text;
+const MUTED = T.muted;
+const SURFACE = T.surface;
+const BORDER = T.border;
+const BG = T.canvas;
+const RAISED = T.surfaceRaised;
 
-const ACTIONS = [
-  { label: 'Edit Profile', subtitle: 'Update bio & links', route: appRoutes.guestDesign as Href, icon: 'PenLine' as AppIconName, image: require('@/assets/images/3d_create_card.png'), color: APPLE_BLUE },
-  { label: 'My Network', subtitle: 'Manage leads & contacts', route: appRoutes.customerConnections as Href, icon: 'Users' as AppIconName, image: require('@/assets/images/3d_share_card.png'), color: APPLE_BLUE },
-  { label: 'Tap Analytics', subtitle: 'Track scans & CTR', route: appRoutes.customerAnalysis as Href, icon: 'BarChart2' as AppIconName, image: require('@/assets/images/3d_track_card.png'), color: APPLE_BLUE },
-  { label: 'NFC Hardware', subtitle: 'Link tag or badge', route: appRoutes.nfcDemo as Href, icon: 'Nfc' as AppIconName, image: require('@/assets/images/3d_scan_card.png'), color: APPLE_BLUE },
-];
-
+// ─── Order status helper ──────────────────────────────────────────────────────
 function orderStatus(s: string): { label: string; color: string } {
-  if (['production_approved', 'printer_assigned', 'printing', 'nfc_writing', 'nfc_verification', 'qa_pending', 'qa_failed'].includes(s))
-    return { label: 'In Production', color: APPLE_ORANGE };
-  if (['shipped', 'ready_to_ship'].includes(s))
-    return { label: 'Shipped', color: APPLE_GREEN };
-  if (s === 'delivered') return { label: 'Delivered', color: APPLE_BLUE };
-  return { label: 'Processing', color: APPLE_GRAY };
+  if (
+    ['production_approved','printer_assigned','printing','nfc_writing',
+     'nfc_verification','qa_pending','qa_failed'].includes(s)
+  ) return { label: 'In Production', color: '#F59E0B' };
+  if (['shipped', 'ready_to_ship'].includes(s)) return { label: 'Shipped', color: '#10B981' };
+  if (s === 'delivered') return { label: 'Delivered', color: '#0A84FF' };
+  return { label: 'Processing', color: MUTED };
 }
 
-function OrderRow({ order, onPress, isDark }: { order: Order; onPress: () => void; isDark: boolean }) {
+// ─── Quick navigation actions ─────────────────────────────────────────────────
+const QUICK_ACTIONS: { label: string; sub: string; icon: AppIconName; route: Href }[] = [
+  { label: 'Edit Profile', sub: 'Bio & links', icon: 'PenLine', route: appRoutes.guestDesign as Href },
+  { label: 'My Network', sub: 'Leads & contacts', icon: 'Users', route: appRoutes.customerConnections as Href },
+  { label: 'Analytics', sub: 'Scans & CTR', icon: 'BarChart2', route: appRoutes.customerAnalysis as Href },
+  { label: 'NFC Hardware', sub: 'Link tag', icon: 'Nfc', route: appRoutes.nfcDemo as Href },
+];
+
+// ─── Section header ───────────────────────────────────────────────────────────
+function SectionHeader({ title, action, onAction }: { title: string; action?: string; onAction?: () => void }) {
+  return (
+    <View style={styles.sectionHeader}>
+      <AppText style={styles.sectionTitle} weight="semibold">{title}</AppText>
+      {action && onAction && (
+        <Pressable onPress={onAction} hitSlop={12}>
+          <AppText style={styles.sectionAction} weight="medium">{action}</AppText>
+        </Pressable>
+      )}
+    </View>
+  );
+}
+
+// ─── Order row ────────────────────────────────────────────────────────────────
+function OrderRow({ order, onPress }: { order: Order; onPress: () => void }) {
   const st = orderStatus(order.status);
   const date = order.createdAt
     ? new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     : '';
-  const amt = order.amount != null ? `$${order.amount.toFixed(0)}` : '—';
+  const amt = order.amount != null ? `$${order.amount.toFixed(0)}` : '';
+
   return (
     <Pressable
-      onPress={() => {
-        HapticTap.light();
-        onPress();
-      }}
-      style={({ pressed }) => [
-        styles.orderRowContainer,
-        pressed && { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)' },
-      ]}
-      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+      onPress={() => { HapticTap.light(); onPress(); }}
+      style={({ pressed }) => [styles.orderRow, pressed && { opacity: 0.6 }]}
+      hitSlop={8}
     >
-      <View style={styles.orderRow}>
-        <View style={[styles.orderIcon, { backgroundColor: isDark ? 'rgba(0,113,227,0.15)' : 'rgba(0,113,227,0.08)' }]}>
-          <AppIcon name="CreditCard" size={20} color={APPLE_BLUE} />
+      <View style={styles.orderDot} />
+      <View style={styles.orderInfo}>
+        <AppText style={styles.orderName} weight="medium">
+          {order.customerName || 'NFC Card'}
+        </AppText>
+        <AppText style={styles.orderMeta}>
+          {order.quantity ?? 1}× {order.cardDesign?.replace(/_/g, ' ')}{date ? ` · ${date}` : ''}
+        </AppText>
+      </View>
+      <View style={styles.orderRight}>
+        <View style={[styles.statusPill, { borderColor: st.color + '40' }]}>
+          <View style={[styles.statusDot, { backgroundColor: st.color }]} />
+          <AppText style={[styles.statusLabel, { color: st.color }]} weight="medium">{st.label}</AppText>
         </View>
-        <View style={styles.orderInfo}>
-          <AppText variant="body" weight="semibold" style={{ color: isDark ? APPLE_TEXT_DARK : APPLE_TEXT_LIGHT }}>
-            {order.customerName || 'NFC Card'}
-          </AppText>
-          <AppText variant="caption" style={{ color: APPLE_GRAY }}>
-            {order.quantity ?? 1}× {order.cardDesign?.replace(/_/g, ' ')}
-          </AppText>
-        </View>
-        <View style={styles.orderMeta}>
-          <View style={[styles.orderBadge, { backgroundColor: `${st.color}15` }]}>
-            <AppText variant="caption" weight="semibold" style={{ color: st.color }}>
-              {st.label}
-            </AppText>
-          </View>
-          <AppText variant="bodySmall" weight="bold" style={{ color: isDark ? APPLE_TEXT_DARK : APPLE_TEXT_LIGHT }}>
-            {amt}
-          </AppText>
-          <AppText variant="caption" style={{ color: APPLE_GRAY }}>
-            {date}
-          </AppText>
-        </View>
-        <AppIcon name="ChevronRight" size={15} color={APPLE_GRAY} />
+        {amt ? <AppText style={styles.orderAmt} weight="semibold">{amt}</AppText> : null}
       </View>
     </Pressable>
   );
 }
 
-function StatCard({ label, value, image, icon, color, style, isDark }: { label: string; value: string; image?: any; icon?: AppIconName; color?: string; style?: any; isDark: boolean }) {
-  const textCol = isDark ? APPLE_TEXT_DARK : APPLE_TEXT_LIGHT;
-
+// ─── Stat strip ───────────────────────────────────────────────────────────────
+function StatStrip({ total, active, delivered }: { total: number; active: number; delivered: number }) {
+  const items = [
+    { label: 'Total Orders', value: String(total) },
+    { label: 'Active', value: String(active) },
+    { label: 'Delivered', value: String(delivered) },
+  ];
   return (
-    <View style={[styles.statCardContainer, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }, style]}>
-      {image ? (
-        <Image source={image} style={{ width: 36, height: 36 }} resizeMode="contain" />
-      ) : icon ? (
-        <AppIcon name={icon} size={24} color={color || '#0071E3'} />
-      ) : null}
-      <View style={{ alignItems: 'center', marginTop: 4 }}>
-        <AppText variant="title2" weight="bold" style={{ color: textCol }}>
-          {value}
-        </AppText>
-        <AppText variant="caption" style={{ color: APPLE_GRAY }}>
-          {label}
-        </AppText>
-      </View>
+    <View style={styles.statStrip}>
+      {items.map((item, i) => (
+        <React.Fragment key={item.label}>
+          <View style={styles.statItem}>
+            <AppText style={styles.statValue} weight="semibold">{item.value}</AppText>
+            <AppText style={styles.statLabel}>{item.label}</AppText>
+          </View>
+          {i < items.length - 1 && <View style={styles.statDivider} />}
+        </React.Fragment>
+      ))}
     </View>
   );
 }
 
+// ─── Main screen ─────────────────────────────────────────────────────────────
 export function CustomerAccountScreen() {
   const { width: screenWidth } = useWindowDimensions();
   const { user } = useAuth();
@@ -136,37 +132,29 @@ export function CustomerAccountScreen() {
   const [insights, setInsights] = useState<CustomerInsights | null>(null);
   const [cloudCard, setCloudCard] = useState<any>(null);
   const [fabOpen, setFabOpen] = useState(false);
-  const unreadCount = 0; // fallback or hook value
-  const items = [];      // fallback or hook value
-  const isDark = true; // TODO: wire to theme context
   const { bioPage } = useBioPage(user?.id ?? '');
 
-  // Responsive card width: clamp to a realistic Apple Wallet card dimension (max 380px)
   const cardWidth = Math.min(screenWidth - 40, 380);
 
   useEffect(() => {
-    if (user?.id) {
-      Promise.all([
-        loadCustomerCloudCard(user.id),
-        getCustomerInsights(user.id)
-      ])
-      .then(([cloudCardData, insightsData]) => {
-        setCloudCard(cloudCardData);
-        setInsights(insightsData);
-      })
-      .catch(err => {
-        console.error('CustomerAccountScreen data load error:', err);
-      })
-    }
+    if (!user?.id) return;
+    Promise.all([
+      loadCustomerCloudCard(user.id),
+      getCustomerInsights(user.id),
+    ]).then(([cloudCardData, insightsData]) => {
+      setCloudCard(cloudCardData);
+      setInsights(insightsData);
+    }).catch((err) => {
+      console.error('CustomerAccountScreen data load error:', err);
+    });
   }, [user?.id]);
 
-  const recentOrders = useMemo(() => orders.slice(0, 2), [orders]);
-
+  const recentOrders = useMemo(() => orders.slice(0, 3), [orders]);
   const cardProfile = cloudCard?.profile;
   const heroName = cardProfile?.fullName?.trim() || user?.displayName?.trim() || '';
   const heroTitle = cardProfile?.role?.trim() || '';
 
-  const handleShare = React.useCallback(async () => {
+  const handleShare = useCallback(async () => {
     try {
       await Share.share({
         message: `Check out my digital business card: https://sitehubman.com/profile/${user?.id}`,
@@ -176,215 +164,130 @@ export function CustomerAccountScreen() {
     }
   }, [user]);
 
-  function handleAction(a: any) {
-    if (a.action === 'share') {
-      handleShare();
-      return;
-    }
-    if (a.route) router.push(a.route);
-  }
-
-  // Theme configuration matching Apple Pack parameters
-  const bgTheme = isDark ? APPLE_BG_DARK : APPLE_BG_LIGHT;
-  const cardTheme = isDark ? APPLE_CARD_DARK : APPLE_CARD_LIGHT;
-  const textTheme = isDark ? APPLE_TEXT_DARK : APPLE_TEXT_LIGHT;
-
   return (
-    <View style={[styles.root, { backgroundColor: bgTheme }]}>
+    <View style={styles.root}>
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
         <IosScrollView
           style={styles.scroll}
-          contentContainerStyle={[
-            styles.content,
-            { maxWidth: 680, alignSelf: 'center', width: '100%' }
-          ]}
+          contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          {/* Header */}
-          <View style={styles.profileHeader}>
+          {/* ── Header ── */}
+          <View style={styles.header}>
             <Pressable
-              onPress={() => {
-                HapticTap.light();
-                router.push('/profile' as any);
-              }}
-              style={({ pressed }) => [
-                styles.fbAvatarBtn,
-                pressed && { opacity: 0.8, transform: [{ scale: 0.95 }] },
-              ]}
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              onPress={() => { HapticTap.light(); router.push('/profile' as any); }}
+              style={({ pressed }) => [styles.headerAvatarBtn, pressed && { opacity: 0.7 }]}
+              hitSlop={12}
             >
               {bioPage?.photoUrl ? (
-                <Image source={{ uri: bioPage.photoUrl }} style={styles.fbAvatarImg} />
+                <Image source={{ uri: bioPage.photoUrl }} style={styles.headerAvatar} />
               ) : (
-                <View style={styles.avatarNoBg}>
-                  <AppIcon name="UserRound" size={28} color={textTheme} variant="solar-bold" />
+                <View style={styles.headerAvatarPlaceholder}>
+                  <AppIcon name="UserRound" size={20} color={INK} />
                 </View>
               )}
             </Pressable>
-            <View style={{ flex: 1 }} />
+
+            <View style={styles.headerCenter}>
+              <AppText style={styles.headerName} weight="semibold" numberOfLines={1}>
+                {heroName || user?.displayName || 'My Account'}
+              </AppText>
+              {heroTitle ? (
+                <AppText style={styles.headerTitle} weight="regular" numberOfLines={1}>
+                  {heroTitle}
+                </AppText>
+              ) : null}
+            </View>
+
             <View style={styles.headerActions}>
               <Pressable
-                onPress={() => {
-                  HapticTap.light();
-                  router.push('/notifications');
-                }}
-                style={({ pressed }) => [
-                  styles.inboxBtn,
-                  pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] },
-                ]}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                onPress={() => { HapticTap.light(); router.push('/notifications'); }}
+                style={({ pressed }) => [styles.headerIconBtn, pressed && { opacity: 0.7 }]}
+                hitSlop={12}
               >
-                <AppIcon name="Inbox" size={16} color="#FFFFFF" variant="solar-bold" />
-                <AppText style={styles.inboxBtnText}>Inbox</AppText>
-                <View style={styles.neonBadgePill}>
-                  <AppText style={styles.neonBadgeNum}>
-                    {unreadCount > 0 ? unreadCount : (items?.length || 0)}
-                  </AppText>
-                </View>
+                <AppIcon name="Bell" size={18} color={INK} />
               </Pressable>
               <Pressable
-                onPress={() => {
-                  HapticTap.medium();
-                  router.push(appRoutes.studio as Href);
-                }}
-                style={[styles.headerIcon, { backgroundColor: cardTheme }]}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                onPress={() => { HapticTap.medium(); router.push(appRoutes.studio as Href); }}
+                style={({ pressed }) => [styles.headerIconBtn, pressed && { opacity: 0.7 }]}
+                hitSlop={12}
               >
-                <AppIcon name="Wand2" size={19} color={textTheme} />
+                <AppIcon name="Wand2" size={18} color={INK} />
               </Pressable>
             </View>
           </View>
 
-          {/* NFC Card Container — Responsive Apple Wallet Scale */}
-          <View style={styles.cardContainer}>
-            <View style={styles.cardElevation}>
-              <NfcGlobalCardFace
-                fullName={heroName}
-                title={heroTitle}
-                company={cardProfile?.company || undefined}
-                phone={cardProfile?.phone || undefined}
-                email={cardProfile?.email || undefined}
-                website={cardProfile?.website || undefined}
-                gradientIndex={cloudCard?.design?.gradientIndex ?? 0}
-                backgroundImageUri={cloudCard?.design?.customImageUri || undefined}
-                width={cardWidth}
-              />
-            </View>
+          {/* ── NFC Card ── */}
+          <View style={styles.cardWrap}>
+            <NfcGlobalCardFace
+              fullName={heroName}
+              title={heroTitle}
+              company={cardProfile?.company || undefined}
+              phone={cardProfile?.phone || undefined}
+              email={cardProfile?.email || undefined}
+              website={cardProfile?.website || undefined}
+              gradientIndex={cloudCard?.design?.gradientIndex ?? 0}
+              backgroundImageUri={cloudCard?.design?.customImageUri || undefined}
+              width={cardWidth}
+            />
           </View>
 
-          {/* Primary Share Button - Ocean / Marine Fluid Card */}
+          {/* ── Share button ── */}
           <Pressable
-            onPress={() => {
-              HapticTap.medium();
-              handleShare();
-            }}
-            style={({ pressed }) => [
-              styles.oceanShareCard,
-              pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] },
-            ]}
+            onPress={() => { HapticTap.medium(); handleShare(); }}
+            style={({ pressed }) => [styles.shareBtn, pressed && { opacity: 0.8 }]}
           >
-            <View style={styles.oceanShareIconWrap}>
-              <AppIcon name="Share2" size={26} color="#FFFFFF" variant="solar-bold" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <AppText style={{ fontSize: 18, fontWeight: '800', color: '#FFFFFF' }}>
-                Share Digital Profile
-              </AppText>
-            </View>
-            <AppIcon name="ChevronRight" size={20} color="rgba(255,255,255,0.8)" />
+            <AppIcon name="Share2" size={16} color={BG} />
+            <AppText style={styles.shareBtnText} weight="semibold">Share Digital Profile</AppText>
           </Pressable>
 
-          {/* Consolidated Quick Actions — Mini App Cards (Ocean / Marine) */}
-          <View style={styles.sectionHeader}>
-            <AppText variant="title3" weight="bold" style={{ color: textTheme }}>
-              Quick Actions
-            </AppText>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.actionScrollView}
-            contentContainerStyle={styles.actionScroll}
-          >
-            {ACTIONS.map((a) => (
+          {/* ── Stats ── */}
+          {insights && (
+            <StatStrip
+              total={insights.totalOrders}
+              active={insights.activeOrders}
+              delivered={insights.deliveredOrders}
+            />
+          )}
+
+          {/* ── Quick actions grid ── */}
+          <View style={styles.quickGrid}>
+            {QUICK_ACTIONS.map((a) => (
               <Pressable
                 key={a.label}
-                onPress={() => {
-                  HapticTap.light();
-                  handleAction(a);
-                }}
-                style={({ pressed }) => [
-                  styles.actionCard,
-                  { backgroundColor: pageThemes.home.surfaceRaised },
-                  pressed && styles.actionCardPressed,
-                ]}
+                onPress={() => { HapticTap.light(); router.push(a.route); }}
+                style={({ pressed }) => [styles.quickCell, pressed && { opacity: 0.65 }]}
               >
-                <View style={styles.actionTextWrap}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                    <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: isDark ? 'rgba(0,199,190,0.15)' : 'rgba(0,113,227,0.1)', alignItems: 'center', justifyContent: 'center' }}>
-                      <AppIcon name={a.icon} size={15} color={isDark ? '#00C7BE' : '#0071E3'} />
-                    </View>
-                    <AppText variant="caption" weight="bold" style={{ color: isDark ? '#00C7BE' : '#0071E3' }}>
-                      {a.subtitle}
-                    </AppText>
-                  </View>
-                  <AppText variant="title3" weight="bold" style={{ color: textTheme }}>
-                    {a.label}
-                  </AppText>
+                <View style={styles.quickIconWrap}>
+                  <AppIcon name={a.icon} size={18} color={INK} />
                 </View>
-                <View style={styles.actionImageWrap}>
-                  {a.image && <Image source={a.image} style={{ width: 64, height: 64 }} resizeMode="contain" />}
-                </View>
+                <AppText style={styles.quickLabel} weight="medium">{a.label}</AppText>
+                <AppText style={styles.quickSub}>{a.sub}</AppText>
               </Pressable>
             ))}
-          </ScrollView>
+          </View>
 
-          {/* Stats Summary Section */}
-          {insights ? (
-            <View style={styles.statsSection}>
-              <View style={styles.statsRow}>
-                {[
-                  { label: 'Orders', value: String(insights.totalOrders), image: require('@/assets/images/3d_track_card.png'), color: APPLE_BLUE },
-                  { label: 'Active', value: String(insights.activeOrders), image: require('@/assets/images/3d_scan_card.png'), color: APPLE_ORANGE },
-                  { label: 'Delivered', value: String(insights.deliveredOrders), image: require('@/assets/images/3d_scan_card.png'), color: APPLE_GREEN },
-                ].map((stat, index) => (
-                  <StatCard
-                    key={stat.label}
-                    {...stat}
-                    isDark={isDark}
-                    style={[
-                      index === 0 && styles.statCardFirst,
-                      index === 2 && statsStyles.statCardLast,
-                    ]}
-                  />
+          {/* ── Recent orders ── */}
+          {recentOrders.length > 0 && (
+            <View>
+              <SectionHeader
+                title="Recent Orders"
+                action="See all"
+                onAction={() => router.push(appRoutes.customer.orders as any)}
+              />
+              <View style={styles.orderList}>
+                {recentOrders.map((o, i) => (
+                  <React.Fragment key={o.id}>
+                    <OrderRow
+                      order={o}
+                      onPress={() => router.push(`/orders/detail/${o.id}` as Href)}
+                    />
+                    {i < recentOrders.length - 1 && <View style={styles.orderDividerLine} />}
+                  </React.Fragment>
                 ))}
               </View>
             </View>
-          ) : null}
-
-          {/* Recent Orders */}
-          {recentOrders.length > 0 ? (
-            <View style={styles.ordersSection}>
-              <View style={styles.sectionHeader}>
-                <AppText variant="title3" weight="bold" style={{ color: textTheme }}>
-                  Recent Orders
-                </AppText>
-                <AppButton
-                  label="View All"
-                  variant="link"
-                  size="sm"
-                  iconRight="ChevronRight"
-                  onPress={() => router.push(appRoutes.customer.orders as any)}
-                  haptic="light"
-                />
-              </View>
-              <View style={[styles.ordersCard, { backgroundColor: cardTheme }]}>
-                {recentOrders.map((o) => (
-                  <OrderRow key={o.id} order={o} isDark={isDark} onPress={() => router.push(`/orders/detail/${o.id}` as Href)} />
-                ))}
-              </View>
-            </View>
-          ) : null}
+          )}
         </IosScrollView>
       </SafeAreaView>
 
@@ -394,338 +297,205 @@ export function CustomerAccountScreen() {
   );
 }
 
-const statsStyles = StyleSheet.create({
-  statCardLast: {
-    marginLeft: 6,
-  },
-});
-
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  safe: {
-    flex: 1,
-  },
-  scroll: {
-    flex: 1,
-  },
+  root: { flex: 1, backgroundColor: BG },
+  safe: { flex: 1 },
+  scroll: { flex: 1 },
   content: {
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 110,
-    gap: 16,
+    paddingTop: 8,
+    paddingBottom: 120,
+    gap: 14,
+    maxWidth: 640,
+    width: '100%',
+    alignSelf: 'center',
   },
-  profileHeader: {
+
+  // ── Header ──
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
+    gap: 10,
+    paddingVertical: 6,
   },
-  profileAvatarButton: {
-    marginRight: 12,
-  },
-  profileAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24, // Rounded smooth circle
-    backgroundColor: APPLE_BLUE,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  profileAvatarT: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  profileCopy: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  profileNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  fbAvatarBtn: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fbAvatarImg: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#E5E5EA',
-  },
-  avatarNoBg: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-    borderWidth: 0,
-  },
-  inboxBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#18181B', // bg-zinc-900 / black
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  inboxBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  neonBadgePill: {
-    backgroundColor: '#39FF14', // bg-neon-lime
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-    minWidth: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  neonBadgeNum: {
-    color: '#000000', // text-black
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  headerIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18, // Rounded smooth circle
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 0,
-  },
-  unreadDot: {
-    position: 'absolute',
-    top: 2,
-    right: 2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#FF3B30',
-  },
-  cardContainer: {
-    alignItems: 'center',
-    marginVertical: 4,
-  },
-  cardElevation: {
-    borderRadius: 20, // Rounded smooth cards
-    overflow: 'hidden',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
-    elevation: 6,
-  },
-  shareButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 50,
-    borderRadius: 25, // Rounded smooth pill button
-    backgroundColor: APPLE_BLUE,
-    gap: 8,
-    shadowColor: APPLE_BLUE,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 3,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    marginTop: 4,
-  },
-  actionScrollView: {
-    marginHorizontal: -20,
-    marginBottom: 16,
-  },
-  actionScroll: {
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 4,
-  },
-  actionCard: {
-    width: 220,
-    height: 104,
-    borderRadius: 16,
-    paddingLeft: 16,
-    paddingRight: 8,
-    paddingVertical: 12,
-    borderWidth: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  actionCardPressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.97 }],
-  },
-  actionTextWrap: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingRight: 6,
-  },
-  actionImageWrap: {
-    width: 76,
-    height: 76,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  statsSection: {
-    marginVertical: 8,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  statCardContainer: {
-    flex: 1,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 8,
-    borderWidth: 0,
-  },
-  statCardFirst: {
-    // optional spacing adjustment
-  },
-  ordersSection: {
-    marginVertical: 12,
-  },
-  viewAllButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  ordersCard: {
-    borderRadius: 16,
-    paddingVertical: 4,
-    borderWidth: 0,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    elevation: 2,
-  },
-  orderRowContainer: {
-    borderBottomWidth: 0,
-  },
-  orderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
-  },
-  orderIcon: {
+  headerAvatarBtn: {
     width: 38,
     height: 38,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  orderInfo: {
-    flex: 1,
+  headerAvatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
   },
-  orderMeta: {
-    alignItems: 'flex-end',
-    gap: 2,
-    marginRight: 4,
-  },
-  orderBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
-  },
-  oceanShareCard: {
-    backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    width: '100%',
-    paddingHorizontal: 20,
-    paddingVertical: 18,
-    borderRadius: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.16,
-    shadowRadius: 20,
-    elevation: 6,
-    marginVertical: 8,
-  },
-  oceanShareIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+  headerAvatarPlaceholder: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  appStoreBlackCard: {
-    backgroundColor: '#111114',
-    width: '100%',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    borderRadius: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  appStoreBlackCardPressed: {
-    backgroundColor: '#27272A',
-    opacity: 0.9,
-    transform: [{ scale: 0.99 }],
-  },
-  appStoreTextWrap: {
+  headerCenter: {
     flex: 1,
+    gap: 1,
+  },
+  headerName: {
+    color: INK,
+    fontSize: 16,
+  },
+  headerTitle: {
+    color: MUTED,
+    fontSize: 12,
+  },
+  headerActions: {
+    flexDirection: 'row',
     gap: 2,
-    alignItems: 'flex-start',
+  },
+  headerIconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
     justifyContent: 'center',
   },
-  appStoreSubtitle: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontWeight: '600',
-    letterSpacing: 0.5,
+
+  // ── Card ──
+  cardWrap: {
+    alignItems: 'center',
+    borderRadius: 20,
+    overflow: 'hidden',
   },
-  appStoreTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#FFFFFF',
+
+  // ── Share ──
+  shareBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: INK,
+    borderRadius: 12,
+    paddingVertical: 13,
   },
+  shareBtnText: {
+    color: BG,
+    fontSize: 15,
+  },
+
+  // ── Stats ──
+  statStrip: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BORDER,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 3,
+  },
+  statValue: {
+    color: INK,
+    fontSize: 20,
+  },
+  statLabel: {
+    color: MUTED,
+    fontSize: 11,
+  },
+  statDivider: {
+    width: StyleSheet.hairlineWidth,
+    backgroundColor: BORDER,
+    marginVertical: 4,
+  },
+
+  // ── Quick grid ──
+  quickGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  quickCell: {
+    width: '47.5%',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BORDER,
+    padding: 14,
+    gap: 6,
+  },
+  quickIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickLabel: {
+    color: INK,
+    fontSize: 14,
+  },
+  quickSub: {
+    color: MUTED,
+    fontSize: 11,
+  },
+
+  // ── Orders ──
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  sectionTitle: {
+    color: INK,
+    fontSize: 14,
+  },
+  sectionAction: {
+    color: MUTED,
+    fontSize: 13,
+  },
+  orderList: {
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BORDER,
+    overflow: 'hidden',
+  },
+  orderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  orderDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  orderInfo: { flex: 1, gap: 2 },
+  orderName: { color: INK, fontSize: 14 },
+  orderMeta: { color: MUTED, fontSize: 12 },
+  orderRight: { alignItems: 'flex-end', gap: 4 },
+  orderAmt: { color: INK, fontSize: 13 },
+  orderDividerLine: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: BORDER,
+    marginLeft: 30,
+  },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  statusDot: { width: 5, height: 5, borderRadius: 2.5 },
+  statusLabel: { fontSize: 11 },
 });

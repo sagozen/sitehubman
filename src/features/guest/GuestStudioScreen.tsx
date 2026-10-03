@@ -1,5 +1,5 @@
 import { IosScrollView } from '@/src/components/IosScrollView';
-import { Pressable, StyleSheet, View, ActivityIndicator, Image } from 'react-native';
+import { Pressable, StyleSheet, View, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppIcon, type AppIconName } from '@/src/components/AppIcon';
@@ -23,21 +23,21 @@ const STUDIO_ACTIONS = [
     label: 'Design Card',
     description: 'Customize colors, gradients & text details',
     route: appRoutes.guestDesign,
-    image: require('@/assets/images/3d_create_card.png'),
+    icon: 'PenLine' as AppIconName,
     btnLabel: 'Edit Design',
   },
   {
     label: 'Public Profile',
     description: 'Edit your digital bio page & social links',
     route: '/edit-bio',
-    image: require('@/assets/images/3d_share_card.png'),
+    icon: 'User' as AppIconName,
     btnLabel: 'Edit Links',
   },
   {
     label: 'QR Identity',
     description: 'Generate high-contrast codes for scans',
     route: appRoutes.qrGenerator,
-    image: require('@/assets/images/3d_scan_card.png'),
+    icon: 'QrCode' as AppIconName,
     btnLabel: 'View QR',
   },
 ];
@@ -117,7 +117,9 @@ export function GuestStudioScreen() {
                   <AppText style={styles.bwActionBtnText} weight="regular">{item.btnLabel} →</AppText>
                 </View>
               </View>
-              <Image source={item.image} style={styles.actionCardImg} resizeMode="contain" />
+              <View style={styles.actionCardIconWrap}>
+                <AppIcon name={item.icon} size={30} color="rgba(255,255,255,0.45)" />
+              </View>
             </Pressable>
           ))}
         </View>
@@ -319,9 +321,15 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontFamily: 'SF-Pro-Display-Regular',
   },
-  actionCardImg: {
-    width: 90,
-    height: 90,
+  actionCardIconWrap: {
+    width: 60,
+    height: 60,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
 
   // Guide Section

@@ -69,7 +69,7 @@ export function HolographicShimmer({
   if (!enabled) return null;
 
   return (
-    <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.mask, style]}>
+    <View style={[[StyleSheet.absoluteFill, styles.mask, style], { pointerEvents: 'none' }]}>
       <Animated.View style={[styles.band, sheenStyle]}>
         <LinearGradient
           colors={[

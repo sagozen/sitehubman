@@ -6,26 +6,34 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-/** Bottom inset so content clears tab bars / home indicator (Wallet / Instagram style). */
-export const IOS_SCROLL_BOTTOM_INSET = 120;
-
-// Pre-built bottom padding style — avoids creating a new object on every render
-const BOTTOM_INSET_STYLE: ViewStyle = { paddingBottom: IOS_SCROLL_BOTTOM_INSET };
+/**
+ * Extra buffer above the OS safe-area bottom to clear floating tab bars
+ * and FABs (Wallet / Instagram style).
+ */
+export const IOS_SCROLL_BOTTOM_INSET = 100;
 
 export function mergeIosScrollContentStyle(
   style?: StyleProp<ViewStyle>,
-  options?: { bottomInset?: boolean; horizontal?: boolean }
+  options?: { bottomInset?: boolean; horizontal?: boolean; extraBottom?: number }
 ): StyleProp<ViewStyle> {
   const useBottom = options?.bottomInset !== false && !options?.horizontal;
   if (!useBottom) return style;
-  if (!style) return BOTTOM_INSET_STYLE;
-  return [style, BOTTOM_INSET_STYLE];
+  const paddingBottomStyle: ViewStyle = {
+    paddingBottom: IOS_SCROLL_BOTTOM_INSET + (options?.extraBottom ?? 0),
+  };
+  if (!style) return paddingBottomStyle;
+  return [style, paddingBottomStyle];
 }
 
 /**
  * IosScrollView — performance-optimised wrapper.
- * - No useMemo on contentContainerStyle (was recreating array every render)
+ *
+ * Safe-area: uses `useSafeAreaInsets` to add the device's bottom inset
+ * (home indicator / nav bar) dynamically on top of the fixed buffer so
+ * content is always reachable on every device.
+ *
  * - removeClippedSubviews enabled on Android for long lists
  * - keyboardShouldPersistTaps defaults to 'handled'
  */
@@ -38,7 +46,7 @@ export const IosScrollView = forwardRef<ScrollView, ScrollViewProps>(function Io
     decelerationRate = 'normal',
     showsVerticalScrollIndicator = false,
     showsHorizontalScrollIndicator,
-    contentInsetAdjustmentBehavior = 'automatic',
+    contentInsetAdjustmentBehavior = 'never',
     contentContainerStyle,
     overScrollMode,
     keyboardShouldPersistTaps = 'handled',
@@ -47,11 +55,11 @@ export const IosScrollView = forwardRef<ScrollView, ScrollViewProps>(function Io
   ref
 ) {
   const isHorizontal = horizontal === true;
+  const insets = useSafeAreaInsets();
 
-  // Build merged style without useMemo — the array reference changes don't
-  // cause re-renders because ScrollView only reads this on initial mount
   const mergedContentStyle = mergeIosScrollContentStyle(contentContainerStyle, {
     horizontal: isHorizontal,
+    extraBottom: insets.bottom,
   });
 
   return (
@@ -85,3 +93,6 @@ export const IosScrollView = forwardRef<ScrollView, ScrollViewProps>(function Io
     />
   );
 });
+
+export default IosScrollView;
+

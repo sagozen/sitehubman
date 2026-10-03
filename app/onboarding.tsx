@@ -1,3 +1,1 @@
-import { OnboardingScreen } from '@/src/features/guest/OnboardingScreen';
-
-export default OnboardingScreen;
+export { OnboardingWelcomeScreen as default } from '@/src/features/onboarding/OnboardingWelcomeScreen';

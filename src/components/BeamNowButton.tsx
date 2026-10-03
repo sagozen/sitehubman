@@ -67,8 +67,8 @@ export function BeamNowButton({ onPress, tapsCount = 0, disabled = false }: Beam
 
   return (
     <View style={styles.wrapper}>
-      <Animated.View pointerEvents="none" style={[styles.ring, { opacity: r1Opacity, transform: [{ scale: r1Scale }] }]} />
-      <Animated.View pointerEvents="none" style={[styles.ring, styles.ring2, { opacity: r2Opacity, transform: [{ scale: r2Scale }] }]} />
+      <Animated.View style={[[styles.ring, { opacity: r1Opacity, transform: [{ scale: r1Scale }] }], { pointerEvents: 'none' }]} />
+      <Animated.View style={[[styles.ring, styles.ring2, { opacity: r2Opacity, transform: [{ scale: r2Scale }] }], { pointerEvents: 'none' }]} />
       <Reanimated.View style={[styles.fullWidth, animStyle]}>
         <Pressable
           onPress={handlePress}

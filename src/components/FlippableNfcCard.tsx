@@ -81,8 +81,8 @@ export const FlippableNfcCard = memo(function FlippableNfcCard(props: FlippableN
           styles.cardSide,
           { transform: [{ rotateY: frontInterpolate }, { scale: scaleAnim }] },
           isFlipped && styles.hidden,
+          { pointerEvents: isFlipped ? 'none' : 'auto' },
         ]}
-        pointerEvents={isFlipped ? 'none' : 'auto'}
       >
         <NfcCardFaceV2
           fullName={props.fullName}
@@ -102,8 +102,8 @@ export const FlippableNfcCard = memo(function FlippableNfcCard(props: FlippableN
           styles.backSide,
           { transform: [{ rotateY: backInterpolate }, { scale: scaleAnim }] },
           !isFlipped && styles.hidden,
+          { pointerEvents: !isFlipped ? 'none' : 'auto' },
         ]}
-        pointerEvents={!isFlipped ? 'none' : 'auto'}
       >
         <NfcCardBackV2
           profileUrl={props.profileUrl}

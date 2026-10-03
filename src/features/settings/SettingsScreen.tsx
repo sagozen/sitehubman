@@ -247,7 +247,7 @@ export function SettingsScreen() {
         colors={isDark ? ['#000000', '#07090E', '#0D1017'] : ['#F4F7FB', '#FAFCFF', '#FFFFFF']}
         style={StyleSheet.absoluteFill}
       />
-      <SafeAreaView style={styles.screen} edges={['top']}>
+      <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}

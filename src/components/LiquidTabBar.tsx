@@ -317,15 +317,17 @@ interface Props {
 }
 type RouteItem = { type: 'route'; route: any };
 type NavItem = RouteItem;
-const CONSUMER_TAB_ORDER = ['index', 'connections', 'share', 'profile', 'settings'] as const;
+const CONSUMER_TAB_ORDER = ['index', 'share', 'profile', 'orders', 'settings'] as const;
 
 const TAB_ICON_MAP: Record<string, { active: any; inactive: any; label: string }> = {
-  index:       { active: 'home',         inactive: 'home-outline',        label: 'Home'     },
-  connections: { active: 'people',       inactive: 'people-outline',      label: 'Contacts' },
-  attendance:  { active: 'people',       inactive: 'people-outline',      label: 'Contacts' },
-  share:       { active: 'radio',        inactive: 'radio-outline',       label: 'Beam'     },
-  profile:     { active: 'person',       inactive: 'person-outline',      label: 'Bio'      },
-  settings:    { active: 'settings-sharp', inactive: 'settings-outline',  label: 'Settings' },
+  index:       { active: 'home',           inactive: 'home-outline',          label: 'Home'   },
+  share:       { active: 'card',           inactive: 'card-outline',          label: 'Cards'  },
+  profile:     { active: 'radio',          inactive: 'radio-outline',         label: 'NFC'    },
+  orders:      { active: 'bag-handle',     inactive: 'bag-handle-outline',    label: 'Orders' },
+  settings:    { active: 'person-circle',  inactive: 'person-circle-outline', label: 'Me'     },
+  // legacy / hidden
+  connections: { active: 'people',         inactive: 'people-outline',        label: 'Contacts' },
+  attendance:  { active: 'people',         inactive: 'people-outline',        label: 'Contacts' },
 };
 
 export function LiquidTabBar({ state, navigation, descriptors }: Props) {
@@ -352,9 +354,9 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
     if (isConsumerBar) {
       const connRoute = tabRoutes.find((r: any) => r.name === 'connections') ?? tabRoutes.find((r: any) => r.name === 'attendance');
       const ordered = CONSUMER_TAB_ORDER.map((name) =>
-        name === 'connections' ? connRoute : tabRoutes.find((r: any) => r.name === name)
+        (name as string) === 'connections' ? connRoute : tabRoutes.find((r: any) => r.name === name)
       ).filter((r): r is (typeof tabRoutes)[number] => Boolean(r));
-      return ordered.filter((r) => r.name === 'connections' || r.name === 'attendance' ? true : isTabVisible(r));
+      return ordered.filter((r) => (r.name as string) === 'connections' || r.name === 'attendance' ? true : isTabVisible(r));
     }
     return tabRoutes.filter(isTabVisible);
   }, [descriptors, isConsumerBar, tabRoutes]);
@@ -439,8 +441,7 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
 
         {/* Sliding pill indicator */}
         <Animated.View
-          style={[styles.pillIndicator, pillStyle, { backgroundColor: isDark ? 'rgba(10,132,255,0.14)' : 'rgba(0,122,255,0.09)' }]}
-          pointerEvents="none"
+          style={[styles.pillIndicator, pillStyle, { backgroundColor: isDark ? 'rgba(10,132,255,0.14)' : 'rgba(0,122,255,0.09)', pointerEvents: 'none' as any }]}
         />
 
         {/* Tab items */}
