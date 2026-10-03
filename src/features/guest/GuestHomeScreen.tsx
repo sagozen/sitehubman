@@ -38,15 +38,18 @@ import { QuickSetupSheet } from '@/src/components/QuickSetupSheet';
 import { computeUserPrestige } from '@/src/services/prestigeTierService';
 import { pageThemes } from '@/src/constants/pageThemes';
 
-// ─── Bento Grid Theme Tokens (Japanese Minimalist: Pure Black Canvas, Fine Divisions) ───
-const HOME_THEME = pageThemes.home;
-const INK = HOME_THEME.text; // #F5F5F7
-const MUTED = HOME_THEME.muted; // #9A9AA0
-const CANVAS = '#000000';
-const BENTO_SURFACE = '#111114';
-const BENTO_SURFACE_RAISED = '#18181C';
-const BENTO_BORDER = 'rgba(255, 255, 255, 0.08)';
-const ACCENT = '#6366f1'; // Bento Accent from design specification
+// ─── Black Granite UI Tokens (Nero Assoluto, Chiseled Bevels & Platinum Contrast) ───
+const CANVAS = '#08080A'; // Deep obsidian granite canvas
+const GRANITE_SLAB = '#111115'; // Dense volcanic granite surface
+const GRANITE_RAISED = '#16161C'; // Elevated stone tier
+const GRANITE_SUNKEN = '#0B0B0E'; // Sunken stone channel
+const GRANITE_BEVEL = 'rgba(255, 255, 255, 0.085)'; // Precision diamond-cut bevel line
+const GRANITE_TOP_LIGHT = 'rgba(255, 255, 255, 0.13)'; // Facet highlight
+const INK = '#FFFFFF'; // Diamond-etched white primary text
+const MUTED = '#888891'; // Natural quartz / granite dust secondary text
+const MUTED_DEEP = '#52525B'; // Deep stone shadow
+const ACCENT_STEEL = '#E4E4E7'; // Polished titanium / stainless accent
+const NFC_ACTIVE = '#30D158'; // Precision Emerald status indicator
 
 function orderStatus(s: string): { label: string; color: string } {
   if (['production_approved', 'printing', 'nfc_writing', 'qa_pending'].includes(s)) {
@@ -576,15 +579,15 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: BENTO_SURFACE_RAISED,
+    backgroundColor: GRANITE_RAISED,
   },
   avatarPlaceholder: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: BENTO_SURFACE_RAISED,
+    backgroundColor: GRANITE_RAISED,
     borderWidth: 1,
-    borderColor: BENTO_BORDER,
+    borderColor: GRANITE_BEVEL,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -608,7 +611,7 @@ const styles = StyleSheet.create({
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   iconBtn: {
     width: 36,
@@ -616,9 +619,10 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: BENTO_SURFACE,
+    backgroundColor: GRANITE_SLAB,
     borderWidth: 1,
-    borderColor: BENTO_BORDER,
+    borderColor: GRANITE_BEVEL,
+    borderTopColor: GRANITE_TOP_LIGHT,
   },
   notifDot: {
     position: 'absolute',
@@ -630,12 +634,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF3B30',
   },
 
-  // ── BENTO CELL 1: Hero Pass Card ──
+  // ── BENTO CELL 1: Hero Pass Card (Black Granite Slab) ──
   heroPassCard: {
-    backgroundColor: BENTO_SURFACE,
+    backgroundColor: GRANITE_SLAB,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: BENTO_BORDER,
+    borderColor: GRANITE_BEVEL,
+    borderTopColor: GRANITE_TOP_LIGHT,
     padding: 18,
     gap: 14,
   },
@@ -658,18 +663,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: GRANITE_SUNKEN,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: BENTO_BORDER,
+    borderColor: GRANITE_BEVEL,
   },
   liveDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#30D158',
+    backgroundColor: NFC_ACTIVE,
   },
   liveText: {
     color: INK,
@@ -691,7 +696,7 @@ const styles = StyleSheet.create({
   },
   passDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: BENTO_BORDER,
+    backgroundColor: GRANITE_BEVEL,
   },
   passActionsRow: {
     flexDirection: 'row',
@@ -719,22 +724,24 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: BENTO_SURFACE_RAISED,
+    backgroundColor: GRANITE_RAISED,
     borderWidth: 1,
-    borderColor: BENTO_BORDER,
+    borderColor: GRANITE_BEVEL,
+    borderTopColor: GRANITE_TOP_LIGHT,
   },
 
-  // ── BENTO 2-COLUMN GRID ──
+  // ── BENTO 2-COLUMN GRID (Granite Compartments) ──
   bentoGridRow: {
     flexDirection: 'row',
     gap: 12,
   },
   bentoColCard: {
     flex: 1,
-    backgroundColor: BENTO_SURFACE,
+    backgroundColor: GRANITE_SLAB,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: BENTO_BORDER,
+    borderColor: GRANITE_BEVEL,
+    borderTopColor: GRANITE_TOP_LIGHT,
     padding: 16,
     justifyContent: 'space-between',
     minHeight: 126,
@@ -773,7 +780,7 @@ const styles = StyleSheet.create({
   },
   miniBar: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.28)',
     borderRadius: 2,
   },
   bentoActionLink: {
@@ -799,10 +806,11 @@ const styles = StyleSheet.create({
 
   // ── BENTO FULL-WIDTH MODULAR CELL ──
   bentoFullCard: {
-    backgroundColor: BENTO_SURFACE,
+    backgroundColor: GRANITE_SLAB,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: BENTO_BORDER,
+    borderColor: GRANITE_BEVEL,
+    borderTopColor: GRANITE_TOP_LIGHT,
     padding: 16,
     gap: 12,
   },
@@ -840,7 +848,7 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
   },
   timelineContent: {
     flex: 1,
@@ -855,7 +863,7 @@ const styles = StyleSheet.create({
   },
   timelineDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: BENTO_BORDER,
+    backgroundColor: GRANITE_BEVEL,
     marginLeft: 46,
   },
 
@@ -883,22 +891,26 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     paddingHorizontal: 7,
     paddingVertical: 2,
+    backgroundColor: GRANITE_SUNKEN,
   },
   orderPillText: {
     fontSize: 10,
   },
 
-  // ── QR Modal ──
+  // ── QR Modal (Granite Dialog) ──
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
   },
   modalCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: GRANITE_SLAB,
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: GRANITE_BEVEL,
+    borderTopColor: GRANITE_TOP_LIGHT,
     padding: 24,
     alignItems: 'center',
     width: '100%',
@@ -912,16 +924,16 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   modalTitle: {
-    color: '#000000',
+    color: INK,
     fontSize: 16,
   },
   modalQrContainer: {
-    padding: 10,
+    padding: 14,
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 14,
   },
   modalHint: {
-    color: '#6E6E73',
+    color: MUTED,
     fontSize: 12,
     textAlign: 'center',
     lineHeight: 16,

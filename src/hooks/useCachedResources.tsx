@@ -1,28 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
-import { useFonts } from 'expo-font';
 import { useRouter } from 'expo-router';
 
-const customFonts: Record<string, any> = {
-  'SF-Pro-Display-Bold': require('../../assets/fonts/SF-Pro-Display-Bold.otf'),
-  'SF-Pro-Display-Medium': require('../../assets/fonts/SF-Pro-Display-Medium.otf'),
-  'SF-Pro-Display-Regular': require('../../assets/fonts/SF-Pro-Display-Regular.otf'),
-  'SF-Pro-Display-Semibold': require('../../assets/fonts/SF-Pro-Display-Semibold.otf'),
-  'Inter_900Black': require('../../assets/fonts/SF-Pro-Display-Bold.otf'),
-  'Inter_800ExtraBold': require('../../assets/fonts/SF-Pro-Display-Bold.otf'),
-  'Inter_700Bold': require('../../assets/fonts/SF-Pro-Display-Bold.otf'),
-  'Inter_600SemiBold': require('../../assets/fonts/SF-Pro-Display-Semibold.otf'),
-  'Inter_500Medium': require('../../assets/fonts/SF-Pro-Display-Medium.otf'),
-  'Inter_400Regular': require('../../assets/fonts/SF-Pro-Display-Regular.otf'),
-};
+
 
 export default function useCachedResources(): boolean {
-  // On web, skip native OTF binary font decoding to avoid OTS parsing issues
-  const [fontsLoaded, fontError] = useFonts(Platform.OS === 'web' ? {} : customFonts);
   const [isReady, setReady] = useState(false);
   const router = useRouter();
 
-  const resourcesLoaded = Platform.OS === 'web' || fontsLoaded || Boolean(fontError);
+  const resourcesLoaded = true;
 
   useEffect(() => {
     async function prepare() {

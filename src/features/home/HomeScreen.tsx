@@ -1,34 +1,24 @@
 /**
- * HomeScreen — 06 Main Dashboard & Share Center (Apple Wallet × Stripe × Linear)
+ * HomeScreen — 06 Main Dashboard & Share Center
+ * Luxury Minimalist (Apple Wallet × Stripe × Linear)
  *
- * Implements:
- * 06 — Main Dashboard (Hero visual NFC card + phone, "Good morning, Thean", [TAP TO SHARE], 326 taps / 1,284 views)
- * 07 — Share Center (Large visual buttons: NFC | QR | Link | Contact)
- * 08 — Activity (Timeline: Today 09:42 NFC tap, 09:18 Profile view, 08:51 QR scan)
+ * Design Guidelines:
+ * - True Black (#000000) canvas
+ * - No RGB / rainbow / multi-color noise — restrained Monochrome + selective #2596BE
+ * - No heavy 1px borders everywhere — clean background tone shifts and hairlines
+ * - No fake metallic chips, rotating icons, blinking dots, or AI template clutter
+ * - High-conviction typography, generous whitespace, confident calm luxury
  */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   StyleSheet,
   Pressable,
   Dimensions,
-  Share,
   Clipboard,
-  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withSequence,
-  withTiming,
-  interpolate,
-  Extrapolation,
-} from 'react-native-reanimated';
-
 import { AppText } from '@/src/components/AppText';
 import { AppIcon } from '@/src/components/AppIcon';
 import { IosScrollView } from '@/src/components/IosScrollView';
@@ -39,19 +29,14 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const C = {
   canvas: '#000000',
-  surface: '#111114',
-  surfaceRaised: '#18181C',
-  surfaceHighlight: '#222228',
-  border: 'rgba(255, 255, 255, 0.08)',
-  borderLight: 'rgba(255, 255, 255, 0.15)',
+  surface: '#0E0E11',
+  surfaceSoft: '#141418',
+  hairline: 'rgba(255, 255, 255, 0.06)',
   text: '#FFFFFF',
-  textSecondary: '#8E8E93',
-  textMuted: '#636366',
+  textSecondary: '#A1A1AA',
+  textMuted: '#52525B',
   accent: '#2596BE',
-  accentDark: '#1a6f8e',
-  accentGlow: 'rgba(37, 150, 190, 0.25)',
-  cardDark: '#0D0D10',
-  success: '#34C759',
+  cardBg: '#0B0B0E',
 } as const;
 
 function getGreeting(): string {
@@ -68,46 +53,11 @@ export function HomeScreen() {
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Animated shimmer and floating effect for hero card
-  const floatAnim = useSharedValue(0);
-  const shimmerAnim = useSharedValue(0);
-
-  useEffect(() => {
-    floatAnim.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 3200 }),
-        withTiming(0, { duration: 3200 }),
-      ),
-      -1,
-    );
-    shimmerAnim.value = withRepeat(
-      withTiming(1, { duration: 2500 }),
-      -1,
-    );
-  }, [floatAnim, shimmerAnim]);
-
-  const cardFloatStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateY: interpolate(floatAnim.value, [0, 1], [0, -8], Extrapolation.CLAMP),
-      },
-    ],
-  }));
-
-  const shimmerStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(shimmerAnim.value, [0, 0.5, 1], [0, 0.45, 0], Extrapolation.CLAMP),
-    transform: [
-      {
-        translateX: interpolate(shimmerAnim.value, [0, 1], [-SCREEN_WIDTH, SCREEN_WIDTH], Extrapolation.CLAMP),
-      },
-    ],
-  }));
-
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
-    }, 2200);
+    }, 2000);
   }, []);
 
   const handleTapToShare = useCallback(() => {
@@ -129,7 +79,7 @@ export function HomeScreen() {
     HapticTap.softConfirmation();
     const profileUrl = `https://nfcglobal.com/u/${userName.toLowerCase().replace(/\s+/g, '')}`;
     Clipboard.setString(profileUrl);
-    showToast('Link copied to clipboard');
+    showToast('Profile link copied');
   }, [userName, showToast]);
 
   const handleContactAction = useCallback(() => {
@@ -140,229 +90,150 @@ export function HomeScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <IosScrollView contentContainerStyle={styles.scroll}>
-        {/* Top Header Bar */}
+        {/* Top Minimalist Header */}
         <View style={styles.header}>
           <View>
-            <AppText style={styles.brandTitle} weight="bold">
-              SiteHub<AppText style={{ color: C.accent }}>.</AppText>
+            <AppText style={styles.greetingText}>
+              {greeting}, {userName}
             </AppText>
-            <AppText style={styles.brandSubtitle}>NFC CUSTOMER APP</AppText>
+            <AppText style={styles.subGreetingText}>
+              Your card is ready to share.
+            </AppText>
           </View>
           <Pressable
             style={styles.avatarButton}
             onPress={() => router.push('/(tabs)/settings' as any)}
-            hitSlop={8}
+            hitSlop={12}
           >
-            <View style={styles.avatarBadge}>
-              <AppText style={styles.avatarText} weight="bold">
+            <View style={styles.avatarCircle}>
+              <AppText style={styles.avatarInitial} weight="bold">
                 {userName.charAt(0).toUpperCase()}
               </AppText>
             </View>
           </Pressable>
         </View>
 
-        {/* Hero Visual Card: Physical NFC Card + Phone aesthetic */}
-        <View style={styles.heroSection}>
-          <Animated.View style={[styles.cardContainer, cardFloatStyle]}>
-            <LinearGradient
-              colors={['#1F2026', '#141418', '#0A0A0D']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.physicalCard}
-            >
-              <Animated.View style={[StyleSheet.absoluteFill, styles.shimmerWrap, shimmerStyle]}>
-                <LinearGradient
-                  colors={['transparent', 'rgba(255,255,255,0.18)', 'transparent']}
-                  start={{ x: 0, y: 0.5 }}
-                  end={{ x: 1, y: 0.5 }}
-                  style={StyleSheet.absoluteFill}
-                />
-              </Animated.View>
-
-              {/* Card Chip & Brand */}
-              <View style={styles.cardHeader}>
-                <View style={styles.nfcWaveChip}>
-                  <View style={styles.chipMetallic} />
-                  <AppIcon name="wifi" size={16} color={C.accent} style={{ transform: [{ rotate: '90deg' }] }} />
-                </View>
-                <View style={styles.statusPill}>
-                  <View style={styles.activeDot} />
-                  <AppText style={styles.statusPillText}>CONNECTED</AppText>
-                </View>
+        {/* Hero Physical NFC Card (Apple Wallet Luxury Aesthetic) */}
+        <View style={styles.cardWrapper}>
+          <Pressable
+            style={styles.physicalCard}
+            onPress={() => router.push('/(tabs)/share' as any)}
+          >
+            {/* Top Row: Contactless Wave Symbol + Brand mark */}
+            <View style={styles.cardTopRow}>
+              {/* Minimalist 4-arc Contactless Symbol */}
+              <View style={styles.contactlessSymbol}>
+                <View style={[styles.contactlessArc, styles.arc1]} />
+                <View style={[styles.contactlessArc, styles.arc2]} />
+                <View style={[styles.contactlessArc, styles.arc3]} />
+                <View style={[styles.contactlessArc, styles.arc4]} />
               </View>
+              <AppText style={styles.cardTypeLabel}>BLACK METAL</AppText>
+            </View>
 
-              {/* Card Holder Info */}
-              <View style={styles.cardInfo}>
-                <AppText style={styles.cardOwnerName} weight="bold">
-                  {userName.toUpperCase()}
-                </AppText>
-                <AppText style={styles.cardOwnerTitle}>
-                  Founder & Managing Director
-                </AppText>
-              </View>
+            {/* Card Identity */}
+            <View style={styles.cardBody}>
+              <AppText style={styles.cardOwnerName} weight="bold">
+                {userName.toUpperCase()}
+              </AppText>
+              <AppText style={styles.cardOwnerTitle}>
+                FOUNDER & DIRECTOR
+              </AppText>
+            </View>
 
-              {/* Card Footer */}
-              <View style={styles.cardFooter}>
-                <AppText style={styles.cardSerial}>NFC • NTAG216 • READY</AppText>
-                <View style={styles.logoMark}>
-                  <View style={[styles.miniCircle, { backgroundColor: C.accent }]} />
-                  <View style={[styles.miniCircle, { backgroundColor: '#FFFFFF', opacity: 0.8 }]} />
-                </View>
-              </View>
-            </LinearGradient>
-          </Animated.View>
+            {/* Card Footer: Clean ID */}
+            <View style={styles.cardBottomRow}>
+              <AppText style={styles.cardSerial}>NFC • CONNECTED</AppText>
+              <View style={styles.cardAccentPip} />
+            </View>
+          </Pressable>
         </View>
 
-        {/* Greeting & Headline */}
-        <View style={styles.greetingSection}>
-          <AppText style={styles.greetingTitle} weight="bold">
-            {greeting}, {userName}
-          </AppText>
-          <AppText style={styles.greetingSubtitle}>
-            Your card is ready to share.
-          </AppText>
-        </View>
-
-        {/* Primary Strong Action: [ TAP TO SHARE ] */}
+        {/* Primary Action Button — Apple Style Crisp & Solid */}
         <View style={styles.actionContainer}>
           <Pressable
             style={({ pressed }) => [
-              styles.tapToShareButton,
-              pressed && styles.tapToSharePressed,
+              styles.primaryButton,
+              pressed && styles.buttonPressed,
             ]}
             onPress={handleTapToShare}
           >
-            <LinearGradient
-              colors={[C.accent, C.accentDark]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.tapToShareGradient}
-            >
-              <AppIcon name="radio" size={20} color="#FFFFFF" />
-              <AppText style={styles.tapToShareText} weight="bold">
-                TAP TO SHARE
-              </AppText>
-            </LinearGradient>
+            <AppText style={styles.primaryButtonText} weight="bold">
+              TAP TO SHARE
+            </AppText>
           </Pressable>
         </View>
 
-        {/* Live Metrics Row (326 NFC taps | 1,284 profile views) */}
-        <View style={styles.metricsContainer}>
+        {/* Minimalist Live Metrics (Apple Health / Stripe clean stats) */}
+        <View style={styles.statsRow}>
           <Pressable
-            style={styles.metricCard}
+            style={styles.statItem}
             onPress={() => router.push('/analytics/nfc' as any)}
           >
-            <View style={styles.metricHeader}>
-              <AppText style={styles.metricLabel}>NFC TAPS</AppText>
-              <AppIcon name="zap" size={14} color={C.accent} />
-            </View>
-            <AppText style={styles.metricValue} weight="bold">
+            <AppText style={styles.statNumber} weight="bold">
               326
             </AppText>
-            <View style={styles.metricTrendRow}>
-              <AppText style={styles.metricTrend}>↑ +14.2%</AppText>
-              <AppText style={styles.metricSub}>this week</AppText>
-            </View>
+            <AppText style={styles.statLabel}>NFC TAPS</AppText>
           </Pressable>
 
-          <View style={styles.metricDivider} />
+          <View style={styles.statDivider} />
 
           <Pressable
-            style={styles.metricCard}
+            style={styles.statItem}
             onPress={() => router.push('/analytics/overview' as any)}
           >
-            <View style={styles.metricHeader}>
-              <AppText style={styles.metricLabel}>PROFILE VIEWS</AppText>
-              <AppIcon name="eye" size={14} color="#FFFFFF" />
-            </View>
-            <AppText style={styles.metricValue} weight="bold">
+            <AppText style={styles.statNumber} weight="bold">
               1,284
             </AppText>
-            <View style={styles.metricTrendRow}>
-              <AppText style={styles.metricTrend}>↑ +18.4%</AppText>
-              <AppText style={styles.metricSub}>this week</AppText>
-            </View>
+            <AppText style={styles.statLabel}>PROFILE VIEWS</AppText>
           </Pressable>
         </View>
 
-        {/* 07 — Share Center (Large Visual Buttons: NFC | QR | Link | Contact) */}
-        <View style={styles.sectionHeaderRow}>
+        {/* 07 — Share Center (Sleek, Borderless Minimal Actions) */}
+        <View style={styles.sectionHeader}>
           <AppText style={styles.sectionTitle} weight="bold">
-            Share Center
+            Share
           </AppText>
-          <AppText style={styles.sectionNote}>ONE-TAP EXPORT</AppText>
         </View>
 
-        <View style={styles.shareCenterGrid}>
-          {/* NFC Button */}
+        <View style={styles.shareRow}>
           <Pressable
-            style={({ pressed }) => [styles.shareTile, pressed && styles.shareTilePressed]}
+            style={({ pressed }) => [styles.shareBtn, pressed && styles.shareBtnPressed]}
             onPress={handleNfcAction}
           >
-            <View style={[styles.shareIconWrap, { backgroundColor: 'rgba(37, 150, 190, 0.15)' }]}>
-              <AppIcon name="wifi" size={24} color={C.accent} style={{ transform: [{ rotate: '90deg' }] }} />
-            </View>
-            <AppText style={styles.shareTileTitle} weight="bold">
-              NFC
-            </AppText>
-            <AppText style={styles.shareTileSubtitle}>
-              Tap Device
-            </AppText>
+            <AppIcon name="wifi" size={20} color={C.text} style={{ transform: [{ rotate: '90deg' }] }} />
+            <AppText style={styles.shareBtnLabel}>NFC</AppText>
           </Pressable>
 
-          {/* QR Button */}
           <Pressable
-            style={({ pressed }) => [styles.shareTile, pressed && styles.shareTilePressed]}
+            style={({ pressed }) => [styles.shareBtn, pressed && styles.shareBtnPressed]}
             onPress={handleQrAction}
           >
-            <View style={[styles.shareIconWrap, { backgroundColor: 'rgba(255, 255, 255, 0.08)' }]}>
-              <AppIcon name="qr-code" size={24} color="#FFFFFF" />
-            </View>
-            <AppText style={styles.shareTileTitle} weight="bold">
-              QR
-            </AppText>
-            <AppText style={styles.shareTileSubtitle}>
-              Scan Code
-            </AppText>
+            <AppIcon name="qr-code" size={20} color={C.text} />
+            <AppText style={styles.shareBtnLabel}>QR Code</AppText>
           </Pressable>
 
-          {/* Link Button */}
           <Pressable
-            style={({ pressed }) => [styles.shareTile, pressed && styles.shareTilePressed]}
+            style={({ pressed }) => [styles.shareBtn, pressed && styles.shareBtnPressed]}
             onPress={handleLinkAction}
           >
-            <View style={[styles.shareIconWrap, { backgroundColor: 'rgba(255, 255, 255, 0.08)' }]}>
-              <AppIcon name="copy" size={22} color="#FFFFFF" />
-            </View>
-            <AppText style={styles.shareTileTitle} weight="bold">
-              Link
-            </AppText>
-            <AppText style={styles.shareTileSubtitle}>
-              Copy URL
-            </AppText>
+            <AppIcon name="copy" size={19} color={C.text} />
+            <AppText style={styles.shareBtnLabel}>Copy Link</AppText>
           </Pressable>
 
-          {/* Contact Button */}
           <Pressable
-            style={({ pressed }) => [styles.shareTile, pressed && styles.shareTilePressed]}
+            style={({ pressed }) => [styles.shareBtn, pressed && styles.shareBtnPressed]}
             onPress={handleContactAction}
           >
-            <View style={[styles.shareIconWrap, { backgroundColor: 'rgba(255, 255, 255, 0.08)' }]}>
-              <AppIcon name="user" size={22} color="#FFFFFF" />
-            </View>
-            <AppText style={styles.shareTileTitle} weight="bold">
-              Contact
-            </AppText>
-            <AppText style={styles.shareTileSubtitle}>
-              vCard File
-            </AppText>
+            <AppIcon name="user" size={19} color={C.text} />
+            <AppText style={styles.shareBtnLabel}>Save Contact</AppText>
           </Pressable>
         </View>
 
-        {/* 08 — Activity Timeline */}
-        <View style={styles.sectionHeaderRow}>
+        {/* 08 — Activity (Apple Wallet Clean Transaction Style) */}
+        <View style={styles.sectionHeader}>
           <AppText style={styles.sectionTitle} weight="bold">
-            Activity
+            Recent Activity
           </AppText>
           <Pressable
             onPress={() => {
@@ -371,89 +242,61 @@ export function HomeScreen() {
             }}
             hitSlop={8}
           >
-            <AppText style={styles.viewAllLink} weight="medium">
-              View All →
-            </AppText>
+            <AppText style={styles.viewAllText}>All</AppText>
           </Pressable>
         </View>
 
-        <View style={styles.activityCard}>
-          <View style={styles.timelineDayBadge}>
-            <AppText style={styles.timelineDayText} weight="bold">
-              TODAY
-            </AppText>
-          </View>
-
-          {/* Event 1 */}
-          <View style={styles.timelineItem}>
-            <View style={styles.timelineIconCol}>
-              <View style={[styles.timelineNode, { borderColor: C.accent }]}>
-                <AppIcon name="wifi" size={12} color={C.accent} style={{ transform: [{ rotate: '90deg' }] }} />
-              </View>
-              <View style={styles.timelineLine} />
-            </View>
-            <View style={styles.timelineContent}>
-              <View style={styles.timelineRowTop}>
-                <AppText style={styles.timelineEventTitle} weight="bold">
-                  NFC tap
-                </AppText>
-                <AppText style={styles.timelineTime}>09:42</AppText>
-              </View>
-              <AppText style={styles.timelineDetail}>
-                Direct NFC exchange · Metal Matte Black Card
+        <View style={styles.activityList}>
+          {/* Row 1 */}
+          <View style={styles.activityRow}>
+            <View style={styles.activityInfo}>
+              <AppText style={styles.activityTitle} weight="medium">
+                NFC Tap
+              </AppText>
+              <AppText style={styles.activityMeta}>
+                Direct exchange · Matte Black
               </AppText>
             </View>
+            <AppText style={styles.activityTime}>09:42</AppText>
           </View>
 
-          {/* Event 2 */}
-          <View style={styles.timelineItem}>
-            <View style={styles.timelineIconCol}>
-              <View style={[styles.timelineNode, { borderColor: '#8E8E93' }]}>
-                <AppIcon name="eye" size={12} color="#FFFFFF" />
-              </View>
-              <View style={styles.timelineLine} />
-            </View>
-            <View style={styles.timelineContent}>
-              <View style={styles.timelineRowTop}>
-                <AppText style={styles.timelineEventTitle} weight="bold">
-                  Profile view
-                </AppText>
-                <AppText style={styles.timelineTime}>09:18</AppText>
-              </View>
-              <AppText style={styles.timelineDetail}>
-                Safari Mobile on iOS · Phnom Penh, KH
+          <View style={styles.activitySeparator} />
+
+          {/* Row 2 */}
+          <View style={styles.activityRow}>
+            <View style={styles.activityInfo}>
+              <AppText style={styles.activityTitle} weight="medium">
+                Profile View
+              </AppText>
+              <AppText style={styles.activityMeta}>
+                Safari on iOS
               </AppText>
             </View>
+            <AppText style={styles.activityTime}>09:18</AppText>
           </View>
 
-          {/* Event 3 */}
-          <View style={[styles.timelineItem, { paddingBottom: 4 }]}>
-            <View style={styles.timelineIconCol}>
-              <View style={[styles.timelineNode, { borderColor: '#8E8E93' }]}>
-                <AppIcon name="qr-code" size={12} color="#FFFFFF" />
-              </View>
-            </View>
-            <View style={styles.timelineContent}>
-              <View style={styles.timelineRowTop}>
-                <AppText style={styles.timelineEventTitle} weight="bold">
-                  QR scan
-                </AppText>
-                <AppText style={styles.timelineTime}>08:51</AppText>
-              </View>
-              <AppText style={styles.timelineDetail}>
-                Networking Event · Business Card Stand
+          <View style={styles.activitySeparator} />
+
+          {/* Row 3 */}
+          <View style={styles.activityRow}>
+            <View style={styles.activityInfo}>
+              <AppText style={styles.activityTitle} weight="medium">
+                QR Scan
+              </AppText>
+              <AppText style={styles.activityMeta}>
+                Business card stand
               </AppText>
             </View>
+            <AppText style={styles.activityTime}>08:51</AppText>
           </View>
         </View>
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 60 }} />
       </IosScrollView>
 
-      {/* Subtle Toast Feedback */}
+      {/* Understated Toast Notification */}
       {toastMessage && (
         <View style={styles.toast}>
-          <AppIcon name="check" size={16} color="#FFFFFF" />
           <AppText style={styles.toastText} weight="medium">
             {toastMessage}
           </AppText>
@@ -470,389 +313,249 @@ const styles = StyleSheet.create({
   },
   scroll: {
     paddingHorizontal: 20,
-    paddingBottom: 60,
+    paddingTop: 8,
+    paddingBottom: 40,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 12,
-    paddingBottom: 20,
+    paddingVertical: 14,
+    marginBottom: 10,
   },
-  brandTitle: {
-    fontSize: 22,
-    letterSpacing: -0.5,
+  greetingText: {
+    fontSize: 26,
+    letterSpacing: -0.6,
     color: C.text,
   },
-  brandSubtitle: {
-    fontSize: 10,
-    letterSpacing: 1.5,
-    color: C.textMuted,
-    marginTop: 2,
-    fontWeight: '600',
+  subGreetingText: {
+    fontSize: 14,
+    color: C.textSecondary,
+    marginTop: 3,
   },
   avatarButton: {
     borderRadius: 20,
   },
-  avatarBadge: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: C.surfaceRaised,
-    borderWidth: 1,
-    borderColor: C.borderLight,
+  avatarCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: C.surfaceSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: {
+  avatarInitial: {
     color: C.text,
-    fontSize: 15,
+    fontSize: 14,
   },
-  heroSection: {
+  cardWrapper: {
     alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 10,
-  },
-  cardContainer: {
-    width: '100%',
-    maxWidth: 360,
-    borderRadius: 20,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.45,
-    shadowRadius: 28,
-    elevation: 16,
+    marginVertical: 12,
   },
   physicalCard: {
     width: '100%',
-    aspectRatio: 1.586, // ISO/IEC 7810 ID-1 standard ratio
+    aspectRatio: 1.586,
     borderRadius: 20,
-    padding: 22,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: C.cardBg,
+    padding: 24,
     justifyContent: 'space-between',
-    overflow: 'hidden',
+    // Ultra-faint perimeter hairline — no heavy visible border
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
-  shimmerWrap: {
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  cardHeader: {
+  cardTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  nfcWaveChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
+  contactlessSymbol: {
+    width: 22,
+    height: 22,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    overflow: 'hidden',
   },
-  chipMetallic: {
-    width: 32,
-    height: 24,
-    borderRadius: 5,
-    backgroundColor: '#3A3A40',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+  contactlessArc: {
+    position: 'absolute',
+    borderRightWidth: 1.8,
+    borderColor: '#FFFFFF',
+    borderRadius: 20,
   },
-  statusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  activeDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: C.success,
-  },
-  statusPillText: {
+  arc1: { width: 8, height: 8, left: 0 },
+  arc2: { width: 14, height: 14, left: 0 },
+  arc3: { width: 20, height: 20, left: 0 },
+  arc4: { width: 26, height: 26, left: 0 },
+  cardTypeLabel: {
     fontSize: 10,
-    color: C.textSecondary,
-    letterSpacing: 1,
+    letterSpacing: 2,
+    color: C.textMuted,
     fontWeight: '700',
   },
-  cardInfo: {
-    marginVertical: 12,
+  cardBody: {
+    marginVertical: 16,
   },
   cardOwnerName: {
-    fontSize: 22,
-    letterSpacing: 1.2,
+    fontSize: 24,
+    letterSpacing: 1.5,
     color: C.text,
   },
   cardOwnerTitle: {
-    fontSize: 12,
-    color: C.textSecondary,
-    letterSpacing: 0.2,
-    marginTop: 4,
+    fontSize: 11,
+    letterSpacing: 1.8,
+    color: C.textMuted,
+    marginTop: 6,
+    fontWeight: '600',
   },
-  cardFooter: {
+  cardBottomRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   cardSerial: {
     fontSize: 10,
-    letterSpacing: 1.2,
+    letterSpacing: 1.8,
     color: C.textMuted,
     fontWeight: '600',
   },
-  logoMark: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: -6,
-  },
-  miniCircle: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-  },
-  greetingSection: {
-    marginTop: 18,
-    marginBottom: 16,
-  },
-  greetingTitle: {
-    fontSize: 28,
-    letterSpacing: -0.6,
-    color: C.text,
-  },
-  greetingSubtitle: {
-    fontSize: 15,
-    color: C.textSecondary,
-    marginTop: 4,
+  cardAccentPip: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: C.accent,
   },
   actionContainer: {
-    marginBottom: 22,
+    marginTop: 14,
+    marginBottom: 26,
   },
-  tapToShareButton: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: C.accent,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 14,
-    elevation: 8,
-  },
-  tapToSharePressed: {
-    transform: [{ scale: 0.98 }],
-    opacity: 0.9,
-  },
-  tapToShareGradient: {
-    flexDirection: 'row',
+  primaryButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    paddingVertical: 18,
-    borderRadius: 16,
   },
-  tapToShareText: {
-    fontSize: 16,
-    letterSpacing: 1.5,
-    color: '#FFFFFF',
+  buttonPressed: {
+    opacity: 0.88,
+    transform: [{ scale: 0.99 }],
   },
-  metricsContainer: {
+  primaryButtonText: {
+    color: '#000000',
+    fontSize: 15,
+    letterSpacing: 1.2,
+  },
+  statsRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: C.surface,
-    borderRadius: 18,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: C.border,
-    alignItems: 'center',
-    marginBottom: 28,
+    borderRadius: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    marginBottom: 32,
   },
-  metricCard: {
+  statItem: {
     flex: 1,
-  },
-  metricHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
   },
-  metricLabel: {
-    fontSize: 11,
-    letterSpacing: 1,
-    color: C.textSecondary,
-    fontWeight: '600',
-  },
-  metricValue: {
+  statNumber: {
     fontSize: 32,
     color: C.text,
     letterSpacing: -1,
-    marginVertical: 4,
   },
-  metricTrendRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  metricTrend: {
-    fontSize: 12,
-    color: C.accent,
+  statLabel: {
+    fontSize: 11,
+    letterSpacing: 1.2,
+    color: C.textSecondary,
     fontWeight: '600',
+    marginTop: 4,
   },
-  metricSub: {
-    fontSize: 12,
-    color: C.textMuted,
-  },
-  metricDivider: {
+  statDivider: {
     width: 1,
-    height: 50,
-    backgroundColor: C.border,
-    marginHorizontal: 16,
+    height: 38,
+    backgroundColor: C.hairline,
   },
-  sectionHeaderRow: {
+  sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 14,
   },
   sectionTitle: {
-    fontSize: 18,
-    letterSpacing: -0.4,
+    fontSize: 17,
+    letterSpacing: -0.3,
     color: C.text,
   },
-  sectionNote: {
-    fontSize: 10,
-    letterSpacing: 1,
-    color: C.textMuted,
-    fontWeight: '700',
-  },
-  viewAllLink: {
+  viewAllText: {
     fontSize: 13,
-    color: C.accent,
-  },
-  shareCenterGrid: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 28,
-  },
-  shareTile: {
-    flex: 1,
-    backgroundColor: C.surface,
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 10,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: C.border,
-  },
-  shareTilePressed: {
-    backgroundColor: C.surfaceRaised,
-    transform: [{ scale: 0.96 }],
-  },
-  shareIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
-  shareTileTitle: {
-    fontSize: 14,
-    color: C.text,
-    letterSpacing: -0.2,
-  },
-  shareTileSubtitle: {
-    fontSize: 11,
-    color: C.textMuted,
-    marginTop: 2,
-  },
-  activityCard: {
-    backgroundColor: C.surface,
-    borderRadius: 18,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: C.border,
-  },
-  timelineDayBadge: {
-    alignSelf: 'flex-start',
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 6,
-    backgroundColor: C.surfaceRaised,
-    marginBottom: 16,
-  },
-  timelineDayText: {
-    fontSize: 10,
-    letterSpacing: 1.2,
     color: C.textSecondary,
   },
-  timelineItem: {
+  shareRow: {
     flexDirection: 'row',
-    paddingBottom: 16,
+    gap: 10,
+    marginBottom: 32,
   },
-  timelineIconCol: {
-    alignItems: 'center',
-    width: 28,
-    marginRight: 10,
-  },
-  timelineNode: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    backgroundColor: C.surfaceRaised,
+  shareBtn: {
+    flex: 1,
+    backgroundColor: C.surface,
+    borderRadius: 14,
+    paddingVertical: 18,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 10,
   },
-  timelineLine: {
-    width: 1.5,
-    flex: 1,
-    backgroundColor: C.border,
-    marginVertical: 4,
+  shareBtnPressed: {
+    backgroundColor: C.surfaceSoft,
+    transform: [{ scale: 0.98 }],
   },
-  timelineContent: {
-    flex: 1,
-    paddingTop: 2,
+  shareBtnLabel: {
+    fontSize: 12,
+    color: C.textSecondary,
+    fontWeight: '500',
   },
-  timelineRowTop: {
+  activityList: {
+    backgroundColor: C.surface,
+    borderRadius: 16,
+    paddingHorizontal: 18,
+  },
+  activityRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingVertical: 16,
   },
-  timelineEventTitle: {
-    fontSize: 14,
+  activityInfo: {
+    flex: 1,
+    gap: 3,
+  },
+  activityTitle: {
+    fontSize: 15,
     color: C.text,
     letterSpacing: -0.2,
   },
-  timelineTime: {
+  activityMeta: {
     fontSize: 12,
     color: C.textMuted,
-    fontWeight: '500',
   },
-  timelineDetail: {
-    fontSize: 12,
+  activityTime: {
+    fontSize: 13,
     color: C.textSecondary,
-    marginTop: 3,
+    fontVariant: ['tabular-nums'],
+  },
+  activitySeparator: {
+    height: 1,
+    backgroundColor: C.hairline,
   },
   toast: {
     position: 'absolute',
     bottom: 24,
     alignSelf: 'center',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
     backgroundColor: '#1C1C1E',
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: C.borderLight,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 10,
+    borderRadius: 20,
   },
   toastText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 13,
   },
 });
+export default HomeScreen;

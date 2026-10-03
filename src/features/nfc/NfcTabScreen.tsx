@@ -1,3 +1,7 @@
+/**
+ * NfcTabScreen — 04 NFC Management
+ * Luxury Minimalist (Apple Wallet × Stripe × Linear)
+ */
 import React, { useCallback } from 'react';
 import {
   Pressable,
@@ -11,35 +15,47 @@ import { AppIcon } from '@/src/components/AppIcon';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { HapticTap } from '@/src/utils/haptics';
 
+const C = {
+  canvas: '#000000',
+  surface: '#0E0E11',
+  surfaceSoft: '#141418',
+  hairline: 'rgba(255, 255, 255, 0.06)',
+  text: '#FFFFFF',
+  textSecondary: '#A1A1AA',
+  textMuted: '#52525B',
+  accent: '#2596BE',
+  cardBg: '#0B0B0E',
+} as const;
+
 const NFC_ACTIONS = [
   {
     label: 'Connect NFC Card',
-    subtitle: 'Pair a new physical NFC card',
-    icon: 'Nfc',
+    subtitle: 'Pair a new physical card',
+    icon: 'Radio',
     route: '/nfc/connect',
   },
   {
     label: 'Write to NFC',
-    subtitle: 'Update card data on your NFC chip',
-    icon: 'Send',
+    subtitle: 'Update data on your physical chip',
+    icon: 'UploadCloud',
     route: '/nfc/write',
   },
   {
     label: 'Direct Mode & Lock',
-    subtitle: 'Instant app routing & chip write protection',
+    subtitle: 'Instant routing & chip write lock',
     icon: 'Lock',
     route: '/nfc/direct-mode',
   },
   {
     label: 'Test NFC Card',
-    subtitle: 'Verify your card is working correctly',
-    icon: 'BadgeCheck',
+    subtitle: 'Verify antenna and profile URL',
+    icon: 'CheckCircle',
     route: '/nfc/test',
   },
   {
     label: 'Troubleshoot NFC',
-    subtitle: 'Write failure recovery & tips',
-    icon: 'AlertTriangle',
+    subtitle: 'Recovery and read/write guide',
+    icon: 'HelpCircle',
     route: '/nfc/error',
   },
 ] as const;
@@ -55,50 +71,71 @@ export default function NfcTabScreen() {
       <IosScrollView contentContainerStyle={styles.scroll}>
         {/* Header */}
         <View style={styles.header}>
-          <AppText style={styles.headerTitle}>NFC Cards</AppText>
+          <AppText style={styles.headerTitle} weight="bold">
+            NFC Devices
+          </AppText>
+          <AppText style={styles.headerSubtitle}>
+            Physical cards paired to your profile
+          </AppText>
         </View>
 
-        {/* Device Card */}
+        {/* Physical Device Card — Apple Wallet Minimalist */}
         <View style={styles.deviceCard}>
-          <View style={styles.deviceCardInner}>
-            <View style={styles.deviceCardTop}>
-              <AppText style={styles.cardId}>NFC CARD #1</AppText>
-              <View style={styles.statusRow}>
-                <View style={styles.statusDot} />
-                <AppText style={styles.statusText}>Connected</AppText>
-              </View>
-            </View>
-            <AppText style={styles.cardName}>sitehubman</AppText>
-            <View style={styles.nfcIconWrap}>
-              <AppIcon name="Nfc" size={32} color="rgba(37,150,190,0.6)" />
-            </View>
+          <View style={styles.deviceCardTop}>
+            <AppText style={styles.cardBadge}>NFC CARD #1</AppText>
+            <AppText style={styles.statusText}>CONNECTED</AppText>
+          </View>
+
+          <View style={styles.deviceCardBody}>
+            <AppText style={styles.cardName} weight="bold">
+              Matte Black Metal
+            </AppText>
+            <AppText style={styles.cardSubtitle}>
+              NTAG216 · 888 Bytes
+            </AppText>
+          </View>
+
+          <View style={styles.deviceCardBottom}>
+            <AppText style={styles.cardSerial}>ID: 04:A2:8B:1F:7C:90</AppText>
+            <View style={styles.activeDot} />
           </View>
         </View>
 
-        {/* Action Rows */}
-        <AppText style={styles.sectionLabel}>Actions</AppText>
+        {/* Action List — Clean iOS Inset Grouped Table */}
+        <View style={styles.sectionHeader}>
+          <AppText style={styles.sectionLabel}>
+            Actions
+          </AppText>
+        </View>
+
         <View style={styles.actionList}>
           {NFC_ACTIONS.map((action, index) => (
-            <Pressable
-              key={action.label}
-              onPress={() => handleAction(action.route)}
-              style={({ pressed }) => [
-                styles.actionRow,
-                index < NFC_ACTIONS.length - 1 && styles.actionRowBorder,
-                pressed && styles.actionRowPressed,
-              ]}
-            >
-              <View style={styles.actionIconWrap}>
-                <AppIcon name={action.icon} size={22} color="#2596BE" />
-              </View>
-              <View style={styles.actionInfo}>
-                <AppText style={styles.actionLabel}>{action.label}</AppText>
-                <AppText style={styles.actionSubtitle}>{action.subtitle}</AppText>
-              </View>
-              <AppIcon name="ChevronRight" size={18} color="#9A9AA0" />
-            </Pressable>
+            <React.Fragment key={action.label}>
+              <Pressable
+                onPress={() => handleAction(action.route)}
+                style={({ pressed }) => [
+                  styles.actionRow,
+                  pressed && styles.actionRowPressed,
+                ]}
+              >
+                <View style={styles.actionInfo}>
+                  <AppText style={styles.actionLabel} weight="medium">
+                    {action.label}
+                  </AppText>
+                  <AppText style={styles.actionSubtitle}>
+                    {action.subtitle}
+                  </AppText>
+                </View>
+                <AppIcon name="ChevronRight" size={16} color={C.textMuted} />
+              </Pressable>
+              {index < NFC_ACTIONS.length - 1 && (
+                <View style={styles.separator} />
+              )}
+            </React.Fragment>
           ))}
         </View>
+
+        <View style={{ height: 60 }} />
       </IosScrollView>
     </SafeAreaView>
   );
@@ -107,120 +144,123 @@ export default function NfcTabScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: C.canvas,
   },
   scroll: {
     paddingHorizontal: 20,
-    paddingBottom: 130,
+    paddingTop: 8,
+    paddingBottom: 40,
   },
   header: {
-    paddingTop: 16,
-    paddingBottom: 20,
+    paddingVertical: 14,
+    marginBottom: 8,
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#F5F5F7',
-    letterSpacing: -0.5,
+    fontSize: 26,
+    letterSpacing: -0.6,
+    color: C.text,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: C.textSecondary,
+    marginTop: 3,
   },
   deviceCard: {
+    backgroundColor: C.cardBg,
     borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: '#2596BE',
-    overflow: 'hidden',
-    backgroundColor: '#111114',
-    marginBottom: 28,
-  },
-  deviceCardInner: {
-    padding: 24,
-    gap: 8,
+    padding: 22,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   deviceCardTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 20,
   },
-  cardId: {
+  cardBadge: {
     fontSize: 10,
-    letterSpacing: 2.5,
-    color: '#9A9AA0',
-    fontWeight: '600',
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#30D158',
+    letterSpacing: 1.8,
+    color: C.textMuted,
+    fontWeight: '700',
   },
   statusText: {
-    fontSize: 12,
-    color: '#30D158',
-    fontWeight: '500',
+    fontSize: 10,
+    letterSpacing: 1.5,
+    color: C.textSecondary,
+    fontWeight: '700',
+  },
+  deviceCardBody: {
+    marginBottom: 20,
+    gap: 4,
   },
   cardName: {
     fontSize: 22,
-    fontWeight: '700',
-    color: '#F5F5F7',
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
+    color: C.text,
   },
-  nfcIconWrap: {
-    alignSelf: 'flex-end',
-    marginTop: 8,
+  cardSubtitle: {
+    fontSize: 12,
+    color: C.textMuted,
+  },
+  deviceCardBottom: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  cardSerial: {
+    fontSize: 11,
+    color: C.textMuted,
+    fontVariant: ['tabular-nums'],
+  },
+  activeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: C.accent,
+  },
+  sectionHeader: {
+    marginBottom: 12,
   },
   sectionLabel: {
     fontSize: 13,
-    color: '#9A9AA0',
-    letterSpacing: 0.5,
+    color: C.textMuted,
+    letterSpacing: 0.8,
     fontWeight: '600',
     textTransform: 'uppercase',
-    marginBottom: 12,
   },
   actionList: {
-    backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.09)',
+    backgroundColor: C.surface,
     borderRadius: 16,
     overflow: 'hidden',
   },
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
     paddingVertical: 16,
-    gap: 14,
-  },
-  actionRowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
   },
   actionRowPressed: {
-    backgroundColor: 'rgba(255,255,255,0.04)',
-  },
-  actionIconWrap: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: 'rgba(37,150,190,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: C.surfaceSoft,
   },
   actionInfo: {
     flex: 1,
-    gap: 2,
+    gap: 3,
   },
   actionLabel: {
     fontSize: 15,
-    fontWeight: '500',
-    color: '#F5F5F7',
+    color: C.text,
+    letterSpacing: -0.2,
   },
   actionSubtitle: {
     fontSize: 12,
-    color: '#9A9AA0',
+    color: C.textMuted,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: C.hairline,
+    marginLeft: 18,
   },
 });

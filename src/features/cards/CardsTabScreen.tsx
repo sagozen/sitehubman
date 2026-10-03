@@ -1,3 +1,7 @@
+/**
+ * CardsTabScreen — 03 Digital Card Management
+ * Luxury Minimalist (Apple Wallet × Stripe × Linear)
+ */
 import React, { useCallback, useState } from 'react';
 import {
   View,
@@ -8,20 +12,21 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import AppText from '@/src/components/AppText';
-import AppIcon from '@/src/components/AppIcon';
-import type { AppIconName } from '@/src/components/AppIcon';
+import { AppText } from '@/src/components/AppText';
+import { AppIcon } from '@/src/components/AppIcon';
 import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
   canvas: '#000000',
-  surface: '#111114',
-  surfaceRaised: '#18181C',
-  border: 'rgba(255,255,255,0.09)',
-  text: '#F5F5F7',
-  muted: '#9A9AA0',
+  surface: '#0E0E11',
+  surfaceSoft: '#141418',
+  hairline: 'rgba(255, 255, 255, 0.06)',
+  text: '#FFFFFF',
+  textSecondary: '#A1A1AA',
+  textMuted: '#52525B',
   accent: '#2596BE',
-};
+  cardBg: '#0B0B0E',
+} as const;
 
 type Card = {
   id: string;
@@ -35,33 +40,20 @@ type Card = {
 const MOCK_CARDS: Card[] = [
   {
     id: '1',
-    name: 'Professional Card',
-    role: 'Software Engineer · Acme Corp',
+    name: 'Executive Black',
+    role: 'Managing Director · Acme Corp',
     nfcLinked: true,
-    taps: 142,
+    taps: 326,
     active: true,
   },
   {
     id: '2',
-    name: 'Freelance Card',
-    role: 'UI/UX Designer',
+    name: 'Personal Profile',
+    role: 'Creative Consultant',
     nfcLinked: false,
-    taps: 37,
+    taps: 48,
     active: false,
   },
-];
-
-type QuickAction = {
-  icon: AppIconName;
-  label: string;
-  route: string;
-};
-
-const QUICK_ACTIONS: QuickAction[] = [
-  { icon: 'plus', label: 'New Card', route: '/cards/create' },
-  { icon: 'users', label: 'Leads CRM', route: '/leads' },
-  { icon: 'share-2', label: 'Share', route: '/share-profile' },
-  { icon: 'maximize', label: 'QR', route: '/qr-generator' },
 ];
 
 export default function CardsTabScreen() {
@@ -72,52 +64,35 @@ export default function CardsTabScreen() {
     router.push('/cards/settings' as any);
   }, []);
 
-  const handleNfcLink = useCallback((card: Card) => {
-    HapticTap.confidentClick();
-    if (card.nfcLinked) {
-      router.push('/nfc/settings' as any);
-    } else {
-      router.push('/nfc/write' as any);
-    }
-  }, []);
-
-  const handleSetActive = useCallback((id: string) => {
+  const handleSetActive = useCallback((id: string, e: any) => {
+    e.stopPropagation?.();
     HapticTap.softConfirmation();
     setCards((prev) =>
       prev.map((c) => ({ ...c, active: c.id === id })),
     );
   }, []);
 
-  const handleDelete = useCallback((card: Card) => {
-    HapticTap.heavy();
-    Alert.alert(
-      'Delete Card',
-      `Delete "${card.name}"? This cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            HapticTap.error();
-            setCards((prev) => prev.filter((c) => c.id !== card.id));
-          },
-        },
-      ],
-    );
-  }, []);
-
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* Header */}
+      {/* Top Header */}
       <View style={styles.header}>
-        <AppText style={styles.headerTitle}>My Cards</AppText>
+        <View>
+          <AppText style={styles.headerTitle} weight="bold">
+            Digital Cards
+          </AppText>
+          <AppText style={styles.headerSubtitle}>
+            Manage your profiles and virtual badges
+          </AppText>
+        </View>
         <Pressable
-          onPress={() => { HapticTap.light(); router.push('/cards/create' as any); }}
+          onPress={() => {
+            HapticTap.light();
+            router.push('/cards/create' as any);
+          }}
           style={styles.addBtn}
-          hitSlop={8}
+          hitSlop={12}
         >
-          <AppIcon name="plus" size={20} color={C.text} />
+          <AppIcon name="plus" size={18} color={C.text} />
         </Pressable>
       </View>
 
@@ -126,365 +101,245 @@ export default function CardsTabScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Quick Actions */}
-        <View style={styles.quickRow}>
-          {QUICK_ACTIONS.map((a) => (
-            <Pressable
-              key={a.label}
-              onPress={() => { HapticTap.light(); router.push(a.route as any); }}
-              style={({ pressed }) => [styles.quickItem, pressed && { opacity: 0.6 }]}
-              hitSlop={4}
-            >
-              <View style={styles.quickIconWrap}>
-                <AppIcon name={a.icon} size={20} color={C.accent} />
-              </View>
-              <AppText style={styles.quickLabel}>{a.label}</AppText>
-            </Pressable>
-          ))}
+        {/* Quick Actions — Borderless, Understated Pill Row */}
+        <View style={styles.quickBar}>
+          <Pressable
+            style={({ pressed }) => [styles.quickPill, pressed && styles.quickPillPressed]}
+            onPress={() => { HapticTap.light(); router.push('/cards/create' as any); }}
+          >
+            <AppText style={styles.quickPillText} weight="medium">+ New Card</AppText>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.quickPill, pressed && styles.quickPillPressed]}
+            onPress={() => { HapticTap.light(); router.push('/leads' as any); }}
+          >
+            <AppText style={styles.quickPillText} weight="medium">Leads CRM</AppText>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.quickPill, pressed && styles.quickPillPressed]}
+            onPress={() => { HapticTap.light(); router.push('/share-profile' as any); }}
+          >
+            <AppText style={styles.quickPillText} weight="medium">Share</AppText>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.quickPill, pressed && styles.quickPillPressed]}
+            onPress={() => { HapticTap.light(); router.push('/qr/customize' as any); }}
+          >
+            <AppText style={styles.quickPillText} weight="medium">QR Code</AppText>
+          </Pressable>
         </View>
 
-        {/* Cards List */}
-        <AppText style={styles.sectionLabel}>
-          {cards.length} CARD{cards.length !== 1 ? 'S' : ''}
-        </AppText>
+        {/* Section Title */}
+        <View style={styles.sectionHeader}>
+          <AppText style={styles.sectionLabel}>
+            YOUR CARDS
+          </AppText>
+        </View>
 
-        {cards.length === 0 ? (
-          <View style={styles.emptyState}>
-            <AppIcon name="credit-card" size={40} color={C.muted} />
-            <AppText style={styles.emptyTitle}>No cards yet</AppText>
-            <AppText style={styles.emptySub}>
-              Create your first digital business card
+        {/* Cards — Apple Wallet Stack Aesthetic */}
+        {cards.map((card) => (
+          <Pressable
+            key={card.id}
+            onPress={() => handleCardPress(card)}
+            style={({ pressed }) => [
+              styles.cardContainer,
+              pressed && styles.cardPressed,
+            ]}
+          >
+            <View style={styles.cardHeaderRow}>
+              <AppText style={styles.cardName} weight="bold">
+                {card.name}
+              </AppText>
+              {card.active ? (
+                <AppText style={styles.activeTag}>PRIMARY</AppText>
+              ) : (
+                <Pressable
+                  onPress={(e) => handleSetActive(card.id, e)}
+                  hitSlop={8}
+                >
+                  <AppText style={styles.setPrimaryBtn}>Set Primary</AppText>
+                </Pressable>
+              )}
+            </View>
+
+            <AppText style={styles.cardRole}>
+              {card.role}
             </AppText>
-            <Pressable
-              onPress={() => { HapticTap.light(); router.push('/cards/create' as any); }}
-              style={styles.emptyBtn}
-            >
-              <AppText style={styles.emptyBtnText}>Create Card</AppText>
-            </Pressable>
-          </View>
-        ) : (
-          cards.map((card) => (
-            <Pressable
-              key={card.id}
-              onPress={() => handleCardPress(card)}
-              style={({ pressed }) => [
-                styles.cardItem,
-                card.active && styles.cardItemActive,
-                pressed && { opacity: 0.8 },
-              ]}
-              hitSlop={2}
-            >
-              {/* Card Accent Line */}
-              <View style={[styles.cardAccentLine, card.active && styles.cardAccentLineActive]} />
 
-              {/* Card Body */}
-              <View style={styles.cardBody}>
-                <View style={styles.cardTop}>
-                  <View style={styles.cardTitleRow}>
-                    <AppText style={styles.cardName}>{card.name}</AppText>
-                    {card.active && (
-                      <View style={styles.activeBadge}>
-                        <AppText style={styles.activeBadgeText}>Active</AppText>
-                      </View>
-                    )}
-                  </View>
-                  <AppText style={styles.cardRole}>{card.role}</AppText>
-                </View>
+            <View style={styles.cardFooterRow}>
+              <AppText style={styles.cardStats}>
+                {card.taps} taps · {card.nfcLinked ? 'NFC Linked' : 'Virtual only'}
+              </AppText>
+              <AppIcon name="chevron-right" size={16} color={C.textMuted} />
+            </View>
+          </Pressable>
+        ))}
 
-                {/* Stats Row */}
-                <View style={styles.statsRow}>
-                  <View style={styles.statItem}>
-                    <AppIcon name="zap" size={12} color={C.muted} />
-                    <AppText style={styles.statText}>{card.taps} taps</AppText>
-                  </View>
-                  <View style={styles.statItem}>
-                    <AppIcon
-                      name={card.nfcLinked ? 'wifi' : 'wifi-off'}
-                      size={12}
-                      color={card.nfcLinked ? C.accent : C.muted}
-                    />
-                    <AppText style={[styles.statText, card.nfcLinked && { color: C.accent }]}>
-                      {card.nfcLinked ? 'NFC Linked' : 'No NFC'}
-                    </AppText>
-                  </View>
-                </View>
-
-                {/* Action Row */}
-                <View style={styles.actionRow}>
-                  <Pressable
-                    onPress={() => handleNfcLink(card)}
-                    style={styles.chipBtn}
-                    hitSlop={6}
-                  >
-                    <AppIcon name="wifi" size={13} color={C.accent} />
-                    <AppText style={styles.chipBtnText}>
-                      {card.nfcLinked ? 'NFC Settings' : 'Link NFC'}
-                    </AppText>
-                  </Pressable>
-
-                  {!card.active && (
-                    <Pressable
-                      onPress={() => handleSetActive(card.id)}
-                      style={[styles.chipBtn, styles.chipBtnGhost]}
-                      hitSlop={6}
-                    >
-                      <AppIcon name="check-circle" size={13} color={C.text} />
-                      <AppText style={[styles.chipBtnText, { color: C.text }]}>
-                        Set Active
-                      </AppText>
-                    </Pressable>
-                  )}
-
-                  <Pressable
-                    onPress={() => router.push('/cards/appearance' as any)}
-                    style={[styles.chipBtn, styles.chipBtnGhost]}
-                    hitSlop={6}
-                  >
-                    <AppIcon name="sliders" size={13} color={C.text} />
-                    <AppText style={[styles.chipBtnText, { color: C.text }]}>Edit</AppText>
-                  </Pressable>
-
-                  <Pressable
-                    onPress={() => handleDelete(card)}
-                    style={styles.deleteBtn}
-                    hitSlop={6}
-                  >
-                    <AppIcon name="trash-2" size={14} color="#FF453A" />
-                  </Pressable>
-                </View>
-              </View>
-            </Pressable>
-          ))
-        )}
-
-        {/* Shop Banner */}
+        {/* Order Physical Card Banner — Subtle Minimalist */}
         <Pressable
-          onPress={() => { HapticTap.light(); router.push('/cards/templates' as any); }}
-          style={({ pressed }) => [styles.shopBanner, pressed && { opacity: 0.75 }]}
+          onPress={() => {
+            HapticTap.light();
+            router.push('/(tabs)/orders' as any);
+          }}
+          style={({ pressed }) => [
+            styles.orderBanner,
+            pressed && styles.orderBannerPressed,
+          ]}
         >
-          <View style={styles.shopLeft}>
-            <AppText style={styles.shopTitle}>Order Physical Cards</AppText>
-            <AppText style={styles.shopSub}>
-              Premium NFC cards shipped to your door
+          <View style={styles.orderBannerContent}>
+            <AppText style={styles.orderBannerTitle} weight="medium">
+              Order Physical NFC Card
+            </AppText>
+            <AppText style={styles.orderBannerSub}>
+              Laser engraved metal & matte PVC shipped worldwide
             </AppText>
           </View>
-          <AppIcon name="arrow-right" size={18} color={C.accent} />
+          <AppIcon name="arrow-right" size={16} color={C.textSecondary} />
         </Pressable>
+
+        <View style={{ height: 60 }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: C.canvas },
+  safe: {
+    flex: 1,
+    backgroundColor: C.canvas,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 14,
+    paddingVertical: 14,
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
+    fontSize: 26,
+    letterSpacing: -0.6,
     color: C.text,
-    letterSpacing: -0.5,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: C.textSecondary,
+    marginTop: 3,
   },
   addBtn: {
     width: 36,
     height: 36,
-    borderRadius: 10,
-    backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.border,
+    borderRadius: 18,
+    backgroundColor: C.surfaceSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scroll: { flex: 1 },
+  scroll: {
+    flex: 1,
+  },
   content: {
     paddingHorizontal: 20,
-    paddingBottom: 130,
+    paddingTop: 8,
+    paddingBottom: 40,
   },
-  quickRow: {
+  quickBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 8,
     marginBottom: 28,
   },
-  quickItem: {
-    alignItems: 'center',
-    gap: 6,
-    flex: 1,
-  },
-  quickIconWrap: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
+  quickPill: {
     backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.border,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 20,
   },
-  quickLabel: {
-    fontSize: 11,
-    color: C.muted,
-    fontWeight: '500',
+  quickPillPressed: {
+    backgroundColor: C.surfaceSoft,
+  },
+  quickPillText: {
+    fontSize: 13,
+    color: C.textSecondary,
+  },
+  sectionHeader: {
+    marginBottom: 12,
   },
   sectionLabel: {
-    fontSize: 11,
-    color: C.muted,
+    fontSize: 12,
     letterSpacing: 0.8,
+    color: C.textMuted,
     fontWeight: '600',
-    marginBottom: 12,
-    marginLeft: 4,
   },
-  cardItem: {
+  cardContainer: {
     backgroundColor: C.surface,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: C.border,
-    marginBottom: 16,
-    overflow: 'hidden',
-    flexDirection: 'row',
-  },
-  cardItemActive: {
-    borderColor: `${C.accent}44`,
-  },
-  cardAccentLine: {
-    width: 3,
-    backgroundColor: C.surfaceRaised,
-  },
-  cardAccentLineActive: {
-    backgroundColor: C.accent,
-  },
-  cardBody: {
-    flex: 1,
-    padding: 16,
+    borderRadius: 18,
+    padding: 20,
+    marginBottom: 14,
     gap: 12,
   },
-  cardTop: { gap: 4 },
-  cardTitleRow: {
+  cardPressed: {
+    backgroundColor: C.surfaceSoft,
+  },
+  cardHeaderRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8,
   },
   cardName: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: C.text,
+    fontSize: 18,
     letterSpacing: -0.3,
+    color: C.text,
   },
-  activeBadge: {
-    backgroundColor: `${C.accent}22`,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 99,
-  },
-  activeBadgeText: {
-    fontSize: 11,
+  activeTag: {
+    fontSize: 10,
+    letterSpacing: 1.5,
     color: C.accent,
-    fontWeight: '600',
+    fontWeight: '700',
+  },
+  setPrimaryBtn: {
+    fontSize: 13,
+    color: C.textSecondary,
   },
   cardRole: {
     fontSize: 13,
-    color: C.muted,
+    color: C.textMuted,
   },
-  statsRow: {
+  cardFooterRow: {
     flexDirection: 'row',
-    gap: 16,
-  },
-  statItem: {
-    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 4,
+    paddingTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: C.hairline,
   },
-  statText: {
+  cardStats: {
     fontSize: 12,
-    color: C.muted,
+    color: C.textMuted,
   },
-  actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    flexWrap: 'wrap',
-  },
-  chipBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 99,
-    backgroundColor: `${C.accent}1A`,
-    borderWidth: 1,
-    borderColor: `${C.accent}33`,
-  },
-  chipBtnGhost: {
-    backgroundColor: C.surfaceRaised,
-    borderColor: C.border,
-  },
-  chipBtnText: {
-    fontSize: 12,
-    color: C.accent,
-    fontWeight: '600',
-  },
-  deleteBtn: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255,69,58,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 'auto',
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 60,
-    gap: 8,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: C.text,
-    marginTop: 12,
-  },
-  emptySub: {
-    fontSize: 14,
-    color: C.muted,
-    textAlign: 'center',
-  },
-  emptyBtn: {
-    marginTop: 16,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 99,
-    backgroundColor: C.accent,
-  },
-  emptyBtnText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  shopBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  orderBanner: {
     backgroundColor: C.surface,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: C.border,
-    padding: 16,
-    marginTop: 8,
+    padding: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 14,
   },
-  shopLeft: { flex: 1 },
-  shopTitle: {
+  orderBannerPressed: {
+    backgroundColor: C.surfaceSoft,
+  },
+  orderBannerContent: {
+    gap: 3,
+    flex: 1,
+  },
+  orderBannerTitle: {
     fontSize: 15,
-    fontWeight: '600',
     color: C.text,
+    letterSpacing: -0.2,
   },
-  shopSub: {
+  orderBannerSub: {
     fontSize: 12,
-    color: C.muted,
-    marginTop: 2,
+    color: C.textMuted,
   },
 });
