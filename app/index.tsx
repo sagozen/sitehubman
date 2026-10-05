@@ -21,10 +21,5 @@ export default function IndexRoute() {
     return <HomeSkeleton />;
   }
 
-  // First-time mobile users → onboarding. Web previews load home page directly.
-  if (!onboardingDone && !user && Platform.OS !== 'web') {
-    return <Redirect href={'/onboarding' as any} />;
-  }
-
   return <Redirect href={user ? getDashboardRoute(user) : ('/(tabs)' as any)} />;
 }

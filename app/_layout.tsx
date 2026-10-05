@@ -15,6 +15,7 @@ import { analytics } from '@/src/utils/analytics';
 import { setupGlobalUnhandledErrorListeners } from '@/src/services/errorLoggingService';
 import { HomeSkeleton } from '@/src/components/HomeSkeleton';
 import { NetConnectionBanner } from '@/src/components/NetConnectionBanner';
+import { useNotificationRouting } from '@/src/hooks/useNotificationRouting';
 
 // ── Suppress noisy dev logs ───────────────────────────────────────────────────
 const originalLog = console.log;
@@ -61,8 +62,6 @@ console.warn = (...a: unknown[]) => {
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
-import { useNotificationRouting } from '@/src/hooks/useNotificationRouting';
-
 export default function RootLayout() {
   useNotificationRouting();
   const isReady = useCachedResources();
@@ -106,6 +105,7 @@ export default function RootLayout() {
                     }}
                   >
                     <Stack.Screen name="index" />
+                    <Stack.Screen name="onboarding" />
                     <Stack.Screen name="(auth)/login" />
                     <Stack.Screen name="(auth)/register" />
                     <Stack.Screen name="(tabs)" />

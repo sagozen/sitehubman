@@ -5,38 +5,66 @@
  * This module exposes the same async API shape so all callers need
  * zero changes. Internally uses synchronous MMKV reads.
  */
-import { MMKV } from 'react-native-mmkv';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const mmkv = new MMKV({ id: 'avio-main-store' });
+let mmkvInstance: any = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { MMKV } = require('react-native-mmkv');
+  mmkvInstance = new MMKV({ id: 'avio-main-store' });
+} catch (e) {
+  // Graceful fallback if native JSI MMKV is unavailable
+  mmkvInstance = null;
+}
+
+export const mmkv = mmkvInstance;
+
+const memoryStore = new Map<string, string>();
 
 /** AsyncStorage-compatible wrapper — drop-in replacement. */
 export const FastStorage = {
-  getItem: (key: string): Promise<string | null> => {
+  getItem: async (key: string): Promise<string | null> => {
     try {
-      return Promise.resolve(mmkv.getString(key) ?? null);
+      if (mmkvInstance) {
+        return mmkvInstance.getString(key) ?? null;
+      }
+      const memVal = memoryStore.get(key);
+      if (memVal !== undefined) return memVal;
+      const stored = await AsyncStorage.getItem(key);
+      if (stored !== null) memoryStore.set(key, stored);
+      return stored;
     } catch {
-      return Promise.resolve(null);
+      return null;
     }
   },
 
-  setItem: (key: string, value: string): Promise<void> => {
+  setItem: async (key: string, value: string): Promise<void> => {
     try {
-      mmkv.set(key, value);
+      memoryStore.set(key, value);
+      if (mmkvInstance) {
+        mmkvInstance.set(key, value);
+      }
+      await AsyncStorage.setItem(key, value);
     } catch {}
-    return Promise.resolve();
   },
 
-  removeItem: (key: string): Promise<void> => {
+  removeItem: async (key: string): Promise<void> => {
     try {
-      mmkv.delete(key);
+      memoryStore.delete(key);
+      if (mmkvInstance) {
+        mmkvInstance.delete(key);
+      }
+      await AsyncStorage.removeItem(key);
     } catch {}
-    return Promise.resolve();
   },
 
   /** Synchronous read — use where await is impractical. */
   getSync: (key: string): string | null => {
     try {
-      return mmkv.getString(key) ?? null;
+      if (mmkvInstance) {
+        return mmkvInstance.getString(key) ?? null;
+      }
+      return memoryStore.get(key) ?? null;
     } catch {
       return null;
     }
@@ -45,14 +73,21 @@ export const FastStorage = {
   /** Synchronous write. */
   setSync: (key: string, value: string): void => {
     try {
-      mmkv.set(key, value);
+      memoryStore.set(key, value);
+      if (mmkvInstance) {
+        mmkvInstance.set(key, value);
+      }
+      AsyncStorage.setItem(key, value).catch(() => {});
     } catch {}
   },
 
-  clear: (): Promise<void> => {
+  clear: async (): Promise<void> => {
     try {
-      mmkv.clearAll();
+      memoryStore.clear();
+      if (mmkvInstance) {
+        mmkvInstance.clearAll();
+      }
+      await AsyncStorage.clear();
     } catch {}
-    return Promise.resolve();
   },
 };
