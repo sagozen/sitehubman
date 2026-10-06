@@ -75,7 +75,11 @@ export function HomeScreen() {
   const handleLinkAction = useCallback(() => {
     HapticTap.softConfirmation();
     const profileUrl = `https://nfcglobal.com/u/theancoc`;
-    Clipboard.setString(profileUrl);
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(profileUrl).catch(() => null);
+    } else if (Clipboard && Clipboard.setString) {
+      Clipboard.setString(profileUrl);
+    }
     showToast('Profile link copied');
   }, [showToast]);
 

@@ -71,8 +71,8 @@ const STATUS_LABELS: Record<Order['status'], string> = {
 const ProductCard = React.memo(({ product }: { product: Product }) => {
   const handlePress = useCallback(() => {
     HapticTap.light();
-    router.push(`/shop/${product.id}` as any);
-  }, [product.id]);
+    router.push('/pricing' as any);
+  }, []);
 
   return (
     <Pressable
@@ -93,22 +93,29 @@ const ProductCard = React.memo(({ product }: { product: Product }) => {
 
 export default function OrdersTabScreen() {
   const { user } = useAuth();
+  const isRealUser = Boolean(user && !user.isGuest && user.id !== 'guest');
   
-  // Paginated orders query (replaces MOCK_ORDERS)
+  // Paginated orders query (replaces MOCK_ORDERS for signed-in customer)
   const ordersQuery = useMemo(() => {
-    if (!user?.id) return null;
+    if (!isRealUser || !user?.id) return null;
     return query(
       collection(db, 'orders'),
       where('userId', '==', user.id),
       orderBy('createdAt', 'desc'),
       limit(20)
     );
-  }, [user?.id]);
+  }, [isRealUser, user?.id]);
 
-  const [{ data: orders, loading, hasMore, isLoadingMore }, { loadMore, refresh }] =
+  const [{ data: pagedOrders, loading, hasMore, isLoadingMore }, { loadMore, refresh }] =
     useFirestorePagination<Order>(ordersQuery, { pageSize: 20 });
 
-  const hasOrders = useMemo(() => orders.length > 0, [orders.length]);
+  const orders = useMemo(() => {
+    if (isRealUser && pagedOrders.length > 0) return pagedOrders;
+    if (isRealUser && !loading) return [];
+    return MOCK_ORDERS;
+  }, [isRealUser, pagedOrders, loading]);
+
+  const hasOrders = orders.length > 0;
 
   // Memoized handlers
   const handleCartPress = useCallback(() => {
@@ -123,7 +130,7 @@ export default function OrdersTabScreen() {
 
   const handleOrderPress = useCallback((orderId: string) => {
     HapticTap.light();
-    router.push(`/orders/track/${orderId}` as any);
+    router.push(`/orders/detail/${orderId}` as any);
   }, []);
 
   const handleLoadMore = useCallback(() => {

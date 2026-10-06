@@ -43,14 +43,17 @@ export function useFirestorePagination<T = DocumentData>(
   const { pageSize = 20, autoLoad = true } = options;
 
   const [data, setData] = useState<T[]>([]);
-  const [loading, setLoading] = useState(autoLoad);
+  const [loading, setLoading] = useState(autoLoad && !!baseQuery);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
 
   const loadInitial = useCallback(async () => {
-    if (!baseQuery) return;
+    if (!baseQuery) {
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -68,8 +71,10 @@ export function useFirestorePagination<T = DocumentData>(
       setLastDoc(snapshot.docs[snapshot.docs.length - 1] || null);
       setHasMore(snapshot.docs.length === pageSize);
     } catch (err: any) {
-      console.error('[Pagination] Initial load failed', err);
-      setError(err.message || 'Failed to load data');
+      if (__DEV__) {
+        console.warn('[Pagination] Initial load notice:', err?.message);
+      }
+      setError(err?.message || 'Failed to load data');
     } finally {
       setLoading(false);
     }

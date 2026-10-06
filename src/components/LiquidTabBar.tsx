@@ -429,19 +429,21 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
   const blurTint     = isDark ? 'dark' : 'light';
 
   return (
-    <View style={[styles.floatingDockWrap, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+    <View pointerEvents="box-none" style={[styles.floatingDockWrap, { paddingBottom: Math.max(insets.bottom, 12) }]}>
       <View style={[styles.floatingDock, { borderColor: barBorder }]}>
         {/* Frosted glass background */}
         <BlurView
+          pointerEvents="none"
           intensity={isDark ? 60 : 72}
           tint={blurTint}
-          style={StyleSheet.absoluteFill}
+          style={[StyleSheet.absoluteFill, { pointerEvents: 'none' }]}
           experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : undefined}
         />
 
         {/* Sliding pill indicator */}
         <Animated.View
-          style={[styles.pillIndicator, pillStyle, { backgroundColor: isDark ? 'rgba(10,132,255,0.14)' : 'rgba(0,122,255,0.09)', pointerEvents: 'none' as any }]}
+          pointerEvents="none"
+          style={[styles.pillIndicator, pillStyle, { backgroundColor: isDark ? 'rgba(10,132,255,0.14)' : 'rgba(0,122,255,0.09)' }]}
         />
 
         {/* Tab items */}
