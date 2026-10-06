@@ -1,0 +1,122 @@
+# Artillery Load Testing Configuration
+# Test: 1000 concurrent users, 5-minute duration
+# Run: artillery run loadtest/artillery.yml
+
+config:
+  target: "https://nfcglobal.com"
+  phases:
+    # Warm-up phase: 0 → 100 users over 1 minute
+    - duration: 60
+      arrivalRate: 1
+      rampTo: 100
+      name: "Warm-up"
+    
+    # Ramp-up phase: 100 → 500 users over 2 minutes
+    - duration: 120
+      arrivalRate: 100
+      rampTo: 500
+      name: "Ramp-up"
+    
+    # Peak load: 1000 concurrent users for 5 minutes
+    - duration: 300
+      arrivalRate: 1000
+      name: "Peak load"
+    
+    # Cool-down: 1000 → 100 users over 1 minute
+    - duration: 60
+      arrivalRate: 1000
+      rampTo: 100
+      name: "Cool-down"
+  
+  # Performance thresholds
+  ensure:
+    maxErrorRate: 1  # Max 1% error rate
+    p95: 2000  # 95th percentile < 2s
+    p99: 5000  # 99th percentile < 5s
+  
+  # Request defaults
+  defaults:
+    headers:
+      User-Agent: "Artillery Load Test"
+      Accept: "application/json"
+
+  # Plugins
+  plugins:
+    expect: {}
+    metrics-by-endpoint: {}
+
+scenarios:
+  # Scenario 1: NFC Tap Flow
+  - name: "NFC Tap and Profile View"
+    weight: 40
+    flow:
+      - get:
+          url: "/v/{{ $randomString() }}"
+          expect:
+            - statusCode: 200
+            - contentType: text/html
+            - hasProperty: title
+      - think: 2
+      - get:
+          url: "/api/tap-event"
+          json:
+            cardId: "{{ $randomString() }}"
+            timestamp: "{{ $timestamp }}"
+          expect:
+            - statusCode: 200
+
+  # Scenario 2: Payment Flow
+  - name: "Create Payment Intent"
+    weight: 30
+    flow:
+      - post:
+          url: "https://us-central1-sitehubman-prod.cloudfunctions.net/createPaymentIntent"
+          json:
+            data:
+              amount: 4900
+              currency: "USD"
+              cardId: "card_{{ $randomString() }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: result.clientSecret
+      - think: 5
+      - get:
+          url: "/api/payment-status/{{ $randomString() }}"
+          expect:
+            - statusCode:
+                - 200
+                - 404  # Intent may not exist yet
+
+  # Scenario 3: Dashboard Load
+  - name: "Dashboard with Pagination"
+    weight: 20
+    flow:
+      - get:
+          url: "/api/orders?page=1&limit=20"
+          expect:
+            - statusCode: 200
+            - hasProperty: data
+      - think: 3
+      - get:
+          url: "/api/analytics/summary"
+          expect:
+            - statusCode: 200
+
+  # Scenario 4: Design Library
+  - name: "Browse Design Library"
+    weight: 10
+    flow:
+      - get:
+          url: "/api/designs?category=all&limit=20"
+          expect:
+            - statusCode: 200
+      - think: 2
+      - get:
+          url: "/api/designs/{{ $randomString() }}"
+          expect:
+            - statusCode:
+                - 200
+                - 404
+
+# Custom functions for dynamic data
+processor: "./loadtest/functions.js"
