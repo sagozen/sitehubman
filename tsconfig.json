@@ -23,6 +23,9 @@
     "node_modules/**",
     "dist/**",
     "supabase/**",
-    "scripts/**"
+    "scripts/**",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx"
   ]
 }
