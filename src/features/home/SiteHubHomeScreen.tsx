@@ -8,6 +8,7 @@ import {
   Share,
   StyleSheet,
   View,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -151,11 +152,11 @@ export function SiteHubHomeScreen() {
               <Pressable
                 onPress={() => router.push('/(tabs)/profile' as any)}
                 hitSlop={8}
-                style={styles.avatar}
               >
-                <AppText style={styles.avatarInitials} weight="bold">
-                  {ownerName.substring(0, 2).toUpperCase()}
-                </AppText>
+                <Image
+                  source={require('@/assets/images/avatars/avatar_founder_man.jpg')}
+                  style={styles.avatarImg}
+                />
               </Pressable>
               <View style={styles.profileInfo}>
                 <AppText style={styles.profileName} weight="bold">
@@ -479,17 +480,13 @@ const styles = StyleSheet.create({
     gap: 12,
     flex: 1,
   },
-  avatar: {
+  avatarImg: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#1C1C22',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarInitials: {
-    color: '#FFFFFF',
-    fontSize: 15,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: '#000000',
   },
   profileInfo: {
     flex: 1,

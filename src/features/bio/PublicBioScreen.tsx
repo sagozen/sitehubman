@@ -331,9 +331,10 @@ export function PublicBioScreen({ slug, cardId }: Props) {
               {bio.photoUrl ? (
                 <Image source={{ uri: bio.photoUrl }} style={styles.coverAvatarImg} />
               ) : (
-                <View style={styles.coverAvatarSeal}>
-                  <AppText style={styles.coverAvatarLetter} weight="extrabold">{initial}</AppText>
-                </View>
+                <Image
+                  source={require('@/assets/images/avatars/avatar_founder_man.jpg')}
+                  style={styles.coverAvatarImg}
+                />
               )}
               <View style={styles.verifiedBadge}>
                 <AppIcon name="Check" size={11} color="#000000" />

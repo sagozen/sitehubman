@@ -429,9 +429,10 @@ export function EditBioScreen() {
             {photoUrl ? (
               <Image source={{ uri: photoUrl }} style={styles.avatar} />
             ) : (
-              <View style={[styles.avatar, styles.avatarFallback]}>
-                <AppText style={styles.avatarInitial} weight="extrabold">{initial}</AppText>
-              </View>
+              <Image
+                source={require('@/assets/images/avatars/avatar_founder_man.jpg')}
+                style={styles.avatar}
+              />
             )}
             <View style={styles.avatarBadge}>
               <AppIcon name={isUploadingPhoto ? 'Loader' : 'Camera'} size={12} color="#000000" />

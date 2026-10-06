@@ -7,6 +7,7 @@ import {
   View,
   StyleSheet,
   Pressable,
+  Image,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -112,11 +113,10 @@ export default function MeTabScreen() {
               router.push('/account/settings' as any);
             }}
           >
-            <View style={styles.avatarCircle}>
-              <AppText style={styles.avatarInitial} weight="bold">
-                {initial}
-              </AppText>
-            </View>
+            <Image
+              source={require('@/assets/images/avatars/avatar_founder_man.jpg')}
+              style={styles.avatarImage}
+            />
             <View style={styles.profileTextWrap}>
               <AppText style={styles.profileName} weight="bold">
                 {userName}
@@ -214,20 +214,14 @@ const styles = StyleSheet.create({
   profileCardPressed: {
     backgroundColor: C.surfaceRaised,
   },
-  avatarCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#1E1E28',
-    borderWidth: 1,
-    borderColor: C.borderLight,
-    alignItems: 'center',
-    justifyContent: 'center',
+  avatarImage: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: '#000000',
     marginRight: 14,
-  },
-  avatarInitial: {
-    fontSize: 18,
-    color: C.text,
   },
   profileTextWrap: {
     flex: 1,

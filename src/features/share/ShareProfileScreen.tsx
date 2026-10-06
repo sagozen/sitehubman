@@ -7,6 +7,7 @@ import {
   View,
   StyleSheet,
   Pressable,
+  Image,
   Clipboard,
   Share,
 } from 'react-native';
@@ -120,11 +121,10 @@ export default function ShareProfileScreen() {
                 Your card is ready to share.
               </AppText>
             </View>
-            <View style={styles.avatarButton}>
-              <AppText style={styles.avatarInitial} weight="bold">
-                {userName.charAt(0).toUpperCase()}
-              </AppText>
-            </View>
+            <Image
+              source={require('@/assets/images/avatars/avatar_founder_man.jpg')}
+              style={styles.avatarButton}
+            />
           </View>
 
           {/* Hero Black Metal Card */}
@@ -144,12 +144,18 @@ export default function ShareProfileScreen() {
             </View>
 
             <View style={styles.cardBody}>
-              <AppText style={styles.cardOwnerName} weight="bold">
-                {userName.toUpperCase()}
-              </AppText>
-              <AppText style={styles.cardOwnerTitle}>
-                {userTitle}
-              </AppText>
+              <View style={styles.cardOwnerCol}>
+                <AppText style={styles.cardOwnerName} weight="bold">
+                  {userName.toUpperCase()}
+                </AppText>
+                <AppText style={styles.cardOwnerTitle}>
+                  {userTitle}
+                </AppText>
+              </View>
+              <Image
+                source={require('@/assets/images/avatars/avatar_founder_man.jpg')}
+                style={styles.cardAvatarPhoto}
+              />
             </View>
 
             <View style={styles.cardFooterRow}>
@@ -355,18 +361,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   avatarButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: C.surfaceRaised,
-    borderWidth: 1,
-    borderColor: C.borderLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarInitial: {
-    fontSize: 16,
-    color: C.text,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: '#000000',
   },
   cardWrapper: {
     backgroundColor: '#0D0D11',
@@ -411,6 +411,21 @@ const styles = StyleSheet.create({
   arc3: { width: 6, height: 18 },
   cardBody: {
     marginVertical: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  cardOwnerCol: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  cardAvatarPhoto: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: '#000000',
   },
   cardOwnerName: {
     fontSize: 20,

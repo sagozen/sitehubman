@@ -5,6 +5,7 @@ import {
   Pressable,
   TextInput,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -63,9 +64,10 @@ export default function AccountSettingsScreen() {
               onPress={handleChangePhoto}
               hitSlop={4}
             >
-              <View style={styles.avatar}>
-                <AppText style={styles.avatarInitial}>{initial}</AppText>
-              </View>
+              <Image
+                source={require('@/assets/images/avatars/avatar_founder_man.jpg')}
+                style={styles.avatar}
+              />
               <View style={styles.photoInfo}>
                 <AppText variant="body" style={styles.rowLabel}>Profile Photo</AppText>
                 <AppText variant="caption" muted>Change Photo</AppText>
@@ -183,11 +185,10 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: C.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: '#000000',
   },
-  avatarInitial: { fontSize: 20, fontWeight: '600', color: '#fff' },
   photoInfo: { flex: 1, gap: 2 },
   rowLabel: { color: C.text, fontSize: 15 },
   fieldRow: {

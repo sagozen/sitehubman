@@ -14,6 +14,7 @@ import {
   Share,
   StyleSheet,
   View,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -80,11 +81,10 @@ export default function WalletPassScreen({
 
             {/* Pass Body */}
             <View style={styles.passBody}>
-              <View style={styles.passAvatarSeal}>
-                <AppText style={styles.passAvatarLetter} weight="extrabold">
-                  {(displayName[0] || 'A').toUpperCase()}
-                </AppText>
-              </View>
+              <Image
+                source={require('@/assets/images/avatars/avatar_founder_man.jpg')}
+                style={styles.passAvatarImage}
+              />
               <View style={styles.passMeta}>
                 <AppText style={styles.passName} weight="extrabold" numberOfLines={1}>
                   {displayName}
@@ -252,17 +252,13 @@ const styles = StyleSheet.create({
     gap: 16,
     paddingVertical: 6,
   },
-  passAvatarSeal: {
+  passAvatarImage: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  passAvatarLetter: {
-    fontSize: 22,
-    color: '#000000',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: '#000000',
   },
   passMeta: {
     flex: 1,

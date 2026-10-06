@@ -14,6 +14,7 @@ import {
   View,
   StyleSheet,
   Pressable,
+  Image,
   Clipboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -109,11 +110,10 @@ export function HomeScreen() {
             onPress={() => router.push('/(tabs)/settings' as any)}
             hitSlop={12}
           >
-            <View style={styles.avatarCircle}>
-              <AppText style={styles.avatarInitial} weight="bold">
-                {userName.charAt(0).toUpperCase()}
-              </AppText>
-            </View>
+            <Image
+              source={require('@/assets/images/avatars/avatar_founder_man.jpg')}
+              style={styles.avatarCircle}
+            />
           </Pressable>
         </View>
 
@@ -134,12 +134,18 @@ export function HomeScreen() {
             </View>
 
             <View style={styles.cardBody}>
-              <AppText style={styles.cardOwnerName} weight="bold">
-                {userName.toUpperCase()}
-              </AppText>
-              <AppText style={styles.cardOwnerTitle}>
-                FOUNDER & DIRECTOR
-              </AppText>
+              <View style={styles.cardOwnerCol}>
+                <AppText style={styles.cardOwnerName} weight="bold">
+                  {userName.toUpperCase()}
+                </AppText>
+                <AppText style={styles.cardOwnerTitle}>
+                  FOUNDER & DIRECTOR
+                </AppText>
+              </View>
+              <Image
+                source={require('@/assets/images/avatars/avatar_founder_man.jpg')}
+                style={styles.cardAvatarPhoto}
+              />
             </View>
 
             <View style={styles.cardBottomRow}>
@@ -336,20 +342,16 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   avatarButton: {
-    borderRadius: 20,
+    borderRadius: 22,
     marginTop: 4,
   },
   avatarCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: C.surfaceSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarInitial: {
-    color: C.text,
-    fontSize: 14,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: '#000000',
   },
   cardWrapper: {
     alignItems: 'center',
@@ -394,11 +396,26 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   cardBody: {
-    marginVertical: 16,
+    marginVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  cardOwnerCol: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  cardAvatarPhoto: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: '#000000',
   },
   cardOwnerName: {
-    fontSize: 24,
-    letterSpacing: 1.5,
+    fontSize: 22,
+    letterSpacing: 1.2,
     color: C.text,
   },
   cardOwnerTitle: {

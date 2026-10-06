@@ -5,6 +5,7 @@ import {
   Pressable,
   Share,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -97,11 +98,10 @@ export default function ContactCardScreen() {
         {/* Preview Card */}
         <View style={styles.previewCard}>
           <View style={styles.cardTop}>
-            <View style={styles.cardAvatar}>
-              <AppText style={styles.cardAvatarInitial}>
-                {displayName.charAt(0).toUpperCase()}
-              </AppText>
-            </View>
+            <Image
+              source={require('@/assets/images/avatars/avatar_founder_man.jpg')}
+              style={styles.cardAvatar}
+            />
             <View style={styles.cardInfo}>
               <AppText style={styles.cardName}>{displayName}</AppText>
               <AppText variant="caption" muted>{jobTitle}</AppText>
@@ -188,11 +188,10 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: C.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: '#000000',
   },
-  cardAvatarInitial: { fontSize: 22, fontWeight: '700', color: '#fff' },
   cardInfo: { flex: 1, gap: 2 },
   cardName: { fontSize: 18, fontWeight: '700', color: C.text },
   cardDivider: { height: StyleSheet.hairlineWidth, backgroundColor: C.border },

@@ -21,6 +21,7 @@ import {
   Share,
   StyleSheet,
   View,
+  Image,
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { AppIcon } from '@/src/components/AppIcon';
@@ -150,12 +151,11 @@ export function NfcBeamModal({
         {/* Main Center Beacon Card */}
         <View style={styles.centerContainer}>
           <View style={styles.beaconCard}>
-            {/* Monogram Seal */}
-            <View style={styles.avatarSeal}>
-              <AppText style={styles.avatarLetter} weight="extrabold">
-                {(fullName[0] || 'A').toUpperCase()}
-              </AppText>
-            </View>
+            {/* Avatar Photo */}
+            <Image
+              source={require('@/assets/images/avatars/avatar_founder_man.jpg')}
+              style={styles.avatarPhoto}
+            />
 
             {/* Profile Info */}
             <View style={styles.nameBlock}>
@@ -312,17 +312,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
   },
-  avatarSeal: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarLetter: {
-    fontSize: 26,
-    color: '#000000',
+  avatarPhoto: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: '#000000',
   },
   nameBlock: {
     alignItems: 'center',

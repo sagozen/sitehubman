@@ -9,6 +9,7 @@ import {
   Pressable,
   Linking,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -47,6 +48,12 @@ export default function LeadDetailScreen() {
     time: 'Today, 09:42',
     notes: 'Interested in partnership. Send proposal.',
   };
+
+  const avatarImage = leadId.includes('sokha') || leadId.includes('srey')
+    ? require('@/assets/images/avatars/avatar_founder_woman.jpg')
+    : leadId.includes('daniel') || leadId.includes('chhay')
+    ? require('@/assets/images/avatars/avatar_founder_man.jpg')
+    : require('@/assets/images/avatars/avatar_executive_real.jpg');
 
   const initials = contact.name
     .split(' ')
@@ -122,11 +129,10 @@ export default function LeadDetailScreen() {
         <View style={styles.contentWrap}>
           {/* Contact Profile Banner Card */}
           <View style={styles.profileCard}>
-            <View style={styles.avatarCircle}>
-              <AppText style={styles.avatarInitials} weight="bold">
-                {initials}
-              </AppText>
-            </View>
+            <Image
+              source={avatarImage}
+              style={styles.avatarPhoto}
+            />
             <AppText style={styles.profileName} weight="bold">
               {contact.name}
             </AppText>
@@ -307,6 +313,15 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     paddingHorizontal: 16,
     alignItems: 'center',
+  },
+  avatarPhoto: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: '#000000',
+    marginBottom: 12,
   },
   avatarCircle: {
     width: 72,

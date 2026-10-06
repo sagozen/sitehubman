@@ -9,6 +9,7 @@ import {
   Pressable,
   TextInput,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -40,6 +41,7 @@ export interface ContactLead {
   timeAgo: string;
   category: 'all' | 'new' | 'followup';
   notes: string;
+  avatar?: any;
 }
 
 const DEFAULT_CONTACTS: ContactLead[] = [
@@ -54,6 +56,7 @@ const DEFAULT_CONTACTS: ContactLead[] = [
     timeAgo: '2h ago',
     category: 'new',
     notes: 'Interested in enterprise smart cards. Send proposal by Friday.',
+    avatar: require('@/assets/images/avatars/avatar_executive_real.jpg'),
   },
   {
     id: 'sokha-chan',
@@ -66,6 +69,7 @@ const DEFAULT_CONTACTS: ContactLead[] = [
     timeAgo: '5h ago',
     category: 'new',
     notes: 'Met at FinTech showcase. Follow up on custom branding.',
+    avatar: require('@/assets/images/avatars/avatar_founder_woman.jpg'),
   },
   {
     id: 'daniel-kim',
@@ -78,6 +82,7 @@ const DEFAULT_CONTACTS: ContactLead[] = [
     timeAgo: '1d ago',
     category: 'followup',
     notes: 'Requested developer API docs for CRM integration.',
+    avatar: require('@/assets/images/avatars/avatar_founder_man.jpg'),
   },
   {
     id: 'srey-pov',
@@ -90,6 +95,7 @@ const DEFAULT_CONTACTS: ContactLead[] = [
     timeAgo: '1d ago',
     category: 'new',
     notes: 'Exchanged contact via digital pass link.',
+    avatar: require('@/assets/images/avatars/avatar_founder_woman.jpg'),
   },
   {
     id: 'alex-turner',
@@ -102,6 +108,7 @@ const DEFAULT_CONTACTS: ContactLead[] = [
     timeAgo: '2d ago',
     category: 'new',
     notes: 'Interested in metal bulk cards for executive team.',
+    avatar: require('@/assets/images/avatars/avatar_executive_real.jpg'),
   },
   {
     id: 'chhay-vibol',
@@ -114,6 +121,7 @@ const DEFAULT_CONTACTS: ContactLead[] = [
     timeAgo: '3d ago',
     category: 'new',
     notes: 'Digital business cards rollout.',
+    avatar: require('@/assets/images/avatars/avatar_founder_man.jpg'),
   },
 ];
 
@@ -296,12 +304,16 @@ export default function LeadsScreen() {
                     ]}
                     onPress={() => handleSelectContact(contact)}
                   >
-                    {/* Avatar circle */}
-                    <View style={styles.avatarCircle}>
-                      <AppText style={styles.avatarInitials} weight="bold">
-                        {initials}
-                      </AppText>
-                    </View>
+                    {/* Avatar */}
+                    {contact.avatar ? (
+                      <Image source={contact.avatar} style={styles.contactAvatarImg} />
+                    ) : (
+                      <View style={styles.avatarCircle}>
+                        <AppText style={styles.avatarInitials} weight="bold">
+                          {initials}
+                        </AppText>
+                      </View>
+                    )}
 
                     {/* Details */}
                     <View style={styles.contactDetails}>
@@ -452,6 +464,15 @@ const styles = StyleSheet.create({
   },
   contactRowPressed: {
     backgroundColor: C.surfaceRaised,
+  },
+  contactAvatarImg: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: '#000000',
+    marginRight: 14,
   },
   avatarCircle: {
     width: 44,

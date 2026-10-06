@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Pressable,
   ScrollView,
+  Image,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -35,6 +36,8 @@ type Card = {
   nfcLinked: boolean;
   taps: number;
   active: boolean;
+  avatar: any;
+  cardStyle: string;
 };
 
 const MOCK_CARDS: Card[] = [
@@ -45,14 +48,28 @@ const MOCK_CARDS: Card[] = [
     nfcLinked: true,
     taps: 326,
     active: true,
+    avatar: require('@/assets/images/avatars/avatar_founder_man.jpg'),
+    cardStyle: 'BLACK METAL',
   },
   {
     id: '2',
     name: 'Personal Profile',
-    role: 'Creative Consultant',
+    role: 'Creative Consultant & Design',
     nfcLinked: false,
     taps: 48,
     active: false,
+    avatar: require('@/assets/images/avatars/avatar_founder_woman.jpg'),
+    cardStyle: 'MATTE WHITE',
+  },
+  {
+    id: '3',
+    name: 'Venture Partner',
+    role: 'Senior Partner · Global Fund',
+    nfcLinked: true,
+    taps: 112,
+    active: false,
+    avatar: require('@/assets/images/avatars/avatar_executive_real.jpg'),
+    cardStyle: 'TITANIUM',
   },
 ];
 
@@ -150,11 +167,21 @@ export default function CardsTabScreen() {
             ]}
           >
             <View style={styles.cardHeaderRow}>
-              <AppText style={styles.cardName} weight="bold">
-                {card.name}
-              </AppText>
+              <View style={styles.cardHeaderLeft}>
+                <Image source={card.avatar} style={styles.cardAvatar} />
+                <View style={styles.cardInfoCol}>
+                  <AppText style={styles.cardName} weight="bold">
+                    {card.name}
+                  </AppText>
+                  <AppText style={styles.cardRole}>
+                    {card.role}
+                  </AppText>
+                </View>
+              </View>
               {card.active ? (
-                <AppText style={styles.activeTag}>PRIMARY</AppText>
+                <View style={styles.activeTagBadge}>
+                  <AppText style={styles.activeTag}>PRIMARY</AppText>
+                </View>
               ) : (
                 <Pressable
                   onPress={(e) => handleSetActive(card.id, e)}
@@ -165,14 +192,14 @@ export default function CardsTabScreen() {
               )}
             </View>
 
-            <AppText style={styles.cardRole}>
-              {card.role}
-            </AppText>
-
             <View style={styles.cardFooterRow}>
-              <AppText style={styles.cardStats}>
-                {card.taps} taps · {card.nfcLinked ? 'NFC Linked' : 'Virtual only'}
-              </AppText>
+              <View style={styles.cardFooterLeft}>
+                <AppText style={styles.cardMaterialTag}>{card.cardStyle}</AppText>
+                <AppText style={styles.dotSeparator}>·</AppText>
+                <AppText style={styles.cardStats}>
+                  {card.taps} taps · {card.nfcLinked ? 'NFC Active' : 'Virtual'}
+                </AppText>
+              </View>
               <AppIcon name="chevron-right" size={16} color={C.textMuted} />
             </View>
           </Pressable>
@@ -286,10 +313,34 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  cardHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    flex: 1,
+  },
+  cardAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: '#000000',
+  },
+  cardInfoCol: {
+    flex: 1,
+    gap: 2,
+  },
   cardName: {
-    fontSize: 18,
+    fontSize: 17,
     letterSpacing: -0.3,
     color: C.text,
+  },
+  activeTagBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: 'rgba(37, 150, 190, 0.12)',
   },
   activeTag: {
     fontSize: 10,
@@ -302,16 +353,31 @@ const styles = StyleSheet.create({
     color: C.textSecondary,
   },
   cardRole: {
-    fontSize: 13,
+    fontSize: 12,
     color: C.textMuted,
   },
   cardFooterRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 4,
+    paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: C.hairline,
+  },
+  cardFooterLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  cardMaterialTag: {
+    fontSize: 10,
+    letterSpacing: 1,
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  dotSeparator: {
+    color: C.textMuted,
+    fontSize: 12,
   },
   cardStats: {
     fontSize: 12,
