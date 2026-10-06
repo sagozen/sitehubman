@@ -205,3 +205,25 @@ export function getRoleTheme(role?: UserRole | RoleThemeKey | null): RoleTheme {
   if (role === 'default') return theme.roles.default;
   return theme.roles.default;
 }
+
+/**
+ * Locked Luxury Minimalist Design Tokens (Apple Wallet × Stripe × Linear)
+ */
+export const T = {
+  black: '#000000',
+  surface: '#0E0E11',
+  surfaceRaised: '#141418',
+  textPrimary: '#FFFFFF',
+  textSecondary: '#A1A1AA',
+  textMuted: '#52525B',
+  accent: '#2596BE',
+  statusActive: '#FFFFFF',
+  statusInactive: '#52525B',
+  border: 'rgba(255,255,255,0.06)',
+  borderLight: 'rgba(255,255,255,0.08)',
+  fontSizeXL: 28,
+  fontSizeLG: 20,
+  fontSizeMD: 15,
+  fontSizeSM: 13,
+  fontSizeXS: 11,
+} as const;

@@ -40,7 +40,7 @@
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/icon.png",
       "name": "AVIO – Smart NFC Digital Business Cards",
       "shortName": "AVIO",

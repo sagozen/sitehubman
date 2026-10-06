@@ -8,11 +8,12 @@ import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
   canvas: '#000000',
-  surface: '#111114',
-  surfaceRaised: '#18181C',
-  border: 'rgba(255,255,255,0.09)',
-  text: '#F5F5F7',
-  muted: '#9A9AA0',
+  surface: '#0E0E11',
+  surfaceRaised: '#141418',
+  border: 'rgba(255,255,255,0.06)',
+  text: '#FFFFFF',
+  muted: '#A1A1AA',
+  textDim: '#52525B',
   accent: '#2596BE',
 };
 
@@ -62,10 +63,8 @@ export default function QrAnalyticsScreen() {
           <AppIcon name="maximize" size={20} color={C.accent} />
           <AppText style={styles.heroNumber}>48</AppText>
           <AppText style={styles.heroLabel}>QR Scans</AppText>
-          <View style={styles.heroBadge}>
-            <AppIcon name="trending-up" size={12} color="#30D158" />
-            <AppText style={styles.heroBadgeText}>+12% vs last week</AppText>
-          </View>
+          {/* Trend — plain muted text, no colored badge */}
+          <AppText style={styles.heroTrend}>↑ +12% vs last week</AppText>
         </View>
 
         {/* Bar Chart */}
@@ -99,9 +98,8 @@ export default function QrAnalyticsScreen() {
           {RECENT_SCANS.map((scan, index) => (
             <View key={scan.id}>
               <View style={styles.scanRow}>
-                <View style={styles.scanIconWrap}>
-                  <AppIcon name="smartphone" size={15} color={C.accent} />
-                </View>
+                {/* Plain icon — no colored bubble background */}
+                <AppIcon name="smartphone" size={16} color={C.muted} />
                 <View style={styles.scanText}>
                   <AppText style={styles.scanDevice}>{scan.device}</AppText>
                   <AppText style={styles.scanLocation}>{scan.location}</AppText>
@@ -143,7 +141,6 @@ const styles = StyleSheet.create({
   heroCard: {
     backgroundColor: C.surface,
     borderRadius: 20,
-    borderWidth: 1,
     borderColor: C.border,
     alignItems: 'center',
     paddingVertical: 32,
@@ -162,20 +159,11 @@ const styles = StyleSheet.create({
     color: C.muted,
     fontWeight: '500',
   },
-  heroBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(48,209,88,0.1)',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    marginTop: 8,
-  },
-  heroBadgeText: {
+  heroTrend: {
     fontSize: 12,
-    color: '#30D158',
-    fontWeight: '600',
+    color: C.muted,
+    fontWeight: '500',
+    marginTop: 8,
   },
   sectionLabel: {
     fontSize: 11,
@@ -188,7 +176,6 @@ const styles = StyleSheet.create({
   chartCard: {
     backgroundColor: C.surface,
     borderRadius: 16,
-    borderWidth: 1,
     borderColor: C.border,
     padding: 20,
     marginBottom: 28,
@@ -231,7 +218,6 @@ const styles = StyleSheet.create({
   group: {
     backgroundColor: C.surface,
     borderRadius: 16,
-    borderWidth: 1,
     borderColor: C.border,
     paddingHorizontal: 16,
     marginBottom: 28,
@@ -242,14 +228,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     gap: 12,
-  },
-  scanIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: C.surfaceRaised,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   scanText: { flex: 1 },
   scanDevice: {
@@ -269,6 +247,6 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: C.border,
-    marginLeft: 44,
+    marginLeft: 28,
   },
 });

@@ -1,1 +1,5 @@
-export { default } from '@/src/features/share/ShareProfileScreen';
+import { Redirect } from 'expo-router';
+
+export default function ShareProfileRoute() {
+  return <Redirect href="/(tabs)/share" />;
+}

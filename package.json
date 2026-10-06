@@ -11,8 +11,8 @@
     "start": "cross-env NODE_OPTIONS=--max-old-space-size=16384 expo start --lan",
     "start:clear": "cross-env NODE_OPTIONS=--max-old-space-size=16384 expo start -c --lan",
     "start:localhost": "cross-env NODE_OPTIONS=--max-old-space-size=16384 expo start -c --localhost",
-    "start:web": "cross-env NODE_OPTIONS=--max-old-space-size=16384 expo start --web --port 8081",
-    "start:web:clear": "cross-env NODE_OPTIONS=--max-old-space-size=16384 expo start -c --web --port 8081",
+    "start:web": "cross-env NODE_OPTIONS=\"--max-old-space-size=16384 -r ./scripts/patch-fs.js\" expo start --web --port 8081",
+    "start:web:clear": "cross-env NODE_OPTIONS=\"--max-old-space-size=16384 -r ./scripts/patch-fs.js\" expo start -c --web --port 8081",
     "start:tunnel": "npx expo start --tunnel",
     "dev": "cross-env NODE_OPTIONS=--max-old-space-size=16384 expo start",
     "android": "cross-env NODE_OPTIONS=--max-old-space-size=16384 expo start --android",
@@ -132,6 +132,7 @@
     "react-native-worklets": "0.10.1",
     "react-zlib-js": "^2.1.0",
     "typescript": "~6.0.3",
+    "use-debounce": "^10.1.1",
     "whatwg-fetch": "^3.6.20"
   },
   "devDependencies": {

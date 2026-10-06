@@ -8,11 +8,12 @@ import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
   canvas: '#000000',
-  surface: '#111114',
-  surfaceRaised: '#18181C',
-  border: 'rgba(255,255,255,0.09)',
-  text: '#F5F5F7',
-  muted: '#9A9AA0',
+  surface: '#0E0E11',
+  surfaceRaised: '#141418',
+  border: 'rgba(255,255,255,0.06)',
+  text: '#FFFFFF',
+  muted: '#A1A1AA',
+  textDim: '#52525B',
   accent: '#2596BE',
 };
 
@@ -22,7 +23,7 @@ type BarRowProps = {
   color?: string;
 };
 
-const HorizBar: React.FC<BarRowProps> = ({ label, pct, color = C.accent }) => (
+const HorizBar: React.FC<BarRowProps> = ({ label, pct, color = '#FFFFFF' }) => (
   <View style={barStyles.row}>
     <AppText style={barStyles.label}>{label}</AppText>
     <View style={barStyles.track}>
@@ -41,7 +42,7 @@ const barStyles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
-    color: '#F5F5F7',
+    color: '#FFFFFF',
     width: 88,
   },
   track: {
@@ -57,16 +58,16 @@ const barStyles = StyleSheet.create({
   },
   pct: {
     fontSize: 13,
-    color: '#9A9AA0',
+    color: '#A1A1AA',
     width: 36,
     textAlign: 'right',
   },
 });
 
 const DEVICES = [
-  { label: 'iPhone', pct: 58, color: C.accent },
-  { label: 'Android', pct: 32, color: '#30D158' },
-  { label: 'Desktop', pct: 10, color: '#BF5AF2' },
+  { label: 'iPhone', pct: 58, color: '#FFFFFF' },
+  { label: 'Android', pct: 32, color: '#A1A1AA' },
+  { label: 'Desktop', pct: 10, color: '#52525B' },
 ];
 
 const COUNTRIES = [
@@ -78,16 +79,16 @@ const COUNTRIES = [
 ];
 
 const TIME_OF_VISIT = [
-  { label: 'Morning', pct: 35, color: '#FFD60A' },
-  { label: 'Afternoon', pct: 42, color: C.accent },
-  { label: 'Evening', pct: 23, color: '#BF5AF2' },
+  { label: 'Morning', pct: 35, color: '#FFFFFF' },
+  { label: 'Afternoon', pct: 42, color: '#A1A1AA' },
+  { label: 'Evening', pct: 23, color: '#52525B' },
 ];
 
 const TRAFFIC_SOURCES = [
-  { label: 'NFC Tap', pct: 42, color: C.accent, icon: 'zap' as const },
-  { label: 'QR Scan', pct: 28, color: '#30D158', icon: 'maximize' as const },
-  { label: 'Direct', pct: 18, color: '#FFD60A', icon: 'link' as const },
-  { label: 'Social', pct: 12, color: '#BF5AF2', icon: 'share-2' as const },
+  { label: 'NFC Tap', pct: 42, color: '#FFFFFF', icon: 'zap' as const },
+  { label: 'QR Scan', pct: 28, color: '#A1A1AA', icon: 'maximize' as const },
+  { label: 'Direct', pct: 18, color: '#71717A', icon: 'link' as const },
+  { label: 'Social', pct: 12, color: '#3F3F46', icon: 'share-2' as const },
 ];
 
 export default function AudienceScreen() {
@@ -160,8 +161,8 @@ export default function AudienceScreen() {
         <View style={styles.trafficGrid}>
           {TRAFFIC_SOURCES.map((src) => (
             <View key={src.label} style={styles.trafficCard}>
-              <View style={[styles.trafficIconWrap, { backgroundColor: `${src.color}1A` }]}>
-                <AppIcon name={src.icon} size={18} color={src.color} />
+              <View style={styles.trafficIconWrap}>
+                <AppIcon name={src.icon} size={18} color="#FFFFFF" />
               </View>
               <AppText style={styles.trafficPct}>{src.pct}%</AppText>
               <AppText style={styles.trafficLabel}>{src.label}</AppText>
@@ -246,7 +247,7 @@ const styles = StyleSheet.create({
   },
   countryBarFill: {
     height: '100%',
-    backgroundColor: C.accent,
+    backgroundColor: '#FFFFFF',
     borderRadius: 99,
   },
   countryPct: {
@@ -273,6 +274,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 10,

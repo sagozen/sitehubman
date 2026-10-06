@@ -11,7 +11,7 @@
  *   6. resetCache on EMFILE via the FileStore patch
  */
 
-// ── 1. graceful-fs: patches Node's fs module to retry on EMFILE ──────────────
+require('./scripts/patch-fs.js');
 const fs = require('fs');
 const util = require('util');
 let gracefulFs;

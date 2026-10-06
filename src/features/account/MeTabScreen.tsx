@@ -1,6 +1,6 @@
 /**
- * MeTabScreen — 09 Account & Settings
- * Luxury Minimalist (Apple Wallet × Stripe × Linear)
+ * MeTabScreen — Screen 6: Settings / More ("Manage your account & card")
+ * Luxury Minimalist (Apple Wallet × Stripe × Linear · Black Granite UI)
  */
 import React, { useCallback } from 'react';
 import {
@@ -16,21 +16,23 @@ import { AppIcon } from '@/src/components/AppIcon';
 import type { AppIconName } from '@/src/components/AppIcon';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useAuth } from '@/src/hooks/useAuth';
+import { useBioPage } from '@/src/hooks/useBioPage';
 import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
-  canvas: '#000000',
-  surface: '#0E0E11',
-  surfaceSoft: '#141418',
-  hairline: 'rgba(255, 255, 255, 0.06)',
+  canvas: '#08080A',
+  surface: '#111115',
+  surfaceRaised: '#16161C',
+  border: 'rgba(255, 255, 255, 0.08)',
+  borderLight: 'rgba(255, 255, 255, 0.14)',
   text: '#FFFFFF',
   textSecondary: '#A1A1AA',
-  textMuted: '#52525B',
+  textMuted: '#636366',
   accent: '#2596BE',
-  danger: '#EF4444',
+  danger: '#FF453A',
 } as const;
 
-interface MenuRow {
+interface MoreItem {
   icon: AppIconName;
   label: string;
   route?: string;
@@ -38,25 +40,21 @@ interface MenuRow {
   onPress?: () => void;
 }
 
-interface MenuSection {
-  title: string;
-  rows: MenuRow[];
-}
-
 export default function MeTabScreen() {
   const router = useRouter();
   const { user, signOutUser } = useAuth();
+  const { bioPage } = useBioPage(user?.id ?? '');
 
-  const displayName = user?.displayName ?? 'Thean Coc';
-  const email = user?.email ?? 'thean@metfone.com.kh';
-  const initial = displayName.charAt(0).toUpperCase();
+  const userName = bioPage?.displayName || user?.displayName || 'Thean Coc';
+  const userEmail = user?.email || 'thean@company.com';
+  const initial = userName.charAt(0).toUpperCase();
 
   const handleSignOut = useCallback(() => {
     HapticTap.heavy();
-    Alert.alert('Sign Out', 'Sign out of your account on this device?', [
+    Alert.alert('Log Out', 'Are you sure you want to log out of SiteHub?', [
       { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Sign Out',
+        text: 'Log Out',
         style: 'destructive',
         onPress: () => {
           signOutUser().catch(() => null);
@@ -65,107 +63,116 @@ export default function MeTabScreen() {
     ]);
   }, [signOutUser]);
 
-  const sections: MenuSection[] = [
+  const MENU_ITEMS: MoreItem[] = [
+    { icon: 'credit-card', label: 'Card Settings', route: '/cards/settings' },
+    { icon: 'wifi', label: 'NFC Settings', route: '/nfc/settings' },
+    { icon: 'qr-code', label: 'QR Code', route: '/qr-generator' },
+    { icon: 'users', label: 'Contacts & CRM', route: '/leads' },
+    { icon: 'trending-up', label: 'Analytics', route: '/analytics' },
     {
-      title: 'ACCOUNT',
-      rows: [
-        { icon: 'User', label: 'Profile', route: '/account/settings' },
-        { icon: 'Bell', label: 'Notifications', route: '/account/notifications' },
-        { icon: 'ShieldCheck', label: 'Security & 2FA', route: '/account/security' },
-        { icon: 'Trash2', label: 'Delete Account', route: '/account/delete-account', danger: true },
-      ],
+      icon: 'briefcase',
+      label: 'Team',
+      onPress: () => {
+        Alert.alert('Team Workspace', 'Team collaboration is active on your enterprise profile.');
+      },
     },
-    {
-      title: 'HARDWARE & BILLING',
-      rows: [
-        { icon: 'CreditCard', label: 'Subscription Plan', route: '/account/subscription' },
-        { icon: 'Package', label: 'Physical Orders', route: '/orders/track' },
-      ],
-    },
-    {
-      title: 'SUPPORT',
-      rows: [
-        { icon: 'Info', label: 'Help Center', route: '/help' },
-        { icon: 'Check', label: 'About SiteHub', route: '/account/about' },
-      ],
-    },
+    { icon: 'shield', label: 'Billing & Subscriptions', route: '/account/subscription' },
+    { icon: 'help-circle', label: 'Help & Support', route: '/help' },
+    { icon: 'log-out', label: 'Log Out', danger: true, onPress: handleSignOut },
   ];
 
-  const handleRow = useCallback(
-    (row: MenuRow) => {
-      HapticTap.light();
-      if (row.onPress) {
-        row.onPress();
-      } else if (row.route) {
-        router.push(row.route as any);
-      }
-    },
-    [router]
-  );
+  const handleRowPress = useCallback((item: MoreItem) => {
+    HapticTap.light();
+    if (item.onPress) {
+      item.onPress();
+    } else if (item.route) {
+      router.push(item.route as any);
+    }
+  }, [router]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <IosScrollView contentContainerStyle={styles.content}>
-        {/* Header Profile Identity */}
-        <View style={styles.header}>
-          <View style={styles.avatar}>
-            <AppText style={styles.avatarInitial} weight="bold">{initial}</AppText>
-          </View>
-          <View style={styles.headerInfo}>
-            <AppText style={styles.userName} weight="bold">{displayName}</AppText>
-            <AppText style={styles.userEmail}>{email}</AppText>
-          </View>
-        </View>
+      {/* Header */}
+      <View style={styles.header}>
+        <AppText style={styles.headerTitle} weight="bold">
+          More
+        </AppText>
+      </View>
 
-        {/* Plan Banner — Clean, Minimal */}
-        <Pressable
-          style={styles.planCard}
-          onPress={() => { HapticTap.light(); router.push('/account/subscription' as any); }}
-        >
-          <View>
-            <AppText style={styles.planTitle} weight="medium">PRO MEMBER</AppText>
-            <AppText style={styles.planSub}>Unlimited cards & NFC direct routing</AppText>
-          </View>
-          <AppIcon name="chevron-right" size={16} color={C.textSecondary} />
-        </Pressable>
-
-        {/* Grouped Sections */}
-        {sections.map((section) => (
-          <View key={section.title} style={styles.section}>
-            <AppText style={styles.sectionTitle}>
-              {section.title}
-            </AppText>
-            <View style={styles.sectionCard}>
-              {section.rows.map((row, idx) => (
-                <React.Fragment key={row.label}>
-                  <Pressable
-                    style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-                    onPress={() => handleRow(row)}
-                  >
-                    <AppText
-                      style={[styles.rowLabel, row.danger && styles.dangerLabel]}
-                      weight={row.danger ? 'medium' : 'regular'}
-                    >
-                      {row.label}
-                    </AppText>
-                    <AppIcon name="chevron-right" size={16} color={C.textMuted} />
-                  </Pressable>
-                  {idx < section.rows.length - 1 && <View style={styles.divider} />}
-                </React.Fragment>
-              ))}
+      <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <View style={styles.contentWrap}>
+          {/* User Profile Card */}
+          <Pressable
+            style={({ pressed }) => [
+              styles.profileCard,
+              pressed && styles.profileCardPressed,
+            ]}
+            onPress={() => {
+              HapticTap.light();
+              router.push('/account/settings' as any);
+            }}
+          >
+            <View style={styles.avatarCircle}>
+              <AppText style={styles.avatarInitial} weight="bold">
+                {initial}
+              </AppText>
             </View>
+            <View style={styles.profileTextWrap}>
+              <AppText style={styles.profileName} weight="bold">
+                {userName}
+              </AppText>
+              <AppText style={styles.profileEmail}>
+                {userEmail}
+              </AppText>
+            </View>
+            <AppIcon name="chevron-right" size={16} color={C.textMuted} />
+          </Pressable>
+
+          {/* Menu Items List */}
+          <View style={styles.menuBox}>
+            {MENU_ITEMS.map((item, index) => (
+              <React.Fragment key={item.label}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.menuRow,
+                    pressed && styles.menuRowPressed,
+                  ]}
+                  onPress={() => handleRowPress(item)}
+                >
+                  <View style={styles.menuLeft}>
+                    <View style={styles.menuIconCircle}>
+                      <AppIcon
+                        name={item.icon}
+                        size={17}
+                        color={item.danger ? C.danger : C.textSecondary}
+                        style={item.icon === 'wifi' ? { transform: [{ rotate: '90deg' }] } : undefined}
+                      />
+                    </View>
+                    <AppText
+                      style={[
+                        styles.menuLabel,
+                        item.danger && styles.menuLabelDanger,
+                      ]}
+                      weight={item.danger ? 'medium' : undefined}
+                    >
+                      {item.label}
+                    </AppText>
+                  </View>
+
+                  {!item.danger && (
+                    <AppIcon name="chevron-right" size={16} color={C.textMuted} />
+                  )}
+                </Pressable>
+
+                {index < MENU_ITEMS.length - 1 && (
+                  <View style={styles.rowDivider} />
+                )}
+              </React.Fragment>
+            ))}
           </View>
-        ))}
 
-        {/* Sign Out */}
-        <Pressable
-          style={({ pressed }) => [styles.signOutBtn, pressed && styles.rowPressed]}
-          onPress={handleSignOut}
-        >
-          <AppText style={styles.signOutText} weight="medium">Sign Out</AppText>
-        </Pressable>
-
-        <View style={{ height: 60 }} />
+          <View style={{ height: 110 }} />
+        </View>
       </IosScrollView>
     </SafeAreaView>
   );
@@ -176,109 +183,104 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: C.canvas,
   },
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 40,
-    gap: 24,
-  },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
+    paddingHorizontal: 20,
     paddingVertical: 14,
   },
-  avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: C.surfaceSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarInitial: {
-    fontSize: 20,
+  headerTitle: {
+    fontSize: 26,
     color: C.text,
+    letterSpacing: -0.5,
   },
-  headerInfo: {
-    flex: 1,
-    gap: 3,
+  scroll: {
+    flexGrow: 1,
   },
-  userName: {
-    fontSize: 22,
-    letterSpacing: -0.4,
-    color: C.text,
+  contentWrap: {
+    paddingHorizontal: 20,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
   },
-  userEmail: {
-    fontSize: 13,
-    color: C.textSecondary,
-  },
-  planCard: {
-    backgroundColor: C.surface,
-    borderRadius: 16,
-    padding: 18,
+  profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    backgroundColor: C.surface,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: C.border,
+    padding: 16,
+    marginBottom: 18,
   },
-  planTitle: {
-    fontSize: 11,
-    letterSpacing: 1.5,
-    color: C.accent,
+  profileCardPressed: {
+    backgroundColor: C.surfaceRaised,
   },
-  planSub: {
+  avatarCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#1E1E28',
+    borderWidth: 1,
+    borderColor: C.borderLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  avatarInitial: {
+    fontSize: 18,
+    color: C.text,
+  },
+  profileTextWrap: {
+    flex: 1,
+  },
+  profileName: {
+    fontSize: 16,
+    color: C.text,
+  },
+  profileEmail: {
     fontSize: 13,
     color: C.textSecondary,
     marginTop: 2,
   },
-  section: {
-    gap: 10,
-  },
-  sectionTitle: {
-    fontSize: 11,
-    letterSpacing: 0.8,
-    color: C.textMuted,
-    fontWeight: '600',
-    marginLeft: 4,
-  },
-  sectionCard: {
+  menuBox: {
     backgroundColor: C.surface,
-    borderRadius: 16,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: C.border,
     overflow: 'hidden',
   },
-  row: {
+  menuRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingVertical: 16,
+    paddingVertical: 15,
+    paddingHorizontal: 16,
   },
-  rowPressed: {
-    backgroundColor: C.surfaceSoft,
+  menuRowPressed: {
+    backgroundColor: C.surfaceRaised,
   },
-  rowLabel: {
-    color: C.text,
-    fontSize: 15,
-    letterSpacing: -0.2,
+  menuLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  dangerLabel: {
-    color: C.danger,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: C.hairline,
-    marginLeft: 18,
-  },
-  signOutBtn: {
-    backgroundColor: C.surface,
-    borderRadius: 16,
-    paddingVertical: 16,
+  menuIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 6,
   },
-  signOutText: {
+  menuLabel: {
     fontSize: 15,
+    color: C.text,
+  },
+  menuLabelDanger: {
     color: C.danger,
+  },
+  rowDivider: {
+    height: 1,
+    backgroundColor: C.border,
+    marginLeft: 60,
   },
 });

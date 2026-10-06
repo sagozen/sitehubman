@@ -90,7 +90,7 @@ export default function InstantCardActivationRoute() {
           {activated ? (
             <View style={styles.cardBox}>
               <View style={styles.badgeSuccess}>
-                <AppIcon name="CheckCircle" size={48} color="#0066FF" />
+                <AppIcon name="CheckCircle" size={48} color="#FFFFFF" />
               </View>
               <AppText style={styles.title}>Card Activated!</AppText>
               <AppText style={styles.sub}>
@@ -114,7 +114,7 @@ export default function InstantCardActivationRoute() {
           ) : (
             <View style={styles.cardBox}>
               <View style={styles.nfcIconHeader}>
-                <AppIcon name="Radio" size={32} color="#0066FF" />
+                <AppIcon name="Radio" size={32} color="#FFFFFF" />
               </View>
 
               <AppText style={styles.title}>Claim Your AVIO Card</AppText>
@@ -218,9 +218,9 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: 'rgba(0, 102, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     borderWidth: 1,
-    borderColor: 'rgba(0, 102, 255, 0.25)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,

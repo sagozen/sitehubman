@@ -16,14 +16,14 @@ import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
   canvas: '#000000',
-  surface: '#111114',
-  surfaceRaised: '#18181C',
-  border: 'rgba(255,255,255,0.09)',
-  text: '#F5F5F7',
-  muted: '#9A9AA0',
+  surface: '#0E0E11',
+  surfaceRaised: '#141418',
+  border: 'rgba(255,255,255,0.06)',
+  text: '#FFFFFF',
+  muted: '#A1A1AA',
+  textDim: '#52525B',
   accent: '#2596BE',
   danger: '#FF453A',
-  success: '#30D158',
 };
 
 type RowProps = {
@@ -54,9 +54,8 @@ const SettingsRow: React.FC<RowProps> = ({
     hitSlop={4}
   >
     <View style={styles.rowLeft}>
-      <View style={[styles.iconWrap, danger && styles.iconWrapDanger]}>
-        <AppIcon name={icon} size={17} color={danger ? C.danger : C.accent} />
-      </View>
+      {/* Plain icon — no colored bubble */}
+      <AppIcon name={icon} size={17} color={danger ? C.danger : C.muted} />
       <View style={styles.rowText}>
         <AppText style={[styles.rowLabel, danger && { color: C.danger }]}>
           {label}
@@ -67,7 +66,7 @@ const SettingsRow: React.FC<RowProps> = ({
       </View>
     </View>
     {rightSlot ?? (
-      onPress ? <AppIcon name="chevron-right" size={16} color={C.muted} /> : null
+      onPress ? <AppIcon name="chevron-right" size={16} color={C.textDim} /> : null
     )}
     {!hideDivider && <View style={styles.divider} />}
   </Pressable>
@@ -209,25 +208,21 @@ export default function SecurityScreen() {
         <AppText style={styles.sectionLabel}>DEVICES</AppText>
         <View style={styles.group}>
           <View style={styles.deviceRow}>
-            <View style={styles.iconWrap}>
-              <AppIcon name="smartphone" size={17} color={C.accent} />
-            </View>
+            {/* Plain icon, no colored bubble */}
+            <AppIcon name="smartphone" size={17} color={C.muted} />
             <View style={styles.deviceText}>
               <AppText style={styles.rowLabel}>iPhone 15 Pro</AppText>
+              {/* Muted text replaces green status dot */}
               <AppText style={styles.rowSub}>This device · Active now</AppText>
             </View>
-            <View style={[styles.activeDot, { backgroundColor: C.success }]} />
             <View style={styles.divider} />
           </View>
           <View style={styles.deviceRow}>
-            <View style={styles.iconWrap}>
-              <AppIcon name="monitor" size={17} color={C.muted} />
-            </View>
+            <AppIcon name="monitor" size={17} color={C.muted} />
             <View style={styles.deviceText}>
               <AppText style={styles.rowLabel}>MacBook Pro</AppText>
               <AppText style={styles.rowSub}>Safari · 2 hours ago</AppText>
             </View>
-            <View style={[styles.activeDot, { backgroundColor: C.muted }]} />
           </View>
         </View>
 
@@ -287,8 +282,7 @@ const styles = StyleSheet.create({
   group: {
     backgroundColor: C.surface,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: C.border,
+    // No borderWidth — removed heavy border clutter
     paddingHorizontal: 16,
     marginBottom: 28,
     overflow: 'hidden',
@@ -306,17 +300,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  iconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: C.surfaceRaised,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconWrapDanger: {
-    backgroundColor: 'rgba(255,69,58,0.12)',
-  },
   rowText: { flex: 1 },
   rowLabel: {
     fontSize: 15,
@@ -333,7 +316,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 44,
     right: 0,
-    height: 1,
+    height: StyleSheet.hairlineWidth,
     backgroundColor: C.border,
   },
   deviceRow: {
@@ -343,9 +326,4 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   deviceText: { flex: 1 },
-  activeDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
 });

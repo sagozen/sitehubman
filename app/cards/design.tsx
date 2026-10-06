@@ -1,5 +1,5 @@
-import { GuestDesignScreen } from '@/src/features/guest/GuestDesignScreen';
+import { CardEditorScreen } from '@/src/features/cards/CardEditorScreen';
 
 export default function GuestDesignRoute() {
-  return <GuestDesignScreen />;
+  return <CardEditorScreen />;
 }

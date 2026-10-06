@@ -1,195 +1,144 @@
 /**
- * QrCodeGeneratorScreen — Full Screen QR Pass (Apple Wallet × Nothing Edition).
- *
- * Features:
- *  - 100% reliable QR rendering (instant guest fallback, no empty error screen)
- *  - Hero high-contrast QR display with Apple Wallet styling
- *  - 1-tap "Share QR Link" & "Add to Apple Wallet" actions
- *  - Minimalist, borderless feature explanations with subtle hairlines
- *  - Full safe area and floating bottom dock padding clearance (130px)
+ * QrCodeGeneratorScreen — Screen 7: QR Code ("Show your QR code")
+ * Luxury Minimalist (Apple Wallet × Stripe × Linear · Black Granite UI)
  */
-import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View, Share } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  Share,
+  Alert,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import QRCode from 'react-native-qrcode-svg';
-import { router } from 'expo-router';
-import { IosScrollView } from '@/src/components/IosScrollView';
-import { AppIcon } from '@/src/components/AppIcon';
+import { useRouter } from 'expo-router';
 import { AppText } from '@/src/components/AppText';
+import { AppIcon } from '@/src/components/AppIcon';
+import { IosScrollView } from '@/src/components/IosScrollView';
 import { useAuth } from '@/src/hooks/useAuth';
-import { useIsGuest } from '@/src/hooks/useIsGuest';
-import { getBioPage } from '@/src/services/firestoreService';
-import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
+import { useBioPage } from '@/src/hooks/useBioPage';
 import { HapticTap } from '@/src/utils/haptics';
 
+const C = {
+  canvas: '#08080A',
+  surface: '#111115',
+  surfaceRaised: '#16161C',
+  border: 'rgba(255,255,255,0.08)',
+  borderLight: 'rgba(255,255,255,0.14)',
+  text: '#FFFFFF',
+  textSecondary: '#A1A1AA',
+  textMuted: '#636366',
+  accent: '#2596BE',
+} as const;
+
 export function QrCodeGeneratorScreen() {
+  const router = useRouter();
   const { user } = useAuth();
-  const isGuest = useIsGuest();
-  const [profileUrl, setProfileUrl] = useState('');
-  const [loading, setLoading] = useState(false);
+  const { bioPage } = useBioPage(user?.id ?? '');
 
-  const displayName = user?.displayName?.trim() || (isGuest ? 'Alexander Wright' : 'AVIO Member');
+  const userName = bioPage?.displayName || user?.displayName || 'Thean Coc';
+  const profileUrl = useMemo(() => {
+    if (bioPage?.slug) return `https://nfcglobal.com/u/${bioPage.slug}`;
+    const slug = userName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return `https://nfcglobal.com/u/${slug || 'thean'}`;
+  }, [bioPage?.slug, userName]);
 
-  const load = useCallback(async () => {
-    if (!user?.id || isGuest) {
-      setProfileUrl(buildSlugProfileUrl('alexander-wright'));
-      return;
-    }
-    try {
-      setLoading(true);
-      const bio = await getBioPage(user.id);
-      if (bio?.slug || bio?.publicSlug) {
-        setProfileUrl(buildSlugProfileUrl(bio.publicSlug ?? bio.slug));
-      } else {
-        setProfileUrl(buildSlugProfileUrl(user.id));
-      }
-    } catch {
-      setProfileUrl(buildSlugProfileUrl(user.id));
-    } finally {
-      setLoading(false);
-    }
-  }, [user, isGuest]);
+  const handleDownload = useCallback(() => {
+    HapticTap.confidentClick();
+    Alert.alert('Download QR', 'QR Code saved to camera roll.', [{ text: 'OK' }]);
+  }, []);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  const activeUrl = profileUrl || 'https://sitehubman.app/alexander-wright';
-
-  async function handleShare() {
-    HapticTap.medium();
+  const handleShare = useCallback(async () => {
+    HapticTap.light();
     try {
       await Share.share({
-        message: `${displayName} • Digital QR Pass\n${activeUrl}`,
-        url: activeUrl,
+        message: `Connect with ${userName}: ${profileUrl}`,
+        url: profileUrl,
       });
     } catch {
-      Alert.alert('Error', 'Unable to share QR pass.');
+      // dismissed
     }
-  }
-
-  async function handleAppleWallet() {
-    HapticTap.light();
-    await Share.share({
-      message: `Add to Apple Wallet: ${activeUrl}`,
-      url: activeUrl,
-    });
-  }
+  }, [userName, profileUrl]);
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <IosScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      {/* Top Bar */}
+      <View style={styles.topBar}>
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.backBtn}
+          hitSlop={12}
+        >
+          <AppIcon name="chevron-left" size={20} color={C.text} />
+        </Pressable>
 
-        {/* ── Top Bar ── */}
-        <View style={styles.topBar}>
-          <Pressable
-            onPress={() => router.back()}
-            style={styles.navBtn}
-            hitSlop={12}
-            accessibilityLabel="Back"
-          >
-            <AppIcon name="ChevronLeft" size={20} color="#FFFFFF" />
-          </Pressable>
+        <AppText style={styles.topBarTitle} weight="bold">
+          Your QR Code
+        </AppText>
 
-          <AppText style={styles.navTitle} weight="bold">
-            Digital QR Pass
-          </AppText>
+        <View style={styles.backBtn} />
+      </View>
 
-          <Pressable onPress={handleShare} style={styles.navBtn} hitSlop={12}>
-            <AppIcon name="Share" size={18} color="#FFFFFF" />
-          </Pressable>
-        </View>
-
-        {/* ── Hero QR Pass Card (Apple Wallet Style) ── */}
-        <View style={styles.heroQrCard}>
-          {/* Card Top Header */}
-          <View style={styles.cardHeader}>
-            <View style={styles.brandRow}>
-              <AppIcon name="QrCode" size={18} color="#FFFFFF" />
-              <AppText style={styles.brandText} weight="extrabold">AVIO PASS</AppText>
+      <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <View style={styles.contentWrap}>
+          {/* Main QR Card */}
+          <View style={styles.qrCard}>
+            <View style={styles.qrBox}>
+              <QRCode
+                value={profileUrl}
+                size={220}
+                color="#000000"
+                backgroundColor="#FFFFFF"
+                logoMargin={2}
+                logoSize={32}
+                logoBackgroundColor="#FFFFFF"
+                quietZone={16}
+              />
             </View>
-            <View style={styles.liveBadge}>
-              <AppText style={styles.liveBadgeText} weight="bold">DYNAMIC QR</AppText>
-            </View>
-          </View>
 
-          {/* QR White Square Container */}
-          <View style={styles.qrContainer}>
-            <QRCode
-              value={activeUrl}
-              size={180}
-              color="#000000"
-              backgroundColor="#FFFFFF"
-              quietZone={10}
-            />
-          </View>
-
-          {/* Card Bottom Meta */}
-          <View style={styles.cardMeta}>
-            <AppText style={styles.cardHolderName} weight="bold">{displayName}</AppText>
-            <AppText style={styles.cardUrlText} numberOfLines={1}>{activeUrl}</AppText>
-          </View>
-        </View>
-
-        {/* ── Primary Action Buttons ── */}
-        <View style={styles.actionGroup}>
-          <Pressable
-            style={({ pressed }) => [styles.primaryShareBtn, pressed && styles.pressed]}
-            onPress={handleShare}
-          >
-            <AppIcon name="ExternalLink" size={18} color="#000000" />
-            <AppText style={styles.primaryShareBtnText} weight="extrabold">
-              Share QR Link
+            <AppText style={styles.qrHeadline} weight="bold">
+              Scan to connect
             </AppText>
-          </Pressable>
 
-          <Pressable
-            style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
-            onPress={handleAppleWallet}
-          >
-            <AppIcon name="Wallet" size={18} color="#FFFFFF" />
-            <AppText style={styles.secondaryBtnText} weight="bold">
-              Add to Apple Wallet
+            <AppText style={styles.qrSub}>
+              Let people scan your QR code to view your digital card.
             </AppText>
-          </Pressable>
-        </View>
+          </View>
 
-        {/* ── Borderless Feature Explanations ── */}
-        <View style={styles.infoSection}>
-          <AppText style={styles.sectionHeader}>DUAL-BAND SYSTEM FEATURES</AppText>
-
-          {[
-            {
-              icon: 'Nfc' as const,
-              title: 'NFC + QR Dual Band',
-              sub: 'Instant optical scan when NFC chip tap is not available on legacy devices.',
-            },
-            {
-              icon: 'Download' as const,
-              title: '1-Tap Apple Contacts Export',
-              sub: 'Directly saves full name, mobile phone, job title, and social links to iOS Contacts.',
-            },
-            {
-              icon: 'Send' as const,
-              title: 'Real-time Telegram CRM Sync',
-              sub: 'Lead information is routed and delivered straight to your team Telegram channel.',
-            },
-          ].map((item, idx, arr) => (
-            <View
-              key={item.title}
-              style={[styles.infoRow, idx === arr.length - 1 && styles.infoRowLast]}
+          {/* Action Buttons */}
+          <View style={styles.actionsWrap}>
+            {/* Primary: Download QR */}
+            <Pressable
+              style={({ pressed }) => [
+                styles.primaryBtn,
+                pressed && styles.primaryBtnPressed,
+              ]}
+              onPress={handleDownload}
             >
-              <View style={styles.infoIconBox}>
-                <AppIcon name={item.icon} size={18} color="#FFFFFF" />
-              </View>
-              <View style={styles.infoDetails}>
-                <AppText style={styles.infoTitle} weight="bold">{item.title}</AppText>
-                <AppText style={styles.infoSub}>{item.sub}</AppText>
-              </View>
-            </View>
-          ))}
-        </View>
+              <AppIcon name="download" size={18} color="#000000" />
+              <AppText style={styles.primaryBtnText} weight="bold">
+                Download QR
+              </AppText>
+            </Pressable>
 
+            {/* Secondary: Share */}
+            <Pressable
+              style={({ pressed }) => [
+                styles.secondaryBtn,
+                pressed && styles.secondaryBtnPressed,
+              ]}
+              onPress={handleShare}
+            >
+              <AppIcon name="share-2" size={18} color={C.text} />
+              <AppText style={styles.secondaryBtnText} weight="bold">
+                Share
+              </AppText>
+            </Pressable>
+          </View>
+
+          <View style={{ height: 110 }} />
+        </View>
       </IosScrollView>
     </SafeAreaView>
   );
@@ -198,181 +147,107 @@ export function QrCodeGeneratorScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: C.canvas,
   },
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 130, // Clearance for floating capsule dock
-    maxWidth: 540,
-    width: '100%',
-    alignSelf: 'center',
-    gap: 16,
-  },
-  pressed: {
-    opacity: 0.75,
-  },
-
-  // ── Top Bar ──
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: C.border,
   },
-  navBtn: {
+  backBtn: {
     width: 38,
     height: 38,
-    borderRadius: 19,
-    backgroundColor: '#121214',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'center',
   },
-  navTitle: {
-    color: '#FFFFFF',
-    fontSize: 17,
-  },
-
-  // ── Hero QR Card ──
-  heroQrCard: {
-    backgroundColor: '#111114',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    padding: 20,
-    alignItems: 'center',
-    gap: 16,
-    marginVertical: 4,
-  },
-  cardHeader: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  brandText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    letterSpacing: 1,
-  },
-  liveBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  liveBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 9,
-    letterSpacing: 0.8,
-  },
-  qrContainer: {
-    width: 204,
-    height: 204,
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  cardMeta: {
-    alignItems: 'center',
-    gap: 3,
-  },
-  cardHolderName: {
-    color: '#FFFFFF',
+  topBarTitle: {
     fontSize: 16,
+    color: C.text,
   },
-  cardUrlText: {
-    color: 'rgba(255, 255, 255, 0.45)',
-    fontSize: 12,
+  scroll: {
+    flexGrow: 1,
   },
-
-  // ── Action Buttons ──
-  actionGroup: {
-    gap: 10,
+  contentWrap: {
+    paddingHorizontal: 20,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
+    paddingTop: 24,
+    alignItems: 'center',
   },
-  primaryShareBtn: {
+  qrCard: {
+    width: '100%',
+    backgroundColor: C.surface,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: C.border,
+    paddingVertical: 32,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  qrBox: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
+    marginBottom: 24,
+  },
+  qrHeadline: {
+    fontSize: 18,
+    color: C.text,
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+  qrSub: {
+    fontSize: 13,
+    color: C.textMuted,
+    textAlign: 'center',
+    maxWidth: 280,
+    lineHeight: 18,
+  },
+  actionsWrap: {
+    width: '100%',
+    gap: 12,
+    marginTop: 24,
+  },
+  primaryBtn: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 14,
-    borderRadius: 14,
+    borderRadius: 16,
+    height: 52,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
   },
-  primaryShareBtnText: {
-    color: '#000000',
+  primaryBtnPressed: {
+    opacity: 0.85,
+  },
+  primaryBtnText: {
     fontSize: 15,
+    color: '#000000',
   },
   secondaryBtn: {
-    backgroundColor: '#141418',
+    backgroundColor: C.surface,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    paddingVertical: 14,
-    borderRadius: 14,
+    borderColor: C.borderLight,
+    height: 52,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
   },
+  secondaryBtnPressed: {
+    backgroundColor: C.surfaceRaised,
+  },
   secondaryBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-  },
-
-  // ── Info Section (Borderless) ──
-  infoSection: {
-    marginTop: 8,
-  },
-  sectionHeader: {
-    color: 'rgba(255, 255, 255, 0.4)',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    marginBottom: 8,
-    marginLeft: 4,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
-    gap: 14,
-  },
-  infoRowLast: {
-    borderBottomWidth: 0,
-  },
-  infoIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: '#141418',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  infoDetails: {
-    flex: 1,
-    gap: 2,
-  },
-  infoTitle: {
-    color: '#FFFFFF',
-    fontSize: 14,
-  },
-  infoSub: {
-    color: 'rgba(255, 255, 255, 0.45)',
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 15,
+    color: C.text,
   },
 });

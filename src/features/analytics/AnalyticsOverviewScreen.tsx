@@ -1,142 +1,187 @@
-import React, { useCallback } from 'react';
+/**
+ * AnalyticsOverviewScreen — Screen 5: Analytics ("Track your performance")
+ * Luxury Minimalist (Apple Wallet × Stripe × Linear · Black Granite UI)
+ */
+import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
   Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import AppText from '@/src/components/AppText';
-import AppIcon, { type AppIconName } from '@/src/components/AppIcon';
-import IosScrollView from '@/src/components/IosScrollView';
+import { useRouter } from 'expo-router';
+import { AppText } from '@/src/components/AppText';
+import { AppIcon } from '@/src/components/AppIcon';
+import { IosScrollView } from '@/src/components/IosScrollView';
 import { HapticTap } from '@/src/utils/haptics';
 
-const ACCENT = '#2596BE';
-const SURFACE = '#111114';
-const BORDER = 'rgba(255,255,255,0.09)';
-const TEXT = '#F5F5F7';
-const MUTED = '#9A9AA0';
+const C = {
+  canvas: '#000000',
+  surface: '#0E0E11',
+  surfaceRaised: '#141418',
+  border: 'rgba(255,255,255,0.06)',
+  text: '#FFFFFF',
+  textSecondary: '#A1A1AA',
+  textMuted: '#52525B',
+  accent: '#2596BE',
+} as const;
 
-// 7-day mock data as percentages (0–100)
-const BAR_DATA = [
-  { day: 'Mon', value: 62 },
-  { day: 'Tue', value: 78 },
-  { day: 'Wed', value: 55 },
-  { day: 'Thu', value: 90 },
-  { day: 'Fri', value: 84 },
-  { day: 'Sat', value: 45 },
-  { day: 'Sun', value: 38 },
+const PERIODS = ['7D', '30D', '90D', '1Y'] as const;
+type Period = typeof PERIODS[number];
+
+const CHART_POINTS = [
+  { day: 'Mon', views: 40 },
+  { day: 'Tue', views: 75 },
+  { day: 'Wed', views: 120 },
+  { day: 'Thu', views: 190 },
+  { day: 'Fri', views: 240 },
+  { day: 'Sat', views: 180 },
+  { day: 'Sun', views: 280 },
 ];
 
-const QUICK_STATS = [
-  { label: 'NFC Taps',    value: '326', icon: 'wifi'     as AppIconName },
-  { label: 'QR Scans',    value: '48',  icon: 'grid'     as AppIconName },
-  { label: 'Link Clicks', value: '142', icon: 'link'     as AppIconName },
+const SOURCES = [
+  { name: 'NFC Tap', pct: 42, color: '#FFFFFF' },
+  { name: 'QR Code', pct: 28, color: '#A1A1AA' },
+  { name: 'Direct Link', pct: 18, color: '#71717A' },
+  { name: 'Other', pct: 12, color: '#3F3F46' },
 ];
-
-interface SectionLink {
-  label: string;
-  route: string;
-  icon: AppIconName;
-}
-
-const SECTION_LINKS: SectionLink[] = [
-  { label: 'NFC Analytics',  route: '/analytics/nfc',   icon: 'wifi'        },
-  { label: 'QR Analytics',   route: '/analytics/qr',    icon: 'grid'        },
-  { label: 'Link Analytics', route: '/analytics/links',  icon: 'link'        },
-  { label: 'Audience',       route: '/analytics/audience', icon: 'users'     },
-];
-
-function BarChart() {
-  const maxVal = Math.max(...BAR_DATA.map((d) => d.value));
-  return (
-    <View style={styles.barChart}>
-      {BAR_DATA.map((d) => {
-        const heightPct = (d.value / maxVal) * 100;
-        return (
-          <View key={d.day} style={styles.barColumn}>
-            <View style={styles.barTrack}>
-              <View
-                style={[
-                  styles.bar,
-                  { height: `${heightPct}%` as any },
-                ]}
-              />
-            </View>
-            <AppText style={styles.barLabel}>{d.day}</AppText>
-          </View>
-        );
-      })}
-    </View>
-  );
-}
 
 export default function AnalyticsOverviewScreen() {
-  const handleNavLink = useCallback((route: string) => {
-    HapticTap.light();
-    router.push(route as any);
-  }, []);
+  const router = useRouter();
+  const [selectedPeriod, setSelectedPeriod] = useState<Period>('7D');
+
+  const maxVal = Math.max(...CHART_POINTS.map((p) => p.views));
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <IosScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <AppText style={styles.headerTitle}>Analytics</AppText>
-        </View>
+      {/* Header */}
+      <View style={styles.header}>
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.backBtn}
+          hitSlop={12}
+        >
+          <AppIcon name="chevron-left" size={20} color={C.text} />
+        </Pressable>
+        <AppText style={styles.headerTitle} weight="bold">
+          Analytics
+        </AppText>
+        <View style={styles.backBtn} />
+      </View>
 
-        {/* Hero metric */}
-        <View style={styles.heroCard}>
-          <View style={styles.heroTop}>
-            <View>
-              <AppText style={styles.heroMetricLabel}>Profile Views</AppText>
-              <AppText style={styles.heroMetricValue}>1,284</AppText>
+      <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <View style={styles.contentWrap}>
+          {/* Time Filter Pills */}
+          <View style={styles.periodRow}>
+            {PERIODS.map((period) => (
+              <Pressable
+                key={period}
+                style={[
+                  styles.periodPill,
+                  selectedPeriod === period && styles.periodPillActive,
+                ]}
+                onPress={() => {
+                  HapticTap.light();
+                  setSelectedPeriod(period);
+                }}
+              >
+                <AppText
+                  style={[
+                    styles.periodText,
+                    selectedPeriod === period && styles.periodTextActive,
+                  ]}
+                  weight={selectedPeriod === period ? 'bold' : undefined}
+                >
+                  {period}
+                </AppText>
+              </Pressable>
+            ))}
+          </View>
+
+          {/* Top 2 Metric Cards */}
+          <View style={styles.metricsRow}>
+            {/* Card 1: Profile Views */}
+            <View style={styles.metricCard}>
+              <AppText style={styles.metricVal} weight="bold">1,284</AppText>
+              <AppText style={styles.metricLbl}>Profile Views</AppText>
+              <View style={styles.deltaBadge}>
+                <AppText style={styles.deltaText}>+5.2% this week</AppText>
+              </View>
             </View>
-            <View style={styles.trendBadge}>
-              <AppIcon name="trending-up" size={13} color="#34C759" />
-              <AppText style={styles.trendText}>+18.4%</AppText>
+
+            {/* Card 2: NFC Taps */}
+            <View style={styles.metricCard}>
+              <AppText style={styles.metricVal} weight="bold">326</AppText>
+              <AppText style={styles.metricLbl}>NFC Taps</AppText>
+              <View style={styles.deltaBadge}>
+                <AppText style={styles.deltaText}>+12.4% this week</AppText>
+              </View>
             </View>
           </View>
-          <AppText style={styles.heroPeriod}>Last 7 days vs prior week</AppText>
-          <BarChart />
-        </View>
 
-        {/* Quick stats strip */}
-        <View style={styles.statsStrip}>
-          {QUICK_STATS.map((stat, idx) => (
-            <React.Fragment key={stat.label}>
-              <View style={styles.statCell}>
-                <AppIcon name={stat.icon} size={18} color={ACCENT} />
-                <AppText style={styles.statValue}>{stat.value}</AppText>
-                <AppText style={styles.statLabel}>{stat.label}</AppText>
-              </View>
-              {idx < QUICK_STATS.length - 1 && <View style={styles.statDivider} />}
-            </React.Fragment>
-          ))}
-        </View>
+          {/* Profile Views Chart Box */}
+          <View style={styles.chartBox}>
+            <View style={styles.chartHeader}>
+              <AppText style={styles.chartTitle} weight="bold">
+                Activity
+              </AppText>
+              <AppText style={styles.chartSubtitle}>
+                Daily views & taps
+              </AppText>
+            </View>
 
-        {/* Section links */}
-        <View style={styles.linksCard}>
-          {SECTION_LINKS.map((link, idx) => (
-            <React.Fragment key={link.label}>
-              <Pressable
-                style={styles.linkRow}
-                onPress={() => handleNavLink(link.route)}
-                hitSlop={4}
-                android_ripple={{ color: 'rgba(255,255,255,0.04)' }}
-              >
-                <View style={styles.linkIconWrap}>
-                  <AppIcon name={link.icon} size={18} color={ACCENT} />
+            {/* Visual Bar / Curve Simulation */}
+            <View style={styles.chartArea}>
+              {CHART_POINTS.map((pt) => {
+                const heightPct = Math.round((pt.views / maxVal) * 100);
+                const isMax = pt.views === maxVal;
+                return (
+                  <View key={pt.day} style={styles.barCol}>
+                    <View style={styles.barTrack}>
+                      <View
+                        style={[
+                          styles.barFill,
+                          {
+                            height: `${heightPct}%`,
+                            backgroundColor: isMax ? '#FFFFFF' : 'rgba(255,255,255,0.35)',
+                          },
+                        ]}
+                      />
+                    </View>
+                    <AppText style={styles.barLabel}>{pt.day}</AppText>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* TOP SOURCES Section */}
+          <View style={styles.sourcesBox}>
+            <AppText style={styles.sourcesHeaderTitle} weight="bold">
+              Traffic Sources
+            </AppText>
+
+            <View style={styles.sourcesList}>
+              {SOURCES.map((src) => (
+                <View key={src.name} style={styles.sourceRow}>
+                  <View style={styles.sourceTextRow}>
+                    <AppText style={styles.sourceName}>{src.name}</AppText>
+                    <AppText style={styles.sourcePct} weight="medium">{src.pct}%</AppText>
+                  </View>
+                  <View style={styles.progressTrack}>
+                    <View
+                      style={[
+                        styles.progressFill,
+                        { width: `${src.pct}%`, backgroundColor: src.color },
+                      ]}
+                    />
+                  </View>
                 </View>
-                <AppText style={styles.linkLabel}>{link.label}</AppText>
-                <AppIcon name="chevron-right" size={16} color={MUTED} />
-              </Pressable>
-              {idx < SECTION_LINKS.length - 1 && <View style={styles.divider} />}
-            </React.Fragment>
-          ))}
+              ))}
+            </View>
+          </View>
+
+          <View style={{ height: 110 }} />
         </View>
       </IosScrollView>
     </SafeAreaView>
@@ -146,158 +191,173 @@ export default function AnalyticsOverviewScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
-  },
-  content: {
-    paddingHorizontal: 20,
-    paddingBottom: 130,
-    gap: 16,
+    backgroundColor: C.canvas,
   },
   header: {
-    paddingTop: 12,
-    paddingBottom: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  backBtn: {
+    width: 38,
+    height: 38,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: TEXT,
+    fontSize: 18,
+    color: C.text,
+  },
+  scroll: {
+    flexGrow: 1,
+  },
+  contentWrap: {
+    paddingHorizontal: 20,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
+  },
+  periodRow: {
+    flexDirection: 'row',
+    backgroundColor: C.surface,
+    borderRadius: 12,
+    padding: 3,
+    marginBottom: 16,
+  },
+  periodPill: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 9,
+  },
+  periodPillActive: {
+    backgroundColor: C.surfaceRaised,
+  },
+  periodText: {
+    fontSize: 13,
+    color: C.textMuted,
+  },
+  periodTextActive: {
+    color: C.text,
+  },
+  metricsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  metricCard: {
+    flex: 1,
+    backgroundColor: C.surface,
+    borderRadius: 16,
+    padding: 18,
+  },
+  metricVal: {
+    fontSize: 26,
+    color: C.text,
     letterSpacing: -0.5,
   },
-  heroCard: {
-    backgroundColor: SURFACE,
-    borderWidth: 1,
-    borderColor: BORDER,
-    borderRadius: 20,
-    padding: 20,
-    gap: 12,
+  metricLbl: {
+    fontSize: 12,
+    color: C.textSecondary,
+    marginTop: 2,
+    marginBottom: 8,
   },
-  heroTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  heroMetricLabel: {
-    fontSize: 13,
-    color: MUTED,
-    marginBottom: 4,
-  },
-  heroMetricValue: {
-    fontSize: 42,
-    fontWeight: '700',
-    color: TEXT,
-    letterSpacing: -1,
-  },
-  trendBadge: {
+  deltaBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(52,199,89,0.12)',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
   },
-  trendText: {
+  deltaText: {
+    fontSize: 11,
+    color: C.textMuted,
+    fontWeight: '500',
+  },
+  chartBox: {
+    backgroundColor: C.surface,
+    borderRadius: 18,
+    padding: 20,
+    marginBottom: 16,
+  },
+  chartHeader: {
+    marginBottom: 18,
+  },
+  chartTitle: {
+    fontSize: 16,
+    color: C.text,
+  },
+  chartSubtitle: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#34C759',
+    color: C.textMuted,
+    marginTop: 2,
   },
-  heroPeriod: {
-    fontSize: 12,
-    color: MUTED,
-  },
-  barChart: {
+  chartArea: {
     flexDirection: 'row',
-    height: 80,
-    gap: 6,
+    height: 140,
     alignItems: 'flex-end',
-    marginTop: 4,
+    justifyContent: 'space-between',
+    paddingTop: 10,
   },
-  barColumn: {
+  barCol: {
     flex: 1,
     alignItems: 'center',
-    gap: 5,
-    height: 100,
+    height: '100%',
     justifyContent: 'flex-end',
   },
   barTrack: {
     flex: 1,
-    width: '100%',
+    width: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: 7,
     justifyContent: 'flex-end',
-    borderRadius: 4,
     overflow: 'hidden',
-    backgroundColor: 'rgba(37,150,190,0.08)',
+    marginBottom: 8,
   },
-  bar: {
+  barFill: {
     width: '100%',
-    backgroundColor: ACCENT,
-    borderRadius: 4,
-    minHeight: 4,
+    borderRadius: 7,
   },
   barLabel: {
-    fontSize: 10,
-    color: MUTED,
-    textAlign: 'center',
-  },
-  statsStrip: {
-    backgroundColor: SURFACE,
-    borderWidth: 1,
-    borderColor: BORDER,
-    borderRadius: 16,
-    flexDirection: 'row',
-    paddingVertical: 16,
-  },
-  statCell: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 5,
-  },
-  statValue: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: TEXT,
-    letterSpacing: -0.5,
-  },
-  statLabel: {
     fontSize: 11,
-    color: MUTED,
-    textAlign: 'center',
+    color: C.textMuted,
   },
-  statDivider: {
-    width: 1,
-    backgroundColor: BORDER,
-    marginVertical: 6,
+  sourcesBox: {
+    backgroundColor: C.surface,
+    borderRadius: 18,
+    padding: 20,
   },
-  linksCard: {
-    backgroundColor: SURFACE,
-    borderWidth: 1,
-    borderColor: BORDER,
-    borderRadius: 16,
+  sourcesHeaderTitle: {
+    fontSize: 16,
+    color: C.text,
+    marginBottom: 16,
+  },
+  sourcesList: {
+    gap: 14,
+  },
+  sourceRow: {
+    gap: 6,
+  },
+  sourceTextRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  sourceName: {
+    fontSize: 13,
+    color: C.text,
+  },
+  sourcePct: {
+    fontSize: 13,
+    color: C.textSecondary,
+  },
+  progressTrack: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     overflow: 'hidden',
   },
-  linkRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 15,
-  },
-  linkIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: 'rgba(37,150,190,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  linkLabel: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '500',
-    color: TEXT,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: BORDER,
-    marginHorizontal: 16,
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
   },
 });

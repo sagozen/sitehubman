@@ -1,11 +1,6 @@
 /**
- * LeadDetailScreen — 20 Lead Details & iOS Export (Apple Wallet × Stripe × Linear)
- *
- * Implements:
- * 20 — Lead Details & iOS Contacts Export
- * - Call, Message, Email instant actions
- * - Add to iPhone Contacts (.vcf native share)
- * - Timeline info & meeting notes
+ * LeadDetailScreen — Screen 8: Lead Detail ("View & manage contact")
+ * Luxury Minimalist (Apple Wallet × Stripe × Linear · Black Granite UI)
  */
 import React, { useCallback, useState } from 'react';
 import {
@@ -13,7 +8,6 @@ import {
   StyleSheet,
   Pressable,
   Linking,
-  Share,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,206 +19,229 @@ import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
   canvas: '#000000',
-  surface: '#111114',
-  surfaceRaised: '#18181C',
-  border: 'rgba(255,255,255,0.08)',
-  borderLight: 'rgba(255,255,255,0.15)',
+  surface: '#0E0E11',
+  surfaceRaised: '#141418',
+  border: 'rgba(255,255,255,0.06)',
+  borderLight: 'rgba(255,255,255,0.08)',
   text: '#FFFFFF',
-  textSecondary: '#8E8E93',
-  textMuted: '#636366',
+  textSecondary: '#A1A1AA',
+  textMuted: '#52525B',
+  textDim: '#52525B',
   accent: '#2596BE',
-  accentSubtle: 'rgba(37, 150, 190, 0.15)',
-  success: '#34C759',
 } as const;
 
 export default function LeadDetailScreen() {
   const params = useLocalSearchParams();
-  const leadId = (params.leadId as string) || 'lead-1';
+  const leadId = (params.leadId as string) || 'john-smith';
 
-  // Demo contact detail
-  const [lead, setLead] = useState({
-    id: leadId,
-    name: 'Sarah Chen',
-    title: 'VP of Technology · Apex Ventures',
-    phone: '+1 (555) 234-5678',
-    email: 'sarah.chen@apexventures.io',
-    intent: 'Services',
-    capturedAt: 'Today at 09:42 AM',
-    location: 'Metfone Innovation Center, Phnom Penh',
-    cardTapped: 'Metal NFC Matte Black #1',
-    note: 'Enterprise NFC rollout for 45 partner executives. Follow up next Tuesday with custom branding samples.',
-    followedUp: false,
-  });
+  const [followedUp, setFollowedUp] = useState(false);
+
+  // Default lead matching design spec
+  const contact = {
+    name: 'John Smith',
+    company: 'ABC Corporation',
+    title: 'CEO',
+    phone: '+855 12 345 678',
+    email: 'john@acme.com',
+    source: 'NFC Tap',
+    time: 'Today, 09:42',
+    notes: 'Interested in partnership. Send proposal.',
+  };
+
+  const initials = contact.name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
 
   const handleCall = useCallback(() => {
     HapticTap.light();
-    Linking.openURL(`tel:${lead.phone.replace(/[^0-9+]/g, '')}`).catch(() => {
+    Linking.openURL(`tel:${contact.phone.replace(/[^0-9+]/g, '')}`).catch(() => {
       Alert.alert('Unable to place call');
     });
-  }, [lead.phone]);
-
-  const handleMessage = useCallback(() => {
-    HapticTap.light();
-    Linking.openURL(`sms:${lead.phone.replace(/[^0-9+]/g, '')}`).catch(() => {
-      Alert.alert('Unable to open messages');
-    });
-  }, [lead.phone]);
+  }, [contact.phone]);
 
   const handleEmail = useCallback(() => {
     HapticTap.light();
-    Linking.openURL(`mailto:${lead.email}`).catch(() => {
-      Alert.alert('Unable to open mail');
+    Linking.openURL(`mailto:${contact.email}`).catch(() => {
+      Alert.alert('Unable to open mail client');
     });
-  }, [lead.email]);
+  }, [contact.email]);
 
-  const handleExportToIosContacts = useCallback(async () => {
-    HapticTap.confidentClick();
-    const vCard = [
-      'BEGIN:VCARD',
-      'VERSION:3.0',
-      `FN:${lead.name}`,
-      `TITLE:${lead.title}`,
-      `TEL;TYPE=CELL:${lead.phone}`,
-      `EMAIL:${lead.email}`,
-      `NOTE:${lead.note}`,
-      'END:VCARD',
-    ].join('\r\n');
+  const handleWhatsApp = useCallback(() => {
+    HapticTap.light();
+    const cleanPhone = contact.phone.replace(/[^0-9]/g, '');
+    Linking.openURL(`https://wa.me/${cleanPhone}`).catch(() => {
+      Alert.alert('Unable to open WhatsApp');
+    });
+  }, [contact.phone]);
 
-    try {
-      await Share.share({
-        title: `${lead.name}.vcf`,
-        message: vCard,
-      });
-    } catch {
-      // dismissed
-    }
-  }, [lead]);
+  const toggleFollowUp = useCallback(() => {
+    HapticTap.softConfirmation();
+    setFollowedUp((prev) => !prev);
+  }, []);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
+      {/* Top Header */}
+      <View style={styles.topBar}>
         <Pressable
-          onPress={() => {
-            HapticTap.light();
-            router.back();
-          }}
-          hitSlop={12}
+          onPress={() => router.back()}
           style={styles.backBtn}
+          hitSlop={12}
         >
-          <AppIcon name="ChevronLeft" size={24} color={C.text} />
+          <AppIcon name="chevron-left" size={20} color={C.text} />
         </Pressable>
-        <AppText style={styles.headerTitle} weight="bold">
-          Contact Details
+
+        <AppText style={styles.topBarTitle} weight="bold">
+          Lead Details
         </AppText>
-        <View style={{ width: 24 }} />
+
+        <Pressable
+          style={[
+            styles.followUpBtn,
+            followedUp && styles.followUpBtnActive,
+          ]}
+          onPress={toggleFollowUp}
+          hitSlop={8}
+        >
+          <AppText
+            style={[
+              styles.followUpBtnText,
+              followedUp && styles.followUpBtnTextActive,
+            ]}
+            weight="medium"
+          >
+            {followedUp ? 'Done' : 'Follow Up'}
+          </AppText>
+        </Pressable>
       </View>
 
-      <IosScrollView contentContainerStyle={styles.scroll}>
-        {/* Profile Card Hero */}
-        <View style={styles.profileHero}>
-          <View style={styles.avatarLarge}>
-            <AppText style={styles.avatarInitial} weight="bold">
-              {lead.name.substring(0, 2).toUpperCase()}
+      <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <View style={styles.contentWrap}>
+          {/* Contact Profile Banner Card */}
+          <View style={styles.profileCard}>
+            <View style={styles.avatarCircle}>
+              <AppText style={styles.avatarInitials} weight="bold">
+                {initials}
+              </AppText>
+            </View>
+            <AppText style={styles.profileName} weight="bold">
+              {contact.name}
+            </AppText>
+            <AppText style={styles.profileCompany}>
+              {contact.company}
+            </AppText>
+            <AppText style={styles.profileTitle}>
+              {contact.title}
             </AppText>
           </View>
-          <AppText style={styles.personName} weight="bold">
-            {lead.name}
-          </AppText>
-          <AppText style={styles.personTitle}>{lead.title}</AppText>
 
-          <View style={styles.intentBadge}>
-            <AppText style={styles.intentText} weight="bold">
-              INTEREST: {lead.intent.toUpperCase()}
-            </AppText>
-          </View>
-
-          {/* Action Row */}
-          <View style={styles.actionRow}>
-            <Pressable style={styles.actionCircle} onPress={handleCall}>
-              <AppIcon name="phone" size={20} color={C.text} />
-              <AppText style={styles.actionLabel}>Call</AppText>
+          {/* Contact Details List */}
+          <View style={styles.detailsGroup}>
+            {/* Phone */}
+            <Pressable style={styles.detailRow} onPress={handleCall}>
+              <View style={styles.detailIconCircle}>
+                <AppIcon name="phone" size={16} color={C.textSecondary} />
+              </View>
+              <View style={styles.detailTextWrap}>
+                <AppText style={styles.detailLabel}>Phone</AppText>
+                <AppText style={styles.detailValue}>{contact.phone}</AppText>
+              </View>
+              <AppIcon name="chevron-right" size={16} color={C.textMuted} />
             </Pressable>
-            <Pressable style={styles.actionCircle} onPress={handleMessage}>
-              <AppIcon name="message-square" size={20} color={C.text} />
-              <AppText style={styles.actionLabel}>Message</AppText>
+
+            <View style={styles.rowDivider} />
+
+            {/* Email */}
+            <Pressable style={styles.detailRow} onPress={handleEmail}>
+              <View style={styles.detailIconCircle}>
+                <AppIcon name="mail" size={16} color={C.textSecondary} />
+              </View>
+              <View style={styles.detailTextWrap}>
+                <AppText style={styles.detailLabel}>Email</AppText>
+                <AppText style={styles.detailValue}>{contact.email}</AppText>
+              </View>
+              <AppIcon name="chevron-right" size={16} color={C.textMuted} />
             </Pressable>
-            <Pressable style={styles.actionCircle} onPress={handleEmail}>
-              <AppIcon name="mail" size={20} color={C.text} />
-              <AppText style={styles.actionLabel}>Email</AppText>
-            </Pressable>
-          </View>
-        </View>
 
-        {/* Primary Action Button: Add to iPhone Contacts */}
-        <Pressable
-          style={({ pressed }) => [
-            styles.saveContactBtn,
-            pressed && styles.saveContactBtnPressed,
-          ]}
-          onPress={handleExportToIosContacts}
-        >
-          <AppIcon name="user-plus" size={18} color="#FFFFFF" />
-          <AppText style={styles.saveContactText} weight="bold">
-            Add to iPhone Contacts
-          </AppText>
-        </Pressable>
+            <View style={styles.rowDivider} />
 
-        {/* Contact Info Section */}
-        <View style={styles.sectionCard}>
-          <AppText style={styles.sectionTitle} weight="bold">
-            Contact Information
-          </AppText>
+            {/* Source */}
+            <View style={styles.detailRow}>
+              <View style={styles.detailIconCircle}>
+                <AppIcon name="wifi" size={16} color={C.textSecondary} style={{ transform: [{ rotate: '90deg' }] }} />
+              </View>
+              <View style={styles.detailTextWrap}>
+                <AppText style={styles.detailLabel}>Source</AppText>
+                <AppText style={styles.detailValue}>{contact.source}</AppText>
+              </View>
+            </View>
 
-          <View style={styles.infoRow}>
-            <AppText style={styles.infoLabel}>Phone</AppText>
-            <AppText style={styles.infoValue}>{lead.phone}</AppText>
-          </View>
+            <View style={styles.rowDivider} />
 
-          <View style={styles.divider} />
+            {/* Time */}
+            <View style={styles.detailRow}>
+              <View style={styles.detailIconCircle}>
+                <AppIcon name="clock" size={16} color={C.textSecondary} />
+              </View>
+              <View style={styles.detailTextWrap}>
+                <AppText style={styles.detailLabel}>Time</AppText>
+                <AppText style={styles.detailValue}>{contact.time}</AppText>
+              </View>
+            </View>
 
-          <View style={styles.infoRow}>
-            <AppText style={styles.infoLabel}>Email</AppText>
-            <AppText style={styles.infoValue}>{lead.email}</AppText>
-          </View>
-        </View>
+            <View style={styles.rowDivider} />
 
-        {/* Exchange Context */}
-        <View style={styles.sectionCard}>
-          <AppText style={styles.sectionTitle} weight="bold">
-            Tap Context
-          </AppText>
-
-          <View style={styles.infoRow}>
-            <AppText style={styles.infoLabel}>Captured</AppText>
-            <AppText style={styles.infoValue}>{lead.capturedAt}</AppText>
+            {/* Notes */}
+            <View style={styles.detailRow}>
+              <View style={styles.detailIconCircle}>
+                <AppIcon name="file-text" size={16} color={C.textSecondary} />
+              </View>
+              <View style={styles.detailTextWrap}>
+                <AppText style={styles.detailLabel}>Notes</AppText>
+                <AppText style={styles.detailNotesValue}>{contact.notes}</AppText>
+              </View>
+            </View>
           </View>
 
-          <View style={styles.divider} />
-
-          <View style={styles.infoRow}>
-            <AppText style={styles.infoLabel}>Location</AppText>
-            <AppText style={styles.infoValue}>{lead.location}</AppText>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.infoRow}>
-            <AppText style={styles.infoLabel}>Device Used</AppText>
-            <AppText style={styles.infoValue}>{lead.cardTapped}</AppText>
-          </View>
-        </View>
-
-        {/* Notes */}
-        <View style={styles.sectionCard}>
-          <AppText style={styles.sectionTitle} weight="bold">
-            Meeting Notes
-          </AppText>
-          <View style={styles.notesBox}>
-            <AppText style={styles.notesText}>{lead.note}</AppText>
-          </View>
+          <View style={{ height: 120 }} />
         </View>
       </IosScrollView>
+
+      {/* Floating Bottom Quick Action Bar: Call, Email, WhatsApp */}
+      <View style={styles.bottomBar}>
+        <Pressable
+          style={({ pressed }) => [styles.actionButton, pressed && styles.actionButtonPressed]}
+          onPress={handleCall}
+        >
+          <View style={styles.actionIconCircle}>
+            <AppIcon name="phone" size={20} color="#FFFFFF" />
+          </View>
+          <AppText style={styles.actionButtonLabel}>Call</AppText>
+        </Pressable>
+
+        <Pressable
+          style={({ pressed }) => [styles.actionButton, pressed && styles.actionButtonPressed]}
+          onPress={handleEmail}
+        >
+          <View style={styles.actionIconCircle}>
+            <AppIcon name="mail" size={20} color="#FFFFFF" />
+          </View>
+          <AppText style={styles.actionButtonLabel}>Email</AppText>
+        </Pressable>
+
+        <Pressable
+          style={({ pressed }) => [styles.actionButton, pressed && styles.actionButtonPressed]}
+          onPress={handleWhatsApp}
+        >
+          <View style={styles.actionIconCircle}>
+            <AppIcon name="message-circle" size={20} color="#FFFFFF" />
+          </View>
+          <AppText style={styles.actionButtonLabel}>WhatsApp</AppText>
+        </Pressable>
+      </View>
     </SafeAreaView>
   );
 }
@@ -234,148 +251,178 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: C.canvas,
   },
-  header: {
+  topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: C.border,
   },
   backBtn: {
-    padding: 4,
+    width: 38,
+    height: 38,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
   },
-  headerTitle: {
-    fontSize: 18,
+  topBarTitle: {
+    fontSize: 16,
     color: C.text,
   },
-  scroll: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-    gap: 16,
+  followUpBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
-  profileHero: {
+  followUpBtnActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  followUpBtnText: {
+    fontSize: 12,
+    color: C.textSecondary,
+  },
+  followUpBtnTextActive: {
+    color: '#FFFFFF',
+  },
+  scroll: {
+    flexGrow: 1,
+  },
+  contentWrap: {
+    paddingHorizontal: 20,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
+    paddingTop: 16,
+  },
+  profileCard: {
     backgroundColor: C.surface,
-    borderRadius: 22,
-    padding: 24,
-    alignItems: 'center',
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: C.border,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    alignItems: 'center',
   },
-  avatarLarge: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    backgroundColor: C.surfaceRaised,
-    borderWidth: 1.5,
+  avatarCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#1E1E28',
+    borderWidth: 1,
     borderColor: C.borderLight,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 14,
+    marginBottom: 12,
   },
-  avatarInitial: {
+  avatarInitials: {
     fontSize: 24,
     color: C.text,
   },
-  personName: {
-    fontSize: 22,
+  profileName: {
+    fontSize: 20,
     color: C.text,
-    letterSpacing: -0.4,
+    letterSpacing: -0.3,
   },
-  personTitle: {
-    fontSize: 13,
+  profileCompany: {
+    fontSize: 14,
     color: C.textSecondary,
     marginTop: 4,
   },
-  intentBadge: {
-    marginTop: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    backgroundColor: C.accentSubtle,
+  profileTitle: {
+    fontSize: 13,
+    color: C.textMuted,
+    marginTop: 2,
   },
-  intentText: {
+  detailsGroup: {
+    backgroundColor: C.surface,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: C.border,
+    marginTop: 18,
+    overflow: 'hidden',
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  detailIconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  detailTextWrap: {
+    flex: 1,
+  },
+  detailLabel: {
     fontSize: 11,
-    color: C.accent,
+    color: C.textMuted,
+    textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  actionRow: {
-    flexDirection: 'row',
-    gap: 20,
-    marginTop: 22,
+  detailValue: {
+    fontSize: 14,
+    color: C.text,
+    marginTop: 2,
   },
-  actionCircle: {
+  detailNotesValue: {
+    fontSize: 13,
+    color: C.textSecondary,
+    marginTop: 2,
+    lineHeight: 18,
+  },
+  rowDivider: {
+    height: 1,
+    backgroundColor: C.border,
+    marginLeft: 62,
+  },
+  bottomBar: {
+    position: 'absolute',
+    bottom: 24,
+    left: 20,
+    right: 20,
+    maxWidth: 640,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: '#16161C',
+    borderRadius: 24,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderWidth: 1,
+    borderColor: C.borderLight,
+    shadowColor: '#000',
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  actionButton: {
     alignItems: 'center',
     gap: 6,
   },
-  actionLabel: {
-    fontSize: 11,
-    color: C.textSecondary,
+  actionButtonPressed: {
+    opacity: 0.75,
   },
-  saveContactBtn: {
-    flexDirection: 'row',
+  actionIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    backgroundColor: C.accent,
-    paddingVertical: 16,
-    borderRadius: 16,
-    shadowColor: C.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 6,
   },
-  saveContactBtnPressed: {
-    transform: [{ scale: 0.98 }],
-    opacity: 0.9,
-  },
-  saveContactText: {
-    fontSize: 15,
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
-  },
-  sectionCard: {
-    backgroundColor: C.surface,
-    borderRadius: 18,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: C.border,
-  },
-  sectionTitle: {
-    fontSize: 14,
+  actionButtonLabel: {
+    fontSize: 12,
     color: C.text,
-    letterSpacing: -0.2,
-    marginBottom: 14,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-  },
-  infoLabel: {
-    fontSize: 13,
-    color: C.textSecondary,
-  },
-  infoValue: {
-    fontSize: 13,
-    color: C.text,
-    textAlign: 'right',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: C.border,
-    marginVertical: 10,
-  },
-  notesBox: {
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: C.surfaceRaised,
-    borderLeftWidth: 3,
-    borderLeftColor: C.accent,
-  },
-  notesText: {
-    fontSize: 13,
-    color: C.textSecondary,
-    lineHeight: 18,
   },
 });

@@ -1,16 +1,22 @@
 /**
  * OrdersTabScreen — 08 Orders & NFC Shop
  * Luxury Minimalist (Apple Wallet × Stripe × Linear)
+ * OPTIMIZED: useMemo, useCallback, pagination for 1M users
  */
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
   ScrollView,
   Pressable,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { collection, query, where, orderBy, limit } from 'firebase/firestore';
+import { db } from '@/src/services/firebaseClient';
+import { useAuth } from '@/src/hooks/useAuth';
+import { useFirestorePagination } from '@/src/hooks/useFirestorePagination';
 import { AppText } from '@/src/components/AppText';
 import { AppIcon } from '@/src/components/AppIcon';
 import { IosScrollView } from '@/src/components/IosScrollView';
@@ -61,7 +67,8 @@ const STATUS_LABELS: Record<Order['status'], string> = {
   delivered: 'DELIVERED',
 };
 
-function ProductCard({ product }: { product: Product }) {
+// Memoized ProductCard to prevent unnecessary re-renders
+const ProductCard = React.memo(({ product }: { product: Product }) => {
   const handlePress = useCallback(() => {
     HapticTap.light();
     router.push(`/shop/${product.id}` as any);
@@ -82,10 +89,48 @@ function ProductCard({ product }: { product: Product }) {
       </View>
     </Pressable>
   );
-}
+});
 
 export default function OrdersTabScreen() {
-  const hasOrders = MOCK_ORDERS.length > 0;
+  const { user } = useAuth();
+  
+  // Paginated orders query (replaces MOCK_ORDERS)
+  const ordersQuery = useMemo(() => {
+    if (!user?.id) return null;
+    return query(
+      collection(db, 'orders'),
+      where('userId', '==', user.id),
+      orderBy('createdAt', 'desc'),
+      limit(20)
+    );
+  }, [user?.id]);
+
+  const [{ data: orders, loading, hasMore, isLoadingMore }, { loadMore, refresh }] =
+    useFirestorePagination<Order>(ordersQuery, { pageSize: 20 });
+
+  const hasOrders = useMemo(() => orders.length > 0, [orders.length]);
+
+  // Memoized handlers
+  const handleCartPress = useCallback(() => {
+    HapticTap.light();
+    router.push('/shop/cart' as any);
+  }, []);
+
+  const handleProofPress = useCallback(() => {
+    HapticTap.medium();
+    router.push('/orders/proof' as any);
+  }, []);
+
+  const handleOrderPress = useCallback((orderId: string) => {
+    HapticTap.light();
+    router.push(`/orders/track/${orderId}` as any);
+  }, []);
+
+  const handleLoadMore = useCallback(() => {
+    if (hasMore && !isLoadingMore) {
+      loadMore();
+    }
+  }, [hasMore, isLoadingMore, loadMore]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -101,10 +146,7 @@ export default function OrdersTabScreen() {
           </View>
           <Pressable
             style={styles.cartIconBtn}
-            onPress={() => {
-              HapticTap.light();
-              router.push('/shop/cart' as any);
-            }}
+            onPress={handleCartPress}
             hitSlop={12}
           >
             <AppIcon name="shopping-bag" size={18} color={C.text} />
@@ -114,10 +156,7 @@ export default function OrdersTabScreen() {
         {/* Action Required: Design Proof Banner (Clean Monochrome Luxury) */}
         <Pressable
           style={({ pressed }) => [styles.proofBanner, pressed && styles.bannerPressed]}
-          onPress={() => {
-            HapticTap.medium();
-            router.push('/orders/proof' as any);
-          }}
+          onPress={handleProofPress}
         >
           <View style={styles.proofLeft}>
             <AppText style={styles.proofTag} weight="bold">PROOF APPROVAL</AppText>
@@ -144,30 +183,54 @@ export default function OrdersTabScreen() {
         {/* Orders Tracking */}
         <View style={styles.section}>
           <AppText style={styles.sectionLabel}>RECENT ORDERS</AppText>
-          {hasOrders ? (
-            <View style={styles.ordersList}>
-              {MOCK_ORDERS.map((order, idx) => (
-                <React.Fragment key={order.id}>
-                  <Pressable
-                    style={({ pressed }) => [styles.orderRow, pressed && styles.rowPressed]}
-                    onPress={() => {
-                      HapticTap.light();
-                      router.push('/orders/track' as any);
-                    }}
-                  >
-                    <View style={styles.orderInfo}>
-                      <View style={styles.orderTopRow}>
-                        <AppText style={styles.orderNumber} weight="medium">{order.orderNumber}</AppText>
-                        <AppText style={styles.statusLabel}>{STATUS_LABELS[order.status]}</AppText>
-                      </View>
-                      <AppText style={styles.orderProduct}>{order.productName}</AppText>
-                    </View>
-                    <AppIcon name="chevron-right" size={16} color={C.textMuted} />
-                  </Pressable>
-                  {idx < MOCK_ORDERS.length - 1 && <View style={styles.divider} />}
-                </React.Fragment>
-              ))}
+          {loading ? (
+            <View style={styles.loadingState}>
+              <ActivityIndicator size="small" color={C.textSecondary} />
+              <AppText style={styles.loadingText}>Loading orders...</AppText>
             </View>
+          ) : hasOrders ? (
+            <>
+              <View style={styles.ordersList}>
+                {orders.map((order, idx) => (
+                  <React.Fragment key={order.id}>
+                    <Pressable
+                      style={({ pressed }) => [styles.orderRow, pressed && styles.rowPressed]}
+                      onPress={() => handleOrderPress(order.id)}
+                    >
+                      <View style={styles.orderInfo}>
+                        <View style={styles.orderTopRow}>
+                          <AppText style={styles.orderNumber} weight="medium">
+                            #{order.orderNumber || order.id.slice(-8)}
+                          </AppText>
+                          <AppText style={styles.statusLabel}>
+                            {STATUS_LABELS[order.status] || 'PENDING'}
+                          </AppText>
+                        </View>
+                        <AppText style={styles.orderProduct}>
+                          {order.productName || 'NFC Card'}
+                        </AppText>
+                      </View>
+                      <AppIcon name="chevron-right" size={16} color={C.textMuted} />
+                    </Pressable>
+                    {idx < orders.length - 1 && <View style={styles.divider} />}
+                  </React.Fragment>
+                ))}
+              </View>
+              {/* Load More Button */}
+              {hasMore && (
+                <Pressable
+                  style={styles.loadMoreBtn}
+                  onPress={handleLoadMore}
+                  disabled={isLoadingMore}
+                >
+                  {isLoadingMore ? (
+                    <ActivityIndicator size="small" color={C.textSecondary} />
+                  ) : (
+                    <AppText style={styles.loadMoreText}>Load More Orders</AppText>
+                  )}
+                </Pressable>
+              )}
+            </>
           ) : (
             <View style={styles.emptyState}>
               <AppText style={styles.emptyTitle}>No orders yet</AppText>
@@ -354,5 +417,26 @@ const styles = StyleSheet.create({
   emptySub: {
     fontSize: 13,
     color: C.textMuted,
+  },
+  loadingState: {
+    paddingVertical: 30,
+    alignItems: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 13,
+    color: C.textMuted,
+  },
+  loadMoreBtn: {
+    backgroundColor: C.surface,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  loadMoreText: {
+    fontSize: 14,
+    color: C.textSecondary,
+    fontWeight: '600',
   },
 });

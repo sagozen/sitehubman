@@ -1,180 +1,571 @@
-import React, { useCallback } from 'react';
+/**
+ * ShareProfileScreen — Screen 2: Share / Your Digital Card ("Quick share. Maximum impact.")
+ * Luxury Minimalist (Apple Wallet × Stripe × Linear · Black Granite UI)
+ */
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   StyleSheet,
   Pressable,
-  Share,
   Clipboard,
-  Alert,
+  Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import QRCode from 'react-native-qrcode-svg';
 import { AppText } from '@/src/components/AppText';
 import { AppIcon } from '@/src/components/AppIcon';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useAuth } from '@/src/hooks/useAuth';
+import { useBioPage } from '@/src/hooks/useBioPage';
 import { HapticTap } from '@/src/utils/haptics';
+import { NfcBeamModal } from '@/src/components/NfcBeamModal';
 
 const C = {
   canvas: '#000000',
-  surface: '#111114',
-  border: 'rgba(255,255,255,0.09)',
-  text: '#F5F5F7',
-  muted: '#9A9AA0',
+  surface: '#0E0E11',
+  surfaceRaised: '#141418',
+  border: 'rgba(255,255,255,0.06)',
+  borderLight: 'rgba(255,255,255,0.08)',
+  text: '#FFFFFF',
+  textSecondary: '#A1A1AA',
+  textMuted: '#52525B',
   accent: '#2596BE',
 } as const;
 
-const PROFILE_URL = 'https://nfcglobal.com/u/demo';
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning,';
+  if (hour < 18) return 'Good afternoon,';
+  return 'Good evening,';
+}
 
 export default function ShareProfileScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const displayName = user?.displayName ?? user?.email?.split('@')[0] ?? 'Profile';
+  const { bioPage } = useBioPage(user?.id ?? '');
 
-  const handleCopyLink = useCallback(() => {
+  const userName = bioPage?.displayName || user?.displayName || 'Thean Coc';
+  const userTitle = bioPage?.tagline || bioPage?.headline || 'Founder & Director';
+  const greeting = getGreeting();
+
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [showBeamModal, setShowBeamModal] = useState(false);
+
+  const showToast = useCallback((msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 2200);
+  }, []);
+
+  const profileUrl = useMemo(() => {
+    if (bioPage?.slug) return `https://nfcglobal.com/u/${bioPage.slug}`;
+    const slug = userName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return `https://nfcglobal.com/u/${slug || 'thean'}`;
+  }, [bioPage?.slug, userName]);
+
+  const handleTapToShare = useCallback(() => {
     HapticTap.confidentClick();
-    Clipboard.setString(PROFILE_URL);
-    Alert.alert('Copied', 'Profile link copied to clipboard.');
+    setShowBeamModal(true);
   }, []);
 
-  const handleNativeShare = useCallback(async () => {
-    HapticTap.light();
-    try {
-      await Share.share({
-        message: `Check out ${displayName}'s digital business card: ${PROFILE_URL}`,
-        url: PROFILE_URL,
-      });
-    } catch {
-      // User dismissed
-    }
-  }, [displayName]);
-
-  const handleQR = useCallback(() => {
-    HapticTap.light();
-    Alert.alert('QR Code', 'Fullscreen QR coming soon.');
+  const handleNfcAction = useCallback(() => {
+    HapticTap.medium();
+    setShowBeamModal(true);
   }, []);
 
-  const handleNFC = useCallback(() => {
+  const handleQrAction = useCallback(() => {
     HapticTap.light();
-    router.push('/nfc/write' as any);
+    router.push('/qr-generator' as any);
   }, [router]);
 
-  const ACTIONS = [
-    { label: 'QR Code', icon: 'QrCode', onPress: handleQR },
-    { label: 'NFC Write', icon: 'Nfc', onPress: handleNFC },
-    { label: 'Copy Link', icon: 'Copy', onPress: handleCopyLink },
-    { label: 'Share', icon: 'Share2', onPress: handleNativeShare },
-  ] as const;
+  const handleCopyLink = useCallback(() => {
+    HapticTap.softConfirmation();
+    Clipboard.setString(profileUrl);
+    showToast('Profile URL copied to clipboard');
+  }, [profileUrl, showToast]);
+
+  const handleContactAction = useCallback(() => {
+    HapticTap.light();
+    router.push('/contact-card' as any);
+  }, [router]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.headerBar}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={12}>
-          <AppIcon name="ChevronLeft" size={22} color={C.text} />
+      {/* Top Bar with back navigation */}
+      <View style={styles.navBar}>
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.backBtn}
+          hitSlop={12}
+        >
+          <AppIcon name="chevron-left" size={20} color={C.text} />
         </Pressable>
-        <AppText variant="title3" style={styles.headerTitle}>Share Profile</AppText>
+        <AppText style={styles.navTitle} weight="bold">
+          Digital Card
+        </AppText>
         <View style={styles.backBtn} />
       </View>
 
-      <IosScrollView contentContainerStyle={styles.content}>
-        {/* QR Block */}
-        <View style={styles.qrCard}>
-          <View style={styles.qrWrap}>
-            <QRCode
-              value={PROFILE_URL}
-              size={200}
-              backgroundColor="transparent"
-              color="#F5F5F7"
-            />
+      <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <View style={styles.contentWrap}>
+          {/* Header */}
+          <View style={styles.header}>
+            <View>
+              <AppText style={styles.greetingText}>{greeting}</AppText>
+              <AppText style={styles.nameText} weight="bold">
+                {userName}
+              </AppText>
+              <AppText style={styles.readyText}>
+                Your card is ready to share.
+              </AppText>
+            </View>
+            <View style={styles.avatarButton}>
+              <AppText style={styles.avatarInitial} weight="bold">
+                {userName.charAt(0).toUpperCase()}
+              </AppText>
+            </View>
           </View>
-          <AppText variant="headline" style={styles.qrName}>
-            Share {displayName}'s Profile
-          </AppText>
-          <AppText variant="caption" muted style={styles.qrUrl}>{PROFILE_URL}</AppText>
-        </View>
 
-        {/* 2x2 Action Grid */}
-        <View style={styles.grid}>
-          {ACTIONS.map((action) => (
-            <Pressable
-              key={action.label}
-              style={({ pressed }) => [styles.actionBtn, pressed && styles.actionBtnPressed]}
-              onPress={action.onPress}
-              hitSlop={4}
-            >
-              <View style={styles.actionIconWrap}>
-                <AppIcon name={action.icon} size={26} color={C.text} />
+          {/* Hero Black Metal Card */}
+          <View style={styles.cardWrapper}>
+            <View style={styles.cardHeaderRow}>
+              <View style={styles.cardBrandRow}>
+                <AppIcon name="wifi" size={16} color="rgba(255,255,255,0.7)" style={{ transform: [{ rotate: '90deg' }] }} />
+                <AppText style={styles.cardBrandText} weight="bold">
+                  NFC GLOBAL
+                </AppText>
               </View>
-              <AppText variant="caption" style={styles.actionLabel}>{action.label}</AppText>
+              <View style={styles.contactlessSymbol}>
+                <View style={[styles.contactlessArc, styles.arc1]} />
+                <View style={[styles.contactlessArc, styles.arc2]} />
+                <View style={[styles.contactlessArc, styles.arc3]} />
+              </View>
+            </View>
+
+            <View style={styles.cardBody}>
+              <AppText style={styles.cardOwnerName} weight="bold">
+                {userName.toUpperCase()}
+              </AppText>
+              <AppText style={styles.cardOwnerTitle}>
+                {userTitle}
+              </AppText>
+            </View>
+
+            <View style={styles.cardFooterRow}>
+              <View style={styles.cardStatusPill}>
+                <AppText style={styles.statusPillText}>READY TO TAP</AppText>
+              </View>
+              <AppText style={styles.cardMaterialText}>BLACK METAL</AppText>
+            </View>
+          </View>
+
+          {/* Tap to Share CTA */}
+          <Pressable
+            style={({ pressed }) => [
+              styles.tapToShareBtn,
+              pressed && styles.tapToShareBtnPressed,
+            ]}
+            onPress={handleTapToShare}
+          >
+            <View style={styles.tapToShareInner}>
+              <AppIcon name="wifi" size={18} color="#000000" style={{ transform: [{ rotate: '90deg' }] }} />
+              <AppText style={styles.tapToShareText} weight="bold">
+                TAP TO SHARE
+              </AppText>
+            </View>
+            <AppIcon name="chevron-right" size={16} color="#000000" />
+          </Pressable>
+
+          {/* Section: SHARE YOUR CARD */}
+          <View style={styles.sectionTitleRow}>
+            <AppText style={styles.sectionHeaderTitle} weight="bold">
+              SHARE YOUR CARD
+            </AppText>
+          </View>
+
+          <View style={styles.shareGrid}>
+            {/* NFC */}
+            <Pressable
+              style={({ pressed }) => [styles.shareCard, pressed && styles.shareCardPressed]}
+              onPress={handleNfcAction}
+            >
+              <View style={styles.shareIconWrap}>
+                <AppIcon name="wifi" size={24} color={C.text} style={{ transform: [{ rotate: '90deg' }] }} />
+              </View>
+              <AppText style={styles.shareCardTitle} weight="bold">NFC</AppText>
+              <AppText style={styles.shareCardSub}>Tap device</AppText>
             </Pressable>
-          ))}
+
+            {/* QR Code */}
+            <Pressable
+              style={({ pressed }) => [styles.shareCard, pressed && styles.shareCardPressed]}
+              onPress={handleQrAction}
+            >
+              <View style={styles.shareIconWrap}>
+                <AppIcon name="qr-code" size={24} color={C.text} />
+              </View>
+              <AppText style={styles.shareCardTitle} weight="bold">QR Code</AppText>
+              <AppText style={styles.shareCardSub}>Show QR</AppText>
+            </Pressable>
+
+            {/* Copy Link */}
+            <Pressable
+              style={({ pressed }) => [styles.shareCard, pressed && styles.shareCardPressed]}
+              onPress={handleCopyLink}
+            >
+              <View style={styles.shareIconWrap}>
+                <AppIcon name="copy" size={24} color={C.text} />
+              </View>
+              <AppText style={styles.shareCardTitle} weight="bold">Copy Link</AppText>
+              <AppText style={styles.shareCardSub}>Copy URL</AppText>
+            </Pressable>
+
+            {/* Save Contact */}
+            <Pressable
+              style={({ pressed }) => [styles.shareCard, pressed && styles.shareCardPressed]}
+              onPress={handleContactAction}
+            >
+              <View style={styles.shareIconWrap}>
+                <AppIcon name="user-plus" size={24} color={C.text} />
+              </View>
+              <AppText style={styles.shareCardTitle} weight="bold">Save Contact</AppText>
+              <AppText style={styles.shareCardSub}>Add contact</AppText>
+            </Pressable>
+          </View>
+
+          {/* Section: CARD OVERVIEW */}
+          <View style={styles.sectionTitleRow}>
+            <AppText style={styles.sectionHeaderTitle} weight="bold">
+              CARD OVERVIEW
+            </AppText>
+          </View>
+
+          <View style={styles.overviewRow}>
+            {/* 326 NFC Taps */}
+            <Pressable
+              style={styles.overviewItem}
+              onPress={() => router.push('/analytics/nfc' as any)}
+            >
+              <View style={styles.dialWrap}>
+                <AppText style={styles.overviewNumber} weight="bold">326</AppText>
+              </View>
+              <AppText style={styles.overviewLabel}>NFC TAPS</AppText>
+            </Pressable>
+
+            {/* 1,284 Profile Views */}
+            <Pressable
+              style={styles.overviewItem}
+              onPress={() => router.push('/analytics' as any)}
+            >
+              <View style={styles.dialWrap}>
+                <AppText style={styles.overviewNumber} weight="bold">1,284</AppText>
+              </View>
+              <AppText style={styles.overviewLabel}>PROFILE VIEWS</AppText>
+            </Pressable>
+
+            {/* 12 Contacts */}
+            <Pressable
+              style={styles.overviewItem}
+              onPress={() => router.push('/leads' as any)}
+            >
+              <View style={styles.dialWrap}>
+                <AppText style={styles.overviewNumber} weight="bold">12</AppText>
+              </View>
+              <AppText style={styles.overviewLabel}>CONTACTS</AppText>
+            </Pressable>
+          </View>
+
+          <View style={{ height: 110 }} />
         </View>
       </IosScrollView>
+
+      {/* Understated Toast Notification */}
+      {toastMessage && (
+        <View style={styles.toast}>
+          <AppText style={styles.toastText} weight="medium">
+            {toastMessage}
+          </AppText>
+        </View>
+      )}
+
+      {/* NFC Beam Modal */}
+      <NfcBeamModal
+        visible={showBeamModal}
+        onClose={() => setShowBeamModal(false)}
+        url={profileUrl}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: C.canvas },
-  headerBar: {
+  safe: {
+    flex: 1,
+    backgroundColor: C.canvas,
+  },
+  navBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: C.border,
   },
-  backBtn: { width: 40, alignItems: 'flex-start' },
-  headerTitle: { color: C.text, fontWeight: '600' },
-  content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 130, alignItems: 'center' },
-  qrCard: {
+  backBtn: {
+    width: 38,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navTitle: {
+    fontSize: 16,
+    color: C.text,
+  },
+  scroll: {
+    flexGrow: 1,
+  },
+  contentWrap: {
+    paddingHorizontal: 20,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
+    paddingTop: 12,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  greetingText: {
+    fontSize: 14,
+    color: C.textSecondary,
+    marginBottom: 2,
+  },
+  nameText: {
+    fontSize: 26,
+    color: C.text,
+    letterSpacing: -0.5,
+  },
+  readyText: {
+    fontSize: 13,
+    color: C.textMuted,
+    marginTop: 2,
+  },
+  avatarButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: C.surfaceRaised,
+    borderWidth: 1,
+    borderColor: C.borderLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitial: {
+    fontSize: 16,
+    color: C.text,
+  },
+  cardWrapper: {
+    backgroundColor: '#0D0D11',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 22,
+    marginTop: 10,
+    minHeight: 184,
+    justifyContent: 'space-between',
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  cardBrandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  cardBrandText: {
+    fontSize: 11,
+    letterSpacing: 1.2,
+    color: 'rgba(255, 255, 255, 0.85)',
+  },
+  contactlessSymbol: {
+    width: 24,
+    height: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 3,
+  },
+  contactlessArc: {
+    borderColor: 'rgba(255, 255, 255, 0.45)',
+    borderRightWidth: 2,
+    borderRadius: 12,
+  },
+  arc1: { width: 4, height: 8 },
+  arc2: { width: 5, height: 13 },
+  arc3: { width: 6, height: 18 },
+  cardBody: {
+    marginVertical: 18,
+  },
+  cardOwnerName: {
+    fontSize: 20,
+    letterSpacing: 0.8,
+    color: C.text,
+  },
+  cardOwnerTitle: {
+    fontSize: 12,
+    color: C.textSecondary,
+    letterSpacing: 0.4,
+    marginTop: 4,
+  },
+  cardFooterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  cardStatusPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  statusPillText: {
+    fontSize: 10,
+    letterSpacing: 1,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  cardMaterialText: {
+    fontSize: 10,
+    letterSpacing: 1.2,
+    color: 'rgba(255, 255, 255, 0.45)',
+    fontWeight: '600',
+  },
+  tapToShareBtn: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    height: 52,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 14,
+  },
+  tapToShareBtnPressed: {
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+  },
+  tapToShareInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  tapToShareText: {
+    fontSize: 14,
+    letterSpacing: 0.8,
+    color: '#000000',
+  },
+  sectionTitleRow: {
+    marginTop: 24,
+    marginBottom: 12,
+  },
+  sectionHeaderTitle: {
+    fontSize: 11,
+    letterSpacing: 1.2,
+    color: C.textMuted,
+  },
+  shareGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  shareCard: {
+    flex: 1,
     backgroundColor: C.surface,
-    borderRadius: 24,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: C.border,
-    padding: 28,
+    paddingVertical: 18,
+    paddingHorizontal: 8,
     alignItems: 'center',
-    gap: 14,
-    width: '100%',
-    marginBottom: 24,
+    gap: 6,
   },
-  qrWrap: {
-    padding: 16,
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    borderRadius: 16,
+  shareCardPressed: {
+    backgroundColor: C.surfaceRaised,
   },
-  qrName: {
+  shareIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  shareCardTitle: {
+    fontSize: 13,
     color: C.text,
-    fontWeight: '600',
     textAlign: 'center',
   },
-  qrUrl: { textAlign: 'center', fontSize: 12 },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    width: '100%',
+  shareCardSub: {
+    fontSize: 10,
+    color: C.textMuted,
+    textAlign: 'center',
   },
-  actionBtn: {
-    width: '47.5%',
+  overviewRow: {
+    flexDirection: 'row',
     backgroundColor: C.surface,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: C.border,
     paddingVertical: 20,
+    paddingHorizontal: 12,
+    justifyContent: 'space-around',
     alignItems: 'center',
-    gap: 10,
   },
-  actionBtnPressed: { backgroundColor: 'rgba(255,255,255,0.06)' },
-  actionIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+  overviewItem: {
+    alignItems: 'center',
+    gap: 6,
+    flex: 1,
+  },
+  dialWrap: {
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionLabel: { color: C.text, fontSize: 13, fontWeight: '500' },
+  overviewNumber: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: C.text,
+    letterSpacing: -0.5,
+  },
+  overviewLabel: {
+    fontSize: 10,
+    color: C.textMuted,
+    letterSpacing: 0.8,
+    fontWeight: '600',
+  },
+  toast: {
+    position: 'absolute',
+    bottom: 96,
+    alignSelf: 'center',
+    backgroundColor: '#1E1E24',
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: C.border,
+    shadowColor: '#000',
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  toastText: {
+    color: C.text,
+    fontSize: 13,
+  },
 });

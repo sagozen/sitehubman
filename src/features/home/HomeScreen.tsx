@@ -2,11 +2,11 @@
  * HomeScreen — 06 Main Dashboard & Share Center
  * Luxury Minimalist (Apple Wallet × Stripe × Linear)
  *
- * Design Guidelines:
+ * Design Principles:
  * - True Black (#000000) canvas
- * - No RGB / rainbow / multi-color noise — restrained Monochrome + selective #2596BE
- * - No heavy 1px borders everywhere — clean background tone shifts and hairlines
- * - No fake metallic chips, rotating icons, blinking dots, or AI template clutter
+ * - No RGB / rainbow clutter (no green status dots, no neon gradients)
+ * - Restrained Monochrome with surgical #2596BE accent
+ * - Seamless background tone transitions instead of heavy 1px borders
  * - High-conviction typography, generous whitespace, confident calm luxury
  */
 import React, { useCallback, useState } from 'react';
@@ -14,7 +14,6 @@ import {
   View,
   StyleSheet,
   Pressable,
-  Dimensions,
   Clipboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,12 +24,10 @@ import { IosScrollView } from '@/src/components/IosScrollView';
 import { useAuth } from '@/src/hooks/useAuth';
 import { HapticTap } from '@/src/utils/haptics';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
 const C = {
   canvas: '#000000',
-  surface: '#0E0E11',
-  surfaceSoft: '#141418',
+  surface: '#0E0E12',
+  surfaceSoft: '#16161C',
   hairline: 'rgba(255, 255, 255, 0.06)',
   text: '#FFFFFF',
   textSecondary: '#A1A1AA',
@@ -48,7 +45,7 @@ function getGreeting(): string {
 
 export function HomeScreen() {
   const { user } = useAuth();
-  const userName = user?.displayName || 'Thean';
+  const userName = user?.displayName || 'Thean Coc';
   const greeting = getGreeting();
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -62,7 +59,7 @@ export function HomeScreen() {
 
   const handleTapToShare = useCallback(() => {
     HapticTap.confidentClick();
-    router.push('/share-profile' as any);
+    router.push('/(tabs)/share' as any);
   }, []);
 
   const handleNfcAction = useCallback(() => {
@@ -77,10 +74,10 @@ export function HomeScreen() {
 
   const handleLinkAction = useCallback(() => {
     HapticTap.softConfirmation();
-    const profileUrl = `https://nfcglobal.com/u/${userName.toLowerCase().replace(/\s+/g, '')}`;
+    const profileUrl = `https://nfcglobal.com/u/theancoc`;
     Clipboard.setString(profileUrl);
     showToast('Profile link copied');
-  }, [userName, showToast]);
+  }, [showToast]);
 
   const handleContactAction = useCallback(() => {
     HapticTap.light();
@@ -90,14 +87,17 @@ export function HomeScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <IosScrollView contentContainerStyle={styles.scroll}>
-        {/* Top Minimalist Header */}
+        {/* Header */}
         <View style={styles.header}>
           <View>
             <AppText style={styles.greetingText}>
-              {greeting}, {userName}
+              {greeting},
             </AppText>
-            <AppText style={styles.subGreetingText}>
-              Your card is ready to share.
+            <AppText style={styles.nameText} weight="bold">
+              {userName}
+            </AppText>
+            <AppText style={styles.roleText}>
+              Founder & Director
             </AppText>
           </View>
           <Pressable
@@ -113,15 +113,13 @@ export function HomeScreen() {
           </Pressable>
         </View>
 
-        {/* Hero Physical NFC Card (Apple Wallet Luxury Aesthetic) */}
+        {/* Hero Physical NFC Card (Apple Wallet Aesthetic) */}
         <View style={styles.cardWrapper}>
           <Pressable
             style={styles.physicalCard}
             onPress={() => router.push('/(tabs)/share' as any)}
           >
-            {/* Top Row: Contactless Wave Symbol + Brand mark */}
             <View style={styles.cardTopRow}>
-              {/* Minimalist 4-arc Contactless Symbol */}
               <View style={styles.contactlessSymbol}>
                 <View style={[styles.contactlessArc, styles.arc1]} />
                 <View style={[styles.contactlessArc, styles.arc2]} />
@@ -131,7 +129,6 @@ export function HomeScreen() {
               <AppText style={styles.cardTypeLabel}>BLACK METAL</AppText>
             </View>
 
-            {/* Card Identity */}
             <View style={styles.cardBody}>
               <AppText style={styles.cardOwnerName} weight="bold">
                 {userName.toUpperCase()}
@@ -141,7 +138,6 @@ export function HomeScreen() {
               </AppText>
             </View>
 
-            {/* Card Footer: Clean ID */}
             <View style={styles.cardBottomRow}>
               <AppText style={styles.cardSerial}>NFC • CONNECTED</AppText>
               <View style={styles.cardAccentPip} />
@@ -149,7 +145,7 @@ export function HomeScreen() {
           </Pressable>
         </View>
 
-        {/* Primary Action Button — Apple Style Crisp & Solid */}
+        {/* Primary Action Button — Apple Style Solid White */}
         <View style={styles.actionContainer}>
           <Pressable
             style={({ pressed }) => [
@@ -164,7 +160,7 @@ export function HomeScreen() {
           </Pressable>
         </View>
 
-        {/* Minimalist Live Metrics (Apple Health / Stripe clean stats) */}
+        {/* Minimalist Metrics (Apple Health / Linear clean typography) */}
         <View style={styles.statsRow}>
           <Pressable
             style={styles.statItem}
@@ -180,7 +176,7 @@ export function HomeScreen() {
 
           <Pressable
             style={styles.statItem}
-            onPress={() => router.push('/analytics/overview' as any)}
+            onPress={() => router.push('/analytics' as any)}
           >
             <AppText style={styles.statNumber} weight="bold">
               1,284
@@ -189,7 +185,7 @@ export function HomeScreen() {
           </Pressable>
         </View>
 
-        {/* 07 — Share Center (Sleek, Borderless Minimal Actions) */}
+        {/* Share Center — Clean Understated Row */}
         <View style={styles.sectionHeader}>
           <AppText style={styles.sectionTitle} weight="bold">
             Share
@@ -201,7 +197,7 @@ export function HomeScreen() {
             style={({ pressed }) => [styles.shareBtn, pressed && styles.shareBtnPressed]}
             onPress={handleNfcAction}
           >
-            <AppIcon name="wifi" size={20} color={C.text} style={{ transform: [{ rotate: '90deg' }] }} />
+            <AppIcon name="wifi" size={18} color={C.text} style={{ transform: [{ rotate: '90deg' }] }} />
             <AppText style={styles.shareBtnLabel}>NFC</AppText>
           </Pressable>
 
@@ -209,7 +205,7 @@ export function HomeScreen() {
             style={({ pressed }) => [styles.shareBtn, pressed && styles.shareBtnPressed]}
             onPress={handleQrAction}
           >
-            <AppIcon name="qr-code" size={20} color={C.text} />
+            <AppIcon name="qr-code" size={18} color={C.text} />
             <AppText style={styles.shareBtnLabel}>QR Code</AppText>
           </Pressable>
 
@@ -217,7 +213,7 @@ export function HomeScreen() {
             style={({ pressed }) => [styles.shareBtn, pressed && styles.shareBtnPressed]}
             onPress={handleLinkAction}
           >
-            <AppIcon name="copy" size={19} color={C.text} />
+            <AppIcon name="copy" size={18} color={C.text} />
             <AppText style={styles.shareBtnLabel}>Copy Link</AppText>
           </Pressable>
 
@@ -225,12 +221,12 @@ export function HomeScreen() {
             style={({ pressed }) => [styles.shareBtn, pressed && styles.shareBtnPressed]}
             onPress={handleContactAction}
           >
-            <AppIcon name="user" size={19} color={C.text} />
+            <AppIcon name="user" size={18} color={C.text} />
             <AppText style={styles.shareBtnLabel}>Save Contact</AppText>
           </Pressable>
         </View>
 
-        {/* 08 — Activity (Apple Wallet Clean Transaction Style) */}
+        {/* Recent Activity (Apple Wallet Transaction List) */}
         <View style={styles.sectionHeader}>
           <AppText style={styles.sectionTitle} weight="bold">
             Recent Activity
@@ -242,12 +238,11 @@ export function HomeScreen() {
             }}
             hitSlop={8}
           >
-            <AppText style={styles.viewAllText}>All</AppText>
+            <AppText style={styles.viewAllText}>View All</AppText>
           </Pressable>
         </View>
 
         <View style={styles.activityList}>
-          {/* Row 1 */}
           <View style={styles.activityRow}>
             <View style={styles.activityInfo}>
               <AppText style={styles.activityTitle} weight="medium">
@@ -262,7 +257,6 @@ export function HomeScreen() {
 
           <View style={styles.activitySeparator} />
 
-          {/* Row 2 */}
           <View style={styles.activityRow}>
             <View style={styles.activityInfo}>
               <AppText style={styles.activityTitle} weight="medium">
@@ -277,7 +271,6 @@ export function HomeScreen() {
 
           <View style={styles.activitySeparator} />
 
-          {/* Row 3 */}
           <View style={styles.activityRow}>
             <View style={styles.activityInfo}>
               <AppText style={styles.activityTitle} weight="medium">
@@ -291,7 +284,7 @@ export function HomeScreen() {
           </View>
         </View>
 
-        <View style={{ height: 60 }} />
+        <View style={{ height: 80 }} />
       </IosScrollView>
 
       {/* Understated Toast Notification */}
@@ -318,28 +311,34 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     paddingVertical: 14,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   greetingText: {
+    fontSize: 14,
+    color: C.textSecondary,
+  },
+  nameText: {
     fontSize: 26,
     letterSpacing: -0.6,
     color: C.text,
+    marginTop: 2,
   },
-  subGreetingText: {
-    fontSize: 14,
-    color: C.textSecondary,
-    marginTop: 3,
+  roleText: {
+    fontSize: 13,
+    color: C.textMuted,
+    marginTop: 2,
   },
   avatarButton: {
     borderRadius: 20,
+    marginTop: 4,
   },
   avatarCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: C.surfaceSoft,
     alignItems: 'center',
     justifyContent: 'center',
@@ -359,7 +358,6 @@ const styles = StyleSheet.create({
     backgroundColor: C.cardBg,
     padding: 24,
     justifyContent: 'space-between',
-    // Ultra-faint perimeter hairline — no heavy visible border
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
   },
@@ -425,7 +423,7 @@ const styles = StyleSheet.create({
   },
   actionContainer: {
     marginTop: 14,
-    marginBottom: 26,
+    marginBottom: 24,
   },
   primaryButton: {
     backgroundColor: '#FFFFFF',
@@ -450,7 +448,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 20,
     paddingHorizontal: 24,
-    marginBottom: 32,
+    marginBottom: 28,
   },
   statItem: {
     flex: 1,
@@ -477,7 +475,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 14,
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 17,
@@ -491,16 +489,16 @@ const styles = StyleSheet.create({
   shareRow: {
     flexDirection: 'row',
     gap: 10,
-    marginBottom: 32,
+    marginBottom: 28,
   },
   shareBtn: {
     flex: 1,
     backgroundColor: C.surface,
     borderRadius: 14,
-    paddingVertical: 18,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
+    gap: 8,
   },
   shareBtnPressed: {
     backgroundColor: C.surfaceSoft,

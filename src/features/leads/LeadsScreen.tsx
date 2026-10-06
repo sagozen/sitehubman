@@ -1,16 +1,13 @@
 /**
- * LeadsScreen — 19 Captured Leads CRM (Apple Wallet × Stripe × Linear)
- *
- * Implements:
- * 19 — Captured Leads List (Search, filter by intent, status pill, CSV export)
+ * LeadsScreen — Screen 4: Contacts / Leads (CRM) ("Manage your captured contacts")
+ * Luxury Minimalist (Apple Wallet × Stripe × Linear · Black Granite UI)
  */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   StyleSheet,
   Pressable,
   TextInput,
-  Share,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,314 +15,326 @@ import { router } from 'expo-router';
 import { AppText } from '@/src/components/AppText';
 import { AppIcon } from '@/src/components/AppIcon';
 import { IosScrollView } from '@/src/components/IosScrollView';
-import { useAuth } from '@/src/hooks/useAuth';
 import { HapticTap } from '@/src/utils/haptics';
-import {
-  fetchOwnerLeads,
-  toggleLeadFollowedUp,
-  type QualifiedLead,
-  type LeadIntent,
-} from '@/src/services/leadWorkflowService';
 
 const C = {
   canvas: '#000000',
-  surface: '#111114',
-  surfaceRaised: '#18181C',
-  border: 'rgba(255,255,255,0.08)',
-  borderLight: 'rgba(255,255,255,0.15)',
+  surface: '#0E0E11',
+  surfaceRaised: '#141418',
+  border: 'rgba(255,255,255,0.06)',
+  borderLight: 'rgba(255,255,255,0.06)',
   text: '#FFFFFF',
-  textSecondary: '#8E8E93',
-  textMuted: '#636366',
+  textSecondary: '#A1A1AA',
+  textMuted: '#52525B',
   accent: '#2596BE',
-  accentSubtle: 'rgba(37, 150, 190, 0.15)',
-  success: '#34C759',
-  warning: '#FF9500',
 } as const;
 
-const FILTER_TABS: { id: string; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'services', label: 'Services' },
-  { id: 'partnership', label: 'Partnership' },
-  { id: 'investment', label: 'Investment' },
-  { id: 'networking', label: 'Networking' },
+export interface ContactLead {
+  id: string;
+  name: string;
+  company: string;
+  title: string;
+  phone: string;
+  email: string;
+  source: 'NFC Tap' | 'QR Code' | 'Link' | 'Manual';
+  timeAgo: string;
+  category: 'all' | 'new' | 'followup';
+  notes: string;
+}
+
+const DEFAULT_CONTACTS: ContactLead[] = [
+  {
+    id: 'john-smith',
+    name: 'John Smith',
+    company: 'ABC Corporation',
+    title: 'CEO',
+    phone: '+855 12 345 678',
+    email: 'john@acme.com',
+    source: 'NFC Tap',
+    timeAgo: '2h ago',
+    category: 'new',
+    notes: 'Interested in enterprise smart cards. Send proposal by Friday.',
+  },
+  {
+    id: 'sokha-chan',
+    name: 'Sokha Chan',
+    company: 'ABC Group',
+    title: 'Marketing Manager',
+    phone: '+855 23 888 123',
+    email: 'sokha.chan@abcgroup.kh',
+    source: 'QR Code',
+    timeAgo: '5h ago',
+    category: 'new',
+    notes: 'Met at FinTech showcase. Follow up on custom branding.',
+  },
+  {
+    id: 'daniel-kim',
+    name: 'Daniel Kim',
+    company: 'Tech Solutions',
+    title: 'CTO',
+    phone: '+1 (555) 789-0123',
+    email: 'daniel.kim@techsolutions.io',
+    source: 'NFC Tap',
+    timeAgo: '1d ago',
+    category: 'followup',
+    notes: 'Requested developer API docs for CRM integration.',
+  },
+  {
+    id: 'srey-pov',
+    name: 'Srey Pov',
+    company: 'Meta Cambodia',
+    title: 'Business Development',
+    phone: '+855 11 999 555',
+    email: 'sreypov@metacambodia.com',
+    source: 'Link',
+    timeAgo: '1d ago',
+    category: 'new',
+    notes: 'Exchanged contact via digital pass link.',
+  },
+  {
+    id: 'alex-turner',
+    name: 'Alex Turner',
+    company: 'Global Ventures',
+    title: 'Partner',
+    phone: '+44 20 7946 0912',
+    email: 'alex@globalventures.co.uk',
+    source: 'NFC Tap',
+    timeAgo: '2d ago',
+    category: 'new',
+    notes: 'Interested in metal bulk cards for executive team.',
+  },
+  {
+    id: 'chhay-vibol',
+    name: 'Chhay Vibol',
+    company: 'Wing Commerce',
+    title: 'Product Director',
+    phone: '+855 77 444 333',
+    email: 'vibol.chhay@wing.com.kh',
+    source: 'QR Code',
+    timeAgo: '3d ago',
+    category: 'new',
+    notes: 'Digital business cards rollout.',
+  },
 ];
 
 export default function LeadsScreen() {
-  const { user } = useAuth();
-  const ownerId = user?.id ?? 'demo_owner';
+  const [activeTab, setActiveTab] = useState<'all' | 'new' | 'followup'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
 
-  const [leads, setLeads] = useState<QualifiedLead[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
+  const filteredContacts = useMemo(() => {
+    return DEFAULT_CONTACTS.filter((c) => {
+      const matchTab = activeTab === 'all' || c.category === activeTab;
+      const matchSearch =
+        !searchQuery ||
+        c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.title.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchTab && matchSearch;
+    });
+  }, [activeTab, searchQuery]);
 
-  const loadLeads = useCallback(async () => {
-    setLoading(true);
-    try {
-      const fetched = await fetchOwnerLeads(ownerId, 50);
-      if (fetched.length > 0) {
-        setLeads(fetched);
-      } else {
-        // Fallback realistic demo leads
-        setLeads([
-          {
-            id: 'lead-1',
-            ownerId,
-            name: 'Sarah Chen',
-            contactInfo: '+1 (555) 234-5678',
-            intent: 'services',
-            intentLabel: 'Services',
-            note: 'Enterprise NFC rollout for 45 partner executives.',
-            followedUp: false,
-          },
-          {
-            id: 'lead-2',
-            ownerId,
-            name: 'Raj Patel',
-            contactInfo: 'raj@patelcapital.com',
-            intent: 'investment',
-            intentLabel: 'Investment',
-            note: 'Met at FinTech Summit. Evaluating Series A allocation.',
-            followedUp: true,
-          },
-          {
-            id: 'lead-3',
-            ownerId,
-            name: 'Emma Liu',
-            contactInfo: 'eliu@vertexio.com',
-            intent: 'partnership',
-            intentLabel: 'Partnership',
-            note: 'Discussing co-branded smart cards integration.',
-            followedUp: false,
-          },
-          {
-            id: 'lead-4',
-            ownerId,
-            name: 'David Kim',
-            contactInfo: '+855 12 888 999',
-            intent: 'networking',
-            intentLabel: 'Networking',
-            note: 'Connected at Metfone Innovation Day.',
-            followedUp: true,
-          },
-        ]);
-      }
-    } catch {
-      // Mock on error
-    } finally {
-      setLoading(false);
-    }
-  }, [ownerId]);
+  const allCount = DEFAULT_CONTACTS.length;
+  const newCount = DEFAULT_CONTACTS.filter((c) => c.category === 'new').length;
+  const followCount = DEFAULT_CONTACTS.filter((c) => c.category === 'followup').length;
 
-  useEffect(() => {
-    loadLeads();
-  }, [loadLeads]);
-
-  const handleToggle = useCallback(async (lead: QualifiedLead) => {
-    if (!lead.id) return;
+  const handleSelectContact = (contact: ContactLead) => {
     HapticTap.light();
-    const newStatus = !lead.followedUp;
-    setLeads((prev) =>
-      prev.map((l) => (l.id === lead.id ? { ...l, followedUp: newStatus } : l))
-    );
-    try {
-      await toggleLeadFollowedUp(lead.id, lead.followedUp);
-    } catch (e) {
-      console.error(e);
-    }
-  }, []);
-
-  const handleExportCSV = useCallback(async () => {
-    HapticTap.confidentClick();
-    const headers = 'Name,Contact,Intent,Note,Status\n';
-    const rows = leads
-      .map(
-        (l) =>
-          `"${l.name}","${l.contactInfo}","${l.intentLabel}","${l.note || ''}","${
-            l.followedUp ? 'Followed Up' : 'Pending'
-          }"`
-      )
-      .join('\n');
-    try {
-      await Share.share({
-        title: 'NFC_Captured_Leads.csv',
-        message: headers + rows,
-      });
-    } catch {
-      // dismissed
-    }
-  }, [leads]);
-
-  const filteredLeads = leads.filter((lead) => {
-    const matchesSearch =
-      lead.name.toLowerCase().includes(search.toLowerCase()) ||
-      lead.contactInfo.toLowerCase().includes(search.toLowerCase()) ||
-      (lead.note && lead.note.toLowerCase().includes(search.toLowerCase()));
-    const matchesFilter =
-      activeFilter === 'all' || lead.intent === activeFilter;
-    return matchesSearch && matchesFilter;
-  });
+    router.push({
+      pathname: '/leads/[leadId]',
+      params: { leadId: contact.id },
+    } as any);
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* Header */}
+      {/* Top Header */}
       <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Pressable
+            onPress={() => router.back()}
+            style={styles.backBtn}
+            hitSlop={12}
+          >
+            <AppIcon name="chevron-left" size={20} color={C.text} />
+          </Pressable>
+          <AppText style={styles.headerTitle} weight="bold">
+            Contacts
+          </AppText>
+        </View>
+
+        <View style={styles.headerRight}>
+          <Pressable
+            style={styles.headerIconBtn}
+            onPress={() => {
+              HapticTap.light();
+              setShowSearch((prev) => !prev);
+            }}
+            hitSlop={8}
+          >
+            <AppIcon name="search" size={18} color={C.textSecondary} />
+          </Pressable>
+
+          <Pressable
+            style={styles.headerIconBtn}
+            onPress={() => {
+              HapticTap.light();
+            }}
+            hitSlop={8}
+          >
+            <AppIcon name="filter" size={18} color={C.textSecondary} />
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Optional Search Bar */}
+      {showSearch && (
+        <View style={styles.searchBarWrap}>
+          <View style={styles.searchBarInner}>
+            <AppIcon name="search" size={16} color={C.textMuted} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search contacts..."
+              placeholderTextColor={C.textMuted}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoFocus
+            />
+            {searchQuery ? (
+              <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
+                <AppIcon name="x" size={16} color={C.textMuted} />
+              </Pressable>
+            ) : null}
+          </View>
+        </View>
+      )}
+
+      {/* Filter Tabs: All (12) | New (5) | Follow-up (1) */}
+      <View style={styles.filterTabsRow}>
         <Pressable
+          style={[
+            styles.filterTabPill,
+            activeTab === 'all' && styles.filterTabPillActive,
+          ]}
           onPress={() => {
             HapticTap.light();
-            router.back();
+            setActiveTab('all');
           }}
-          hitSlop={12}
-          style={styles.backBtn}
         >
-          <AppIcon name="ChevronLeft" size={24} color={C.text} />
-        </Pressable>
-        <View style={styles.headerTitleWrap}>
-          <AppText style={styles.headerTitle} weight="bold">
-            Captured Leads
+          <AppText
+            style={[
+              styles.filterTabText,
+              activeTab === 'all' && styles.filterTabTextActive,
+            ]}
+            weight={activeTab === 'all' ? 'bold' : undefined}
+          >
+            All ({allCount})
           </AppText>
-          <AppText style={styles.leadCountBadge}>{leads.length} contacts</AppText>
-        </View>
+        </Pressable>
+
         <Pressable
-          onPress={handleExportCSV}
-          hitSlop={10}
-          style={styles.exportBtn}
+          style={[
+            styles.filterTabPill,
+            activeTab === 'new' && styles.filterTabPillActive,
+          ]}
+          onPress={() => {
+            HapticTap.light();
+            setActiveTab('new');
+          }}
         >
-          <AppIcon name="share" size={18} color={C.accent} />
-          <AppText style={styles.exportText} weight="medium">
-            Export
+          <AppText
+            style={[
+              styles.filterTabText,
+              activeTab === 'new' && styles.filterTabTextActive,
+            ]}
+            weight={activeTab === 'new' ? 'bold' : undefined}
+          >
+            New ({newCount})
+          </AppText>
+        </Pressable>
+
+        <Pressable
+          style={[
+            styles.filterTabPill,
+            activeTab === 'followup' && styles.filterTabPillActive,
+          ]}
+          onPress={() => {
+            HapticTap.light();
+            setActiveTab('followup');
+          }}
+        >
+          <AppText
+            style={[
+              styles.filterTabText,
+              activeTab === 'followup' && styles.filterTabTextActive,
+            ]}
+            weight={activeTab === 'followup' ? 'bold' : undefined}
+          >
+            Follow-up ({followCount})
           </AppText>
         </Pressable>
       </View>
 
-      {/* Search Input */}
-      <View style={styles.searchBar}>
-        <AppIcon name="search" size={16} color={C.textSecondary} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search by name, email, or notes..."
-          placeholderTextColor={C.textMuted}
-          value={search}
-          onChangeText={setSearch}
-          clearButtonMode="while-editing"
-        />
-      </View>
+      {/* Contacts List */}
+      <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <View style={styles.contentWrap}>
+          <View style={styles.contactsBox}>
+            {filteredContacts.map((contact, index) => {
+              const initials = contact.name
+                .split(' ')
+                .map((n) => n[0])
+                .join('')
+                .substring(0, 2)
+                .toUpperCase();
 
-      {/* Filter Tabs */}
-      <View style={styles.filterRow}>
-        {FILTER_TABS.map((tab) => {
-          const active = activeFilter === tab.id;
-          return (
-            <Pressable
-              key={tab.id}
-              style={[styles.filterChip, active && styles.filterChipActive]}
-              onPress={() => {
-                HapticTap.light();
-                setActiveFilter(tab.id);
-              }}
-            >
-              <AppText
-                style={[styles.filterText, active && styles.filterTextActive]}
-                weight={active ? 'bold' : 'regular'}
-              >
-                {tab.label}
-              </AppText>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      {/* Lead List */}
-      <IosScrollView contentContainerStyle={styles.scroll}>
-        {loading ? (
-          <View style={styles.centerLoading}>
-            <ActivityIndicator color={C.accent} size="large" />
-          </View>
-        ) : filteredLeads.length === 0 ? (
-          <View style={styles.emptyWrap}>
-            <View style={styles.emptyIconCircle}>
-              <AppIcon name="Users" size={28} color={C.textMuted} />
-            </View>
-            <AppText style={styles.emptyTitle} weight="bold">
-              No Leads Found
-            </AppText>
-            <AppText style={styles.emptySubtitle}>
-              Tap your card or share your profile to capture contacts directly to your phone.
-            </AppText>
-          </View>
-        ) : (
-          filteredLeads.map((lead) => {
-            const isFollowed = lead.followedUp;
-            return (
-              <Pressable
-                key={lead.id}
-                style={({ pressed }) => [
-                  styles.leadCard,
-                  pressed && styles.leadCardPressed,
-                ]}
-                onPress={() => {
-                  HapticTap.light();
-                  router.push(`/leads/${lead.id}` as any);
-                }}
-              >
-                <View style={styles.leadHeader}>
-                  <View style={styles.avatarWrap}>
-                    <AppText style={styles.avatarInitials} weight="bold">
-                      {lead.name.substring(0, 2).toUpperCase()}
-                    </AppText>
-                  </View>
-                  <View style={styles.leadInfo}>
-                    <AppText style={styles.leadName} weight="bold">
-                      {lead.name}
-                    </AppText>
-                    <AppText style={styles.leadContact}>{lead.contactInfo}</AppText>
-                  </View>
-                  <View
-                    style={[
-                      styles.intentPill,
-                      { backgroundColor: C.accentSubtle },
-                    ]}
-                  >
-                    <AppText style={styles.intentText} weight="bold">
-                      {lead.intentLabel.toUpperCase()}
-                    </AppText>
-                  </View>
-                </View>
-
-                {lead.note && (
-                  <View style={styles.noteBox}>
-                    <AppText style={styles.noteText} numberOfLines={2}>
-                      "{lead.note}"
-                    </AppText>
-                  </View>
-                )}
-
-                <View style={styles.leadFooter}>
+              return (
+                <React.Fragment key={contact.id}>
                   <Pressable
-                    style={styles.statusToggle}
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      handleToggle(lead);
-                    }}
-                    hitSlop={8}
+                    style={({ pressed }) => [
+                      styles.contactRow,
+                      pressed && styles.contactRowPressed,
+                    ]}
+                    onPress={() => handleSelectContact(contact)}
                   >
-                    <View
-                      style={[
-                        styles.toggleDot,
-                        { backgroundColor: isFollowed ? C.success : C.warning },
-                      ]}
-                    />
-                    <AppText style={styles.statusLabel}>
-                      {isFollowed ? 'Followed Up' : 'Needs Follow-up'}
-                    </AppText>
+                    {/* Avatar circle */}
+                    <View style={styles.avatarCircle}>
+                      <AppText style={styles.avatarInitials} weight="bold">
+                        {initials}
+                      </AppText>
+                    </View>
+
+                    {/* Details */}
+                    <View style={styles.contactDetails}>
+                      <AppText style={styles.contactName} weight="bold">
+                        {contact.name}
+                      </AppText>
+                      <AppText style={styles.contactSub}>
+                        {contact.company} · {contact.title}
+                      </AppText>
+                      <View style={styles.contactSourceRow}>
+                        <AppText style={styles.sourceTag}>
+                          {contact.source}
+                        </AppText>
+                        <AppText style={styles.dotSeparator}>·</AppText>
+                        <AppText style={styles.timeAgoText}>
+                          {contact.timeAgo}
+                        </AppText>
+                      </View>
+                    </View>
+
+                    <AppIcon name="chevron-right" size={16} color={C.textMuted} />
                   </Pressable>
 
-                  <AppIcon name="ChevronRight" size={16} color={C.textMuted} />
-                </View>
-              </Pressable>
-            );
-          })
-        )}
+                  {index < filteredContacts.length - 1 && (
+                    <View style={styles.rowDivider} />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </View>
+
+          <View style={{ height: 110 }} />
+        </View>
       </IosScrollView>
     </SafeAreaView>
   );
@@ -340,209 +349,159 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  backBtn: {
-    padding: 4,
-  },
-  headerTitleWrap: {
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    color: C.text,
-    letterSpacing: -0.4,
-  },
-  leadCountBadge: {
-    fontSize: 11,
-    color: C.textSecondary,
-    marginTop: 2,
-  },
-  exportBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 14,
-    backgroundColor: C.surfaceRaised,
-    borderWidth: 1,
-    borderColor: C.border,
-  },
-  exportText: {
-    fontSize: 13,
-    color: C.accent,
-  },
-  searchBar: {
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginHorizontal: 20,
-    marginTop: 6,
-    marginBottom: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 14,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 22,
+    color: C.text,
+    letterSpacing: -0.4,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerIconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: C.surface,
     borderWidth: 1,
     borderColor: C.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchBarWrap: {
+    paddingHorizontal: 20,
+    marginBottom: 10,
+  },
+  searchBarInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: C.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: C.borderLight,
+    paddingHorizontal: 12,
+    height: 40,
+    gap: 8,
   },
   searchInput: {
     flex: 1,
     color: C.text,
     fontSize: 14,
-    padding: 0,
   },
-  filterRow: {
+  filterTabsRow: {
     flexDirection: 'row',
     paddingHorizontal: 20,
     gap: 8,
     marginBottom: 14,
   },
-  filterChip: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 12,
+  filterTabPill: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
     backgroundColor: C.surface,
     borderWidth: 1,
     borderColor: C.border,
   },
-  filterChipActive: {
-    backgroundColor: C.surfaceRaised,
+  filterTabPillActive: {
+    backgroundColor: C.accent,
     borderColor: C.accent,
   },
-  filterText: {
-    fontSize: 12,
+  filterTabText: {
+    fontSize: 13,
     color: C.textSecondary,
   },
-  filterTextActive: {
-    color: C.text,
+  filterTabTextActive: {
+    color: '#FFFFFF',
   },
   scroll: {
+    flexGrow: 1,
+  },
+  contentWrap: {
     paddingHorizontal: 20,
-    paddingBottom: 40,
-    gap: 12,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
   },
-  centerLoading: {
-    paddingVertical: 60,
-    alignItems: 'center',
-  },
-  emptyWrap: {
-    paddingVertical: 60,
-    alignItems: 'center',
-  },
-  emptyIconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontSize: 16,
-    color: C.text,
-    marginBottom: 6,
-  },
-  emptySubtitle: {
-    fontSize: 13,
-    color: C.textMuted,
-    textAlign: 'center',
-    maxWidth: 280,
-    lineHeight: 18,
-  },
-  leadCard: {
+  contactsBox: {
     backgroundColor: C.surface,
     borderRadius: 18,
-    padding: 16,
     borderWidth: 1,
     borderColor: C.border,
+    overflow: 'hidden',
   },
-  leadCardPressed: {
-    backgroundColor: C.surfaceRaised,
-    transform: [{ scale: 0.99 }],
-  },
-  leadHeader: {
+  contactRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
   },
-  avatarWrap: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+  contactRowPressed: {
     backgroundColor: C.surfaceRaised,
+  },
+  avatarCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#1E1E26',
     borderWidth: 1,
     borderColor: C.borderLight,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 14,
   },
   avatarInitials: {
     fontSize: 15,
     color: C.text,
   },
-  leadInfo: {
+  contactDetails: {
     flex: 1,
   },
-  leadName: {
+  contactName: {
     fontSize: 15,
     color: C.text,
-    letterSpacing: -0.2,
   },
-  leadContact: {
+  contactSub: {
     fontSize: 12,
     color: C.textSecondary,
     marginTop: 2,
   },
-  intentPill: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-  },
-  intentText: {
-    fontSize: 10,
-    color: C.accent,
-    letterSpacing: 0.5,
-  },
-  noteBox: {
-    marginTop: 12,
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderLeftWidth: 2,
-    borderLeftColor: C.accent,
-  },
-  noteText: {
-    fontSize: 12,
-    color: C.textSecondary,
-    fontStyle: 'italic',
-    lineHeight: 16,
-  },
-  leadFooter: {
+  contactSourceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 14,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: C.border,
+    marginTop: 4,
+    gap: 4,
   },
-  statusToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  toggleDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  statusLabel: {
-    fontSize: 12,
+  sourceTag: {
+    fontSize: 11,
     color: C.textSecondary,
+    fontWeight: '500',
+  },
+  dotSeparator: {
+    fontSize: 11,
+    color: C.textMuted,
+  },
+  timeAgoText: {
+    fontSize: 11,
+    color: C.textMuted,
+  },
+  rowDivider: {
+    height: 1,
+    backgroundColor: C.border,
+    marginLeft: 74,
   },
 });

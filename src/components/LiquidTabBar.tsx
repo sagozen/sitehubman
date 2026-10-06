@@ -423,9 +423,9 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
   }
 
   // ─── Consumer dock colors ─────────────────────────────────────────────────
-  const activeTint   = isDark ? '#0A84FF' : '#007AFF';
-  const inactiveTint = isDark ? 'rgba(235,235,245,0.55)' : 'rgba(60,60,67,0.55)';
-  const barBorder    = isDark ? 'rgba(84,84,88,0.55)' : 'rgba(60,60,67,0.12)';
+  const activeTint   = '#2596BE';
+  const inactiveTint = isDark ? 'rgba(235,235,245,0.45)' : 'rgba(60,60,67,0.45)';
+  const barBorder    = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(60,60,67,0.12)';
   const blurTint     = isDark ? 'dark' : 'light';
 
   return (

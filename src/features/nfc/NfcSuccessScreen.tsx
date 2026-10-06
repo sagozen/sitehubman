@@ -24,9 +24,9 @@ export default function NfcSuccessScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.center}>
-        {/* Green circle checkmark */}
+        {/* Success icon */}
         <View style={styles.successCircle}>
-          <AppIcon name="Check" size={48} color="#30D158" />
+          <AppIcon name="Check" size={48} color="#FFFFFF" />
         </View>
 
         <AppText style={styles.title}>You're ready</AppText>
@@ -71,9 +71,9 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: 'rgba(48,209,88,0.1)',
+    backgroundColor: '#141418',
     borderWidth: 1,
-    borderColor: 'rgba(48,209,88,0.3)',
+    borderColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -81,13 +81,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#F5F5F7',
+    color: '#FFFFFF',
     textAlign: 'center',
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 15,
-    color: '#9A9AA0',
+    color: '#A1A1AA',
     textAlign: 'center',
     lineHeight: 22,
     maxWidth: 260,
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
+    borderColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -128,6 +128,6 @@ const styles = StyleSheet.create({
   doneBtnText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#F5F5F7',
+    color: '#FFFFFF',
   },
 });
