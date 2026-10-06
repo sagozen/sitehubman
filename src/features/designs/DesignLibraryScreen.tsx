@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { View, StyleSheet, ScrollView, Image, Pressable } from 'react-native';
+import { View, StyleSheet, ScrollView, Image, Pressable, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '@/src/services/firebaseClient';
@@ -43,7 +43,7 @@ export default function DesignLibraryScreen() {
   const [category, setCategory] = useState<DesignCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
   
-  const debouncedSearch = useDebouncedInput(setSearchQuery, 300);
+  const [searchValue, handleSearchChange] = useDebouncedInput('', setSearchQuery, 300);
 
   useEffect(() => {
     loadDesigns();
@@ -192,15 +192,13 @@ export default function DesignLibraryScreen() {
         {/* Search Bar */}
         <View style={styles.searchBar}>
           <AppIcon name="Search" size={20} color={T.textMuted} />
-          <input
-            type="text"
+          <TextInput
             placeholder="Search designs..."
-            onChange={(e) => debouncedSearch.onChange(e.target.value)}
+            placeholderTextColor={T.textMuted}
+            value={searchValue}
+            onChangeText={handleSearchChange}
             style={{
               flex: 1,
-              border: 'none',
-              outline: 'none',
-              background: 'transparent',
               color: T.textPrimary,
               fontSize: T.fontSizeMD,
             }}

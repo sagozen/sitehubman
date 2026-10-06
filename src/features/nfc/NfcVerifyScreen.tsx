@@ -106,14 +106,15 @@ export default function NfcVerifyScreen() {
       setStatus('verifying');
 
       // Verify URL signature
-      const url = tagData.url || '';
+      const anyTag = tagData as any;
+      const url = anyTag.url || '';
       const cardId = await verifyNfcUrl(url);
 
       const verificationResult: VerificationResult = {
         urlRead: !!url,
         signatureValid: !!cardId,
         cardIdMatch: expectedCardId ? cardId === expectedCardId : true,
-        tagWritable: !tagData.isLocked,
+        tagWritable: !anyTag.isLocked,
       };
 
       setResult(verificationResult);
@@ -233,7 +234,7 @@ export default function NfcVerifyScreen() {
             <AppIcon
               name={check.passed ? 'CheckCircle' : 'XCircle'}
               size={20}
-              color={check.passed ? theme.colors.success : theme.colors.error}
+              color={check.passed ? '#FFFFFF' : '#FF453A'}
             />
             <AppText style={styles.checkLabel}>{check.label}</AppText>
           </View>
@@ -382,35 +383,35 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
+    backgroundColor: '#0E0E11',
   },
   title: {
     fontSize: 24,
-    color: theme.colors.text,
+    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 12,
   },
   subtitle: {
     fontSize: 15,
-    color: theme.colors.textSecondary,
+    color: '#A1A1AA',
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 32,
     paddingHorizontal: 20,
   },
   errorText: {
-    color: theme.colors.error,
+    color: '#FF453A',
   },
   checksContainer: {
     width: '100%',
-    backgroundColor: theme.colors.surface,
+    backgroundColor: '#0E0E11',
     borderRadius: 12,
     padding: 20,
     marginBottom: 32,
   },
   checksTitle: {
     fontSize: 16,
-    color: theme.colors.text,
+    color: '#FFFFFF',
     marginBottom: 16,
   },
   checkRow: {
@@ -421,7 +422,7 @@ const styles = StyleSheet.create({
   },
   checkLabel: {
     fontSize: 14,
-    color: theme.colors.textSecondary,
+    color: '#A1A1AA',
   },
   actions: {
     width: '100%',
@@ -434,24 +435,24 @@ const styles = StyleSheet.create({
   },
   scanningText: {
     fontSize: 16,
-    color: theme.colors.textSecondary,
+    color: '#A1A1AA',
     textAlign: 'center',
   },
   infoBox: {
     width: '100%',
-    backgroundColor: theme.colors.surface,
+    backgroundColor: '#0E0E11',
     borderRadius: 8,
     padding: 16,
     marginTop: 20,
   },
   infoLabel: {
     fontSize: 12,
-    color: theme.colors.textSecondary,
+    color: '#A1A1AA',
     marginBottom: 4,
   },
   infoValue: {
     fontSize: 14,
-    color: theme.colors.text,
+    color: '#FFFFFF',
     fontFamily: 'monospace',
   },
 });

@@ -143,12 +143,12 @@ export default function NfcInventoryScreen() {
 
   const getStatusColor = (status: NfcTagStatus): string => {
     switch (status) {
-      case 'in_stock': return theme.colors.textSecondary;
+      case 'in_stock': return '#A1A1AA';
       case 'encoded': return '#FFFFFF'; // Use white for success (monochrome)
-      case 'pending': return theme.colors.textSecondary;
-      case 'defective': return theme.colors.textMuted;
-      case 'returned': return theme.colors.textTertiary;
-      default: return theme.colors.textSecondary;
+      case 'pending': return '#A1A1AA';
+      case 'defective': return '#52525B';
+      case 'returned': return '#52525B';
+      default: return '#A1A1AA';
     }
   };
 
@@ -169,7 +169,7 @@ export default function NfcInventoryScreen() {
         style={[styles.statCard, isSelected && styles.statCardActive]}
         onPress={() => handleFilterChange(filter)}
       >
-        <AppIcon name={iconName as any} size={24} color={isSelected ? theme.colors.primary : theme.colors.textSecondary} />
+        <AppIcon name={iconName as any} size={24} color={isSelected ? '#2596BE' : '#A1A1AA'} />
         <AppText style={[styles.statCount, isSelected && styles.statCountActive]} weight="bold">
           {count}
         </AppText>
@@ -193,7 +193,7 @@ export default function NfcInventoryScreen() {
             </AppText>
           </View>
         </View>
-        <AppIcon name="ChevronRight" size={20} color={theme.colors.textTertiary} />
+        <AppIcon name="ChevronRight" size={20} color="#52525B" />
       </View>
 
       {item.cardId && (
@@ -208,7 +208,7 @@ export default function NfcInventoryScreen() {
         </AppText>
       )}
       {item.defectReason && (
-        <AppText style={[styles.tagDetail, { color: theme.colors.error }]}>
+        <AppText style={[styles.tagDetail, { color: '#FF453A' }]}>
           ⚠️ {item.defectReason}
         </AppText>
       )}
@@ -217,7 +217,7 @@ export default function NfcInventoryScreen() {
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <AppIcon name="Package" size={64} color={theme.colors.textTertiary} />
+      <AppIcon name="Package" size={64} color="#52525B" />
       <AppText style={styles.emptyTitle} weight="bold">
         No NFC tags found
       </AppText>
@@ -283,8 +283,8 @@ export default function NfcInventoryScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tint={theme.colors.primary}
-            colors={[theme.colors.primary]}
+            tintColor="#2596BE"
+            colors={['#2596BE']}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -301,12 +301,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    color: theme.colors.text,
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
-    color: theme.colors.textSecondary,
+    color: '#A1A1AA',
   },
   statsGrid: {
     flexDirection: 'row',
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: '#0E0E11',
     borderRadius: 12,
     padding: 12,
     alignItems: 'center',
@@ -324,25 +324,25 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   statCardActive: {
-    borderColor: theme.colors.primary,
-    backgroundColor: theme.colors.primary + '10',
+    borderColor: '#2596BE',
+    backgroundColor: '#2596BE10',
   },
   statCount: {
     fontSize: 22,
-    color: theme.colors.text,
+    color: '#FFFFFF',
     marginTop: 8,
     marginBottom: 2,
   },
   statCountActive: {
-    color: theme.colors.primary,
+    color: '#2596BE',
   },
   statLabel: {
     fontSize: 11,
-    color: theme.colors.textSecondary,
+    color: '#A1A1AA',
     textTransform: 'uppercase',
   },
   statLabelActive: {
-    color: theme.colors.primary,
+    color: '#2596BE',
   },
   actions: {
     flexDirection: 'row',
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   tagCard: {
-    backgroundColor: theme.colors.surface,
+    backgroundColor: '#0E0E11',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
   },
   tagId: {
     fontSize: 16,
-    color: theme.colors.text,
+    color: '#FFFFFF',
   },
   statusBadge: {
     paddingHorizontal: 8,
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
   },
   tagDetail: {
     fontSize: 13,
-    color: theme.colors.textSecondary,
+    color: '#A1A1AA',
     marginTop: 4,
   },
   emptyState: {
@@ -406,13 +406,13 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 20,
-    color: theme.colors.text,
+    color: '#FFFFFF',
     marginTop: 20,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: theme.colors.textSecondary,
+    color: '#A1A1AA',
     textAlign: 'center',
     marginBottom: 24,
   },

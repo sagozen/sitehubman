@@ -16,8 +16,10 @@ export interface EmptyStateProps {
   icon?: string;
   title: string;
   subtitle?: string;
+  description?: string;
   actionLabel?: string;
   onActionPress?: () => void;
+  onAction?: () => void;
   actionVariant?: 'primary' | 'secondary';
   secondaryActionLabel?: string;
   onSecondaryActionPress?: () => void;
@@ -29,21 +31,25 @@ export function EmptyState({
   icon,
   title,
   subtitle,
+  description,
   actionLabel,
   onActionPress,
+  onAction,
   actionVariant = 'primary',
   secondaryActionLabel,
   onSecondaryActionPress,
   illustration,
   style,
 }: EmptyStateProps) {
+  const sub = subtitle || description;
+  const handleAction = onActionPress || onAction;
   return (
     <View style={[styles.container, style]}>
       {illustration ? (
         illustration
       ) : icon ? (
         <View style={styles.iconContainer}>
-          <AppIcon name={icon as any} size={64} color={theme.colors.textTertiary} />
+          <AppIcon name={icon as any} size={64} color="#52525B" />
         </View>
       ) : null}
 
@@ -51,17 +57,17 @@ export function EmptyState({
         {title}
       </AppText>
 
-      {subtitle && (
+      {sub && (
         <AppText style={styles.subtitle}>
-          {subtitle}
+          {sub}
         </AppText>
       )}
 
-      {actionLabel && onActionPress && (
+      {actionLabel && handleAction && (
         <View style={styles.actions}>
           <AppButton
             title={actionLabel}
-            onPress={onActionPress}
+            onPress={handleAction}
             variant={actionVariant}
             style={styles.actionButton}
           />
@@ -93,13 +99,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    color: theme.colors.text,
+    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
-    color: theme.colors.textSecondary,
+    color: '#A1A1AA',
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 24,

@@ -151,9 +151,9 @@ export default function NfcSecurityScreen() {
   const getSeverityColor = (severity: AlertSeverity): string => {
     switch (severity) {
       case 'critical': return '#FFFFFF'; // Monochrome - brightest for critical
-      case 'high': return theme.colors.textPrimary;
-      case 'medium': return theme.colors.textSecondary;
-      case 'low': return theme.colors.textMuted;
+      case 'high': return '#FFFFFF';
+      case 'medium': return '#A1A1AA';
+      case 'low': return '#52525B';
     }
   };
 
@@ -214,7 +214,7 @@ export default function NfcSecurityScreen() {
         </View>
         {item.resolved && (
           <View style={styles.resolvedBadge}>
-            <AppIcon name="CheckCircle" size={18} color={theme.colors.textSecondary} />
+            <AppIcon name="CheckCircle" size={18} color="#A1A1AA" />
           </View>
         )}
       </View>
@@ -237,7 +237,7 @@ export default function NfcSecurityScreen() {
           title="Mark as Resolved"
           onPress={() => handleResolveAlert(item.id)}
           variant="secondary"
-          size="small"
+          size="sm"
           style={styles.resolveButton}
         />
       )}
@@ -256,10 +256,10 @@ export default function NfcSecurityScreen() {
       </View>
 
       <View style={styles.statsGrid}>
-        {renderStatCard('Total', stats.totalAlerts, theme.colors.text)}
+        {renderStatCard('Total', stats.totalAlerts, '#FFFFFF')}
         {renderStatCard('Critical', stats.criticalAlerts, '#FFFFFF')}
-        {renderStatCard('Clones', stats.clonesDetected, theme.colors.textPrimary)}
-        {renderStatCard('Last 24h', stats.last24h, theme.colors.textSecondary)}
+        {renderStatCard('Clones', stats.clonesDetected, '#FFFFFF')}
+        {renderStatCard('Last 24h', stats.last24h, '#A1A1AA')}
       </View>
 
       <View style={styles.filterBar}>
@@ -308,8 +308,8 @@ export default function NfcSecurityScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tint={theme.colors.primary}
-            colors={[theme.colors.primary]}
+            tintColor="#2596BE"
+            colors={['#2596BE']}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -326,12 +326,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    color: theme.colors.text,
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
-    color: theme.colors.textSecondary,
+    color: '#A1A1AA',
   },
   statsGrid: {
     flexDirection: 'row',
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: '#0E0E11',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 11,
-    color: theme.colors.textSecondary,
+    color: '#A1A1AA',
     textTransform: 'uppercase',
   },
   filterBar: {
@@ -365,14 +365,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: '#0E0E11',
   },
   filterChipActive: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: '#2596BE',
   },
   filterText: {
     fontSize: 13,
-    color: theme.colors.textSecondary,
+    color: '#A1A1AA',
     fontWeight: '600',
   },
   filterTextActive: {
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   alertCard: {
-    backgroundColor: theme.colors.surface,
+    backgroundColor: '#0E0E11',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
   },
   alertType: {
     fontSize: 15,
-    color: theme.colors.text,
+    color: '#FFFFFF',
   },
   severityBadge: {
     alignSelf: 'flex-start',
@@ -431,19 +431,19 @@ const styles = StyleSheet.create({
   },
   alertMessage: {
     fontSize: 14,
-    color: theme.colors.textSecondary,
+    color: '#A1A1AA',
     lineHeight: 20,
     marginBottom: 12,
   },
   alertDetail: {
     fontSize: 12,
-    color: theme.colors.textTertiary,
+    color: '#52525B',
     fontFamily: 'monospace',
     marginBottom: 4,
   },
   alertTimestamp: {
     fontSize: 11,
-    color: theme.colors.textTertiary,
+    color: '#52525B',
     marginTop: 8,
   },
   resolveButton: {

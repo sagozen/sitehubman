@@ -7,7 +7,7 @@ import React from 'react';
 import { StyleSheet, ViewStyle, ImageStyle } from 'react-native';
 import FastImage, { FastImageProps, Priority, ResizeMode } from 'react-native-fast-image';
 
-interface OptimizedImageProps extends Omit<FastImageProps, 'source'> {
+interface OptimizedImageProps extends Omit<FastImageProps, 'source' | 'fallback'> {
   uri: string;
   style?: ImageStyle | ViewStyle;
   priority?: 'low' | 'normal' | 'high';

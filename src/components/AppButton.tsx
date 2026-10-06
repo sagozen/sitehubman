@@ -1,4 +1,4 @@
-﻿/**
+/**
  * AppButton — Apple HIG-compliant button primitive.
  *
  * Apple HIG rules applied:
@@ -37,7 +37,7 @@ import { usePreferences } from '@/src/hooks/usePreferences';
 
 export type ButtonVariant =
   | 'primary' | 'secondary' | 'tertiary' | 'ghost' | 'outline'
-  | 'soft' | 'dark' | 'white' | 'destructive' | 'link'
+  | 'soft' | 'dark' | 'white' | 'destructive' | 'danger' | 'link'
   | 'icon' | 'iconCircle' | 'icon-circle' | 'menu' | 'close' | 'back'
   | 'floating' | 'success' | 'warning' | 'disabled' | 'loading'
   | 'glass' | 'glass-primary' | 'share' | 'scan' | 'add' | 'edit'
@@ -48,10 +48,12 @@ export type ButtonHaptic = 'light' | 'medium' | 'success' | 'error' | 'warning' 
 
 export interface AppButtonProps extends Omit<PressableProps, 'style' | 'children'> {
   label?: string;
+  title?: string;
   children?: ReactNode;
   variant?: ButtonVariant;
   size?: ButtonSize;
   iconLeft?: AppIconName | ReactNode;
+  leftIcon?: AppIconName | ReactNode;
   iconRight?: AppIconName | ReactNode;
   iconName?: AppIconName | ReactNode;
   iconPosition?: string;
@@ -88,10 +90,12 @@ const SPRING_OUT = { damping: 20, stiffness: 150, mass: 1   };
 
 function AppButtonRaw({
   label,
+  title,
   children,
   variant = 'primary',
   size = 'md',
   iconLeft,
+  leftIcon,
   iconRight,
   iconName,
   loading = false,
@@ -143,15 +147,16 @@ function AppButtonRaw({
     opacity:   opacity.value,
   }));
 
-  const tokens = getVariantTokens(variant, isDark, color);
-  const resolvedLeft  = resolveIcon(iconLeft || iconName, variant, 'left');
-  const resolvedRight = resolveIcon(iconRight, variant, 'right');
+  const effectiveVariant = variant === 'danger' ? 'destructive' : variant;
+  const tokens = getVariantTokens(effectiveVariant, isDark, color);
+  const resolvedLeft  = resolveIcon(iconLeft || leftIcon || iconName, effectiveVariant, 'left');
+  const resolvedRight = resolveIcon(iconRight, effectiveVariant, 'right');
 
   const buttonStyle: ViewStyle = {
     minHeight:       cfg.height,
     height:          isIconOnly ? cfg.height : undefined,
-    width:           isIconOnly || variant === 'floating' ? cfg.height : undefined,
-    paddingHorizontal: isIconOnly || variant === 'floating' ? 0 : cfg.paddingX,
+    width:           isIconOnly || effectiveVariant === 'floating' ? cfg.height : undefined,
+    paddingHorizontal: isIconOnly || effectiveVariant === 'floating' ? 0 : cfg.paddingX,
     borderRadius:    isCircular ? 9999 : cfg.radius,
     backgroundColor: tokens.bg,
     borderWidth:     tokens.borderWidth,
@@ -160,10 +165,12 @@ function AppButtonRaw({
     opacity:         disabled ? 0.40 : 1,       // Apple HIG: 0.40 disabled
   };
 
+  const textLabel = label || title;
+
   return (
     <Animated.View
       style={[
-        fullWidth && !isIconOnly && variant !== 'floating' && { alignSelf: 'stretch' },
+        fullWidth && !isIconOnly && effectiveVariant !== 'floating' && { alignSelf: 'stretch' },
         animatedStyle,
         style,
       ]}
@@ -177,7 +184,7 @@ function AppButtonRaw({
         unstable_pressDelay={0}
         android_ripple={null}
         accessibilityRole="button"
-        accessibilityLabel={label || rest.accessibilityLabel || 'Action'}
+        accessibilityLabel={textLabel || rest.accessibilityLabel || 'Action'}
         accessibilityState={{ disabled: !!disabled, busy: !!loading }}
         style={buttonStyle}
         {...rest}
@@ -189,9 +196,9 @@ function AppButtonRaw({
             resolvedLeft
           )}
 
-          {(label || children) && !isIconOnly ? (
+          {(textLabel || children) && !isIconOnly ? (
             <MonoText
-              weight={variant === 'link' ? 'medium' : 'semibold'}
+              weight={effectiveVariant === 'link' ? 'medium' : 'semibold'}
               align="center"
               color={tokens.text}
               style={[
@@ -202,7 +209,7 @@ function AppButtonRaw({
                 labelStyle,
               ]}
             >
-              {label}
+              {textLabel}
               {children}
             </MonoText>
           ) : null}
