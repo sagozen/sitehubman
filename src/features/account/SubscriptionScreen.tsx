@@ -107,8 +107,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: C.border,
   },
   backBtn: { width: 40, alignItems: 'flex-start' },
   headerTitle: { color: C.text, fontWeight: '600' },
@@ -116,15 +114,11 @@ const styles = StyleSheet.create({
   planCard: {
     backgroundColor: C.surface,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: C.border,
     padding: 24,
     gap: 14,
   },
   proPlanCard: {
-    backgroundColor: '#14141A',
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    borderWidth: 1,
+    backgroundColor: '#161622',
   },
   planHeader: {
     flexDirection: 'row',

@@ -334,12 +334,8 @@ export default function LeadsScreen() {
                       </View>
                     </View>
 
-                    <AppIcon name="chevron-right" size={16} color={C.textMuted} />
+                    <AppIcon name="chevron-right" size={15} color={C.textMuted} />
                   </Pressable>
-
-                  {index < filteredContacts.length - 1 && (
-                    <View style={styles.rowDivider} />
-                  )}
                 </React.Fragment>
               );
             })}
@@ -390,8 +386,6 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 18,
     backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -402,12 +396,10 @@ const styles = StyleSheet.create({
   searchBarInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: C.surface,
+    backgroundColor: '#141418',
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: C.borderLight,
     paddingHorizontal: 12,
-    height: 40,
+    height: 42,
     gap: 8,
   },
   searchInput: {
@@ -425,13 +417,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.border,
+    backgroundColor: '#141418',
   },
   filterTabPillActive: {
-    backgroundColor: C.accent,
-    borderColor: C.accent,
+    backgroundColor: '#2596BE',
   },
   filterTabText: {
     fontSize: 13,
@@ -452,14 +441,12 @@ const styles = StyleSheet.create({
   contactsBox: {
     backgroundColor: C.surface,
     borderRadius: 18,
-    borderWidth: 1,
-    borderColor: C.border,
     overflow: 'hidden',
   },
   contactRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 15,
     paddingHorizontal: 16,
   },
   contactRowPressed: {
@@ -470,7 +457,7 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
     backgroundColor: '#000000',
     marginRight: 14,
   },
@@ -479,8 +466,6 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     backgroundColor: '#1E1E26',
-    borderWidth: 1,
-    borderColor: C.borderLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 14,
@@ -519,10 +504,5 @@ const styles = StyleSheet.create({
   timeAgoText: {
     fontSize: 11,
     color: C.textMuted,
-  },
-  rowDivider: {
-    height: 1,
-    backgroundColor: C.border,
-    marginLeft: 74,
   },
 });

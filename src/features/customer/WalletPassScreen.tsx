@@ -75,7 +75,7 @@ export default function WalletPassScreen({
                 <AppText style={styles.passTierText}>EXECUTIVE PASS</AppText>
               </View>
               <View style={styles.passNfcIcon}>
-                <AppIcon name="Nfc" size={16} color="#000000" />
+                <AppIcon name="Nfc" size={18} color="rgba(255, 255, 255, 0.7)" />
               </View>
             </View>
 
@@ -215,8 +215,6 @@ const styles = StyleSheet.create({
   walletPassCard: {
     borderRadius: 24,
     backgroundColor: '#141417',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
     padding: 24,
     gap: 20,
   },
@@ -239,10 +237,8 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   passNfcIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
+    width: 28,
+    height: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },

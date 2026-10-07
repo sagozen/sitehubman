@@ -168,8 +168,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: C.border,
   },
   backBtn: { width: 40, alignItems: 'flex-start' },
   headerTitle: { color: C.text, fontWeight: '600' },
@@ -177,11 +175,9 @@ const styles = StyleSheet.create({
   previewCard: {
     backgroundColor: C.surface,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: C.border,
     padding: 20,
     marginBottom: 20,
-    gap: 14,
+    gap: 16,
   },
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   cardAvatar: {
@@ -194,9 +190,9 @@ const styles = StyleSheet.create({
   },
   cardInfo: { flex: 1, gap: 2 },
   cardName: { fontSize: 18, fontWeight: '700', color: C.text },
-  cardDivider: { height: StyleSheet.hairlineWidth, backgroundColor: C.border },
-  contactDetails: { gap: 8 },
-  detailRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  cardDivider: { height: 1, backgroundColor: 'rgba(255, 255, 255, 0.04)' },
+  contactDetails: { gap: 10 },
+  detailRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   actions: { gap: 12, marginBottom: 28 },
   primaryBtn: {
     flexDirection: 'row',
@@ -215,8 +211,6 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: C.surface,
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: C.border,
     paddingVertical: 16,
   },
   secondaryBtnText: { color: C.text, fontWeight: '600', fontSize: 16 },
@@ -225,8 +219,6 @@ const styles = StyleSheet.create({
   vCardPreview: {
     backgroundColor: C.surface,
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: C.border,
     padding: 14,
   },
   vCardText: {

@@ -148,36 +148,32 @@ export default function LeadDetailScreen() {
           <View style={styles.detailsGroup}>
             {/* Phone */}
             <Pressable style={styles.detailRow} onPress={handleCall}>
-              <View style={styles.detailIconCircle}>
-                <AppIcon name="phone" size={16} color={C.textSecondary} />
+              <View style={styles.detailIconWrap}>
+                <AppIcon name="phone" size={18} color={C.textSecondary} />
               </View>
               <View style={styles.detailTextWrap}>
                 <AppText style={styles.detailLabel}>Phone</AppText>
                 <AppText style={styles.detailValue}>{contact.phone}</AppText>
               </View>
-              <AppIcon name="chevron-right" size={16} color={C.textMuted} />
+              <AppIcon name="chevron-right" size={15} color={C.textMuted} />
             </Pressable>
-
-            <View style={styles.rowDivider} />
 
             {/* Email */}
             <Pressable style={styles.detailRow} onPress={handleEmail}>
-              <View style={styles.detailIconCircle}>
-                <AppIcon name="mail" size={16} color={C.textSecondary} />
+              <View style={styles.detailIconWrap}>
+                <AppIcon name="mail" size={18} color={C.textSecondary} />
               </View>
               <View style={styles.detailTextWrap}>
                 <AppText style={styles.detailLabel}>Email</AppText>
                 <AppText style={styles.detailValue}>{contact.email}</AppText>
               </View>
-              <AppIcon name="chevron-right" size={16} color={C.textMuted} />
+              <AppIcon name="chevron-right" size={15} color={C.textMuted} />
             </Pressable>
-
-            <View style={styles.rowDivider} />
 
             {/* Source */}
             <View style={styles.detailRow}>
-              <View style={styles.detailIconCircle}>
-                <AppIcon name="wifi" size={16} color={C.textSecondary} style={{ transform: [{ rotate: '90deg' }] }} />
+              <View style={styles.detailIconWrap}>
+                <AppIcon name="wifi" size={18} color={C.textSecondary} style={{ transform: [{ rotate: '90deg' }] }} />
               </View>
               <View style={styles.detailTextWrap}>
                 <AppText style={styles.detailLabel}>Source</AppText>
@@ -185,12 +181,10 @@ export default function LeadDetailScreen() {
               </View>
             </View>
 
-            <View style={styles.rowDivider} />
-
             {/* Time */}
             <View style={styles.detailRow}>
-              <View style={styles.detailIconCircle}>
-                <AppIcon name="clock" size={16} color={C.textSecondary} />
+              <View style={styles.detailIconWrap}>
+                <AppIcon name="clock" size={18} color={C.textSecondary} />
               </View>
               <View style={styles.detailTextWrap}>
                 <AppText style={styles.detailLabel}>Time</AppText>
@@ -198,12 +192,10 @@ export default function LeadDetailScreen() {
               </View>
             </View>
 
-            <View style={styles.rowDivider} />
-
             {/* Notes */}
             <View style={styles.detailRow}>
-              <View style={styles.detailIconCircle}>
-                <AppIcon name="file-text" size={16} color={C.textSecondary} />
+              <View style={styles.detailIconWrap}>
+                <AppIcon name="file-text" size={18} color={C.textSecondary} />
               </View>
               <View style={styles.detailTextWrap}>
                 <AppText style={styles.detailLabel}>Notes</AppText>
@@ -308,8 +300,6 @@ const styles = StyleSheet.create({
   profileCard: {
     backgroundColor: C.surface,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: C.border,
     paddingVertical: 24,
     paddingHorizontal: 16,
     alignItems: 'center',
@@ -318,7 +308,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.2)',
     backgroundColor: '#000000',
     marginBottom: 12,
@@ -328,8 +318,6 @@ const styles = StyleSheet.create({
     height: 72,
     borderRadius: 36,
     backgroundColor: '#1E1E28',
-    borderWidth: 1,
-    borderColor: C.borderLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -356,25 +344,20 @@ const styles = StyleSheet.create({
   detailsGroup: {
     backgroundColor: C.surface,
     borderRadius: 18,
-    borderWidth: 1,
-    borderColor: C.border,
     marginTop: 18,
     overflow: 'hidden',
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: 15,
+    paddingHorizontal: 18,
   },
-  detailIconCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  detailIconWrap: {
+    width: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 14,
   },
   detailTextWrap: {
     flex: 1,
@@ -383,23 +366,18 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: C.textMuted,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   detailValue: {
     fontSize: 14,
     color: C.text,
-    marginTop: 2,
+    marginTop: 3,
   },
   detailNotesValue: {
     fontSize: 13,
     color: C.textSecondary,
-    marginTop: 2,
+    marginTop: 3,
     lineHeight: 18,
-  },
-  rowDivider: {
-    height: 1,
-    backgroundColor: C.border,
-    marginLeft: 62,
   },
   bottomBar: {
     position: 'absolute',
@@ -414,8 +392,6 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     paddingVertical: 12,
     paddingHorizontal: 20,
-    borderWidth: 1,
-    borderColor: C.borderLight,
     shadowColor: '#000',
     shadowOpacity: 0.4,
     shadowRadius: 12,
@@ -432,7 +408,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     alignItems: 'center',
     justifyContent: 'center',
   },

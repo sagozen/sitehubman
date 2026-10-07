@@ -158,8 +158,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: C.border,
   },
   backBtn: { width: 40, alignItems: 'flex-start' },
   headerTitle: { color: C.text, fontWeight: '600' },
@@ -169,8 +167,6 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: C.surface,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: C.border,
     overflow: 'hidden',
   },
   photoRow: {

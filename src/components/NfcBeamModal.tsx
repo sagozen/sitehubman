@@ -306,8 +306,6 @@ const styles = StyleSheet.create({
     maxWidth: 340,
     backgroundColor: '#1C1C1E',
     borderRadius: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
     padding: 24,
     alignItems: 'center',
     gap: 16,

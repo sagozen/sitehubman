@@ -140,10 +140,10 @@ export default function MeTabScreen() {
                   onPress={() => handleRowPress(item)}
                 >
                   <View style={styles.menuLeft}>
-                    <View style={styles.menuIconCircle}>
+                    <View style={styles.menuIconWrap}>
                       <AppIcon
                         name={item.icon}
-                        size={17}
+                        size={18}
                         color={item.danger ? C.danger : C.textSecondary}
                         style={item.icon === 'wifi' ? { transform: [{ rotate: '90deg' }] } : undefined}
                       />
@@ -160,13 +160,9 @@ export default function MeTabScreen() {
                   </View>
 
                   {!item.danger && (
-                    <AppIcon name="chevron-right" size={16} color={C.textMuted} />
+                    <AppIcon name="chevron-right" size={15} color={C.textMuted} />
                   )}
                 </Pressable>
-
-                {index < MENU_ITEMS.length - 1 && (
-                  <View style={styles.rowDivider} />
-                )}
               </React.Fragment>
             ))}
           </View>
@@ -206,10 +202,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: C.surface,
     borderRadius: 18,
-    borderWidth: 1,
-    borderColor: C.border,
     padding: 16,
-    marginBottom: 18,
+    marginBottom: 16,
   },
   profileCardPressed: {
     backgroundColor: C.surfaceRaised,
@@ -218,8 +212,8 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
     backgroundColor: '#000000',
     marginRight: 14,
   },
@@ -238,8 +232,6 @@ const styles = StyleSheet.create({
   menuBox: {
     backgroundColor: C.surface,
     borderRadius: 18,
-    borderWidth: 1,
-    borderColor: C.border,
     overflow: 'hidden',
   },
   menuRow: {
@@ -255,13 +247,10 @@ const styles = StyleSheet.create({
   menuLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
   },
-  menuIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  menuIconWrap: {
+    width: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -271,10 +260,5 @@ const styles = StyleSheet.create({
   },
   menuLabelDanger: {
     color: C.danger,
-  },
-  rowDivider: {
-    height: 1,
-    backgroundColor: C.border,
-    marginLeft: 60,
   },
 });

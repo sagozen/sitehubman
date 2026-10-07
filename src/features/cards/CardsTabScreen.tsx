@@ -360,9 +360,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: C.hairline,
+    paddingTop: 6,
   },
   cardFooterLeft: {
     flexDirection: 'row',
