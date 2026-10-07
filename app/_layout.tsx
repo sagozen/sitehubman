@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import useCachedResources from '@/src/hooks/useCachedResources';
 import { Stack } from 'expo-router';
@@ -99,9 +100,10 @@ export default function RootLayout() {
                   <Stack
                     screenOptions={{
                       headerShown: false,
-                      animation: 'slide_from_right',
+                      animation: Platform.OS === 'ios' ? 'default' : 'slide_from_right',
                       gestureEnabled: true,
                       gestureDirection: 'horizontal',
+                      fullScreenGestureEnabled: Platform.OS === 'ios',
                     }}
                   >
                     <Stack.Screen name="index" />

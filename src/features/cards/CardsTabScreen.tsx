@@ -16,6 +16,8 @@ import { router } from 'expo-router';
 import { AppText } from '@/src/components/AppText';
 import { AppIcon } from '@/src/components/AppIcon';
 import { HapticTap } from '@/src/utils/haptics';
+import { InteractiveCardSurface } from '@/src/components/InteractiveCardSurface';
+import { InteractivePressable } from '@/src/components/InteractivePressable';
 
 const C = {
   canvas: '#000000',
@@ -120,33 +122,33 @@ export default function CardsTabScreen() {
       >
         {/* Quick Actions — Borderless, Understated Pill Row */}
         <View style={styles.quickBar}>
-          <Pressable
-            style={({ pressed }) => [styles.quickPill, pressed && styles.quickPillPressed]}
-            onPress={() => { HapticTap.light(); router.push('/cards/create' as any); }}
+          <InteractivePressable
+            style={styles.quickPill}
+            onPress={() => router.push('/cards/create' as any)}
           >
             <AppText style={styles.quickPillText} weight="medium">+ New Card</AppText>
-          </Pressable>
+          </InteractivePressable>
 
-          <Pressable
-            style={({ pressed }) => [styles.quickPill, pressed && styles.quickPillPressed]}
-            onPress={() => { HapticTap.light(); router.push('/leads' as any); }}
+          <InteractivePressable
+            style={styles.quickPill}
+            onPress={() => router.push('/leads' as any)}
           >
             <AppText style={styles.quickPillText} weight="medium">Leads CRM</AppText>
-          </Pressable>
+          </InteractivePressable>
 
-          <Pressable
-            style={({ pressed }) => [styles.quickPill, pressed && styles.quickPillPressed]}
-            onPress={() => { HapticTap.light(); router.push('/share-profile' as any); }}
+          <InteractivePressable
+            style={styles.quickPill}
+            onPress={() => router.push('/share-profile' as any)}
           >
             <AppText style={styles.quickPillText} weight="medium">Share</AppText>
-          </Pressable>
+          </InteractivePressable>
 
-          <Pressable
-            style={({ pressed }) => [styles.quickPill, pressed && styles.quickPillPressed]}
-            onPress={() => { HapticTap.light(); router.push('/qr/customize' as any); }}
+          <InteractivePressable
+            style={styles.quickPill}
+            onPress={() => router.push('/qr/customize' as any)}
           >
             <AppText style={styles.quickPillText} weight="medium">QR Code</AppText>
-          </Pressable>
+          </InteractivePressable>
         </View>
 
         {/* Section Title */}
@@ -158,13 +160,10 @@ export default function CardsTabScreen() {
 
         {/* Cards — Apple Wallet Stack Aesthetic */}
         {cards.map((card) => (
-          <Pressable
+          <InteractiveCardSurface
             key={card.id}
             onPress={() => handleCardPress(card)}
-            style={({ pressed }) => [
-              styles.cardContainer,
-              pressed && styles.cardPressed,
-            ]}
+            style={styles.cardContainer}
           >
             <View style={styles.cardHeaderRow}>
               <View style={styles.cardHeaderLeft}>
@@ -203,7 +202,7 @@ export default function CardsTabScreen() {
               </View>
               <AppIcon name="chevron-right" size={16} color={C.textMuted} />
             </View>
-          </Pressable>
+          </InteractiveCardSurface>
         ))}
 
         {/* Order Physical Card Banner — Subtle Minimalist */}

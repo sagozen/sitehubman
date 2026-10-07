@@ -36,7 +36,9 @@ import type { Order } from '@/src/types/models';
 import { NfcBeamModal } from '@/src/components/NfcBeamModal';
 import { QuickSetupSheet } from '@/src/components/QuickSetupSheet';
 import { computeUserPrestige } from '@/src/services/prestigeTierService';
-import { pageThemes } from '@/src/constants/pageThemes';
+import { AppModalV2 } from '@/src/components/AppModalV2';
+import { InteractiveCardSurface } from '@/src/components/InteractiveCardSurface';
+import { InteractivePressable } from '@/src/components/InteractivePressable';
 
 // ─── Matte Charcoal UI Tokens (#242424 Smooth Slab & Sage Contrast) ───
 const CANVAS = '#0D0D0E'; // Deep midnight dark canvas
@@ -209,7 +211,7 @@ export function GuestHomeScreen() {
           </View>
 
           {/* ── BENTO CELL 1: Hero Physical NFC Pass Compartment ── */}
-          <View style={styles.heroPassCard}>
+          <InteractiveCardSurface style={styles.heroPassCard} onPress={handleShare}>
             <View style={styles.passHeaderRow}>
               <View style={styles.passBrandGroup}>
                 <AppIcon name="CreditCard" size={15} color={MUTED} />
@@ -237,28 +239,27 @@ export function GuestHomeScreen() {
             <View style={styles.passDivider} />
 
             <View style={styles.passActionsRow}>
-              <Pressable
-                onPress={() => {
-                  HapticTap.heavy();
-                  handleShare();
-                }}
-                style={({ pressed }) => [styles.bentoPrimaryBtn, pressed && styles.pressed]}
+              <InteractivePressable
+                onPress={handleShare}
+                style={styles.bentoPrimaryBtn}
+                haptic="medium"
               >
                 <AppIcon name="Nfc" size={16} color="#000000" />
                 <AppText style={styles.bentoPrimaryBtnText} weight="bold">
                   TAP TO SHARE
                 </AppText>
-              </Pressable>
+              </InteractivePressable>
 
-              <Pressable
+              <InteractivePressable
                 onPress={handleNativeShare}
-                style={({ pressed }) => [styles.bentoGhostBtn, pressed && styles.pressed]}
+                style={styles.bentoGhostBtn}
                 hitSlop={6}
+                haptic="light"
               >
                 <AppIcon name="Share2" size={16} color={INK} />
-              </Pressable>
+              </InteractivePressable>
             </View>
-          </View>
+          </InteractiveCardSurface>
 
           {/* ── BENTO CELL 2 & 3: Modular 2-Column Metrics & CRM Compartments ── */}
           <View style={styles.bentoGridRow}>
@@ -488,32 +489,28 @@ export function GuestHomeScreen() {
         </IosScrollView>
       </SafeAreaView>
 
-      {/* ── QR Modal: Clean Monochrome Dialog ── */}
-      <Modal visible={showQrModal} animationType="fade" transparent>
-        <Pressable style={styles.modalOverlay} onPress={() => setShowQrModal(false)}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalHeader}>
-              <AppText style={styles.modalTitle} weight="semibold">
-                Scan to Connect
-              </AppText>
-              <Pressable onPress={() => setShowQrModal(false)} hitSlop={12}>
-                <AppIcon name="X" size={18} color="#6E6E73" />
-              </Pressable>
-            </View>
-            <View style={styles.modalQrContainer}>
-              <QRCode
-                value={profileUrl}
-                size={200}
-                color="#000000"
-                backgroundColor="#FFFFFF"
-              />
-            </View>
-            <AppText style={styles.modalHint}>
-              Point any smartphone camera to open {heroName}'s digital card.
-            </AppText>
-          </View>
-        </Pressable>
-      </Modal>
+      {/* ── QR Modal: Clean Monochrome Dialog with Spring Entrance ── */}
+      <AppModalV2 visible={showQrModal} onClose={() => setShowQrModal(false)} type="dialog">
+        <View style={styles.modalHeader}>
+          <AppText style={styles.modalTitle} weight="semibold">
+            Scan to Connect
+          </AppText>
+          <InteractivePressable onPress={() => setShowQrModal(false)} hitSlop={12} haptic="light">
+            <AppIcon name="X" size={18} color="#6E6E73" />
+          </InteractivePressable>
+        </View>
+        <View style={styles.modalQrContainer}>
+          <QRCode
+            value={profileUrl}
+            size={200}
+            color="#000000"
+            backgroundColor="#FFFFFF"
+          />
+        </View>
+        <AppText style={styles.modalHint}>
+          Point any smartphone camera to open {heroName}'s digital card.
+        </AppText>
+      </AppModalV2>
 
       {/* ── Core NFC Beam Modal ── */}
       <NfcBeamModal
