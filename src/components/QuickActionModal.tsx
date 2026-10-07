@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
     borderTopWidth: 1,

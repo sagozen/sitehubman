@@ -369,7 +369,7 @@ export default function NfcVerifyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     paddingTop: 60,
     alignItems: 'center',
   },
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 15,
-    color: '#A1A1AA',
+    color: '#9A9AA0',
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 32,
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
   },
   checkLabel: {
     fontSize: 14,
-    color: '#A1A1AA',
+    color: '#9A9AA0',
   },
   actions: {
     width: '100%',
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
   },
   scanningText: {
     fontSize: 16,
-    color: '#A1A1AA',
+    color: '#9A9AA0',
     textAlign: 'center',
   },
   infoBox: {
@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 12,
-    color: '#A1A1AA',
+    color: '#9A9AA0',
     marginBottom: 4,
   },
   infoValue: {

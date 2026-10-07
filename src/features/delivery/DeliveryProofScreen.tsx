@@ -161,13 +161,13 @@ export default function DeliveryProofScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 24,
     width: '100%',
-    maxWidth: 640,
+    maxWidth: 720,
     alignSelf: 'center',
   },
   backButton: {
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   customerCard: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     padding: 18,
     marginBottom: 16,
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   proofCard: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     padding: 18,
     marginBottom: 20,
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   noteInput: {
-    backgroundColor: '#18181c',
+    backgroundColor: '#242424',
     borderRadius: 10,
     padding: 12,
     color: '#ffffff',

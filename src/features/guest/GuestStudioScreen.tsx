@@ -220,14 +220,14 @@ export function GuestStudioScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 120,
     gap: 22,
-    maxWidth: 640,
+    maxWidth: 720,
     width: '100%',
     alignSelf: 'center',
   },
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   actionCard: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     padding: 20,
     flexDirection: 'row',
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
 
   // Guide Section
   guideContainer: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     padding: 20,
     gap: 16,
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
 
   // Sample Mock Moment
   mockMomentCard: {
-    backgroundColor: '#18181C',
+    backgroundColor: '#242424',
     borderRadius: 12,
     padding: 14,
     gap: 12,

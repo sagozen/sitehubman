@@ -130,7 +130,7 @@ export default PurposeScreen;
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   scroll: {
     flex: 1,
@@ -139,8 +139,8 @@ const styles = StyleSheet.create({
     paddingBottom: 120,
   },
   content: {
-    paddingHorizontal: 20,
-    maxWidth: 640,
+    paddingHorizontal: 16,
+    maxWidth: 720,
     alignSelf: 'center',
     width: '100%',
     paddingTop: 32,
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 34,
     lineHeight: 40,
-    color: '#F5F5F7',
+    color: '#FFFFFF',
     letterSpacing: -0.3,
   },
   subtitle: {
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '47.5%',
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     padding: 20,
     gap: 16,
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   },
   cardLabel: {
     fontSize: 15,
-    color: '#F5F5F7',
+    color: '#FFFFFF',
   },
   cardLabelActive: {
     color: '#2596BE',
@@ -203,19 +203,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 24,
     paddingTop: 12,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.06)',
   },
   footerContent: {
-    maxWidth: 640,
+    maxWidth: 720,
     alignSelf: 'center',
     width: '100%',
   },
   continueBtn: {
     height: 56,
     borderRadius: 14,
-    backgroundColor: '#F5F5F7',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },

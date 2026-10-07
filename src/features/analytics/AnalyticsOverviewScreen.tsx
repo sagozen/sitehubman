@@ -42,8 +42,8 @@ const CHART_POINTS = [
 
 const SOURCES = [
   { name: 'NFC Tap', pct: 42, color: '#FFFFFF' },
-  { name: 'QR Code', pct: 28, color: '#A1A1AA' },
-  { name: 'Direct Link', pct: 18, color: '#71717A' },
+  { name: 'QR Code', pct: 28, color: '#9A9AA0' },
+  { name: 'Direct Link', pct: 18, color: '#9A9AA0' },
   { name: 'Other', pct: 12, color: '#3F3F46' },
 ];
 

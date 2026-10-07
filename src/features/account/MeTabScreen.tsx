@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 26,
     borderColor: 'rgba(255, 255, 255, 0.15)',
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
     marginRight: 14,
   },
   profileTextWrap: {

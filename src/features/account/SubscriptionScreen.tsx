@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   },
   backBtn: { width: 40, alignItems: 'flex-start' },
   headerTitle: { color: C.text, fontWeight: '600' },
-  content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 130, gap: 16 },
+  content: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 130, gap: 16 },
   planCard: {
     backgroundColor: C.surface,
     borderRadius: 16,

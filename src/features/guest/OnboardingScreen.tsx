@@ -354,7 +354,7 @@ export function OnboardingScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
 
   // Progress
@@ -401,7 +401,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 16,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
   fieldInput: {
     height: 52,
     borderRadius: 14,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     paddingHorizontal: 16,
     color: '#FFFFFF',
     fontSize: 16,
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 8,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#242424',
     alignItems: 'center',
     justifyContent: 'center',
   },

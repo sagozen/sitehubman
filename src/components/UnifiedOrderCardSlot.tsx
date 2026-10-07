@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     ...iosTypography.caption,
-    color: '#8E8E93',
+    color: '#9A9AA0',
   },
   loading: {
     paddingVertical: iosDesign.spacing.xl,

@@ -174,7 +174,7 @@ export function WeeklyActivitySparkline({
 const styles = StyleSheet.create({
   container: {
     borderRadius: 18,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     padding: 16,
     gap: 14,
   },

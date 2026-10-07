@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   },
   backBtn: { width: 40, alignItems: 'flex-start' },
   headerTitle: { color: C.text, fontWeight: '600' },
-  content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 130 },
+  content: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 130 },
   section: { marginBottom: 24 },
   sectionLabel: { fontSize: 11, letterSpacing: 0.8, marginBottom: 8, marginLeft: 4 },
   card: {
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   photoInfo: { flex: 1, gap: 2 },
   rowLabel: { color: C.text, fontSize: 15 },

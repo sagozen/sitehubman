@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.65)' },
   sheet: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#242424',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
@@ -172,11 +172,11 @@ const styles = StyleSheet.create({
   fields: { gap: 12 },
   fieldGroup: { gap: 6 },
   fieldLabel: { fontSize: 12, color: 'rgba(235,235,245,0.55)', letterSpacing: 0.2 },
-  fieldRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#2C2C2E', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', paddingHorizontal: 14, paddingVertical: 12, minHeight: 48 },
+  fieldRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#2C2C2C', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', paddingHorizontal: 14, paddingVertical: 12, minHeight: 48 },
   fieldRowError: { borderColor: '#FF453A' },
   fieldInput: { flex: 1, fontSize: 16, color: '#FFFFFF', letterSpacing: -0.3, padding: 0 },
   cta: { height: 56, borderRadius: 16, backgroundColor: '#FFFFFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 4 },
-  ctaDisabled: { backgroundColor: '#2C2C2E' },
+  ctaDisabled: { backgroundColor: '#2C2C2C' },
   ctaText: { fontSize: 17, color: '#000000', letterSpacing: -0.2 },
   ctaNote: { fontSize: 12, color: 'rgba(235,235,245,0.35)', textAlign: 'center' },
 });

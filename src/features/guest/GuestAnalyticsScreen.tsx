@@ -203,7 +203,7 @@ export function GuestAnalyticsScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   content: {
     padding: 16,
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   bentoCard: {
     flex: 1,
     minWidth: '47%',
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#242424',
     borderRadius: 18,
     padding: 16,
     gap: 6,
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   detailCard: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#242424',
     borderRadius: 18,
     padding: 20,
     gap: 16,
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: '#2C2C2C',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#242424',
     borderRadius: 16,
     padding: 16,
     gap: 12,

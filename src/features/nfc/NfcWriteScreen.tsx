@@ -85,7 +85,7 @@ export default function NfcWriteScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   navRow: {
     paddingHorizontal: 20,
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#F5F5F7',
+    color: '#FFFFFF',
     textAlign: 'center',
     letterSpacing: -0.4,
   },
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#18181C',
+    backgroundColor: '#242424',
     overflow: 'hidden',
   },
   progressFill: {

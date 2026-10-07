@@ -107,7 +107,7 @@ export default function NfcTestScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   header: {
     flexDirection: 'row',
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 17,
     fontWeight: '600',
-    color: '#F5F5F7',
+    color: '#FFFFFF',
     letterSpacing: -0.2,
   },
   headerSpacer: {
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   stepsCard: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     overflow: 'hidden',
   },
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#18181C',
+    backgroundColor: '#242424',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   stepLabelActive: {
-    color: '#F5F5F7',
+    color: '#FFFFFF',
   },
   badge: {
     flexDirection: 'row',

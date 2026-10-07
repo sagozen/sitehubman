@@ -145,7 +145,7 @@ export default ActivityScreen;
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   scroll: {
     flex: 1,
@@ -154,8 +154,8 @@ const styles = StyleSheet.create({
     paddingBottom: 120,
   },
   content: {
-    paddingHorizontal: 20,
-    maxWidth: 640,
+    paddingHorizontal: 16,
+    maxWidth: 720,
     alignSelf: 'center',
     width: '100%',
     paddingTop: 28,
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: 34,
     lineHeight: 40,
-    color: '#F5F5F7',
+    color: '#FFFFFF',
     letterSpacing: -0.3,
   },
   dateSubtitle: {
@@ -238,7 +238,7 @@ const itemStyles = StyleSheet.create({
   },
   typeLabel: {
     fontSize: 14,
-    color: '#F5F5F7',
+    color: '#FFFFFF',
   },
   details: {
     flexDirection: 'row',

@@ -85,7 +85,7 @@ export function CardSuccessShareModal({ visible, onClose, url, name }: CardSucce
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f4f4f5' },
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   sheetTitle: { fontSize: 18, color: '#000' },
   skipText: { fontSize: 14, color: '#6b7280' },
   sheetSub: { fontSize: 14, color: '#6b7280', marginBottom: 20, lineHeight: 20 },
-  searchBtn: { backgroundColor: '#000', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 12, marginBottom: 20 },
+  searchBtn: { backgroundColor: '#0D0D0E', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 12, marginBottom: 20 },
   searchBtnText: { color: '#fff', fontSize: 16, marginLeft: 8 },
   dividerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
   line: { flex: 1, height: 1, backgroundColor: '#e5e7eb' },

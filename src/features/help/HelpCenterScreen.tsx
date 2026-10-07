@@ -163,7 +163,7 @@ export function HelpCenterScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   container: {
     padding: 20,
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
   bridgeCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     padding: 16,
   },
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   faqCard: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     padding: 16,
   },

@@ -23,7 +23,7 @@ export function AuthGate({ allowedRoles, requireCustomer, children }: PropsWithC
     return (
       <View style={styles.center}>
         <ActivityIndicator color="#FFFFFF" />
-        <AppText variant="caption" style={{ color: '#8E8E93' }}>
+        <AppText variant="caption" style={{ color: '#9A9AA0' }}>
           Checking session...
         </AppText>
       </View>
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: theme.spacing.sm,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
 });
 

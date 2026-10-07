@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#8E8E93',
+    color: '#9A9AA0',
     textAlign: 'center',
     marginTop: 6,
     maxWidth: 300,
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   secondaryButtonText: {
-    color: '#8E8E93',
+    color: '#9A9AA0',
     fontSize: 14,
   },
   buttonPressed: {

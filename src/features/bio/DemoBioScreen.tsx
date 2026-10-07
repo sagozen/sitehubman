@@ -315,7 +315,7 @@ export function DemoBioScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000000' },
+  root: { flex: 1, backgroundColor: '#0D0D0E' },
   safe: { flex: 1 },
   pressed: { opacity: 0.75 },
   navHeader: {
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     maxWidth: 540, width: '100%', alignSelf: 'center', gap: 14,
   },
   executiveCard: {
-    borderRadius: 20, backgroundColor: '#111114',
+    borderRadius: 20, backgroundColor: '#242424',
     padding: 24, alignItems: 'center', gap: 16,
   },
   avatarWrap: { position: 'relative' },
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
   quickRow: { flexDirection: 'row', gap: 8, width: '100%' },
   quickTile: {
     flex: 1, alignItems: 'center', gap: 6, paddingVertical: 12,
-    borderRadius: 12, backgroundColor: '#18181C',
+    borderRadius: 12, backgroundColor: '#242424',
     },
   quickLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 10 },
   divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.06)' },
@@ -369,24 +369,24 @@ const styles = StyleSheet.create({
   channelsList: { gap: 6 },
   channelRow: {
     flexDirection: 'row', alignItems: 'center', padding: 14,
-    borderRadius: 14, backgroundColor: '#111114',
+    borderRadius: 14, backgroundColor: '#242424',
     gap: 12,
   },
   channelIconBox: {
     width: 36, height: 36, borderRadius: 10,
-    backgroundColor: '#18181C', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#242424', alignItems: 'center', justifyContent: 'center',
   },
   channelMeta: { flex: 1, gap: 2 },
   channelTitle: { color: '#FFFFFF', fontSize: 14 },
   channelSub: { color: 'rgba(255,255,255,0.45)', fontSize: 12 },
   bioSection: { gap: 10 },
   bioCard: {
-    borderRadius: 16, backgroundColor: '#111114',
+    borderRadius: 16, backgroundColor: '#242424',
     padding: 16,
   },
   bioText: { color: 'rgba(255,255,255,0.7)', fontSize: 14, lineHeight: 22 },
   viralCard: {
-    borderRadius: 16, backgroundColor: '#111114',
+    borderRadius: 16, backgroundColor: '#242424',
     padding: 16,
   },
   viralInner: { flexDirection: 'row', alignItems: 'center', gap: 12 },
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
   nfcFooterText: { color: 'rgba(255,255,255,0.4)', fontSize: 11, letterSpacing: 0.5 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
   qrCard: {
-    backgroundColor: '#111114', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    backgroundColor: '#242424', borderTopLeftRadius: 24, borderTopRightRadius: 24,
     padding: 24, gap: 12, alignItems: 'center',
   },
   qrHeader: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
@@ -420,13 +420,13 @@ const styles = StyleSheet.create({
   // Exchange styles
   exchangeBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    backgroundColor: '#18181C', borderRadius: 14, borderWidth: 1,
+    backgroundColor: '#242424', borderRadius: 14, borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.15)', paddingVertical: 13, paddingHorizontal: 20, width: '100%',
   },
   exchangeBtnText: { color: '#FFFFFF', fontSize: 14 },
   exchangeOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'flex-end' },
   exchangeCard: {
-    backgroundColor: '#111114', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    backgroundColor: '#242424', borderTopLeftRadius: 24, borderTopRightRadius: 24,
     padding: 24, paddingBottom: 40,
     gap: 16, maxWidth: 540, width: '100%', alignSelf: 'center',
   },
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
   inputWrap: { gap: 6 },
   inputLabel: { color: 'rgba(255,255,255,0.65)', fontSize: 12 },
   textInput: {
-    height: 48, borderRadius: 12, backgroundColor: '#18181C', paddingHorizontal: 14, color: '#FFFFFF', fontSize: 15,
+    height: 48, borderRadius: 12, backgroundColor: '#242424', paddingHorizontal: 14, color: '#FFFFFF', fontSize: 15,
   },
   sendBtn: {
     height: 50, borderRadius: 14, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', marginTop: 6,

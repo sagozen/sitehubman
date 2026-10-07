@@ -173,7 +173,7 @@ export default function WalletPassScreen({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   safe: {
     flex: 1,
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 26,
     borderColor: 'rgba(255, 255, 255, 0.25)',
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   passMeta: {
     flex: 1,
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   },
   guideCard: {
     borderRadius: 18,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     padding: 20,
     gap: 14,
   },

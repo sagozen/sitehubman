@@ -172,9 +172,9 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   contentWrap: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     width: '100%',
-    maxWidth: 640,
+    maxWidth: 720,
     alignSelf: 'center',
     paddingTop: 24,
     alignItems: 'center',

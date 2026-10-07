@@ -129,7 +129,7 @@ export default function CreateCardScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   header: {
     flexDirection: 'row',
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 17,
     fontWeight: '600',
-    color: '#F5F5F7',
+    color: '#FFFFFF',
     letterSpacing: -0.2,
   },
   headerSpacer: {
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
@@ -192,11 +192,11 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 50,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 12,
     paddingHorizontal: 16,
     fontSize: 15,
-    color: '#F5F5F7',
+    color: '#FFFFFF',
   },
   inputMulti: {
     height: 84,

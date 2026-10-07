@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   subtitle: {
-    color: '#8E8E93',
+    color: '#9A9AA0',
     fontSize: 13,
     lineHeight: 18,
   },

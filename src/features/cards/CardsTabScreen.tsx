@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 40,
   },
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     borderColor: 'rgba(255, 255, 255, 0.25)',
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   cardInfoCol: {
     flex: 1,

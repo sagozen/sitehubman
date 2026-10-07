@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   backdrop: {
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   sheet: {
     backgroundColor: '#FFFFFF',

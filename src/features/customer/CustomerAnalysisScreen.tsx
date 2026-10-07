@@ -144,7 +144,7 @@ function AssetRow({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG },
-  content: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 120, gap: 22 },
+  content: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 120, gap: 22 },
   header: { flexDirection: 'row', alignItems: 'flex-start', gap: 18 },
   headerCopy: { flex: 1, gap: 6 },
   title: { fontSize: 42, lineHeight: 46, fontWeight: '900', color: INK, letterSpacing: 0 },

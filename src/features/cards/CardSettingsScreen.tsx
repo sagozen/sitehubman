@@ -137,7 +137,7 @@ export default function CardSettingsScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   header: {
     flexDirection: 'row',
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 17,
     fontWeight: '600',
-    color: '#F5F5F7',
+    color: '#FFFFFF',
     letterSpacing: -0.2,
   },
   headerSpacer: {
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     color: '#2596BE',
   },
   groupedList: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 14,
     overflow: 'hidden',
   },
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
   visibilityLabel: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#F5F5F7',
+    color: '#FFFFFF',
   },
   visibilityDesc: {
     fontSize: 12,
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderColor: 'rgba(255,68,58,0.25)',
     borderRadius: 14,
     paddingHorizontal: 16,

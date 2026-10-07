@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   appleFallback: {
     minHeight: 52,
     borderRadius: 999,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   searchBarWrap: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     marginBottom: 10,
   },
   searchBarInner: {
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     borderColor: 'rgba(255, 255, 255, 0.15)',
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
     marginRight: 14,
   },
   avatarCircle: {

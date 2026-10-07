@@ -358,9 +358,9 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   contentWrap: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     width: '100%',
-    maxWidth: 640,
+    maxWidth: 720,
     alignSelf: 'center',
     paddingTop: 12,
   },
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     borderColor: 'rgba(255, 255, 255, 0.25)',
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   cardWrapper: {
     backgroundColor: '#242424',
@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
     height: 62,
     borderRadius: 31,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   cardOwnerName: {
     fontSize: 20,
@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
   /* Secondary Charcoal Glass Tile (Hard Minimalist) */
   shareTileDark: {
     flex: 1,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#242424',
     borderRadius: 18,
     height: 44,
     paddingHorizontal: 14,
@@ -576,7 +576,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   shareTileDarkPressed: {
-    backgroundColor: '#2C2C2E',
+    backgroundColor: '#2C2C2C',
     transform: [{ scale: 0.98 }],
   },
   shareTileText: {
@@ -654,7 +654,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#18181B',
+    backgroundColor: '#242424',
     alignItems: 'center',
     justifyContent: 'center',
   },

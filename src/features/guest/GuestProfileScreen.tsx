@@ -280,7 +280,7 @@ export function GuestProfileScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   scroll: {
     flex: 1,
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 540,
     alignSelf: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   rowPressed: {
     opacity: 0.7,
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 31,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
     alignItems: 'center',
     justifyContent: 'center',
     borderColor: 'rgba(255, 255, 255, 0.2)',
@@ -576,7 +576,7 @@ const styles = StyleSheet.create({
   },
   tierRowActive: {
     borderColor: '#FFFFFF',
-    backgroundColor: '#18181C',
+    backgroundColor: '#242424',
   },
   tierRadio: {
     width: 18,

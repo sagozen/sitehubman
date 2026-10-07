@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   groupHeader: {
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderBottomWidth: 1,

@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 130, // Clearance for floating dock
     maxWidth: 540,
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   upgradeBtnLight: {
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   upgradeBtnText: {
     color: '#000000',

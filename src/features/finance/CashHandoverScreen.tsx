@@ -177,13 +177,13 @@ export default function CashHandoverScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 24,
     width: '100%',
-    maxWidth: 640,
+    maxWidth: 720,
     alignSelf: 'center',
   },
   backButton: {
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 12,
     padding: 4,
     marginBottom: 16,
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   emptyCard: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 14,
     padding: 30,
     alignItems: 'center',
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   orderCard: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     padding: 16,
   },

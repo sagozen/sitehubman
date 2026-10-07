@@ -112,7 +112,7 @@ export function SettingsAccountCard({
     <View style={ac.card}>
       {/* Avatar */}
       {avatar ?? (
-        <View style={[ac.avatar, { backgroundColor: '#000000', borderWidth: 1.5, borderColor: '#FFFFFF' }]}>
+        <View style={[ac.avatar, { backgroundColor: '#0D0D0E', borderWidth: 1.5, borderColor: '#FFFFFF' }]}>
           <AppText style={ac.avatarT}>{initial}</AppText>
         </View>
       )}

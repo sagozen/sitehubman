@@ -172,7 +172,7 @@ export default function AppearanceScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   header: {
     flexDirection: 'row',
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 17,
     fontWeight: '600',
-    color: '#F5F5F7',
+    color: '#FFFFFF',
     letterSpacing: -0.2,
   },
   headerSpacer: {
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 50,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
   },
   pillSelected: {
     backgroundColor: '#2596BE',

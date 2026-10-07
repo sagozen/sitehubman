@@ -145,7 +145,7 @@ export function PhotoBanner({
 const styles = StyleSheet.create({
   wrap: {
     overflow: 'hidden',
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#242424',
     ...iosDesign.shadows.card,
   },
   content: {

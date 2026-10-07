@@ -302,11 +302,11 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   scroll: { flex: 1 },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 120,
     gap: 14,
-    maxWidth: 640,
+    maxWidth: 720,
     width: '100%',
     alignSelf: 'center',
   },

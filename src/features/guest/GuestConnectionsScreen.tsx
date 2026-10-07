@@ -625,7 +625,7 @@ const styles = StyleSheet.create({
     maxWidth: 400,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   modalCard: {
     width: '100%',

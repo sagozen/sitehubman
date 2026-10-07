@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderColor: pageThemes.scan.border,
     overflow: 'hidden',
-    backgroundColor: '#000',
+    backgroundColor: '#0D0D0E',
   },
   camera: {
     flex: 1,

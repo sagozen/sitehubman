@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   shimmerBox: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#242424',
     borderRadius: tokens.radius.md,
   },
   header: {

@@ -102,7 +102,7 @@ function SkeletonBlock({ width, height, radius = 8, style }: {
     opacity: interpolate(shimmer.value, [0, 1], [0.35, 0.80], Extrapolation.CLAMP),
   }));
   return (
-    <Animated.View style={[{ width, height, borderRadius: radius, backgroundColor: '#2C2C2E' }, shimmerStyle, style]} />
+    <Animated.View style={[{ width, height, borderRadius: radius, backgroundColor: '#2C2C2C' }, shimmerStyle, style]} />
   );
 }
 
@@ -237,7 +237,7 @@ const ss = StyleSheet.create({
     marginBottom: 2,
   },
   statValue: { fontSize: 22, fontWeight: '700', letterSpacing: -0.6 },
-  statLabel: { fontSize: 10, color: '#8E8E93', fontWeight: '500', textAlign: 'center' },
+  statLabel: { fontSize: 10, color: '#9A9AA0', fontWeight: '500', textAlign: 'center' },
 });
 
 // ─── Quick Action Grid ────────────────────────────────────────────────────────
@@ -295,7 +295,7 @@ const qs = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   actionLabel: { fontSize: 15, fontWeight: '600', letterSpacing: -0.2 },
-  actionSub:   { fontSize: 12, color: '#8E8E93' },
+  actionSub:   { fontSize: 12, color: '#9A9AA0' },
 });
 
 // ─── Activity Feed ─────────────────────────────────────────────────────────────
@@ -357,8 +357,8 @@ const af = StyleSheet.create({
   initials:{ fontSize: 15, fontWeight: '700' },
   content: { flex: 1, gap: 2 },
   name:    { fontSize: 15, fontWeight: '600', letterSpacing: -0.2 },
-  action:  { fontSize: 13, color: '#8E8E93' },
-  time:    { fontSize: 12, color: '#8E8E93' },
+  action:  { fontSize: 13, color: '#9A9AA0' },
+  time:    { fontSize: 12, color: '#9A9AA0' },
 });
 
 // ─── Section Header ────────────────────────────────────────────────────────────

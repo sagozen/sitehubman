@@ -455,7 +455,7 @@ export function SiteHubHomeScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   scrollContent: {
     paddingBottom: 24,
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: CONTENT_MAX_WIDTH,
     alignSelf: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
 
   // ── Header ──
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   profileInfo: {
     flex: 1,
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
   profileTitle: {
-    color: '#8E8E93',
+    color: '#9A9AA0',
     fontSize: 13,
     marginTop: 2,
   },
@@ -554,7 +554,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   cardBrand: {
-    color: '#8E8E93',
+    color: '#9A9AA0',
     fontSize: 12,
     letterSpacing: 0.5,
   },
@@ -567,7 +567,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.4,
   },
   cardHolderTitle: {
-    color: '#8E8E93',
+    color: '#9A9AA0',
     fontSize: 14,
     marginTop: 4,
   },
@@ -639,7 +639,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   statLabel: {
-    color: '#8E8E93',
+    color: '#9A9AA0',
     fontSize: 12,
     marginTop: 4,
   },
@@ -674,7 +674,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   leadContact: {
-    color: '#8E8E93',
+    color: '#9A9AA0',
     fontSize: 13,
     marginTop: 2,
   },
@@ -702,7 +702,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   emptyText: {
-    color: '#8E8E93',
+    color: '#9A9AA0',
     fontSize: 13,
     textAlign: 'center',
     marginTop: 4,
@@ -733,7 +733,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   toolLabel: {
-    color: '#8E8E93',
+    color: '#9A9AA0',
     fontSize: 11,
   },
 

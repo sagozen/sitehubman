@@ -843,7 +843,7 @@ const styles = StyleSheet.create({
   /* Secondary Charcoal Glass Tile (Hard Minimalist) */
   shareTileDark: {
     flex: 1,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#242424',
     borderRadius: 18,
     height: 44,
     paddingHorizontal: 14,
@@ -853,7 +853,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   shareTileDarkPressed: {
-    backgroundColor: '#2C2C2E',
+    backgroundColor: '#2C2C2C',
     transform: [{ scale: 0.98 }],
   },
   shareTileText: {

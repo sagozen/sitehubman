@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
   engravedHolder: {
     fontSize: 22,
     letterSpacing: 1.5,
-    color: '#F5F5F7',
+    color: '#FFFFFF',
   },
   engravedRole: {
     fontSize: 13,
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
   qrProof: {
     padding: 10,
     borderRadius: 12,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
     borderColor: C.borderLight,
   },
   backUrl: {

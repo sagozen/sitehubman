@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   },
   backBtn: { width: 40, alignItems: 'flex-start' },
   headerTitle: { color: C.text, fontWeight: '600' },
-  content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 130 },
+  content: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 130 },
   previewCard: {
     backgroundColor: C.surface,
     borderRadius: 20,
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   cardInfo: { flex: 1, gap: 2 },
   cardName: { fontSize: 18, fontWeight: '700', color: C.text },

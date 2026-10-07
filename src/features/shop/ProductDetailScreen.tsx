@@ -219,10 +219,10 @@ export default function ProductDetailScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 130,
     gap: 20,
   },
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#F5F5F7',
+    color: '#FFFFFF',
     letterSpacing: -0.5,
   },
   priceRow: {
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   accordionTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#F5F5F7',
+    color: '#FFFFFF',
   },
   accordionContent: {
     fontSize: 13,
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 40,
     paddingTop: 16,
     backgroundColor: 'rgba(0,0,0,0.85)',

@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0D0D0E',
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 130, // Clearance for floating dock
     maxWidth: 540,
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   statusBadge: {
-    backgroundColor: '#18181C',
+    backgroundColor: '#242424',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,

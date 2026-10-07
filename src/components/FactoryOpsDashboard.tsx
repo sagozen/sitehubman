@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   // Unified Deep Dark Canvas & Responsive Constraints
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   content: {
     flex: 1,
@@ -351,13 +351,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
     padding: 24,
   },
   loadingText: {
     marginTop: 14,
     fontSize: 13,
-    color: '#8E8E93',
+    color: '#9A9AA0',
   },
 
   // Telemetry Header
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   },
   sectionSub: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: '#9A9AA0',
     marginTop: 2,
   },
   pulseIndicator: {
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
 
   // Empty State
   emptyCard: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     padding: 32,
     alignItems: 'center',
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 13,
-    color: '#8E8E93',
+    color: '#9A9AA0',
     textAlign: 'center',
     lineHeight: 18,
   },
@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   jobCard: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
   },
   jobSub: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: '#9A9AA0',
     marginTop: 2,
   },
 

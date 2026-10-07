@@ -63,7 +63,7 @@ export function HomeSkeleton() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   } as ViewStyle,
   content: {
     paddingHorizontal: 20,
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
   } as ViewStyle,
   profileCopy: {
     flex: 1,
@@ -108,13 +108,13 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
   } as ViewStyle,
   cardStage: {
     width: '100%',
     aspectRatio: 1.586,
     borderRadius: 20,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
   } as ViewStyle,
   shareButton: {
     width: '100%',
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 76,
     borderRadius: 16,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
   } as ViewStyle,
   section: {
     gap: 14,
@@ -142,6 +142,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 160,
     borderRadius: 16,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
   } as ViewStyle,
 });

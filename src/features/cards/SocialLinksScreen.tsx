@@ -133,7 +133,7 @@ export default function SocialLinksScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   header: {
     flexDirection: 'row',
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 17,
     fontWeight: '600',
-    color: '#F5F5F7',
+    color: '#FFFFFF',
     letterSpacing: -0.2,
   },
   headerSpacer: {
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -194,16 +194,16 @@ const styles = StyleSheet.create({
   platformName: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#F5F5F7',
+    color: '#FFFFFF',
   },
   input: {
     flex: 1,
     height: 36,
-    backgroundColor: '#18181C',
+    backgroundColor: '#242424',
     borderRadius: 8,
     paddingHorizontal: 10,
     fontSize: 13,
-    color: '#F5F5F7',
+    color: '#FFFFFF',
   },
   inputDisabled: {
     opacity: 0.35,
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 26,
     borderRadius: 13,
-    backgroundColor: '#18181C',
+    backgroundColor: '#242424',
     padding: 2,
     justifyContent: 'center',
   },

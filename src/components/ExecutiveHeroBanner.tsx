@@ -128,7 +128,7 @@ export function ExecutiveHeroBanner({
 
 const styles = StyleSheet.create({
   container: { gap: 12 },
-  heroImageWrapper: { borderRadius: 20, overflow: 'hidden', height: 240, backgroundColor: '#111114' },
+  heroImageWrapper: { borderRadius: 20, overflow: 'hidden', height: 240, backgroundColor: '#242424' },
   heroImage: { width: '100%', height: '100%' },
   heroGradient: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0, 0, 0, 0.52)' },
   heroOverlayContent: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20, gap: 6 },
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   liveTapText: { color: '#FFFFFF', fontSize: 11, letterSpacing: 0.3 },
   ctaRow: { flexDirection: 'row', gap: 10 },
   ctaPrimary: { flex: 1.4, height: 50, backgroundColor: '#FFFFFF', borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  ctaSecondary: { flex: 1, height: 50, backgroundColor: '#111114', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  ctaSecondary: { flex: 1, height: 50, backgroundColor: '#242424', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   ctaPressed: { opacity: 0.8 },
   ctaPrimaryText: { color: '#000000', fontSize: 15 },
   ctaSecondaryText: { color: '#FFFFFF', fontSize: 14 },

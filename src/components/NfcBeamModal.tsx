@@ -232,7 +232,7 @@ export function NfcBeamModal({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
     justifyContent: 'space-between',
     paddingHorizontal: 24,
     paddingTop: Platform.OS === 'ios' ? 56 : 36,
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   beaconCard: {
     width: '100%',
     maxWidth: 340,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#242424',
     borderRadius: 24,
     padding: 24,
     alignItems: 'center',
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     borderRadius: 34,
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.25)',
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   nameBlock: {
     alignItems: 'center',
@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#242424',
     borderRadius: 16,
     padding: 14,
     maxWidth: 340,
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#18181C',
+    backgroundColor: '#242424',
     alignItems: 'center',
     justifyContent: 'center',
   },

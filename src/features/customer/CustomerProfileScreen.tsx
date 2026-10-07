@@ -725,20 +725,20 @@ export function CustomerProfileScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   scroll: {
     flex: 1,
   },
   container: {
     width: '100%',
-    maxWidth: 640,
+    maxWidth: 720,
     alignSelf: 'center',
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   loadCenter: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -752,7 +752,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: BANNER_H,
     position: 'relative',
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
   },
   bannerGradient: {
     ...StyleSheet.absoluteFill,
@@ -796,7 +796,7 @@ const styles = StyleSheet.create({
     borderRadius: 42,
     borderWidth: 4,
     borderColor: '#000000',
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
@@ -833,7 +833,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -949,7 +949,7 @@ const styles = StyleSheet.create({
 
   // ── Tab Body & Charcoal Cards ──
   tabBody: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     gap: 12,
   },
   tabHint: {
@@ -959,7 +959,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   charcoalCard: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     padding: 16,
     gap: 8,
@@ -1000,7 +1000,7 @@ const styles = StyleSheet.create({
 
   // ── Form Inputs & Save ──
   fieldCard: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -1042,7 +1042,7 @@ const styles = StyleSheet.create({
     gap: 8,
     height: 48,
     borderRadius: 16,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     marginTop: 8,
   },
   secondaryActionText: {
@@ -1080,7 +1080,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,

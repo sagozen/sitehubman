@@ -230,7 +230,7 @@ export function ContactExportSheet({
 
 const styles = StyleSheet.create({
   root: { flex: 1, justifyContent: 'flex-end' },
-  backdrop: { backgroundColor: '#000000' },
+  backdrop: { backgroundColor: '#0D0D0E' },
   sheet: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 28,

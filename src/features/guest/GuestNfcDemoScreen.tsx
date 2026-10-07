@@ -240,7 +240,7 @@ export function GuestNfcDemoScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   content: {
     padding: 16,
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   tapZone: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#242424',
     borderRadius: 20,
     minHeight: 230,
     alignItems: 'center',
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#242424',
     borderRadius: 16,
     padding: 16,
   },
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: '#2C2C2C',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
     color: 'rgba(235, 235, 245, 0.5)',
   },
   stepsCard: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#242424',
     borderRadius: 18,
     padding: 20,
     gap: 16,

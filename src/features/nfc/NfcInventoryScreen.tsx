@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    color: '#A1A1AA',
+    color: '#9A9AA0',
   },
   statsGrid: {
     flexDirection: 'row',
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 11,
-    color: '#A1A1AA',
+    color: '#9A9AA0',
     textTransform: 'uppercase',
   },
   statLabelActive: {
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 100,
   },
   listContentEmpty: {
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
   },
   tagDetail: {
     fontSize: 13,
-    color: '#A1A1AA',
+    color: '#9A9AA0',
     marginTop: 4,
   },
   emptyState: {
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#A1A1AA',
+    color: '#9A9AA0',
     textAlign: 'center',
     marginBottom: 24,
   },

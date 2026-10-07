@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   },
   backBtn: { width: 40, alignItems: 'flex-start' },
   headerTitle: { color: C.text, fontWeight: '600' },
-  content: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 130 },
+  content: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 130 },
   identity: {
     alignItems: 'center',
     paddingVertical: 36,

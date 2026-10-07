@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0D0D0E',
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 130, // Clearance for floating capsule dock
     maxWidth: 540,
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 7,
-    backgroundColor: '#18181C',
+    backgroundColor: '#242424',
     alignItems: 'center',
     justifyContent: 'center',
   },

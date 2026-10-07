@@ -57,7 +57,7 @@ export default function NfcSuccessScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   center: {
     flex: 1,
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 15,
-    color: '#A1A1AA',
+    color: '#9A9AA0',
     textAlign: 'center',
     lineHeight: 22,
     maxWidth: 260,

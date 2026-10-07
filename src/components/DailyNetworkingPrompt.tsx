@@ -104,7 +104,7 @@ export function DailyNetworkingPrompt({ onPress }: { onPress?: () => void }) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     overflow: 'hidden',
   },
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#18181C',
+    backgroundColor: '#242424',
     borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   checkBtnCompleted: {

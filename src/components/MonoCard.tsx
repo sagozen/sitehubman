@@ -116,7 +116,7 @@ export function MonoRow({ icon, title, subtitle, trailing, onPress, showChevron,
       onPress={onPress as any}
       style={({ pressed }: any) => [
         rowStyles.row,
-        pressed && { backgroundColor: '#F4F4F5' },
+        pressed && { backgroundColor: '#FFFFFF' },
       ]}
     >
       {icon ? <View style={rowStyles.icon}>{icon}</View> : null}

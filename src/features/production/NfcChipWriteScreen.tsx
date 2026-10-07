@@ -237,13 +237,13 @@ export default function NfcChipWriteScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 24,
     width: '100%',
-    maxWidth: 640,
+    maxWidth: 720,
     alignSelf: 'center',
   },
   backButton: {
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   deviceStatus: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 999,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   burnCard: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
   },
   checklistContainer: {
     width: '100%',
-    backgroundColor: '#18181c',
+    backgroundColor: '#242424',
     borderRadius: 12,
     padding: 12,
     gap: 8,

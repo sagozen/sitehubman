@@ -206,10 +206,10 @@ export default function PreviewOrderScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 130,
     gap: 20,
   },
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 40,
     paddingTop: 16,
     backgroundColor: 'rgba(0,0,0,0.85)',

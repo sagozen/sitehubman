@@ -541,7 +541,7 @@ export function AiBusinessSiteModal({
                 >
                   <AppText style={styles.generateCtaEmoji}>✨</AppText>
                   <AppText
-                    style={[styles.generateCtaText, !businessName.trim() && { color: '#8E8E93' }]}
+                    style={[styles.generateCtaText, !businessName.trim() && { color: '#9A9AA0' }]}
                     weight="extrabold"
                   >
                     Generate AI Mini-Site & NFC Card
@@ -866,7 +866,7 @@ export function AiBusinessSiteModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
     paddingTop: Platform.OS === 'ios' ? 54 : 30,
   },
 
@@ -939,7 +939,7 @@ const styles = StyleSheet.create({
   bodyContent: { padding: 20, paddingBottom: 60 },
 
   explainerCard: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 14,
     padding: 16,
     marginBottom: 24,
@@ -973,7 +973,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 7,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#242424',
     borderRadius: 24,
     paddingHorizontal: 14,
     paddingVertical: 10,
@@ -995,7 +995,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: '#18181C',
+    backgroundColor: '#242424',
     borderRadius: 12,
     paddingHorizontal: 14,
     height: 50,
@@ -1046,7 +1046,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   generateCtaBadge: {
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -1095,7 +1095,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#242424',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1123,7 +1123,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginTop: 14,
     marginBottom: 12,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#242424',
     borderRadius: 12,
     padding: 3,
   },
@@ -1153,7 +1153,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#18181C',
+    backgroundColor: '#242424',
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 7,
@@ -1231,7 +1231,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#18181C',
+    backgroundColor: '#242424',
     padding: 11,
     borderRadius: 10,
     marginBottom: 12,
@@ -1281,7 +1281,7 @@ const styles = StyleSheet.create({
   },
   menuItemLeft: { flex: 1, paddingRight: 12 },
   menuItemName: { color: '#FFFFFF', fontSize: 13, marginBottom: 3 },
-  menuItemDesc: { color: '#8E8E93', fontSize: 11, lineHeight: 16 },
+  menuItemDesc: { color: '#9A9AA0', fontSize: 11, lineHeight: 16 },
   menuPriceBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1306,7 +1306,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#242424',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1397,7 +1397,7 @@ const styles = StyleSheet.create({
 
   podSpecsCard: {
     width: '100%',
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 14,
     padding: 16,
     gap: 12,
@@ -1437,7 +1437,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderTopWidth: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   shareBtn: {
     height: 50,

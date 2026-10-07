@@ -158,14 +158,14 @@ export function EventScannerScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   permissionContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   permissionTitle: {
     fontSize: 22,

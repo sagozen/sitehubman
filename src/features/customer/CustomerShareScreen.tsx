@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 130, // Clearance for floating dock
     maxWidth: 540,
@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     pointerEvents: 'box-none',
   },
   beamBtnWrapper: {

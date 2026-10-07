@@ -101,10 +101,10 @@ export default function TermsOfServiceScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   header: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.08)',
     paddingVertical: 12,
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 20,
-    maxWidth: 640,
+    maxWidth: 720,
     width: '100%',
     alignSelf: 'center',
   },
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: 24,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     padding: 16,
   },
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   footer: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 18,
     padding: 16,
     marginTop: 20,

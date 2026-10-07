@@ -835,7 +835,7 @@ export function EditBioScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   header: {
     flexDirection: 'row',
@@ -873,7 +873,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 140,
     gap: 16,
-    maxWidth: 640,
+    maxWidth: 720,
     width: '100%',
     alignSelf: 'center',
   },
@@ -881,7 +881,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     padding: 16,
   },
@@ -956,7 +956,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   fieldGroup: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 14,
     overflow: 'hidden',
   },
@@ -991,7 +991,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 14,
@@ -1089,7 +1089,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
   },
   pillBtnActive: {
     backgroundColor: '#FFFFFF',
@@ -1104,7 +1104,7 @@ const styles = StyleSheet.create({
   },
   segmentedRow: {
     flexDirection: 'row',
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 12,
     padding: 3,
   },

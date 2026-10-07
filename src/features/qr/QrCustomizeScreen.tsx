@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   },
   scroll: { flex: 1 },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 130,
   },
   previewCard: {
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#F5F5F7',
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     paddingVertical: 16,
   },

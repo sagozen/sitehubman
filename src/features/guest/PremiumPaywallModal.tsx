@@ -73,9 +73,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   heroSection: { flex: 0.4, position: 'relative' },
   closeBtn: { position: 'absolute', top: 50, right: 20, backgroundColor: '#fff', borderRadius: 20, padding: 8 },
-  sheet: { flex: 0.6, backgroundColor: '#000', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, marginTop: -20 },
+  sheet: { flex: 0.6, backgroundColor: '#0D0D0E', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, marginTop: -20 },
   title: { color: '#fff', fontSize: 24, lineHeight: 32, marginBottom: 12 },
-  subtitle: { color: '#a1a1aa', fontSize: 16, marginBottom: 24, lineHeight: 22 },
+  subtitle: { color: '#9A9AA0', fontSize: 16, marginBottom: 24, lineHeight: 22 },
   featureList: { flex: 1 },
   featureRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
   checkIcon: { width: 24, height: 24, borderRadius: 12, borderWidth: 1, borderColor: '#3b82f6', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   upgradeBtn: { backgroundColor: '#2563eb', width: '100%', paddingVertical: 16, borderRadius: 12, alignItems: 'center', marginBottom: 12 },
   upgradeBtnText: { color: '#fff', fontSize: 16 },
   pricingText: { color: '#fff', fontSize: 14, marginBottom: 4 },
-  subPricingText: { color: '#a1a1aa', fontSize: 12, marginBottom: 12 },
-  termsText: { color: '#a1a1aa', fontSize: 12 },
+  subPricingText: { color: '#9A9AA0', fontSize: 12, marginBottom: 12 },
+  termsText: { color: '#9A9AA0', fontSize: 12 },
   linkText: { color: '#3b82f6', textDecorationLine: 'underline' }
 });

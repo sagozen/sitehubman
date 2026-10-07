@@ -60,7 +60,7 @@ export function AiScannerModal({ visible, onClose }: AiScannerModalProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#18181b' },
+  container: { flex: 1, backgroundColor: '#242424' },
   header: { flexDirection: 'row', justifyContent: 'space-between', padding: 20, paddingTop: 50 },
   iconBtn: { padding: 8 },
   manualBtn: { backgroundColor: '#e4e4e7', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, gap: 6 },
@@ -73,6 +73,6 @@ const styles = StyleSheet.create({
   bottomSheet: { backgroundColor: '#fff', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 30, paddingBottom: 40, marginTop: 40 },
   sheetTitle: { fontSize: 24, color: '#000', textAlign: 'center', marginBottom: 12 },
   sheetSub: { fontSize: 16, color: '#6b7280', textAlign: 'center', lineHeight: 24, marginBottom: 24 },
-  actionBtn: { backgroundColor: '#000', paddingVertical: 16, borderRadius: 12, alignItems: 'center' },
+  actionBtn: { backgroundColor: '#0D0D0E', paddingVertical: 16, borderRadius: 12, alignItems: 'center' },
   actionBtnText: { color: '#fff', fontSize: 16 },
 });

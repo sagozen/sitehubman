@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     borderRadius: monoRadius.xl,
   },
   indicatorLight: {
-    backgroundColor: '#F4F4F5',
+    backgroundColor: '#FFFFFF',
   },
   indicatorDark: {
     backgroundColor: '#26262B',
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     minWidth: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
     paddingHorizontal: 4,
     alignItems: 'center',
     justifyContent: 'center',

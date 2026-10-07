@@ -118,12 +118,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   actionList: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     overflow: 'hidden',
   },
   metricList: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 16,
     overflow: 'hidden',
   },

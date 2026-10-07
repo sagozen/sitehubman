@@ -674,14 +674,14 @@ export function PublicBioScreen({ slug, cardId }: Props) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   safe: {
     flex: 1,
   },
   loadingCenter: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -793,7 +793,7 @@ const styles = StyleSheet.create({
   },
   executiveCard: {
     borderRadius: 20,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     padding: 20,
     paddingTop: 48,
     alignItems: 'center',
@@ -930,7 +930,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 12,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   primaryActionBadgeText: {
     color: '#FFFFFF',
@@ -976,7 +976,7 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 14,
     borderRadius: 16,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
   },
   actionItemIconBox: {
     width: 36,
@@ -1115,7 +1115,7 @@ const styles = StyleSheet.create({
   qrModalCard: {
     width: '100%',
     maxWidth: 340,
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 24,
     padding: 24,
     alignItems: 'center',
@@ -1158,13 +1158,13 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   exchangeCard: {
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
     paddingBottom: 40,
     gap: 16,
-    maxWidth: 640,
+    maxWidth: 720,
     width: '100%',
     alignSelf: 'center',
   },
@@ -1207,7 +1207,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   textInput: {
-    backgroundColor: '#18181C',
+    backgroundColor: '#242424',
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,

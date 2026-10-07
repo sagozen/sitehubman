@@ -127,12 +127,12 @@ export function OnboardingWelcomeScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
-    maxWidth: 640,
+    paddingHorizontal: 16,
+    maxWidth: 720,
     alignSelf: 'center',
     width: '100%',
   },
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
   tagline: {
     fontSize: 40,
     lineHeight: 46,
-    color: '#F5F5F7',
+    color: '#FFFFFF',
     letterSpacing: -0.5,
   },
   subtitle: {
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   primaryBtn: {
     height: 56,
     borderRadius: 14,
-    backgroundColor: '#F5F5F7',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -1148,7 +1148,7 @@ header: {
     gap: 8,
   },
   actionButtonBlue: { backgroundColor: '#2563eb' },
-  actionButtonGreen: { backgroundColor: '#000000' },
+  actionButtonGreen: { backgroundColor: '#0D0D0E' },
   actionButtonDanger: { backgroundColor: '#E74C3C' },
   actionButtonText: {},
   footer: {

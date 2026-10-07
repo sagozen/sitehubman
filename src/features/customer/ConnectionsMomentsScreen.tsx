@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: PAGE_THEME.canvas },
   content: {
     width: '100%',
-    maxWidth: 640,
+    maxWidth: 720,
     alignSelf: 'center',
     flex: 1,
   },
@@ -497,7 +497,7 @@ const styles = StyleSheet.create({
   scannerBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
     padding: 16,
     borderRadius: 16,
     gap: 12,
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
 
   // Search
   searchContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 8,
   },
   searchBar: {

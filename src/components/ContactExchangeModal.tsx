@@ -78,7 +78,7 @@ function ContactExchangeModalRaw({
           style={[
             styles.sheet,
             {
-              backgroundColor: '#111114',
+              backgroundColor: '#242424',
               paddingBottom: Math.max(insets.bottom, 20),
             },
           ]}

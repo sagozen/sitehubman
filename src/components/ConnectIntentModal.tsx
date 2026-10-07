@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 13,
-    color: '#8E8E93',
+    color: '#9A9AA0',
     marginTop: 4,
   },
   optionsList: {
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   },
   optionPrompt: {
     fontSize: 11,
-    color: '#8E8E93',
+    color: '#9A9AA0',
     marginTop: 2,
   },
   formGroup: {

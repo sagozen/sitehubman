@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   },
   tabTrack: {
     flexDirection: 'row',
-    backgroundColor: '#111114',
+    backgroundColor: '#242424',
     borderRadius: 14,
     padding: 3,
     width: '100%',

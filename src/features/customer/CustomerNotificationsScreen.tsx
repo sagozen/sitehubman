@@ -373,7 +373,7 @@ export function CustomerNotificationsScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 120, gap: 24 },
+  content: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 120, gap: 24 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   back: {
     width: 44,
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
   },
   headerCopy: { flex: 1, gap: 2 },
   title: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
-  subtitle: { fontSize: 13, fontWeight: '500', color: '#8E8E93' },
+  subtitle: { fontSize: 13, fontWeight: '500', color: '#9A9AA0' },
 
   inboxBtn: {
     flexDirection: 'row',

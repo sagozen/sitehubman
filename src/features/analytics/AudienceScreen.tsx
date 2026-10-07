@@ -48,7 +48,7 @@ const barStyles = StyleSheet.create({
   track: {
     flex: 1,
     height: 6,
-    backgroundColor: '#18181C',
+    backgroundColor: '#242424',
     borderRadius: 99,
     overflow: 'hidden',
   },
@@ -58,7 +58,7 @@ const barStyles = StyleSheet.create({
   },
   pct: {
     fontSize: 13,
-    color: '#A1A1AA',
+    color: '#9A9AA0',
     width: 36,
     textAlign: 'right',
   },
@@ -66,7 +66,7 @@ const barStyles = StyleSheet.create({
 
 const DEVICES = [
   { label: 'iPhone', pct: 58, color: '#FFFFFF' },
-  { label: 'Android', pct: 32, color: '#A1A1AA' },
+  { label: 'Android', pct: 32, color: '#9A9AA0' },
   { label: 'Desktop', pct: 10, color: '#52525B' },
 ];
 
@@ -80,14 +80,14 @@ const COUNTRIES = [
 
 const TIME_OF_VISIT = [
   { label: 'Morning', pct: 35, color: '#FFFFFF' },
-  { label: 'Afternoon', pct: 42, color: '#A1A1AA' },
+  { label: 'Afternoon', pct: 42, color: '#9A9AA0' },
   { label: 'Evening', pct: 23, color: '#52525B' },
 ];
 
 const TRAFFIC_SOURCES = [
   { label: 'NFC Tap', pct: 42, color: '#FFFFFF', icon: 'zap' as const },
-  { label: 'QR Scan', pct: 28, color: '#A1A1AA', icon: 'maximize' as const },
-  { label: 'Direct', pct: 18, color: '#71717A', icon: 'link' as const },
+  { label: 'QR Scan', pct: 28, color: '#9A9AA0', icon: 'maximize' as const },
+  { label: 'Direct', pct: 18, color: '#9A9AA0', icon: 'link' as const },
   { label: 'Social', pct: 12, color: '#3F3F46', icon: 'share-2' as const },
 ];
 
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
   },
   scroll: { flex: 1 },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 130,
   },
   sectionLabel: {

@@ -319,7 +319,7 @@ function Field({
 const viewStyles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   backdrop: {
     ...StyleSheet.absoluteFill,
@@ -371,7 +371,7 @@ const viewStyles = StyleSheet.create({
   fieldRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#111111',
+    backgroundColor: '#242424',
     borderRadius: 20,
     paddingHorizontal: 15,
     minHeight: 56,
@@ -443,14 +443,14 @@ const textStyles = StyleSheet.create({
   heroSub: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#8E8E93',
+    color: '#9A9AA0',
     textAlign: 'center',
     maxWidth: 340,
   },
   fieldLabel: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#8E8E93',
+    color: '#9A9AA0',
     letterSpacing: 0,
     marginLeft: 2,
   },
@@ -470,7 +470,7 @@ const textStyles = StyleSheet.create({
   footerPrompt: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#8E8E93',
+    color: '#9A9AA0',
   },
   footerAction: {
     fontSize: 14,
@@ -491,7 +491,7 @@ const textStyles = StyleSheet.create({
   trustSub: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#8E8E93',
+    color: '#9A9AA0',
     textAlign: 'center',
   },
   errorText: {

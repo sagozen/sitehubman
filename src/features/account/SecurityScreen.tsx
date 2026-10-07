@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   },
   scroll: { flex: 1 },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 130,
   },
   sectionLabel: {

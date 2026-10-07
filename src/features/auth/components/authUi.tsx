@@ -392,7 +392,7 @@ const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BACKGROUND },
   kav: { flex: 1 },
   scroll: { flex: 1 },
-  scrollContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingTop: 28, paddingBottom: 40, gap: 20 },
+  scrollContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 16, paddingTop: 28, paddingBottom: 40, gap: 20 },
 
   card: {
     width: '100%',
@@ -411,11 +411,11 @@ const s = StyleSheet.create({
 
   field: { gap: 6 },
   fieldLabel: { fontSize: 11, fontWeight: '800', color: MUTED, letterSpacing: 0.6, textTransform: 'uppercase', marginLeft: 2 },
-  fieldRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#18181C', borderRadius: 16, borderWidth: 1, borderColor: BORDER, paddingHorizontal: 16, minHeight: 54 },
+  fieldRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#242424', borderRadius: 16, borderWidth: 1, borderColor: BORDER, paddingHorizontal: 16, minHeight: 54 },
   fieldInput: { flex: 1, fontSize: 15, fontWeight: '500', color: INK, paddingVertical: Platform.OS === 'ios' ? 14 : 10 },
   fieldTrailing: { alignItems: 'center', justifyContent: 'center', paddingLeft: 4 },
 
-  formGroup: { backgroundColor: '#18181C', borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: BORDER },
+  formGroup: { backgroundColor: '#242424', borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: BORDER },
   groupField: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, minHeight: 54, borderLeftWidth: 3, borderLeftColor: 'transparent' },
   groupFieldBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: BORDER },
   groupFieldFocused: { borderLeftColor: BRAND, backgroundColor: 'rgba(245,158,11,0.04)' },

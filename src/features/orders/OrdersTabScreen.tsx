@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     backgroundColor: C.canvas,
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 40,
     gap: 28,

@@ -66,7 +66,7 @@ export function SettingsGroup({ children, compact = false, style }: SettingsGrou
 interface SettingsRowProps {
   icon?: AppIconName;
   iconColor?: string;
-  iconBackgroundColor?: string;
+  iconbackgroundColor?: string;
   title: string;
   subtitle?: string;
   value?: string;
@@ -87,7 +87,7 @@ function triggerSelectionHaptic() {
 export function SettingsRow({
   icon,
   iconColor,
-  iconBackgroundColor,
+  iconbackgroundColor,
   title,
   subtitle,
   value,
@@ -100,7 +100,7 @@ export function SettingsRow({
 }: SettingsRowProps) {
   const { colors } = usePreferences();
   const accent = iconColor ?? colors.textPrimary;
-  const iconBg = iconBackgroundColor ?? colors.surfaceSoft;
+  const iconBg = iconbackgroundColor ?? colors.surfaceSoft;
   const titleColor = destructive ? theme.colors.danger : colors.typographyColor;
   const canPress = Boolean(onPress) && !disabled;
 
