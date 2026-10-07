@@ -87,6 +87,7 @@ config.resolver.blockList = [
 // ── 5. Resolver: browser-safe aliases for server-only modules ─────────────────
 config.resolver.extraNodeModules = {
   ...config.resolver.extraNodeModules,
+  '@': path.resolve(__dirname),
   qrcode: path.resolve(__dirname, 'node_modules/qrcode/lib/browser.js'),
 };
 
