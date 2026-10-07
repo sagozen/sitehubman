@@ -7,14 +7,14 @@ import AppIcon from '@/src/components/AppIcon';
 import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
-  canvas: '#000000',
-  surface: '#0E0E11',
-  surfaceRaised: '#141418',
+  canvas: '#0D0D0E',
+  surface: '#242424',
+  surfaceRaised: '#2C2C2C',
   border: 'rgba(255,255,255,0.06)',
   text: '#FFFFFF',
-  muted: '#A1A1AA',
+  muted: '#9A9AA0',
   textDim: '#52525B',
-  accent: '#2596BE',
+  accent: '#799A85',
 };
 
 type BarRowProps = {
@@ -214,7 +214,6 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: C.surface,
     borderRadius: 16,
-    borderWidth: 1,
     borderColor: C.border,
     paddingHorizontal: 16,
     marginBottom: 28,
@@ -266,7 +265,6 @@ const styles = StyleSheet.create({
     width: '47%',
     backgroundColor: C.surface,
     borderRadius: 16,
-    borderWidth: 1,
     borderColor: C.border,
     padding: 16,
   },

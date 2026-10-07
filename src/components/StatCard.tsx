@@ -42,7 +42,6 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.xl,
     padding: theme.spacing.comfort,
     backgroundColor: theme.colors.surface,
-    borderWidth: 1,
     borderColor: 'rgba(60, 60, 67, 0.06)',
     ...theme.shadows.card,
   },

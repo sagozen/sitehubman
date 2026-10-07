@@ -91,7 +91,7 @@ export function ContactExportSheet({
       label: 'Save to Contacts',
       desc: 'Export as vCard to your phone contacts',
       color: '#FFFFFF',
-      bg: '#007AFF',
+      bg: '#FFFFFF',
     },
     {
       id: 'whatsapp',
@@ -110,7 +110,7 @@ export function ContactExportSheet({
       icon: 'Share2',
       label: 'Share via…',
       desc: 'Send name, role & profile link anywhere',
-      color: '#007AFF',
+      color: '#799A85',
       bg: 'rgba(0,122,255,0.1)',
     },
   ];

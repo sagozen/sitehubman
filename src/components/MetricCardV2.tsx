@@ -78,7 +78,6 @@ const styles = StyleSheet.create({
   container: {
     padding: tokens.spacing[4],
     borderRadius: tokens.radius.xl,
-    borderWidth: 1,
     flex: 1, // Allows it to share row space in a grid
   },
   header: {

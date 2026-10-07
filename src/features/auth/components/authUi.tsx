@@ -122,8 +122,6 @@ const heroStyles = StyleSheet.create({
     shadowOpacity: 0.45,
     shadowRadius: 24,
     elevation: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
     overflow: 'hidden',
   } as ViewStyle,
   cardGradient: {
@@ -402,7 +400,6 @@ const s = StyleSheet.create({
     alignSelf: 'center',
     backgroundColor: SURFACE,
     borderRadius: 28,
-    borderWidth: 1,
     borderColor: BORDER,
     padding: 24,
     gap: 20,

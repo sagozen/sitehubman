@@ -342,7 +342,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   avatarText: {
@@ -409,8 +408,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 20,
     justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -575,8 +572,6 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 12,
     backgroundColor: '#121214',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
     gap: 12,
   },
   tierRowActive: {
@@ -587,7 +582,6 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.4)',
     alignItems: 'center',
     justifyContent: 'center',

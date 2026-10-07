@@ -137,7 +137,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 10,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.12)',
   },
   iconWrap: {
     width: 36,

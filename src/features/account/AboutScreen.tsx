@@ -13,12 +13,12 @@ import { IosScrollView } from '@/src/components/IosScrollView';
 import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
-  canvas: '#000000',
-  surface: '#111114',
+  canvas: '#0D0D0E',
+  surface: '#242424',
   border: 'rgba(255,255,255,0.09)',
   text: '#F5F5F7',
   muted: '#9A9AA0',
-  accent: '#2596BE',
+  accent: '#799A85',
 } as const;
 
 const APP_VERSION = '1.0.0';
@@ -107,8 +107,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: C.border,
   },
   backBtn: { width: 40, alignItems: 'flex-start' },
   headerTitle: { color: C.text, fontWeight: '600' },
@@ -123,8 +121,6 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 24,
     backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.border,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
@@ -140,8 +136,6 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: C.surface,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: C.border,
     overflow: 'hidden',
   },
   row: {

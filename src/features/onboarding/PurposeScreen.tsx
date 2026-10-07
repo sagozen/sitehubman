@@ -169,8 +169,6 @@ const styles = StyleSheet.create({
     width: '47.5%',
     backgroundColor: '#111114',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
     padding: 20,
     gap: 16,
     alignItems: 'flex-start',
@@ -179,7 +177,6 @@ const styles = StyleSheet.create({
   },
   cardActive: {
     borderColor: '#2596BE',
-    borderWidth: 1.5,
   },
   cardPressed: {
     opacity: 0.75,

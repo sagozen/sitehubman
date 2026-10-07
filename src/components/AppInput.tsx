@@ -1,7 +1,7 @@
-﻿/**
- * AppInput — Apple HIG-compliant text input.
+/**
+ * AppInput � Apple HIG-compliant text input.
  * - 44pt minimum height (Apple HIG touch target requirement)
- * - Focus ring: system tint (#0A84FF dark / #007AFF light)
+ * - Focus ring: system tint (#799A85 (sage focus ring))
  * - Border radius: 10pt (Apple inputs standard)
  * - Haptics on focus via HapticTap.selection
  */
@@ -65,7 +65,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
   );
 
   // Apple HIG: tint color for focus ring, red for error
-  const tint        = isDark ? '#0A84FF' : '#007AFF';
+  const tint        = isDark ? '#799A85' : '#799A85';
   const errorColor  = isDark ? '#FF453A' : '#FF3B30';
   const borderColor = error
     ? errorColor

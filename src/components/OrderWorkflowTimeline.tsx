@@ -202,7 +202,6 @@ const sl = StyleSheet.create({
   dot: {
     width: 18, height: 18, borderRadius: 9,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1.5,
   },
   pulse: { width: 8, height: 8, borderRadius: 4 },
   line: { width: 2, flex: 1, minHeight: 28, backgroundColor: RAIL, marginTop: 4 },

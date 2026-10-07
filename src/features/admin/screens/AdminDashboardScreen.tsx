@@ -264,8 +264,6 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 19,
     backgroundColor: '#121214',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -274,8 +272,6 @@ const styles = StyleSheet.create({
   heroPassContainer: {
     borderRadius: 20,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     marginVertical: 2,
   },
   appleWalletCard: {
@@ -388,8 +384,6 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 10,
     backgroundColor: '#141418',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },

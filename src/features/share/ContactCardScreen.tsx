@@ -17,12 +17,12 @@ import { useBioPage } from '@/src/hooks/useBioPage';
 import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
-  canvas: '#000000',
-  surface: '#111114',
+  canvas: '#0D0D0E',
+  surface: '#242424',
   border: 'rgba(255,255,255,0.09)',
   text: '#F5F5F7',
   muted: '#9A9AA0',
-  accent: '#2596BE',
+  accent: '#799A85',
 } as const;
 
 function buildVCard(params: {
@@ -184,7 +184,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.2)',
     backgroundColor: '#000000',
   },

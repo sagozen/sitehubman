@@ -21,15 +21,15 @@ import { useBioPage } from '@/src/hooks/useBioPage';
 import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
-  canvas: '#08080A',
-  surface: '#111115',
-  surfaceRaised: '#16161C',
-  border: 'rgba(255, 255, 255, 0.08)',
-  borderLight: 'rgba(255, 255, 255, 0.14)',
+  canvas: '#0D0D0E',
+  surface: '#242424',
+  surfaceRaised: '#2C2C2C',
+  border: 'transparent',
+  borderLight: 'transparent',
   text: '#FFFFFF',
-  textSecondary: '#A1A1AA',
-  textMuted: '#636366',
-  accent: '#2596BE',
+  textSecondary: '#E4E4E7',
+  textMuted: '#8E8E93',
+  accent: '#799A85',
   danger: '#FF453A',
 } as const;
 
@@ -192,16 +192,16 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   contentWrap: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     width: '100%',
-    maxWidth: 640,
+    maxWidth: 720,
     alignSelf: 'center',
   },
   profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: C.surface,
-    borderRadius: 18,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 16,
   },
@@ -212,7 +212,6 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.15)',
     backgroundColor: '#000000',
     marginRight: 14,
@@ -231,7 +230,7 @@ const styles = StyleSheet.create({
   },
   menuBox: {
     backgroundColor: C.surface,
-    borderRadius: 18,
+    borderRadius: 16,
     overflow: 'hidden',
   },
   menuRow: {

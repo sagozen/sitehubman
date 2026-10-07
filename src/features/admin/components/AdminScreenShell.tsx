@@ -187,7 +187,6 @@ const styles = StyleSheet.create({
     flexBasis: '47%',
     borderRadius: 8,
     backgroundColor: ADMIN_THEME.surface,
-    borderWidth: 1,
     borderColor: ADMIN_THEME.border,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.md,

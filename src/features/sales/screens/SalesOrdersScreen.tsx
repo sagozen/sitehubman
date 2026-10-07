@@ -257,7 +257,7 @@ export default function SalesOrdersScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   content: {
     paddingHorizontal: 20,
@@ -284,8 +284,6 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 19,
     backgroundColor: '#121214',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -303,8 +301,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     height: 44,
     gap: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
   },
   searchInput: {
     flex: 1,
@@ -373,8 +369,6 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     backgroundColor: '#141418',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -431,8 +425,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   statusBadgeText: {
     color: 'rgba(255, 255, 255, 0.7)',

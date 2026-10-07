@@ -109,7 +109,6 @@ const styles = StyleSheet.create({
   actionRowCard: {
     backgroundColor: '#1a1a1a',
     borderRadius: 12,
-    borderWidth: 1,
     borderColor: '#3a3a3a',
     padding: 16,
     gap: 14,
@@ -134,7 +133,6 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 9999,
     backgroundColor: '#2a2a2a',
-    borderWidth: 1,
     borderColor: '#3a3a3a',
     alignItems: 'center',
     justifyContent: 'center',
@@ -152,7 +150,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: 9999,
-    borderWidth: 1,
     borderColor: '#1a1a1a',
   },
   sealBadgeText: {

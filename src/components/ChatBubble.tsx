@@ -17,7 +17,7 @@ import type { TapMoment, TapMomentSource } from '@/src/components/TapMomentCard'
  * and the bubbles stay calm so the timeline scrolls smoothly.
  */
 
-const BRAND = '#007AFF';
+const BRAND = '#799A85';
 const INK = '#0A0A0F';
 const INK2 = '#1C1C1E';
 const MUTED = '#6E6E73';

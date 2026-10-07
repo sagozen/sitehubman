@@ -503,7 +503,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
-    borderWidth: 1,
   },
   countPillText: {
     fontSize: 10,

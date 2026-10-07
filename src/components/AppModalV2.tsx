@@ -119,7 +119,6 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 480,
     borderRadius: tokens.radius.xl,
-    borderWidth: 1,
     padding: tokens.spacing[5],
   },
   handleContainer: {

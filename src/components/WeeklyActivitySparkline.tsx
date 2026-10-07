@@ -175,8 +175,6 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: 18,
     backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     padding: 16,
     gap: 14,
   },
@@ -198,7 +196,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(48, 209, 88, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
     borderColor: 'rgba(48, 209, 88, 0.25)',
   },
   title: {
@@ -215,7 +212,6 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
     backgroundColor: 'rgba(48, 209, 88, 0.15)',
-    borderWidth: 1,
     borderColor: 'rgba(48, 209, 88, 0.3)',
   },
   growthText: {
@@ -231,8 +227,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#16161B',
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
     paddingVertical: 10,
     paddingHorizontal: 8,
     alignItems: 'center',
@@ -240,7 +234,6 @@ const styles = StyleSheet.create({
   },
   dayCardToday: {
     backgroundColor: '#1C1C24',
-    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
   dayCardActive: {
     borderColor: '#FFFFFF',

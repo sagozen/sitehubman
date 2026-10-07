@@ -179,7 +179,6 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
     backgroundColor: '#090A0E',
-    borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.16)',
     ...createShadow({ color: '#000000', offset: { width: 0, height: 24 }, opacity: 0.4, radius: 55, elevation: 12 }),
   },
@@ -274,7 +273,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 10,
     borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     marginVertical: 4,
   },
   stripeBandLight: {
@@ -336,7 +334,6 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   qrFrameLight: {
-    borderWidth: 1,
     borderColor: 'rgba(15, 23, 42, 0.15)',
     shadowColor: '#0F172A',
     shadowOpacity: 0.1,

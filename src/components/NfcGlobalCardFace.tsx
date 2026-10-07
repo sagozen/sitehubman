@@ -225,14 +225,12 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
     backgroundColor: '#090A0E',
-    borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.16)',
     ...createShadow({ color: '#000000', offset: { width: 0, height: 24 }, opacity: 0.4, radius: 55, elevation: 12 }),
   },
   cardCompact: {
     borderRadius: 12,
     padding: 14,
-    borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.14)',
   },
   cardLight: {
@@ -280,7 +278,6 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 6,
     overflow: 'hidden',
-    borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
     position: 'relative',
     justifyContent: 'center',
@@ -336,8 +333,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#090A0E',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   nfcHaloInnerLight: {
     backgroundColor: '#F8FAFC',

@@ -393,7 +393,7 @@ export async function signInAsAnonymousTrial(): Promise<AppUser> {
 
   const profileDoc = {
     email: '',
-    displayName: 'Guest User',
+    displayName: 'Thean Coc',
     role: 'customer' as const,
     authType: 'anonymous' as const,
     authProvider: 'anonymous' as const,

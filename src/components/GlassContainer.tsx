@@ -34,7 +34,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   bordered: {
-    borderWidth: 1,
     borderColor: glassTheme.border.light,
   },
   elevated: {

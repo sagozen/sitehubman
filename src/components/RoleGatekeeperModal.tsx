@@ -111,7 +111,6 @@ const styles = StyleSheet.create({
     maxWidth: 420,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.08)',
     padding: 26,
     alignItems: 'center',
@@ -126,12 +125,10 @@ const styles = StyleSheet.create({
   },
   iconCircleWarning: {
     backgroundColor: 'rgba(245, 158, 11, 0.15)',
-    borderWidth: 1,
     borderColor: 'rgba(245, 158, 11, 0.3)',
   },
   iconCircleDanger: {
     backgroundColor: 'rgba(239, 68, 68, 0.15)',
-    borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.3)',
   },
   title: {
@@ -158,7 +155,6 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: '#F5F7FA',
     borderRadius: 14,
-    borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.08)',
     paddingHorizontal: 16,
     paddingVertical: 12,

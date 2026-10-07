@@ -94,11 +94,9 @@ const styles = StyleSheet.create({
     aspectRatio: 1.586,
     borderRadius: tokens.radius['2xl'],
     overflow: 'hidden',
-    borderWidth: 1.5,
   },
   cardCompact: {
     borderRadius: tokens.radius.lg,
-    borderWidth: 1,
   },
   magStripe: {
     width: '100%',

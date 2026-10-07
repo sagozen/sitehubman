@@ -85,7 +85,6 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#1a1a1a',
     borderRadius: 12,
-    borderWidth: 1,
     borderColor: '#3a3a3a',
     padding: 24,
     alignItems: 'center',

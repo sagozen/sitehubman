@@ -197,8 +197,6 @@ const styles = StyleSheet.create({
   },
   customerCard: {
     backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 16,
     padding: 18,
     marginBottom: 16,
@@ -228,8 +226,6 @@ const styles = StyleSheet.create({
   contactBtn: {
     flex: 1,
     backgroundColor: '#1c1c22',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
     borderRadius: 10,
     paddingVertical: 10,
     alignItems: 'center',
@@ -245,7 +241,6 @@ const styles = StyleSheet.create({
   },
   codCard: {
     backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    borderWidth: 1,
     borderColor: 'rgba(16, 185, 129, 0.3)',
     borderRadius: 14,
     padding: 16,
@@ -281,8 +276,6 @@ const styles = StyleSheet.create({
   },
   proofCard: {
     backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 16,
     padding: 18,
     marginBottom: 20,
@@ -300,7 +293,6 @@ const styles = StyleSheet.create({
   },
   photoButton: {
     backgroundColor: '#1c1c22',
-    borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.15)',
     borderRadius: 12,
     paddingVertical: 14,
@@ -318,8 +310,6 @@ const styles = StyleSheet.create({
   },
   noteInput: {
     backgroundColor: '#18181c',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 10,
     padding: 12,
     color: '#ffffff',
@@ -343,7 +333,6 @@ const styles = StyleSheet.create({
   },
   failButton: {
     backgroundColor: '#1c1c22',
-    borderWidth: 1,
     borderColor: 'rgba(255, 69, 58, 0.3)',
     borderRadius: 999,
     minHeight: 48,

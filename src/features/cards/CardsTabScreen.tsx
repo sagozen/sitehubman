@@ -184,10 +184,11 @@ export default function CardsTabScreen() {
                 </View>
               ) : (
                 <Pressable
+                  style={styles.setPrimaryBtn}
                   onPress={(e) => handleSetActive(card.id, e)}
                   hitSlop={8}
                 >
-                  <AppText style={styles.setPrimaryBtn}>Set Primary</AppText>
+                  <AppText style={styles.setPrimaryBtnText}>Set Primary</AppText>
                 </Pressable>
               )}
             </View>
@@ -323,7 +324,6 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.25)',
     backgroundColor: '#000000',
   },
@@ -337,20 +337,27 @@ const styles = StyleSheet.create({
     color: C.text,
   },
   activeTagBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    backgroundColor: 'rgba(37, 150, 190, 0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
   },
   activeTag: {
     fontSize: 10,
-    letterSpacing: 1.5,
-    color: C.accent,
+    letterSpacing: 1,
+    color: '#000000',
     fontWeight: '700',
   },
   setPrimaryBtn: {
-    fontSize: 13,
-    color: C.textSecondary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: '#1E1E22',
+  },
+  setPrimaryBtnText: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.85)',
+    fontWeight: '500',
   },
   cardRole: {
     fontSize: 12,

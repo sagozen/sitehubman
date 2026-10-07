@@ -16,12 +16,12 @@ import { useAuth } from '@/src/hooks/useAuth';
 import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
-  canvas: '#000000',
-  surface: '#111114',
+  canvas: '#0D0D0E',
+  surface: '#242424',
   border: 'rgba(255,255,255,0.09)',
   text: '#F5F5F7',
   muted: '#9A9AA0',
-  accent: '#2596BE',
+  accent: '#799A85',
 } as const;
 
 export default function AccountSettingsScreen() {
@@ -181,7 +181,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.2)',
     backgroundColor: '#000000',
   },
@@ -201,10 +200,11 @@ const styles = StyleSheet.create({
   fieldInputDisabled: { color: C.muted },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: C.border, marginHorizontal: 16 },
   saveBtn: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    height: 48,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   saveBtnText: { color: '#000', fontWeight: '700', fontSize: 16 },
 });

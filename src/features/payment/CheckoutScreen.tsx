@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 100,
   },
   loadingContainer: {
@@ -397,14 +397,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: T.surface,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    borderWidth: 2,
-    borderColor: 'transparent',
   },
   methodCardSelected: {
-    borderColor: T.accent,
     backgroundColor: T.surfaceRaised,
   },
   methodCardDisabled: {

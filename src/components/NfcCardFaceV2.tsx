@@ -175,12 +175,10 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius['2xl'],
     padding: tokens.spacing[5],
     overflow: 'hidden',
-    borderWidth: 1.5,
   },
   cardCompact: {
     borderRadius: tokens.radius.lg,
     padding: tokens.spacing[3],
-    borderWidth: 1,
   },
   darkShadow: {
     ...createShadow({ color: '#000000', offset: { width: 0, height: 20 }, opacity: 0.5, radius: 40, elevation: 16 }),
@@ -222,7 +220,6 @@ const styles = StyleSheet.create({
     height: 30,
     borderRadius: tokens.radius.sm,
     overflow: 'hidden',
-    borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
     marginTop: tokens.spacing[5],
     justifyContent: 'center',

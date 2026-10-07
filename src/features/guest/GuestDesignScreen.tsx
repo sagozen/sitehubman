@@ -108,7 +108,6 @@ const fi = StyleSheet.create({
     paddingHorizontal: 20,
     minHeight: 64,
     borderRadius: 20,
-    borderWidth: 1,
     borderColor: BORDER,
     backgroundColor: SURFACE,
     overflow: 'hidden'
@@ -467,7 +466,7 @@ const styles = StyleSheet.create({
   pressed: { transform: [{ scale: MotionScale.pressed }] },
 
   header: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 },
-  backBtn: { width: 44, height: 44, borderRadius: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)', backgroundColor: '#111114' },
+  backBtn: { width: 44, height: 44, borderRadius: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: '#111114' },
   headerTitle: { flex: 1, fontSize: 20, color: INK, letterSpacing: 0, fontFamily: 'SF-Pro-Display-Regular', textAlign: 'center' },
   pricePill: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: '#FFFFFF', overflow: 'hidden' },
   priceT: { fontSize: 13, color: '#000000', fontFamily: 'SF-Pro-Display-Regular' },
@@ -478,8 +477,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 6,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     backgroundColor: '#111114',
     padding: 14,
     gap: 12,
@@ -502,7 +499,6 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -543,8 +539,6 @@ const styles = StyleSheet.create({
   previewWrap: {
     borderRadius: 24,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   liveRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16, backgroundColor: 'rgba(0,0,0,0.4)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 99 },
   liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FFFFFF' },
@@ -556,8 +550,7 @@ const styles = StyleSheet.create({
   materialPill: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14,
-    backgroundColor: '#111114', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
+    backgroundColor: '#111114', },
   materialPillActive: {
     backgroundColor: '#FFFFFF', borderColor: '#FFFFFF',
     shadowColor: '#FFFFFF', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 6,
@@ -588,12 +581,12 @@ const styles = StyleSheet.create({
   bentoGrid: { gap: 12 },
   bentoGridHorizontal: { flexDirection: 'row', gap: 12 },
 
-  segBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 18, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)', backgroundColor: '#111114' },
+  segBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 18, borderRadius: 20, overflow: 'hidden', backgroundColor: '#111114' },
   segBtnT: { fontSize: 14, color: MUTED, fontFamily: 'SF-Pro-Display-Regular', letterSpacing: 0 },
   segBtnTActive: { color: '#000000' },
 
   payScroll: { gap: 12, paddingRight: 20 },
-  payPill: { minWidth: 132, paddingHorizontal: 16, paddingVertical: 13, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)', backgroundColor: '#111114', alignItems: 'center', gap: 8 },
+  payPill: { minWidth: 132, paddingHorizontal: 16, paddingVertical: 13, borderRadius: 20, overflow: 'hidden', backgroundColor: '#111114', alignItems: 'center', gap: 8 },
   payPillT: { fontSize: 13, color: MUTED, fontFamily: 'SF-Pro-Display-Regular', letterSpacing: 0 },
   payPillTActive: { color: '#000000' },
 

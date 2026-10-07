@@ -1,12 +1,12 @@
-﻿/**
- * OnboardingScreen — 3-Step First-Time User Onboarding Flow
+/**
+ * OnboardingScreen � 3-Step First-Time User Onboarding Flow
  *
- * Step 1: Welcome      — Brand intro with AVIO value prop
- * Step 2: Name & Role  — Set up identity (name required, email + role optional)
- * Step 3: Your Card    — Real live card preview + CTA to create account
+ * Step 1: Welcome      � Brand intro with AVIO value prop
+ * Step 2: Name & Role  � Set up identity (name required, email + role optional)
+ * Step 3: Your Card    � Real live card preview + CTA to create account
  *
- * On finish → navigates to /auth/register with name + email pre-filled.
- * On skip   → navigates to / as guest.
+ * On finish ? navigates to /auth/register with name + email pre-filled.
+ * On skip   ? navigates to / as guest.
  */
 import React, { useRef, useState } from 'react';
 import {
@@ -32,13 +32,13 @@ import { FlippableNfcCard } from '@/src/components/FlippableNfcCard';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = Math.min(SCREEN_WIDTH - 56, 340);
 
-// ─── Step metadata ──────────────────────────────────────────────────────────
+// --- Step metadata ----------------------------------------------------------
 const STEPS = [
   {
     eyebrow: 'WELCOME TO AVIO',
     title: 'Your identity.\nIn one tap.',
     subtitle:
-      'Share your name, contacts, socials, and story — all from a single NFC smart pass. Works with any phone, no app needed.',
+      'Share your name, contacts, socials, and story � all from a single NFC smart pass. Works with any phone, no app needed.',
     icon: 'Nfc' as const,
   },
   {
@@ -57,7 +57,7 @@ const STEPS = [
   },
 ];
 
-// ─── Component ───────────────────────────────────────────────────────────────
+// --- Component ---------------------------------------------------------------
 export function OnboardingScreen() {
   const [step, setStep] = useState(0);
 
@@ -79,7 +79,7 @@ export function OnboardingScreen() {
     }).start();
   }
 
-  // ── Validate step 2 before advancing ────────────────────────────────────
+  // -- Validate step 2 before advancing ------------------------------------
   function validateAndNext() {
     HapticTap.medium();
 
@@ -100,7 +100,7 @@ export function OnboardingScreen() {
     }
   }
 
-  // ── Persist draft + navigate to register ───────────────────────────────
+  // -- Persist draft + navigate to register -------------------------------
   async function handleFinish() {
     HapticTap.heavy();
 
@@ -146,7 +146,7 @@ export function OnboardingScreen() {
     router.replace('/auth/register');
   }
 
-  // ── Skip → guest mode ───────────────────────────────────────────────────
+  // -- Skip ? guest mode ---------------------------------------------------
   function handleSkip() {
     HapticTap.light();
     void AsyncStorage.setItem('@avio_onboarding_done', '1').then(() =>
@@ -154,7 +154,7 @@ export function OnboardingScreen() {
     );
   }
 
-  // ── Derived ─────────────────────────────────────────────────────────────
+  // -- Derived -------------------------------------------------------------
   const current    = STEPS[step];
   const isLastStep = step === STEPS.length - 1;
   const isNameStep = step === 1;
@@ -191,7 +191,7 @@ export function OnboardingScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* ── Content ── */}
+          {/* -- Content -- */}
           <View style={styles.content}>
             {/* Step icon */}
             <View style={styles.iconSeal}>
@@ -206,7 +206,7 @@ export function OnboardingScreen() {
             </AppText>
             <AppText style={styles.subtitle}>{current.subtitle}</AppText>
 
-            {/* ── Step 2: Identity form ── */}
+            {/* -- Step 2: Identity form -- */}
             {isNameStep && (
               <View style={styles.formBlock}>
                 {/* Full Name (required) */}
@@ -255,11 +255,11 @@ export function OnboardingScreen() {
                   />
                 </View>
 
-                {/* Email (optional — pre-fills register) */}
+                {/* Email (optional � pre-fills register) */}
                 <View style={styles.fieldWrap}>
                   <AppText style={styles.fieldLabel} weight="bold">
                     Email{' '}
-                    <Text style={styles.optional}>(optional — saves time later)</Text>
+                    <Text style={styles.optional}>(optional � saves time later)</Text>
                   </AppText>
                   <TextInput
                     style={styles.fieldInput}
@@ -277,7 +277,7 @@ export function OnboardingScreen() {
               </View>
             )}
 
-            {/* ── Step 3: Real live card preview ── */}
+            {/* -- Step 3: Real live card preview -- */}
             {isLastStep && (
               <View style={styles.cardPreviewWrap}>
                 <FlippableNfcCard
@@ -287,7 +287,7 @@ export function OnboardingScreen() {
                   gradientIndex={0}
                 />
                 <AppText style={styles.cardHint}>
-                  Tap the card to flip it ↑
+                  Tap the card to flip it ?
                 </AppText>
 
                 {/* What you get next */}
@@ -296,7 +296,7 @@ export function OnboardingScreen() {
                     { icon: 'Cloud'     as const, text: 'Card saved to your account'         },
                     { icon: 'BarChart2' as const, text: 'Track every tap & view in real time' },
                     { icon: 'Link'      as const, text: 'Your own link: aviobrand.com/you'    },
-                    { icon: 'Shield'    as const, text: 'Free forever — no credit card'       },
+                    { icon: 'Shield'    as const, text: 'Free forever � no credit card'       },
                   ].map((b) => (
                     <View key={b.text} style={styles.benefitRow}>
                       <View style={styles.benefitIcon}>
@@ -314,14 +314,14 @@ export function OnboardingScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* ── Step dots ── */}
+      {/* -- Step dots -- */}
       <View style={styles.dotsRow}>
         {STEPS.map((_, i) => (
           <View key={i} style={[styles.dot, i === step && styles.dotActive]} />
         ))}
       </View>
 
-      {/* ── Primary CTA ── */}
+      {/* -- Primary CTA -- */}
       <View style={styles.ctaBlock}>
         <Pressable
           onPress={validateAndNext}
@@ -333,7 +333,7 @@ export function OnboardingScreen() {
           ]}
         >
           <AppText style={styles.ctaBtnText} weight="extrabold">
-            {isLastStep ? 'Create Free Account →' : 'Continue →'}
+            {isLastStep ? 'Create Free Account ?' : 'Continue ?'}
           </AppText>
         </Pressable>
 
@@ -341,7 +341,7 @@ export function OnboardingScreen() {
         {isLastStep && (
           <Pressable onPress={handleSkip} style={styles.laterBtn} hitSlop={10}>
             <AppText style={styles.laterText}>
-              Maybe later — continue as guest
+              Maybe later � continue as guest
             </AppText>
           </Pressable>
         )}
@@ -350,7 +350,7 @@ export function OnboardingScreen() {
   );
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
+// --- Styles ------------------------------------------------------------------
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
@@ -402,8 +402,6 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 16,
     backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
@@ -458,8 +456,6 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 14,
     backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     paddingHorizontal: 16,
     color: '#FFFFFF',
     fontSize: 16,
@@ -491,8 +487,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
     backgroundColor: '#0D0D0F',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.07)',
     padding: 16,
   },
   benefitRow: {

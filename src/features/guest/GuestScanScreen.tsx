@@ -124,7 +124,6 @@ const styles = StyleSheet.create({
   cameraWrap: {
     height: 280,
     borderRadius: 8,
-    borderWidth: 1,
     borderColor: pageThemes.scan.border,
     overflow: 'hidden',
     backgroundColor: '#000',
@@ -154,7 +153,6 @@ const styles = StyleSheet.create({
     width: 210,
     height: 210,
     borderRadius: 105,
-    borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.72)',
     backgroundColor: 'rgba(255,255,255,0.08)',
   },

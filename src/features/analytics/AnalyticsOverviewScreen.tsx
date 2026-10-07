@@ -16,14 +16,15 @@ import { IosScrollView } from '@/src/components/IosScrollView';
 import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
-  canvas: '#000000',
-  surface: '#0E0E11',
-  surfaceRaised: '#141418',
-  border: 'rgba(255,255,255,0.06)',
+  canvas: '#0D0D0E',
+  surface: '#242424',
+  surfaceRaised: '#2C2C2C',
+  border: 'transparent',
   text: '#FFFFFF',
-  textSecondary: '#A1A1AA',
-  textMuted: '#52525B',
-  accent: '#2596BE',
+  textSecondary: '#E4E4E7',
+  textMuted: '#8E8E93',
+  accent: '#799A85',
+  emerald: '#799A85',
 } as const;
 
 const PERIODS = ['7D', '30D', '90D', '1Y'] as const;
@@ -49,7 +50,9 @@ const SOURCES = [
 export default function AnalyticsOverviewScreen() {
   const router = useRouter();
   const [selectedPeriod, setSelectedPeriod] = useState<Period>('7D');
+  const [activePointIndex, setActivePointIndex] = useState<number>(6); // Default Sunday
 
+  const activePoint = CHART_POINTS[activePointIndex] || CHART_POINTS[CHART_POINTS.length - 1];
   const maxVal = Math.max(...CHART_POINTS.map((p) => p.views));
 
   return (
@@ -122,34 +125,60 @@ export default function AnalyticsOverviewScreen() {
           {/* Profile Views Chart Box */}
           <View style={styles.chartBox}>
             <View style={styles.chartHeader}>
-              <AppText style={styles.chartTitle} weight="bold">
-                Activity
-              </AppText>
-              <AppText style={styles.chartSubtitle}>
-                Daily views & taps
-              </AppText>
+              <View>
+                <AppText style={styles.chartTitle} weight="bold">
+                  Activity Velocity
+                </AppText>
+                <AppText style={styles.chartSubtitle}>
+                  Tap any day to inspect velocity
+                </AppText>
+              </View>
+              {/* Scrubbed Tooltip Pill */}
+              <View style={styles.scrubTooltip}>
+                <AppText style={styles.scrubDayText} weight="bold">
+                  {activePoint.day}:
+                </AppText>
+                <AppText style={styles.scrubViewsText} weight="bold">
+                  {activePoint.views} views
+                </AppText>
+              </View>
             </View>
 
-            {/* Visual Bar / Curve Simulation */}
+            {/* Visual Interactive Bar Simulation */}
             <View style={styles.chartArea}>
-              {CHART_POINTS.map((pt) => {
+              {CHART_POINTS.map((pt, idx) => {
                 const heightPct = Math.round((pt.views / maxVal) * 100);
-                const isMax = pt.views === maxVal;
+                const isSelected = idx === activePointIndex;
                 return (
-                  <View key={pt.day} style={styles.barCol}>
+                  <Pressable
+                    key={pt.day}
+                    style={styles.barCol}
+                    onPress={() => {
+                      HapticTap.selection();
+                      setActivePointIndex(idx);
+                    }}
+                  >
                     <View style={styles.barTrack}>
                       <View
                         style={[
                           styles.barFill,
                           {
                             height: `${heightPct}%`,
-                            backgroundColor: isMax ? '#FFFFFF' : 'rgba(255,255,255,0.35)',
+                            backgroundColor: isSelected ? C.emerald : 'rgba(255,255,255,0.25)',
                           },
                         ]}
                       />
                     </View>
-                    <AppText style={styles.barLabel}>{pt.day}</AppText>
-                  </View>
+                    <AppText
+                      style={[
+                        styles.barLabel,
+                        isSelected && styles.barLabelActive,
+                      ]}
+                      weight={isSelected ? 'bold' : undefined}
+                    >
+                      {pt.day}
+                    </AppText>
+                  </Pressable>
                 );
               })}
             </View>
@@ -214,9 +243,9 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   contentWrap: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     width: '100%',
-    maxWidth: 640,
+    maxWidth: 720,
     alignSelf: 'center',
   },
   periodRow: {
@@ -280,7 +309,27 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   chartHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 18,
+  },
+  scrubTooltip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(121, 154, 133, 0.16)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  scrubDayText: {
+    fontSize: 12,
+    color: '#FFFFFF',
+  },
+  scrubViewsText: {
+    fontSize: 12,
+    color: C.emerald,
   },
   chartTitle: {
     fontSize: 16,
@@ -320,6 +369,10 @@ const styles = StyleSheet.create({
   barLabel: {
     fontSize: 11,
     color: C.textMuted,
+  },
+  barLabelActive: {
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   sourcesBox: {
     backgroundColor: C.surface,

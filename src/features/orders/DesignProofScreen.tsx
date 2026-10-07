@@ -297,7 +297,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 8,
     backgroundColor: 'rgba(255, 159, 10, 0.15)',
-    borderWidth: 1,
     borderColor: 'rgba(255, 159, 10, 0.3)',
   },
   proofBadgeText: {
@@ -311,7 +310,6 @@ const styles = StyleSheet.create({
     backgroundColor: C.surface,
     borderRadius: 14,
     padding: 4,
-    borderWidth: 1,
     borderColor: C.border,
   },
   sideTab: {
@@ -340,8 +338,6 @@ const styles = StyleSheet.create({
     aspectRatio: 1.586,
     borderRadius: 20,
     padding: 22,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
     justifyContent: 'space-between',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 16 },
@@ -364,7 +360,6 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 4,
     backgroundColor: '#38383E',
-    borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.25)',
   },
   brandMark: {
@@ -405,7 +400,6 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 12,
     backgroundColor: '#000000',
-    borderWidth: 1,
     borderColor: C.borderLight,
   },
   backUrl: {
@@ -417,7 +411,6 @@ const styles = StyleSheet.create({
     backgroundColor: C.surface,
     borderRadius: 18,
     padding: 18,
-    borderWidth: 1,
     borderColor: C.border,
   },
   specTitle: {

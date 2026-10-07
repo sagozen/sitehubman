@@ -174,8 +174,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     paddingHorizontal: 16,
     height: 52,
     marginBottom: 20,
@@ -194,8 +192,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 16,
     padding: 16,
   },
@@ -223,8 +219,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   categoryPillActive: {
     backgroundColor: '#FFFFFF',
@@ -251,8 +245,6 @@ const styles = StyleSheet.create({
   faqCard: {
     backgroundColor: '#111114',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     padding: 16,
   },
   faqCardActive: {

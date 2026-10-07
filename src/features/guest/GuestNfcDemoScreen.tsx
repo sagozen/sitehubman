@@ -1,5 +1,5 @@
-﻿/**
- * GuestNfcDemoScreen.tsx — Apple NameDrop × Contactless NFC Simulator.
+/**
+ * GuestNfcDemoScreen.tsx � Apple NameDrop � Contactless NFC Simulator.
  *
  * Designed with Apple HIG specifications:
  *  - Interactive Flippable 3D Titanium NFC Card
@@ -129,7 +129,7 @@ export function GuestNfcDemoScreen() {
             width={CARD_WIDTH}
             gradientIndex={0}
           />
-          <AppText style={styles.cardHint}>Tap card to inspect security chip reverse ↑</AppText>
+          <AppText style={styles.cardHint}>Tap card to inspect security chip reverse ?</AppText>
         </View>
 
         {/* Apple NameDrop Wave Touch Target */}
@@ -263,8 +263,6 @@ const styles = StyleSheet.create({
   tapZone: {
     backgroundColor: '#1C1C1E',
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     minHeight: 230,
     alignItems: 'center',
     justifyContent: 'center',
@@ -277,7 +275,6 @@ const styles = StyleSheet.create({
     width: 220,
     height: 220,
     borderRadius: 110,
-    borderWidth: 1.5,
     borderColor: '#0A84FF',
   },
   ring2: {
@@ -290,7 +287,6 @@ const styles = StyleSheet.create({
     height: 76,
     borderRadius: 38,
     backgroundColor: 'rgba(10, 132, 255, 0.12)',
-    borderWidth: 1,
     borderColor: 'rgba(10, 132, 255, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -318,7 +314,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 12,
-    borderWidth: 1,
     borderColor: 'rgba(10, 132, 255, 0.2)',
   },
   simulateBadgeText: {
@@ -332,8 +327,6 @@ const styles = StyleSheet.create({
     gap: 14,
     backgroundColor: '#1C1C1E',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     padding: 16,
   },
   beamRowIcon: {
@@ -359,8 +352,6 @@ const styles = StyleSheet.create({
   stepsCard: {
     backgroundColor: '#1C1C1E',
     borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     padding: 20,
     gap: 16,
   },

@@ -169,8 +169,6 @@ const styles = StyleSheet.create({
     height: 96,
     borderRadius: 48,
     backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.09)',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
@@ -195,8 +193,6 @@ const styles = StyleSheet.create({
   input: {
     height: 50,
     backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.09)',
     borderRadius: 12,
     paddingHorizontal: 16,
     fontSize: 15,

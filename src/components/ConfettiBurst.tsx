@@ -40,7 +40,7 @@ interface ParticleSpec {
   delay: number;
 }
 
-const PALETTE = ['#007AFF', '#34C759', '#FF9500', '#FF3B30', '#AF52DE', '#FFD60A', '#5AC8FA'];
+const PALETTE = ['#799A85', '#34C759', '#FF9500', '#FF3B30', '#AF52DE', '#FFD60A', '#5AC8FA'];
 
 function buildParticles(count: number): ParticleSpec[] {
   return Array.from({ length: count }, (_, i) => {

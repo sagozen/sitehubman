@@ -169,7 +169,6 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 19,
     backgroundColor: SURFACE,
-    borderWidth: 1,
     borderColor: BORDER,
     alignItems: 'center',
     justifyContent: 'center',
@@ -190,7 +189,6 @@ const styles = StyleSheet.create({
   mapPlaceholder: {
     aspectRatio: 16 / 9,
     backgroundColor: SURFACE,
-    borderWidth: 1,
     borderColor: BORDER,
     borderRadius: 16,
     alignItems: 'center',
@@ -209,7 +207,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     backgroundColor: 'rgba(37,150,190,0.1)',
-    borderWidth: 1,
     borderColor: 'rgba(37,150,190,0.25)',
     borderRadius: 12,
     paddingHorizontal: 16,
@@ -228,7 +225,6 @@ const styles = StyleSheet.create({
   },
   etaCard: {
     backgroundColor: SURFACE,
-    borderWidth: 1,
     borderColor: BORDER,
     borderRadius: 14,
     flexDirection: 'row',
@@ -251,7 +247,6 @@ const styles = StyleSheet.create({
   },
   carrierCard: {
     backgroundColor: SURFACE,
-    borderWidth: 1,
     borderColor: BORDER,
     borderRadius: 14,
     flexDirection: 'row',
@@ -287,7 +282,6 @@ const styles = StyleSheet.create({
   },
   stepsCard: {
     backgroundColor: SURFACE,
-    borderWidth: 1,
     borderColor: BORDER,
     borderRadius: 16,
     padding: 16,

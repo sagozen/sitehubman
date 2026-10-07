@@ -53,8 +53,6 @@ export function IosGlassCard({
 const styles = StyleSheet.create({
   outerContainer: {
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     backgroundColor: 'rgba(17, 17, 20, 0.5)',
   },
   innerContent: {
@@ -62,8 +60,6 @@ const styles = StyleSheet.create({
   },
   webGlassCard: {
     padding: iosDesign.spacing.base,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     backdropFilter: 'blur(20px)',
   } as ViewStyle,
 });

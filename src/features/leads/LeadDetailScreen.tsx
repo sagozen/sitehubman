@@ -19,16 +19,17 @@ import { IosScrollView } from '@/src/components/IosScrollView';
 import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
-  canvas: '#000000',
-  surface: '#0E0E11',
-  surfaceRaised: '#141418',
-  border: 'rgba(255,255,255,0.06)',
-  borderLight: 'rgba(255,255,255,0.08)',
+  canvas: '#0D0D0E',
+  surface: '#242424',
+  surfaceRaised: '#2C2C2C',
+  border: 'transparent',
+  borderLight: 'transparent',
   text: '#FFFFFF',
-  textSecondary: '#A1A1AA',
-  textMuted: '#52525B',
-  textDim: '#52525B',
+  textSecondary: '#E4E4E7',
+  textMuted: '#8E8E93',
+  textDim: '#8E8E93',
   accent: '#2596BE',
+  emerald: '#799A85',
 } as const;
 
 export default function LeadDetailScreen() {
@@ -273,8 +274,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 14,
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   followUpBtnActive: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -308,7 +307,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.2)',
     backgroundColor: '#000000',
     marginBottom: 12,

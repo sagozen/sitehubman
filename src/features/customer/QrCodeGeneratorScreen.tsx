@@ -21,14 +21,14 @@ import { useBioPage } from '@/src/hooks/useBioPage';
 import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
-  canvas: '#08080A',
-  surface: '#111115',
-  surfaceRaised: '#16161C',
-  border: 'rgba(255,255,255,0.08)',
-  borderLight: 'rgba(255,255,255,0.14)',
+  canvas: '#0D0D0E',
+  surface: '#242424',
+  surfaceRaised: '#2C2C2C',
+  border: 'transparent',
+  borderLight: 'transparent',
   text: '#FFFFFF',
-  textSecondary: '#A1A1AA',
-  textMuted: '#636366',
+  textSecondary: '#E4E4E7',
+  textMuted: '#8E8E93',
   accent: '#2596BE',
 } as const;
 
@@ -183,7 +183,6 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: C.surface,
     borderRadius: 24,
-    borderWidth: 1,
     borderColor: C.border,
     paddingVertical: 32,
     paddingHorizontal: 24,
@@ -235,7 +234,6 @@ const styles = StyleSheet.create({
   secondaryBtn: {
     backgroundColor: C.surface,
     borderRadius: 16,
-    borderWidth: 1,
     borderColor: C.borderLight,
     height: 52,
     flexDirection: 'row',

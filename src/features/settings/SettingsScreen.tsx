@@ -687,7 +687,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   sheetContainer: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#242424',
     borderRadius: 24,
     padding: 24,
     alignItems: 'center',

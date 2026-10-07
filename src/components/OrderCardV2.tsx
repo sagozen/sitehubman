@@ -135,7 +135,6 @@ function OrderCardV2Raw({
 const styles = StyleSheet.create({
   card: {
     borderRadius: tokens.radius.xl,
-    borderWidth: 1,
     padding: tokens.spacing[4],
   },
   header: {

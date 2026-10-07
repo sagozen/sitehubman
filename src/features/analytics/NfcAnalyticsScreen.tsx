@@ -11,10 +11,10 @@ import AppIcon from '@/src/components/AppIcon';
 import IosScrollView from '@/src/components/IosScrollView';
 import { HapticTap } from '@/src/utils/haptics';
 
-const ACCENT = '#2596BE';
-const SURFACE = '#111114';
+const ACCENT = '#799A85';
+const SURFACE = '#242424';
 const BORDER = 'rgba(255,255,255,0.09)';
-const TEXT = '#F5F5F7';
+const TEXT = '#FFFFFF';
 const MUTED = '#9A9AA0';
 
 const BAR_DATA = [
@@ -137,9 +137,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: SURFACE,
-    borderWidth: 1,
-    borderColor: BORDER,
+    backgroundColor: '#242424',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -151,8 +149,6 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     backgroundColor: SURFACE,
-    borderWidth: 1,
-    borderColor: BORDER,
     borderRadius: 20,
     padding: 20,
     gap: 8,
@@ -227,8 +223,6 @@ const styles = StyleSheet.create({
   },
   eventsCard: {
     backgroundColor: SURFACE,
-    borderWidth: 1,
-    borderColor: BORDER,
     borderRadius: 16,
     overflow: 'hidden',
   },

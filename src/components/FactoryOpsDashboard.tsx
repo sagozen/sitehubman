@@ -385,7 +385,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 99,
-    borderWidth: 1,
     borderColor: 'rgba(52, 199, 89, 0.25)',
   },
   pulseDot: {
@@ -405,7 +404,6 @@ const styles = StyleSheet.create({
   errorBanner: {
     backgroundColor: 'rgba(239, 68, 68, 0.12)',
     borderColor: 'rgba(239, 68, 68, 0.3)',
-    borderWidth: 1,
     borderRadius: 12,
     padding: 10,
     marginBottom: 12,
@@ -422,8 +420,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 32,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     marginTop: 20,
   },
   emptyIcon: {
@@ -452,8 +448,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -486,7 +480,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 9,
     paddingVertical: 4,
     borderRadius: 8,
-    borderWidth: 1,
   },
   badgeText: {
     fontSize: 10,

@@ -313,7 +313,7 @@ function getVariantStyles(
       return {
         background: getColor('surface', mode),
         textColor: getColor('ink', mode),
-        borderWidth: 1,
+        borderWidth: 0,
         borderColor: getColor('borderStrong', mode),
       };
 

@@ -407,7 +407,7 @@ function ActionButton({ icon, label, primary = false, disabled = false, onPress 
         animStyle,
       ]}
     >
-      <AppIcon name={icon} size={16} color={primary ? '#FFFFFF' : '#007AFF'} />
+      <AppIcon name={icon} size={16} color={primary ? '#FFFFFF' : '#799A85'} />
       <AppText style={[styles.actionLabel, primary ? styles.actionLabelPrimary : styles.actionLabelSecondary]}>
         {label}
       </AppText>
@@ -458,7 +458,6 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     backgroundColor: 'rgba(255,255,255,0.18)',
-    borderWidth: 1.5,
     borderColor: 'rgba(255,255,255,0.42)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -550,7 +549,7 @@ const styles = StyleSheet.create({
   slugLabel: {
     fontSize: 11,
     fontWeight: '900',
-    color: '#007AFF',
+    color: '#799A85',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
   },
@@ -583,7 +582,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#799A85',
   },
   slugOpenText: {
     color: '#FFFFFF',
@@ -621,12 +620,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 99,
-    borderWidth: 1.5,
     borderColor: 'rgba(0,122,255,0.3)',
     borderStyle: 'dashed',
   },
   addTagText: {
-    color: '#007AFF',
+    color: '#799A85',
     fontSize: 12,
     fontWeight: '700',
   },
@@ -637,7 +635,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 99,
-    borderWidth: 1,
   },
   tagChipEmoji: { fontSize: 12 },
   tagChipLabel: {
@@ -660,7 +657,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     fontWeight: '700',
-    color: '#007AFF',
+    color: '#799A85',
   },
   actionsGrid: {
     flexDirection: 'row',
@@ -685,7 +682,7 @@ const styles = StyleSheet.create({
   actionDisabled: { opacity: 0.4 },
   actionLabel: { fontSize: 14, fontWeight: '900' },
   actionLabelPrimary: { color: '#FFFFFF' },
-  actionLabelSecondary: { color: '#007AFF' },
+  actionLabelSecondary: { color: '#799A85' },
   followUpButton: {
     flexDirection: 'row',
     alignItems: 'center',

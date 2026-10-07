@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   muted: { fontSize: 13, fontWeight: '700', color: MUTED },
   errorText: { color: '#FF3B30', fontWeight: '800', textAlign: 'center' },
   heroMetric: { backgroundColor: SURFACE, borderRadius: 0, padding: 24, gap: 5, borderWidth: 0 },
-  heroIcon: { width: 44, height: 44, borderRadius: 0, backgroundColor: 'rgba(255, 255, 255, 0.05)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  heroIcon: { width: 44, height: 44, borderRadius: 0, backgroundColor: 'rgba(255, 255, 255, 0.05)', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   heroNumber: { fontSize: 68, lineHeight: 72, fontWeight: '900', color: INK, letterSpacing: 0 },
   heroLabel: { fontSize: 18, fontWeight: '900', color: INK },
   heroSub: { fontSize: 13, fontWeight: '700', color: MUTED },

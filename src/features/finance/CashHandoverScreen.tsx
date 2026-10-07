@@ -213,8 +213,6 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 12,
     padding: 4,
     marginBottom: 16,
@@ -239,7 +237,6 @@ const styles = StyleSheet.create({
   },
   warningBox: {
     backgroundColor: 'rgba(217, 119, 6, 0.12)',
-    borderWidth: 1,
     borderColor: 'rgba(217, 119, 6, 0.3)',
     borderRadius: 12,
     padding: 12,
@@ -266,8 +263,6 @@ const styles = StyleSheet.create({
   },
   orderCard: {
     backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 16,
     padding: 16,
   },

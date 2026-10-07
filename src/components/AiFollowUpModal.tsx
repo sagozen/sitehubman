@@ -212,8 +212,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#111114',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     padding: 24,
     paddingBottom: 40,
     gap: 16,
@@ -238,8 +236,6 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 12,
     backgroundColor: '#18181C',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -252,7 +248,6 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 6,
     backgroundColor: '#3A2E0E',
-    borderWidth: 1,
     borderColor: '#FFD60A',
   },
   proBadgeText: {
@@ -285,8 +280,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 12,
     backgroundColor: '#16161A',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   tonePillActive: {
     backgroundColor: '#FFFFFF',
@@ -305,8 +298,6 @@ const styles = StyleSheet.create({
   messageContainer: {
     borderRadius: 16,
     backgroundColor: '#16161A',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     padding: 14,
     minHeight: 120,
   },
@@ -329,8 +320,6 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 14,
     backgroundColor: '#18181C',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   channelBtnWhatsApp: {
     backgroundColor: '#1E3A2F',

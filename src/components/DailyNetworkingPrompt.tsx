@@ -106,8 +106,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#111114',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     overflow: 'hidden',
   },
   containerCompleted: {
@@ -139,7 +137,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#18181C',
-    borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   checkBtnCompleted: {

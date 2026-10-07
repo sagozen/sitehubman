@@ -241,7 +241,6 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     marginHorizontal: 16,
     overflow: 'hidden',
-    borderWidth: 1,
     borderColor: '#E5E7EB',
     position: 'relative',
   },
@@ -312,7 +311,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     marginVertical: 4,
-    borderWidth: 1,
     borderColor: '#E5E7EB',
   },
   compactContent: {

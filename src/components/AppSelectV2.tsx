@@ -154,7 +154,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: tokens.controlHeight.md,
     borderRadius: tokens.radius.md,
-    borderWidth: 1,
     paddingHorizontal: tokens.spacing[3],
   },
   triggerText: {

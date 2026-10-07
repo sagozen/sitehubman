@@ -203,7 +203,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 9999,
-    borderWidth: 1,
     borderColor: 'rgba(29, 185, 84, 0.3)',
   },
   liveDot: {
@@ -220,7 +219,6 @@ const styles = StyleSheet.create({
   ledgerCard: {
     backgroundColor: '#1a1a1a',
     borderRadius: 12,
-    borderWidth: 1,
     borderColor: '#3a3a3a',
     overflow: 'hidden',
   },
@@ -263,7 +261,6 @@ const styles = StyleSheet.create({
     height: 34,
     borderRadius: 9999,
     backgroundColor: '#2a2a2a',
-    borderWidth: 1,
     borderColor: '#3a3a3a',
     alignItems: 'center',
     justifyContent: 'center',
@@ -288,7 +285,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
-    borderWidth: 1,
     backgroundColor: '#1a1a1a',
   },
   statusText: {

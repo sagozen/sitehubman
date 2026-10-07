@@ -7,13 +7,13 @@ import AppIcon from '@/src/components/AppIcon';
 import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
-  canvas: '#000000',
-  surface: '#111114',
-  surfaceRaised: '#18181C',
+  canvas: '#0D0D0E',
+  surface: '#242424',
+  surfaceRaised: '#2C2C2C',
   border: 'rgba(255,255,255,0.09)',
-  text: '#F5F5F7',
+  text: '#FFFFFF',
   muted: '#9A9AA0',
-  accent: '#2596BE',
+  accent: '#799A85',
 };
 
 type Metric = 'Views' | 'Taps' | 'Scans';
@@ -178,7 +178,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 8,
     borderRadius: 99,
-    borderWidth: 1,
     borderColor: C.border,
     backgroundColor: C.surface,
   },
@@ -198,7 +197,6 @@ const styles = StyleSheet.create({
   heroCard: {
     backgroundColor: C.surface,
     borderRadius: 20,
-    borderWidth: 1,
     borderColor: C.border,
     alignItems: 'center',
     paddingVertical: 32,
@@ -242,7 +240,6 @@ const styles = StyleSheet.create({
   timelineCard: {
     backgroundColor: C.surface,
     borderRadius: 16,
-    borderWidth: 1,
     borderColor: C.border,
     paddingHorizontal: 16,
     marginBottom: 28,

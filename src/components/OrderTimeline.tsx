@@ -97,7 +97,6 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.border,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
     borderColor: 'transparent',
   },
   dotDone: {

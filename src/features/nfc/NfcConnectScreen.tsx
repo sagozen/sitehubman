@@ -25,16 +25,16 @@ import { HapticTap } from '@/src/utils/haptics';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const C = {
-  canvas: '#000000',
-  surface: '#0E0E12',
-  surfaceRaised: '#16161C',
-  hairline: 'rgba(255, 255, 255, 0.08)',
+  canvas: '#0D0D0E',
+  surface: '#242424',
+  surfaceRaised: '#2C2C2C',
+  hairline: 'transparent',
   text: '#FFFFFF',
-  textSecondary: '#A1A1AA',
-  textMuted: '#636366',
+  textSecondary: '#E4E4E7',
+  textMuted: '#8E8E93',
   accent: '#2596BE',
-  accentCyan: '#2596BE',
-  emerald: '#2596BE',
+  accentCyan: '#00A3FF',
+  emerald: '#799A85',
 } as const;
 
 export default function NfcConnectScreen() {
@@ -188,7 +188,7 @@ export default function NfcConnectScreen() {
 
             <View style={styles.cardCenter}>
               <View style={styles.antennaSymbol}>
-                <AppIcon name="wifi" size={36} color={C.accentCyan} style={{ transform: [{ rotate: '90deg' }] }} />
+                <AppIcon name="wifi" size={36} color="#FFFFFF" style={{ transform: [{ rotate: '90deg' }] }} />
               </View>
               <AppText style={styles.cardHolderName} weight="bold">
                 THEAN COC
@@ -316,7 +316,6 @@ const styles = StyleSheet.create({
   pulseCircle: {
     position: 'absolute',
     borderRadius: 200,
-    borderWidth: 1.5,
   },
   pulseInner: {
     width: 260,
@@ -333,8 +332,8 @@ const styles = StyleSheet.create({
   physicalCardStage: {
     width: 250,
     height: 156,
-    borderRadius: 18,
-    backgroundColor: '#0F0F14',
+    borderRadius: 20,
+    backgroundColor: '#242424',
     padding: 16,
     justifyContent: 'space-between',
     shadowColor: '#000000',

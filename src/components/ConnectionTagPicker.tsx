@@ -194,7 +194,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 99,
     backgroundColor: 'rgba(0,0,0,0.04)',
-    borderWidth: 1.5,
     borderColor: 'rgba(0,0,0,0.08)',
   },
   chipPressed: {

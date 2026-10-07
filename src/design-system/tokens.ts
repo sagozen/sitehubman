@@ -112,10 +112,10 @@ export const colors = {
     borderSubtle: 'rgba(0,0,0,0.03)',
 
     // Primary
-    primary: '#0A84FF',
-    primarySoft: 'rgba(10,132,255,0.1)',
-    primaryDark: '#0066CC',
-    primaryText: '#0066CC',
+    primary: '#FFFFFF',
+    primarySoft: 'rgba(121,154,133,0.12)',
+    primaryDark: '#5A7A65',
+    primaryText: '#5A7A65',
 
     // Status
     success: '#30D158',
@@ -133,15 +133,15 @@ export const colors = {
     errorDark: '#D70015',
     errorText: '#D70015',
 
-    info: '#0A84FF',
-    infoSoft: 'rgba(10,132,255,0.1)',
-    infoDark: '#0066CC',
-    infoText: '#0066CC',
+    info: '#799A85',
+    infoSoft: 'rgba(121,154,133,0.12)',
+    infoDark: '#5A7A65',
+    infoText: '#5A7A65',
 
     // Interactive
     hover: 'rgba(0,0,0,0.04)',
     pressed: 'rgba(0,0,0,0.08)',
-    focus: '#0A84FF',
+    focus: '#799A85',
     disabled: '#A1A1AA',
   },
 
@@ -167,10 +167,10 @@ export const colors = {
     borderSubtle: 'rgba(255,255,255,0.05)',
 
     // Primary
-    primary: '#0A84FF',
-    primarySoft: 'rgba(10,132,255,0.15)',
-    primaryDark: '#66B3FF',
-    primaryText: '#66B3FF',
+    primary: '#FFFFFF',
+    primarySoft: 'rgba(121,154,133,0.15)',
+    primaryDark: '#99BBA5',
+    primaryText: '#99BBA5',
 
     // Status
     success: '#30D158',
@@ -188,15 +188,15 @@ export const colors = {
     errorDark: '#FF6961',
     errorText: '#FF6961',
 
-    info: '#0A84FF',
-    infoSoft: 'rgba(10,132,255,0.15)',
-    infoDark: '#66B3FF',
-    infoText: '#66B3FF',
+    info: '#799A85',
+    infoSoft: 'rgba(121,154,133,0.15)',
+    infoDark: '#99BBA5',
+    infoText: '#99BBA5',
 
     // Interactive
     hover: 'rgba(255,255,255,0.06)',
     pressed: 'rgba(255,255,255,0.1)',
-    focus: '#0A84FF',
+    focus: '#799A85',
     disabled: '#52525B',
   },
 

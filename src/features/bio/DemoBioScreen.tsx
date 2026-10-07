@@ -327,8 +327,7 @@ const styles = StyleSheet.create({
   navRight: { flexDirection: 'row', gap: 8 },
   navIconBtn: {
     width: 38, height: 38, borderRadius: 19,
-    backgroundColor: '#121214', borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#121214', alignItems: 'center', justifyContent: 'center',
   },
   scroll: {
     paddingHorizontal: 20, paddingTop: 8, paddingBottom: 60,
@@ -336,7 +335,6 @@ const styles = StyleSheet.create({
   },
   executiveCard: {
     borderRadius: 20, backgroundColor: '#111114',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
     padding: 24, alignItems: 'center', gap: 16,
   },
   avatarWrap: { position: 'relative' },
@@ -363,8 +361,7 @@ const styles = StyleSheet.create({
   quickTile: {
     flex: 1, alignItems: 'center', gap: 6, paddingVertical: 12,
     borderRadius: 12, backgroundColor: '#18181C',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
-  },
+    },
   quickLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 10 },
   divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.06)' },
   channelsSection: { gap: 10 },
@@ -373,7 +370,7 @@ const styles = StyleSheet.create({
   channelRow: {
     flexDirection: 'row', alignItems: 'center', padding: 14,
     borderRadius: 14, backgroundColor: '#111114',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', gap: 12,
+    gap: 12,
   },
   channelIconBox: {
     width: 36, height: 36, borderRadius: 10,
@@ -385,12 +382,12 @@ const styles = StyleSheet.create({
   bioSection: { gap: 10 },
   bioCard: {
     borderRadius: 16, backgroundColor: '#111114',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', padding: 16,
+    padding: 16,
   },
   bioText: { color: 'rgba(255,255,255,0.7)', fontSize: 14, lineHeight: 22 },
   viralCard: {
     borderRadius: 16, backgroundColor: '#111114',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', padding: 16,
+    padding: 16,
   },
   viralInner: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   viralSeal: {
@@ -409,7 +406,7 @@ const styles = StyleSheet.create({
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
   qrCard: {
     backgroundColor: '#111114', borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', padding: 24, gap: 12, alignItems: 'center',
+    padding: 24, gap: 12, alignItems: 'center',
   },
   qrHeader: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
   qrTitle: { color: '#FFFFFF', fontSize: 16 },
@@ -430,7 +427,7 @@ const styles = StyleSheet.create({
   exchangeOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'flex-end' },
   exchangeCard: {
     backgroundColor: '#111114', borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', padding: 24, paddingBottom: 40,
+    padding: 24, paddingBottom: 40,
     gap: 16, maxWidth: 540, width: '100%', alignSelf: 'center',
   },
   exchangeHandle: {
@@ -446,8 +443,7 @@ const styles = StyleSheet.create({
   inputWrap: { gap: 6 },
   inputLabel: { color: 'rgba(255,255,255,0.65)', fontSize: 12 },
   textInput: {
-    height: 48, borderRadius: 12, backgroundColor: '#18181C', borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 14, color: '#FFFFFF', fontSize: 15,
+    height: 48, borderRadius: 12, backgroundColor: '#18181C', paddingHorizontal: 14, color: '#FFFFFF', fontSize: 15,
   },
   sendBtn: {
     height: 50, borderRadius: 14, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', marginTop: 6,

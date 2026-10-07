@@ -19,8 +19,8 @@ if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
 }
 
-const ACCENT = '#2596BE';
-const SURFACE = '#111114';
+const ACCENT = '#799A85';
+const SURFACE = '#242424';
 const BORDER = 'rgba(255,255,255,0.09)';
 const TEXT = '#F5F5F7';
 const MUTED = '#9A9AA0';
@@ -231,7 +231,6 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 19,
     backgroundColor: SURFACE,
-    borderWidth: 1,
     borderColor: BORDER,
     alignItems: 'center',
     justifyContent: 'center',
@@ -242,7 +241,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: SURFACE,
-    borderWidth: 1,
     borderColor: BORDER,
     alignItems: 'center',
     justifyContent: 'center',
@@ -260,7 +258,6 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     backgroundColor: 'rgba(37,150,190,0.1)',
-    borderWidth: 1,
     borderColor: 'rgba(37,150,190,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -302,7 +299,6 @@ const styles = StyleSheet.create({
   },
   sectionsCard: {
     backgroundColor: SURFACE,
-    borderWidth: 1,
     borderColor: BORDER,
     borderRadius: 16,
     overflow: 'hidden',

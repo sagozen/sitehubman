@@ -1,5 +1,5 @@
-ï»¿/**
- * BeamNowButton â€” #1 primary action for businessmen at networking events.
+/**
+ * BeamNowButton — #1 primary action for businessmen at networking events.
  * Pulsating NFC aura rings + spring press + heavy haptic.
  */
 import React, { useEffect, useRef } from 'react';
@@ -85,7 +85,7 @@ export function BeamNowButton({ onPress, tapsCount = 0, disabled = false }: Beam
           <View style={styles.textCol}>
             <AppText style={styles.label} weight="extrabold">BEAM NOW</AppText>
             <AppText style={styles.sublabel}>
-              {tapsCount > 0 ? `${tapsCount} total taps Â· Instant share` : 'NFC Â· QR Â· AirDrop Â· Link'}
+              {tapsCount > 0 ? `${tapsCount} total taps · Instant share` : 'NFC · QR · AirDrop · Link'}
             </AppText>
           </View>
           <AppIcon name="ChevronRight" size={18} color="rgba(0,0,0,0.5)" />
@@ -104,7 +104,6 @@ const styles = StyleSheet.create({
     width: '120%',
     height: 56,
     borderRadius: 16,
-    borderWidth: 1.5,
     borderColor: '#FFFFFF',
   },
   ring2: { borderColor: 'rgba(255,255,255,0.5)' },

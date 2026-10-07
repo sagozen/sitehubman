@@ -236,7 +236,6 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 8,
     backgroundColor: THEME.accentSoft,
-    borderWidth: 1,
     borderColor: THEME.border,
     alignItems: 'center',
     justifyContent: 'center',
@@ -249,7 +248,6 @@ const styles = StyleSheet.create({
   cardWrap: {
     borderRadius: 16,
     overflow: 'hidden',
-    borderWidth: 1,
     borderColor: THEME.border,
     minHeight: 220,
   },
@@ -280,8 +278,6 @@ const styles = StyleSheet.create({
   },
   actionCard: {
     backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
     borderRadius: 16,
     padding: 20,
     flexDirection: 'row',
@@ -313,7 +309,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderWidth: 1,
     borderColor: '#FFFFFF',
   },
   bwActionBtnText: {
@@ -328,15 +323,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
   },
 
   // Guide Section
   guideContainer: {
     backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
     borderRadius: 16,
     padding: 20,
     gap: 16,
@@ -393,8 +384,6 @@ const styles = StyleSheet.create({
   mockMomentCard: {
     backgroundColor: '#18181C',
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
     padding: 14,
     gap: 12,
   },
@@ -478,7 +467,6 @@ const styles = StyleSheet.create({
   bwOrderBtn: {
     backgroundColor: '#FFFFFF',
     borderColor: '#FFFFFF',
-    borderWidth: 1,
     borderRadius: 12,
   },
   bwOrderBtnText: {

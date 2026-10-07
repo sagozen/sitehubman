@@ -22,15 +22,16 @@ import { HapticTap } from '@/src/utils/haptics';
 import { NfcBeamModal } from '@/src/components/NfcBeamModal';
 
 const C = {
-  canvas: '#000000',
-  surface: '#0E0E11',
-  surfaceRaised: '#141418',
-  border: 'rgba(255,255,255,0.06)',
-  borderLight: 'rgba(255,255,255,0.08)',
+  canvas: '#0D0D0E',
+  surface: '#242424',
+  surfaceRaised: '#2C2C2C',
+  border: 'transparent',
+  borderLight: 'transparent',
   text: '#FFFFFF',
-  textSecondary: '#A1A1AA',
-  textMuted: '#52525B',
+  textSecondary: '#E4E4E7',
+  textMuted: '#8E8E93',
   accent: '#2596BE',
+  emerald: '#799A85',
 } as const;
 
 function getGreeting(): string {
@@ -191,54 +192,78 @@ export default function ShareProfileScreen() {
           </View>
 
           <View style={styles.shareGrid}>
-            {/* NFC */}
+            {/* Hero NFC Light Pill */}
             <Pressable
-              style={({ pressed }) => [styles.shareCard, pressed && styles.shareCardPressed]}
+              style={({ pressed }) => [styles.sharePillPrimary, pressed && styles.sharePillPrimaryPressed]}
               onPress={handleNfcAction}
             >
-              <View style={styles.shareIconWrap}>
-                <AppIcon name="wifi" size={24} color={C.text} style={{ transform: [{ rotate: '90deg' }] }} />
+              <AppIcon name="wifi" size={18} color="#000000" style={{ transform: [{ rotate: '90deg' }] }} />
+              <View>
+                <AppText style={styles.sharePillTitle} weight="bold">NFC Beam</AppText>
+                <AppText style={styles.sharePillSub}>Device tap</AppText>
               </View>
-              <AppText style={styles.shareCardTitle} weight="bold">NFC</AppText>
-              <AppText style={styles.shareCardSub}>Tap device</AppText>
             </Pressable>
 
-            {/* QR Code */}
+            {/* Hero QR Light Pill */}
             <Pressable
-              style={({ pressed }) => [styles.shareCard, pressed && styles.shareCardPressed]}
+              style={({ pressed }) => [styles.sharePillSecondary, pressed && styles.sharePillSecondaryPressed]}
               onPress={handleQrAction}
             >
-              <View style={styles.shareIconWrap}>
-                <AppIcon name="qr-code" size={24} color={C.text} />
+              <AppIcon name="qr-code" size={18} color="#000000" />
+              <View>
+                <AppText style={styles.sharePillTitle} weight="bold">QR Pass</AppText>
+                <AppText style={styles.sharePillSub}>Show QR</AppText>
               </View>
-              <AppText style={styles.shareCardTitle} weight="bold">QR Code</AppText>
-              <AppText style={styles.shareCardSub}>Show QR</AppText>
             </Pressable>
+          </View>
 
+          {/* Secondary Action Row */}
+          <View style={styles.secondaryActionsRow}>
             {/* Copy Link */}
             <Pressable
-              style={({ pressed }) => [styles.shareCard, pressed && styles.shareCardPressed]}
+              style={({ pressed }) => [styles.shareTileDark, pressed && styles.shareTileDarkPressed]}
               onPress={handleCopyLink}
             >
-              <View style={styles.shareIconWrap}>
-                <AppIcon name="copy" size={24} color={C.text} />
-              </View>
-              <AppText style={styles.shareCardTitle} weight="bold">Copy Link</AppText>
-              <AppText style={styles.shareCardSub}>Copy URL</AppText>
+              <AppIcon name="copy" size={16} color="rgba(255,255,255,0.75)" />
+              <AppText style={styles.shareTileText} weight="medium">Copy Link</AppText>
             </Pressable>
 
             {/* Save Contact */}
             <Pressable
-              style={({ pressed }) => [styles.shareCard, pressed && styles.shareCardPressed]}
+              style={({ pressed }) => [styles.shareTileDark, pressed && styles.shareTileDarkPressed]}
               onPress={handleContactAction}
             >
-              <View style={styles.shareIconWrap}>
-                <AppIcon name="user-plus" size={24} color={C.text} />
-              </View>
-              <AppText style={styles.shareCardTitle} weight="bold">Save Contact</AppText>
-              <AppText style={styles.shareCardSub}>Add contact</AppText>
+              <AppIcon name="user-plus" size={16} color="rgba(255,255,255,0.75)" />
+              <AppText style={styles.shareTileText} weight="medium">Save Contact</AppText>
             </Pressable>
           </View>
+
+          {/* Apple Wallet Pass Banner */}
+          <Pressable
+            style={({ pressed }) => [
+              styles.walletBannerCard,
+              pressed && styles.walletBannerPressed,
+            ]}
+            onPress={() => {
+              HapticTap.selection();
+              router.push('/wallet-pass' as any);
+            }}
+          >
+            <View style={styles.walletLeftContent}>
+              <View style={styles.walletIconCircle}>
+                <AppIcon name="credit-card" size={20} color="#FFFFFF" />
+              </View>
+              <View>
+                <AppText style={styles.walletTitle} weight="bold">
+                  Add to Apple Wallet
+                </AppText>
+                <AppText style={styles.walletSubtitle}>
+                  Offline lockscreen pass & instant tap badge
+                </AppText>
+              </View>
+            </View>
+            <AppIcon name="chevron-right" size={16} color={C.textMuted} />
+          </Pressable>
 
           {/* Section: CARD OVERVIEW */}
           <View style={styles.sectionTitleRow}>
@@ -364,12 +389,11 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.25)',
     backgroundColor: '#000000',
   },
   cardWrapper: {
-    backgroundColor: '#0D0D11',
+    backgroundColor: '#242424',
     borderRadius: 20,
     padding: 22,
     marginTop: 10,
@@ -421,7 +445,6 @@ const styles = StyleSheet.create({
     width: 62,
     height: 62,
     borderRadius: 31,
-    borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.2)',
     backgroundColor: '#000000',
   },
@@ -493,37 +516,73 @@ const styles = StyleSheet.create({
   },
   shareGrid: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     gap: 10,
+    marginBottom: 10,
   },
-  shareCard: {
+  secondaryActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 14,
+  },
+  /* Hero Light Pill Button (TipMe / Apple Pay Inspired) */
+  sharePillPrimary: {
     flex: 1,
-    backgroundColor: C.surface,
-    borderRadius: 16,
-    paddingVertical: 18,
-    paddingHorizontal: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    height: 54,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 12,
   },
-  shareCardPressed: {
-    backgroundColor: C.surfaceRaised,
+  sharePillPrimaryPressed: {
+    backgroundColor: 'rgba(255, 255, 255, 0.88)',
+    transform: [{ scale: 0.98 }],
   },
-  shareIconWrap: {
-    width: 32,
-    height: 32,
+  sharePillSecondary: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    borderRadius: 24,
+    height: 54,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  sharePillSecondaryPressed: {
+    backgroundColor: 'rgba(255, 255, 255, 0.78)',
+    transform: [{ scale: 0.98 }],
+  },
+  sharePillTitle: {
+    fontSize: 13,
+    color: '#000000',
+    letterSpacing: -0.2,
+  },
+  sharePillSub: {
+    fontSize: 10,
+    color: 'rgba(0, 0, 0, 0.60)',
+    marginTop: 1,
+  },
+  /* Secondary Charcoal Glass Tile (Hard Minimalist) */
+  shareTileDark: {
+    flex: 1,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 18,
+    height: 44,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 4,
+    gap: 8,
   },
-  shareCardTitle: {
-    fontSize: 13,
-    color: C.text,
-    textAlign: 'center',
+  shareTileDarkPressed: {
+    backgroundColor: '#2C2C2E',
+    transform: [{ scale: 0.98 }],
   },
-  shareCardSub: {
-    fontSize: 10,
-    color: C.textMuted,
-    textAlign: 'center',
+  shareTileText: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.85)',
+    letterSpacing: -0.1,
   },
   overviewRow: {
     flexDirection: 'row',
@@ -572,5 +631,40 @@ const styles = StyleSheet.create({
   toastText: {
     color: C.text,
     fontSize: 13,
+  },
+  walletBannerCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: C.surface,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginTop: 14,
+  },
+  walletBannerPressed: {
+    backgroundColor: C.surfaceRaised,
+  },
+  walletLeftContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  walletIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#18181B',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  walletTitle: {
+    fontSize: 14,
+    color: C.text,
+  },
+  walletSubtitle: {
+    fontSize: 11,
+    color: C.textMuted,
+    marginTop: 2,
   },
 });

@@ -14,7 +14,7 @@ export function AvioLogo({
   size = 'md',
   theme = 'dark',
   showTagline = true,
-  nfcColor = '#007AFF',
+  nfcColor = '#799A85',
   style,
 }: AvioLogoProps) {
   const isLight = theme === 'light';

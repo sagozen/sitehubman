@@ -285,7 +285,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-    borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.05)',
   } as ViewStyle,
   profileAvatarImg: {
@@ -383,7 +382,6 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 8,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.03)',
   } as ViewStyle,
   interactiveHint: {

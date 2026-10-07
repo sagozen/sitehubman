@@ -148,7 +148,6 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   miniCardDashed: {
-    borderWidth: 1.5,
     borderStyle: 'dashed',
     borderColor: 'rgba(37,150,190,0.4)',
     backgroundColor: 'rgba(37,150,190,0.06)',

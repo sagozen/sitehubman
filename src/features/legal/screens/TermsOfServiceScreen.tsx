@@ -156,8 +156,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     backgroundColor: '#111114',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     padding: 16,
   },
   sectionTitle: {
@@ -174,8 +172,6 @@ const styles = StyleSheet.create({
   footer: {
     backgroundColor: '#111114',
     borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     padding: 16,
     marginTop: 20,
   },

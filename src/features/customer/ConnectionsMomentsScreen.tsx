@@ -451,7 +451,6 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 12,
     backgroundColor: PAGE_THEME.accentSoft,
-    borderWidth: 1,
     borderColor: PAGE_THEME.border,
     alignItems: 'center',
     justifyContent: 'center',
@@ -470,7 +469,6 @@ const styles = StyleSheet.create({
   storyRing: {
     padding: 3,
     borderRadius: 40,
-    borderWidth: 1.5,
     borderColor: 'rgba(255,255,255,0.15)',
   },
   storyAvatar: { borderRadius: 30 },
@@ -484,7 +482,6 @@ const styles = StyleSheet.create({
     height: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
     borderColor: '#000000',
   },
   storyName: {
@@ -503,8 +500,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
     padding: 16,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
     gap: 12,
   },
   scannerIconWrap: {
@@ -538,7 +533,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     gap: 8,
     backgroundColor: PAGE_THEME.surface,
-    borderWidth: 1,
     borderColor: PAGE_THEME.border,
   },
   searchInput: {
@@ -566,7 +560,6 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: 12,
     backgroundColor: PAGE_THEME.surface,
-    borderWidth: 1,
     borderColor: PAGE_THEME.border,
   },
   tagFilterChipActive: {
@@ -641,8 +634,6 @@ const styles = StyleSheet.create({
   },
   inlineTagPill: {
     backgroundColor: 'rgba(255,255,255,0.07)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,

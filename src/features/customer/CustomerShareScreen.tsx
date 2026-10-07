@@ -523,7 +523,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 16,
     gap: 16,
-    borderWidth: 1,
     overflow: 'hidden'
   },
   qrInnerBox: {

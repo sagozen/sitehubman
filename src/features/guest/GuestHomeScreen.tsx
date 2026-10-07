@@ -38,18 +38,18 @@ import { QuickSetupSheet } from '@/src/components/QuickSetupSheet';
 import { computeUserPrestige } from '@/src/services/prestigeTierService';
 import { pageThemes } from '@/src/constants/pageThemes';
 
-// ─── Black Granite UI Tokens (Nero Assoluto, Chiseled Bevels & Platinum Contrast) ───
-const CANVAS = '#08080A'; // Deep obsidian granite canvas
-const GRANITE_SLAB = '#111115'; // Dense volcanic granite surface
-const GRANITE_RAISED = '#16161C'; // Elevated stone tier
-const GRANITE_SUNKEN = '#0B0B0E'; // Sunken stone channel
+// ─── Matte Charcoal UI Tokens (#242424 Smooth Slab & Sage Contrast) ───
+const CANVAS = '#0D0D0E'; // Deep midnight dark canvas
+const GRANITE_SLAB = '#242424'; // Rich matte graphite/charcoal card surface
+const GRANITE_RAISED = '#2C2C2C'; // Elevated charcoal tier
+const GRANITE_SUNKEN = '#1A1A1A'; // Subtle recessed tone
 const GRANITE_BEVEL = 'rgba(255, 255, 255, 0.085)'; // Precision diamond-cut bevel line
 const GRANITE_TOP_LIGHT = 'rgba(255, 255, 255, 0.13)'; // Facet highlight
-const INK = '#FFFFFF'; // Diamond-etched white primary text
-const MUTED = '#888891'; // Natural quartz / granite dust secondary text
-const MUTED_DEEP = '#52525B'; // Deep stone shadow
+const INK = '#FFFFFF'; // Pure white primary text
+const MUTED = '#9A9AA0'; // Secondary muted text
+const MUTED_DEEP = '#636366'; // Deep stone shadow
 const ACCENT_STEEL = '#E4E4E7'; // Polished titanium / stainless accent
-const NFC_ACTIVE = '#30D158'; // Precision Emerald status indicator
+const NFC_ACTIVE = '#799A85'; // Soft eucalyptus sage green status indicator
 
 function orderStatus(s: string): { label: string; color: string } {
   if (['production_approved', 'printing', 'nfc_writing', 'qa_pending'].includes(s)) {
@@ -113,7 +113,8 @@ export function GuestHomeScreen() {
     return () => task.cancel();
   }, [loadData]);
 
-  const heroName = bioPage?.displayName || user?.displayName || (isGuest ? 'Thean Coc' : 'Your Name');
+  const rawName = bioPage?.displayName || user?.displayName;
+  const heroName = (rawName && rawName !== 'Guest User') ? rawName : 'Thean Coc';
   const heroRole = bioPage?.tagline || bioPage?.headline || 'Digital Identity · NFC Active';
   const heroCompany = bioPage?.company || 'Sitehub';
 
@@ -549,11 +550,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 120,
-    gap: 12,
-    maxWidth: 640,
+    paddingHorizontal: 16,
+    paddingTop: 6,
+    paddingBottom: 110,
+    gap: 10,
+    maxWidth: 720,
     width: '100%',
     alignSelf: 'center',
   },

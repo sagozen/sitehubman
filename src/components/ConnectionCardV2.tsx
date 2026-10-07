@@ -116,7 +116,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: tokens.spacing[4],
     borderRadius: tokens.radius.xl,
-    borderWidth: 1,
   },
   avatar: {
     width: 48,

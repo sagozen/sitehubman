@@ -884,8 +884,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#111114',
     borderRadius: 16,
     padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
   },
   avatarWrap: {
     position: 'relative',
@@ -960,8 +958,6 @@ const styles = StyleSheet.create({
   fieldGroup: {
     backgroundColor: '#111114',
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
     overflow: 'hidden',
   },
   fieldRow: {
@@ -999,8 +995,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
   },
   switchLabel: {
     color: '#FFFFFF',
@@ -1028,8 +1022,6 @@ const styles = StyleSheet.create({
   blockCard: {
     backgroundColor: '#0D0D10',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
     padding: 14,
     gap: 10,
   },
@@ -1070,8 +1062,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 10,
     gap: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
   },
   itemBoxHeader: {
     flexDirection: 'row',
@@ -1100,8 +1090,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 16,
     backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
   },
   pillBtnActive: {
     backgroundColor: '#FFFFFF',
@@ -1119,8 +1107,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#111114',
     borderRadius: 12,
     padding: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
   },
   segmentBtn: {
     flex: 1,
@@ -1146,7 +1132,6 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 14,
     backgroundColor: '#16161A',
-    borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.15)',
     marginTop: 12,
   },

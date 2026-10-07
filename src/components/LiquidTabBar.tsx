@@ -13,7 +13,7 @@
  * - Tab bar height: 49pt + safe area bottom
  * - Icon size: 24pt
  * - Label: Caption 2 (10pt)
- * - Active tint: system blue (#0A84FF dark / #007AFF light)
+ * - Active tint: system blue (#FFFFFF (active tab tint))
  * - Touch target: 44pt minimum
  */
 import { Ionicons } from '@expo/vector-icons';
@@ -192,8 +192,8 @@ function SalesTabBar({
               <AppText style={st.badgeText}>{ordersBadgeLabel}</AppText>
             </View>
           ) : null}
-          <AppIcon name={iconName} size={TAB_ICON_SIZE} color={isActive ? '#007AFF' : '#8E8E93'} />
-          <AppText style={[st.tabLabel, { color: isActive ? '#007AFF' : '#8E8E93', fontWeight: isActive ? '600' : '400' }]}>
+          <AppIcon name={iconName} size={TAB_ICON_SIZE} color={isActive ? '#FFFFFF' : '#8E8E93'} />
+          <AppText style={[st.tabLabel, { color: isActive ? '#FFFFFF' : '#8E8E93', fontWeight: isActive ? '600' : '400' }]}>
             {label}
           </AppText>
         </View>
@@ -282,10 +282,10 @@ const st = StyleSheet.create({
   fab: {
     width: 52, height: 52,
     borderRadius: 26,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    ...createShadow({ color: '#007AFF', offset: { width: 0, height: 4 }, opacity: 0.28, radius: 14, elevation: 10 }),
+    ...createShadow({ color: '#000000', offset: { width: 0, height: 4 }, opacity: 0.28, radius: 14, elevation: 10 }),
   },
   badge: {
     position: 'absolute',
@@ -297,7 +297,6 @@ const st = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 3,
-    borderWidth: 1.5,
     borderColor: '#FFFFFF',
   },
   badgeText: {
@@ -423,7 +422,7 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
   }
 
   // ─── Consumer dock colors ─────────────────────────────────────────────────
-  const activeTint   = '#2596BE';
+  const activeTint   = '#FFFFFF';
   const inactiveTint = isDark ? 'rgba(235,235,245,0.45)' : 'rgba(60,60,67,0.45)';
   const barBorder    = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(60,60,67,0.12)';
   const blurTint     = isDark ? 'dark' : 'light';
@@ -443,7 +442,7 @@ export function LiquidTabBar({ state, navigation, descriptors }: Props) {
         {/* Sliding pill indicator */}
         <Animated.View
           pointerEvents="none"
-          style={[styles.pillIndicator, pillStyle, { backgroundColor: isDark ? 'rgba(10,132,255,0.14)' : 'rgba(0,122,255,0.09)' }]}
+          style={[styles.pillIndicator, pillStyle, { backgroundColor: isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.06)' }]}
         />
 
         {/* Tab items */}

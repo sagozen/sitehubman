@@ -223,8 +223,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.09)',
   },
   swatchSelected: {
     borderWidth: 2.5,
@@ -239,8 +237,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 50,
     backgroundColor: '#111114',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.09)',
   },
   pillSelected: {
     backgroundColor: '#2596BE',

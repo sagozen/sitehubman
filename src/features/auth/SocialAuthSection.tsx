@@ -320,14 +320,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 10,
     paddingHorizontal: iosDesign.spacing.md,
-    borderWidth: 1,
     borderColor: 'rgba(17,17,17,0.08)',
   },
   googleBtnLogin: {
     minHeight: 52,
     borderRadius: 999,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
     borderColor: '#E5E5EA',
   },
   googleLabelLogin: {
@@ -349,7 +347,6 @@ const styles = StyleSheet.create({
     minHeight: 52,
     borderRadius: 999,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
     borderColor: '#E5E5EA',
     shadowOpacity: 0.03,
   },

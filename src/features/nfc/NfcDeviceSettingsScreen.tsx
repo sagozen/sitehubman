@@ -285,7 +285,6 @@ const styles = StyleSheet.create({
   infoCard: {
     backgroundColor: C.surface,
     borderRadius: 16,
-    borderWidth: 1,
     borderColor: C.border,
     paddingHorizontal: 16,
     marginBottom: 28,
@@ -324,7 +323,6 @@ const styles = StyleSheet.create({
   group: {
     backgroundColor: C.surface,
     borderRadius: 16,
-    borderWidth: 1,
     borderColor: C.border,
     paddingHorizontal: 16,
     marginBottom: 28,

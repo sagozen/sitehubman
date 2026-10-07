@@ -107,7 +107,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: tokens.spacing[4],
     borderRadius: tokens.radius.lg,
-    borderWidth: 1.5,
   },
   content: {
     flexDirection: 'row',

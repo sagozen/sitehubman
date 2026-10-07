@@ -244,7 +244,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     alignItems: 'center',
     backgroundColor: _THEME.surface,
-    borderWidth: 1,
     borderColor: _THEME.border,
   },
   errorText: {

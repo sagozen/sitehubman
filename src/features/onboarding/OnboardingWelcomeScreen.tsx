@@ -149,8 +149,6 @@ const styles = StyleSheet.create({
   cardMockup: {
     flex: 1,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.09)',
     overflow: 'hidden',
     padding: 24,
   },
@@ -177,8 +175,6 @@ const styles = StyleSheet.create({
     width: 28,
     height: 20,
     borderRadius: 3,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.12)',
   },
   cardContent: {
     flexDirection: 'row',
@@ -271,8 +267,6 @@ const styles = StyleSheet.create({
   ghostBtn: {
     height: 56,
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
   },

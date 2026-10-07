@@ -5,7 +5,7 @@
  * - Minimum touch target: 44x44pt (all interactive sizes)
  * - Press: spring scale 0.97 + opacity 0.88 (200ms)
  * - Radii: sm=10, md=14, lg=16, full=pill
- * - Primary: filled system blue (#0A84FF dark / #007AFF light)
+ * - Primary: filled system blue (#FFFFFF (white pill primary))
  * - Destructive: system red
  * - Disabled: opacity 0.40
  * - Haptic: .selection on every tap
@@ -226,17 +226,17 @@ export const AppButton = memo(AppButtonRaw);
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function getVariantTokens(variant: ButtonVariant, isDark: boolean, color?: string) {
   // Apple HIG system colors
-  const tint       = isDark ? '#0A84FF' : '#007AFF';
   const destructive= isDark ? '#FF453A' : '#FF3B30';
   const success    = isDark ? '#30D158' : '#34C759';
   const label      = isDark ? '#FFFFFF' : '#000000';
   const labelInv   = isDark ? '#000000' : '#FFFFFF';
   const fill       = isDark ? 'rgba(120,120,128,0.36)' : 'rgba(120,120,128,0.20)';
-  const separator  = isDark ? 'rgba(84,84,88,0.65)' : 'rgba(60,60,67,0.29)';
 
   switch (variant) {
     case 'primary':
-      return { bg: tint,       text: '#FFFFFF',  borderWidth: 0, borderColor: 'transparent' };
+      return { bg: '#FFFFFF',  text: '#000000',  borderWidth: 0, borderColor: 'transparent' };
+    case 'floating':
+      return { bg: '#FFFFFF',  text: '#000000',  borderWidth: 0, borderColor: 'transparent' };
     case 'dark':
       return { bg: color ?? label, text: labelInv, borderWidth: 0, borderColor: 'transparent' };
     case 'white':
@@ -248,11 +248,12 @@ function getVariantTokens(variant: ButtonVariant, isDark: boolean, color?: strin
     case 'secondary':
       return { bg: fill,       text: label,      borderWidth: 0, borderColor: 'transparent' };
     case 'outline':
-      return { bg: 'transparent', text: color ?? tint, borderWidth: 1, borderColor: color ?? tint };
+      return { bg: 'transparent', text: color ?? '#FFFFFF', borderWidth: 1, borderColor: color ?? 'rgba(255,255,255,0.25)' };
     case 'tertiary':
     case 'ghost':
+      return { bg: 'transparent', text: label,   borderWidth: 0, borderColor: 'transparent' };
     case 'link':
-      return { bg: 'transparent', text: variant === 'link' ? tint : label, borderWidth: 0, borderColor: 'transparent' };
+      return { bg: 'transparent', text: '#FFFFFF', borderWidth: 0, borderColor: 'transparent' };
     case 'soft':
       return { bg: fill,       text: label,      borderWidth: 0, borderColor: 'transparent' };
     case 'icon':
@@ -262,11 +263,9 @@ function getVariantTokens(variant: ButtonVariant, isDark: boolean, color?: strin
     case 'menu':
     case 'back':
     case 'close':
-      return { bg: 'transparent', text: tint,    borderWidth: 0, borderColor: 'transparent' };
-    case 'floating':
-      return { bg: tint,       text: '#FFFFFF',  borderWidth: 0, borderColor: 'transparent' };
+      return { bg: 'transparent', text: '#FFFFFF', borderWidth: 0, borderColor: 'transparent' };
     default:
-      return { bg: color ?? tint, text: '#FFFFFF', borderWidth: 0, borderColor: 'transparent' };
+      return { bg: color ?? '#FFFFFF', text: '#000000', borderWidth: 0, borderColor: 'transparent' };
   }
 }
 

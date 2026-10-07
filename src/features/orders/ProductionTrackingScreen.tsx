@@ -166,7 +166,6 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 19,
     backgroundColor: SURFACE,
-    borderWidth: 1,
     borderColor: BORDER,
     alignItems: 'center',
     justifyContent: 'center',
@@ -186,7 +185,6 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     backgroundColor: SURFACE,
-    borderWidth: 1,
     borderColor: 'rgba(37,150,190,0.25)',
     borderRadius: 16,
     flexDirection: 'row',
@@ -217,7 +215,6 @@ const styles = StyleSheet.create({
   },
   timelineCard: {
     backgroundColor: SURFACE,
-    borderWidth: 1,
     borderColor: BORDER,
     borderRadius: 16,
     paddingVertical: 20,
@@ -293,7 +290,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     backgroundColor: SURFACE,
-    borderWidth: 1,
     borderColor: BORDER,
     borderRadius: 12,
     padding: 14,

@@ -28,17 +28,17 @@ import { HapticTap } from '@/src/utils/haptics';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const C = {
-  canvas: '#000000',
-  surface: '#0E0E12',
-  surfaceRaised: '#16161C',
-  surfaceGlass: 'rgba(20, 20, 26, 0.72)',
-  hairline: 'rgba(255, 255, 255, 0.08)',
+  canvas: '#0D0D0E',
+  surface: '#242424', // Exact matte charcoal card tone from user reference
+  surfaceRaised: '#2C2C2C',
+  surfaceGlass: 'rgba(36, 36, 36, 0.85)',
+  hairline: 'transparent',
   text: '#FFFFFF',
-  textSecondary: '#A1A1AA',
-  textMuted: '#636366',
+  textSecondary: '#E4E4E7',
+  textMuted: '#8E8E93',
   accent: '#2596BE',
   accentCyan: '#00A3FF',
-  emerald: '#30D158',
+  emerald: '#799A85', // Soft eucalyptus sage green from user reference
 } as const;
 
 export function HomeScreen() {
@@ -303,7 +303,7 @@ export function HomeScreen() {
           </View>
         </View>
 
-        {/* ── Share Matrix (Sleek High-Contrast Floating Triggers) ── */}
+        {/* ── Share Matrix (Apple HIG / TipMe Light Pill & Charcoal Architecture) ── */}
         <View style={styles.shareMatrixHeader}>
           <AppText style={styles.shareMatrixTitle} weight="bold">
             QUICK EXCHANGE
@@ -311,48 +311,47 @@ export function HomeScreen() {
         </View>
 
         <View style={styles.shareActionsRow}>
+          {/* Hero Light Pill (Approve / Apple Pay style) */}
           <Pressable
-            style={({ pressed }) => [styles.shareActionBtn, pressed && styles.shareActionBtnPressed]}
+            style={({ pressed }) => [styles.sharePillPrimary, pressed && styles.sharePillPrimaryPressed]}
             onPress={handleNfcAction}
           >
-            <View style={styles.shareActionIconWrap}>
-              <AppIcon name="wifi" size={18} color="#FFFFFF" style={{ transform: [{ rotate: '90deg' }] }} />
+            <AppIcon name="wifi" size={17} color="#000000" style={{ transform: [{ rotate: '90deg' }] }} />
+            <View>
+              <AppText style={styles.sharePillTitle} weight="bold">NFC Beam</AppText>
+              <AppText style={styles.sharePillSub}>Instant tap</AppText>
             </View>
-            <AppText style={styles.shareActionBtnTitle} weight="medium">NFC</AppText>
-            <AppText style={styles.shareActionBtnSub}>Device tap</AppText>
           </Pressable>
 
+          {/* Secondary Light Pill (White pill with Apple Pay aesthetic) */}
           <Pressable
-            style={({ pressed }) => [styles.shareActionBtn, pressed && styles.shareActionBtnPressed]}
+            style={({ pressed }) => [styles.sharePillSecondary, pressed && styles.sharePillSecondaryPressed]}
             onPress={handleQrAction}
           >
-            <View style={styles.shareActionIconWrap}>
-              <AppIcon name="qr-code" size={18} color="#FFFFFF" />
+            <AppIcon name="qr-code" size={17} color="#000000" />
+            <View>
+              <AppText style={styles.sharePillTitle} weight="bold">QR Pass</AppText>
+              <AppText style={styles.sharePillSub}>Fullscreen</AppText>
             </View>
-            <AppText style={styles.shareActionBtnTitle} weight="medium">QR Pass</AppText>
-            <AppText style={styles.shareActionBtnSub}>Fullscreen</AppText>
           </Pressable>
+        </View>
 
+        {/* Secondary Utility Row (Dark Charcoal Glass Tiles) */}
+        <View style={styles.secondaryActionsRow}>
           <Pressable
-            style={({ pressed }) => [styles.shareActionBtn, pressed && styles.shareActionBtnPressed]}
+            style={({ pressed }) => [styles.shareTileDark, pressed && styles.shareTileDarkPressed]}
             onPress={handleLinkAction}
           >
-            <View style={styles.shareActionIconWrap}>
-              <AppIcon name="copy" size={18} color="#FFFFFF" />
-            </View>
-            <AppText style={styles.shareActionBtnTitle} weight="medium">Copy Link</AppText>
-            <AppText style={styles.shareActionBtnSub}>Web URL</AppText>
+            <AppIcon name="copy" size={16} color="rgba(255,255,255,0.75)" />
+            <AppText style={styles.shareTileText} weight="medium">Copy Link</AppText>
           </Pressable>
 
           <Pressable
-            style={({ pressed }) => [styles.shareActionBtn, pressed && styles.shareActionBtnPressed]}
+            style={({ pressed }) => [styles.shareTileDark, pressed && styles.shareTileDarkPressed]}
             onPress={handleContactAction}
           >
-            <View style={styles.shareActionIconWrap}>
-              <AppIcon name="user-plus" size={18} color="#FFFFFF" />
-            </View>
-            <AppText style={styles.shareActionBtnTitle} weight="medium">vCard</AppText>
-            <AppText style={styles.shareActionBtnSub}>Contacts</AppText>
+            <AppIcon name="user-plus" size={16} color="rgba(255,255,255,0.75)" />
+            <AppText style={styles.shareTileText} weight="medium">Save vCard</AppText>
           </Pressable>
         </View>
 
@@ -535,16 +534,14 @@ const styles = StyleSheet.create({
   floatingMetalCard: {
     marginTop: -38,
     marginHorizontal: 12,
-    borderRadius: 18,
-    backgroundColor: '#121217',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.16)',
-    padding: 18,
+    borderRadius: 20,
+    backgroundColor: '#242424',
+    padding: 20,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.55,
+    shadowOpacity: 0.45,
     shadowRadius: 18,
-    elevation: 12,
+    elevation: 10,
   },
   floatingCardPressed: {
     transform: [{ scale: 0.99 }],
@@ -685,7 +682,8 @@ const styles = StyleSheet.create({
   },
   stackCountText: {
     fontSize: 10,
-    color: C.accentCyan,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   connectionsTextCol: {
     flex: 1,
@@ -779,7 +777,7 @@ const styles = StyleSheet.create({
     borderRadius: 7,
   },
   waveBarActive: {
-    backgroundColor: C.accentCyan,
+    backgroundColor: C.emerald,
   },
   waveDayLabel: {
     fontSize: 11,
@@ -796,34 +794,72 @@ const styles = StyleSheet.create({
   shareActionsRow: {
     flexDirection: 'row',
     gap: 10,
-    marginBottom: 24,
+    marginBottom: 10,
   },
-  shareActionBtn: {
+  secondaryActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 26,
+  },
+  /* Hero Light Pill Button (TipMe / Apple Pay Inspired) */
+  sharePillPrimary: {
     flex: 1,
-    backgroundColor: C.surface,
-    borderRadius: 16,
-    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    height: 54,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
   },
-  shareActionBtnPressed: {
-    backgroundColor: C.surfaceRaised,
+  sharePillPrimaryPressed: {
+    backgroundColor: 'rgba(255, 255, 255, 0.88)',
     transform: [{ scale: 0.98 }],
   },
-  shareActionIconWrap: {
-    width: 32,
-    height: 32,
+  sharePillSecondary: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    borderRadius: 24,
+    height: 54,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  sharePillSecondaryPressed: {
+    backgroundColor: 'rgba(255, 255, 255, 0.78)',
+    transform: [{ scale: 0.98 }],
+  },
+  sharePillTitle: {
+    fontSize: 13,
+    color: '#000000',
+    letterSpacing: -0.2,
+  },
+  sharePillSub: {
+    fontSize: 10,
+    color: 'rgba(0, 0, 0, 0.60)',
+    marginTop: 1,
+  },
+  /* Secondary Charcoal Glass Tile (Hard Minimalist) */
+  shareTileDark: {
+    flex: 1,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 18,
+    height: 44,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    gap: 8,
   },
-  shareActionBtnTitle: {
+  shareTileDarkPressed: {
+    backgroundColor: '#2C2C2E',
+    transform: [{ scale: 0.98 }],
+  },
+  shareTileText: {
     fontSize: 12,
-    color: '#FFFFFF',
-  },
-  shareActionBtnSub: {
-    fontSize: 10,
-    color: C.textMuted,
-    marginTop: 2,
+    color: 'rgba(255, 255, 255, 0.85)',
+    letterSpacing: -0.1,
   },
   activityHeader: {
     flexDirection: 'row',

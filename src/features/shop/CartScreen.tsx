@@ -22,15 +22,15 @@ import { IosScrollView } from '@/src/components/IosScrollView';
 import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
-  canvas: '#000000',
-  surface: '#111114',
-  surfaceRaised: '#18181C',
+  canvas: '#0D0D0E',
+  surface: '#242424',
+  surfaceRaised: '#2C2C2C',
   border: 'rgba(255,255,255,0.08)',
   borderLight: 'rgba(255,255,255,0.15)',
   text: '#FFFFFF',
   textSecondary: '#8E8E93',
   textMuted: '#636366',
-  accent: '#2596BE',
+  accent: '#799A85',
   danger: '#FF453A',
 } as const;
 
@@ -252,7 +252,6 @@ const styles = StyleSheet.create({
     backgroundColor: C.surface,
     borderRadius: 18,
     padding: 16,
-    borderWidth: 1,
     borderColor: C.border,
   },
   itemThumb: {
@@ -294,7 +293,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 4,
     gap: 10,
-    borderWidth: 1,
     borderColor: C.border,
   },
   stepperBtn: {
@@ -308,7 +306,6 @@ const styles = StyleSheet.create({
     backgroundColor: C.surface,
     borderRadius: 18,
     padding: 18,
-    borderWidth: 1,
     borderColor: C.border,
   },
   summaryHeader: {

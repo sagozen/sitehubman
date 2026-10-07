@@ -442,7 +442,6 @@ const styles = StyleSheet.create({
     maxWidth: 390,
     aspectRatio: 2 / 3,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
     borderColor: '#D1D5DB',
     padding: 16,
     gap: 9,
@@ -496,7 +495,6 @@ const styles = StyleSheet.create({
   infoCell: {
     width: '48.8%',
     minHeight: 43,
-    borderWidth: 1,
     borderColor: '#D1D5DB',
     paddingHorizontal: 6,
     paddingVertical: 5,
@@ -525,7 +523,6 @@ const styles = StyleSheet.create({
   },
   checklistBox: {
     flex: 1,
-    borderWidth: 1,
     borderColor: '#111827',
     padding: 7,
     gap: 2,
@@ -544,7 +541,6 @@ const styles = StyleSheet.create({
   qrBox: {
     width: 98,
     height: 98,
-    borderWidth: 1,
     borderColor: '#111827',
     alignItems: 'center',
     justifyContent: 'center',

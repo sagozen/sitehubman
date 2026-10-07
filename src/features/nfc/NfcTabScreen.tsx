@@ -170,8 +170,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 22,
     marginBottom: 32,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   deviceCardTop: {
     flexDirection: 'row',

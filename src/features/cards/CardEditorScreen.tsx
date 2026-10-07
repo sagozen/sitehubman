@@ -2,7 +2,7 @@
  * CardEditorScreen — Screen 3: Card Editor ("Customize your digital card")
  * Luxury Minimalist (Apple Wallet × Stripe × Linear · Black Granite UI)
  */
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -10,6 +10,8 @@ import {
   TextInput,
   Modal,
   Alert,
+  Animated,
+  PanResponder,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -21,15 +23,16 @@ import { useBioPage } from '@/src/hooks/useBioPage';
 import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
-  canvas: '#08080A',
-  surface: '#111115',
-  surfaceRaised: '#16161C',
-  border: 'rgba(255, 255, 255, 0.08)',
-  borderLight: 'rgba(255, 255, 255, 0.14)',
+  canvas: '#0D0D0E',
+  surface: '#242424',
+  surfaceRaised: '#2C2C2C',
+  border: 'transparent',
+  borderLight: 'transparent',
   text: '#FFFFFF',
-  textSecondary: '#A1A1AA',
-  textMuted: '#636366',
+  textSecondary: '#E4E4E7',
+  textMuted: '#8E8E93',
   accent: '#2596BE',
+  emerald: '#799A85',
 } as const;
 
 const CARD_STYLES = ['Black Metal', 'Platinum', 'Titanium', 'Matte Black'] as const;
@@ -106,6 +109,51 @@ export function CardEditorScreen() {
   const currentLogo = LOGO_OPTIONS[logoIndex];
   const currentBg = BG_OPTIONS[bgIndex];
 
+  // 3D Tilt Gesture Physics
+  const tiltX = useRef(new Animated.Value(0)).current;
+  const tiltY = useRef(new Animated.Value(0)).current;
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (_, gestureState) => {
+        // Map delta to subtle rotational degrees (-16 to +16 deg)
+        const rotY = Math.min(Math.max(gestureState.dx * 0.08, -16), 16);
+        const rotX = Math.min(Math.max(-gestureState.dy * 0.08, -16), 16);
+        tiltX.setValue(rotX);
+        tiltY.setValue(rotY);
+      },
+      onPanResponderRelease: () => {
+        Animated.parallel([
+          Animated.spring(tiltX, {
+            toValue: 0,
+            friction: 6,
+            tension: 40,
+            useNativeDriver: true,
+          }),
+          Animated.spring(tiltY, {
+            toValue: 0,
+            friction: 6,
+            tension: 40,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      },
+    })
+  ).current;
+
+  const rotateXStr = tiltX.interpolate({
+    inputRange: [-20, 20],
+    outputRange: ['-20deg', '20deg'],
+  });
+  const rotateYStr = tiltY.interpolate({
+    inputRange: [-20, 20],
+    outputRange: ['-20deg', '20deg'],
+  });
+  const glareOpacity = tiltY.interpolate({
+    inputRange: [-15, 0, 15],
+    outputRange: [0.35, 0.08, 0.35],
+  });
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Top Header */}
@@ -135,48 +183,68 @@ export function CardEditorScreen() {
 
       <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.contentWrap}>
-          {/* Live Interactive Card Preview */}
-          <View
-            style={[
-              styles.previewCard,
-              currentBg === 'Deep Obsidian' && { backgroundColor: '#050507' },
-              currentBg === 'Charcoal' && { backgroundColor: '#18181F' },
-            ]}
-          >
-            <View style={styles.cardHeaderRow}>
-              <View style={styles.cardBrandRow}>
-                <AppIcon name="wifi" size={16} color="rgba(255,255,255,0.7)" style={{ transform: [{ rotate: '90deg' }] }} />
-                <AppText style={styles.cardBrandText} weight="bold">
-                  {currentLogo.toUpperCase()}
-                </AppText>
-              </View>
-              <View style={styles.contactlessSymbol}>
-                <View style={[styles.contactlessArc, styles.arc1]} />
-                <View style={[styles.contactlessArc, styles.arc2]} />
-                <View style={[styles.contactlessArc, styles.arc3]} />
-              </View>
-            </View>
+          {/* Live Interactive 3D Card Preview */}
+          <View style={styles.cardPerspectiveContainer}>
+            <Animated.View
+              {...panResponder.panHandlers}
+              style={[
+                styles.previewCard,
+                currentBg === 'Deep Obsidian' && { backgroundColor: '#050507' },
+                currentBg === 'Charcoal' && { backgroundColor: '#18181F' },
+                {
+                  transform: [
+                    { perspective: 900 },
+                    { rotateX: rotateXStr },
+                    { rotateY: rotateYStr },
+                  ],
+                },
+              ]}
+            >
+              {/* Dynamic Metallic Glare Layer */}
+              <Animated.View
+                pointerEvents="none"
+                style={[
+                  styles.cardGlare,
+                  { opacity: glareOpacity },
+                ]}
+              />
 
-            <View style={styles.cardBody}>
-              <AppText style={styles.cardOwnerName} weight="bold">
-                {name.toUpperCase()}
-              </AppText>
-              <AppText style={styles.cardOwnerTitle}>
-                {title.toUpperCase()}
-              </AppText>
-              {company ? (
-                <AppText style={styles.cardCompanyText}>
-                  {company}
-                </AppText>
-              ) : null}
-            </View>
-
-            <View style={styles.cardFooterRow}>
-              <View style={styles.cardStatusPill}>
-                <AppText style={styles.statusPillText}>READY TO TAP</AppText>
+              <View style={styles.cardHeaderRow}>
+                <View style={styles.cardBrandRow}>
+                  <AppIcon name="wifi" size={16} color="rgba(255,255,255,0.7)" style={{ transform: [{ rotate: '90deg' }] }} />
+                  <AppText style={styles.cardBrandText} weight="bold">
+                    {currentLogo.toUpperCase()}
+                  </AppText>
+                </View>
+                <View style={styles.contactlessSymbol}>
+                  <View style={[styles.contactlessArc, styles.arc1]} />
+                  <View style={[styles.contactlessArc, styles.arc2]} />
+                  <View style={[styles.contactlessArc, styles.arc3]} />
+                </View>
               </View>
-              <AppText style={styles.cardMaterialText}>{currentCardStyle.toUpperCase()}</AppText>
-            </View>
+
+              <View style={styles.cardBody}>
+                <AppText style={styles.cardOwnerName} weight="bold">
+                  {name.toUpperCase()}
+                </AppText>
+                <AppText style={styles.cardOwnerTitle}>
+                  {title.toUpperCase()}
+                </AppText>
+                {company ? (
+                  <AppText style={styles.cardCompanyText}>
+                    {company}
+                  </AppText>
+                ) : null}
+              </View>
+
+              <View style={styles.cardFooterRow}>
+                <View style={styles.cardStatusPill}>
+                  <AppText style={styles.statusPillText}>READY TO TAP</AppText>
+                </View>
+                <AppText style={styles.cardMaterialText}>{currentCardStyle.toUpperCase()}</AppText>
+              </View>
+            </Animated.View>
+            <AppText style={styles.dragHintText}>Drag card to feel 3D metallic tilt</AppText>
           </View>
 
           {/* Settings Rows */}
@@ -382,20 +450,37 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   contentWrap: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     width: '100%',
-    maxWidth: 640,
+    maxWidth: 720,
     alignSelf: 'center',
-    paddingTop: 16,
+    paddingTop: 12,
+  },
+  cardPerspectiveContainer: {
+    alignItems: 'center',
+    marginBottom: 8,
   },
   previewCard: {
-    backgroundColor: '#0D0D11',
+    backgroundColor: '#242424',
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     padding: 22,
     minHeight: 184,
+    width: '100%',
     justifyContent: 'space-between',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  cardGlare: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: 20,
+  },
+  dragHintText: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.35)',
+    letterSpacing: 0.5,
+    marginTop: 10,
+    textAlign: 'center',
   },
   cardHeaderRow: {
     flexDirection: 'row',
@@ -473,7 +558,6 @@ const styles = StyleSheet.create({
   settingsGroup: {
     backgroundColor: C.surface,
     borderRadius: 18,
-    borderWidth: 1,
     borderColor: C.border,
     marginTop: 20,
     overflow: 'hidden',
@@ -511,7 +595,6 @@ const styles = StyleSheet.create({
   previewBtn: {
     backgroundColor: C.surface,
     borderRadius: 16,
-    borderWidth: 1,
     borderColor: C.borderLight,
     height: 50,
     alignItems: 'center',
@@ -538,7 +621,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#16161C',
     borderRadius: 20,
     padding: 22,
-    borderWidth: 1,
     borderColor: C.borderLight,
   },
   modalTitle: {
@@ -549,7 +631,6 @@ const styles = StyleSheet.create({
   modalInput: {
     backgroundColor: C.canvas,
     borderRadius: 12,
-    borderWidth: 1,
     borderColor: C.borderLight,
     color: C.text,
     paddingHorizontal: 14,

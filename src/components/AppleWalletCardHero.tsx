@@ -142,7 +142,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a',
     padding: 20,
     justifyContent: 'space-between',
-    borderWidth: 1,
     borderColor: '#3a3a3a',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 8 },
@@ -214,7 +213,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 20,
     paddingVertical: 14,
-    borderWidth: 1,
     borderColor: '#3a3a3a',
   },
   balanceLeft: {
@@ -251,7 +249,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     gap: 12,
-    borderWidth: 1,
     borderColor: '#3a3a3a',
   },
   featureBannerHeader: {

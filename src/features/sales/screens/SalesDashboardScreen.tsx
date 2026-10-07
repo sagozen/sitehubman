@@ -281,7 +281,7 @@ export default function SalesDashboardScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0D0D0E',
   },
   content: {
     paddingHorizontal: 20,
@@ -341,8 +341,6 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 19,
     backgroundColor: '#121214',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -351,8 +349,6 @@ const styles = StyleSheet.create({
   heroPassCard: {
     borderRadius: 20,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     marginVertical: 2,
   },
   passGradient: {
@@ -461,8 +457,6 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 12,
     backgroundColor: '#121214',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
@@ -531,8 +525,6 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     backgroundColor: '#141418',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },

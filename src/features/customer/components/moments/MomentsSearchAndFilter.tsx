@@ -73,7 +73,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 2,
-    borderWidth: 1,
     borderColor: '#E2E8F0',
   },
   input: {
@@ -97,7 +96,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 2,
-    borderWidth: 1,
     borderColor: '#E2E8F0',
   },
   filterBtnActive: {

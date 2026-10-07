@@ -19,15 +19,16 @@ import { IosScrollView } from '@/src/components/IosScrollView';
 import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
-  canvas: '#000000',
-  surface: '#0E0E11',
-  surfaceRaised: '#141418',
-  border: 'rgba(255,255,255,0.06)',
-  borderLight: 'rgba(255,255,255,0.06)',
+  canvas: '#0D0D0E',
+  surface: '#242424',
+  surfaceRaised: '#2C2C2C',
+  border: 'transparent',
+  borderLight: 'transparent',
   text: '#FFFFFF',
-  textSecondary: '#A1A1AA',
-  textMuted: '#52525B',
+  textSecondary: '#E4E4E7',
+  textMuted: '#8E8E93',
   accent: '#2596BE',
+  emerald: '#799A85',
 } as const;
 
 export interface ContactLead {
@@ -42,6 +43,8 @@ export interface ContactLead {
   category: 'all' | 'new' | 'followup';
   notes: string;
   avatar?: any;
+  location?: string;
+  statusBadge?: 'Warm Lead' | 'VIP' | 'Investor' | 'Partner';
 }
 
 const DEFAULT_CONTACTS: ContactLead[] = [
@@ -57,6 +60,8 @@ const DEFAULT_CONTACTS: ContactLead[] = [
     category: 'new',
     notes: 'Interested in enterprise smart cards. Send proposal by Friday.',
     avatar: require('@/assets/images/avatars/avatar_executive_real.jpg'),
+    location: 'Rosewood Hotel • Phnom Penh',
+    statusBadge: 'VIP',
   },
   {
     id: 'sokha-chan',
@@ -70,6 +75,8 @@ const DEFAULT_CONTACTS: ContactLead[] = [
     category: 'new',
     notes: 'Met at FinTech showcase. Follow up on custom branding.',
     avatar: require('@/assets/images/avatars/avatar_founder_woman.jpg'),
+    location: 'FinTech Expo 2026',
+    statusBadge: 'Warm Lead',
   },
   {
     id: 'daniel-kim',
@@ -83,6 +90,8 @@ const DEFAULT_CONTACTS: ContactLead[] = [
     category: 'followup',
     notes: 'Requested developer API docs for CRM integration.',
     avatar: require('@/assets/images/avatars/avatar_founder_man.jpg'),
+    location: 'Vattanac Tower Lounge',
+    statusBadge: 'Partner',
   },
   {
     id: 'srey-pov',
@@ -96,6 +105,8 @@ const DEFAULT_CONTACTS: ContactLead[] = [
     category: 'new',
     notes: 'Exchanged contact via digital pass link.',
     avatar: require('@/assets/images/avatars/avatar_founder_woman.jpg'),
+    location: 'Digital Summit 2026',
+    statusBadge: 'Warm Lead',
   },
   {
     id: 'alex-turner',
@@ -109,6 +120,8 @@ const DEFAULT_CONTACTS: ContactLead[] = [
     category: 'new',
     notes: 'Interested in metal bulk cards for executive team.',
     avatar: require('@/assets/images/avatars/avatar_executive_real.jpg'),
+    location: 'Singapore Fintech Festival',
+    statusBadge: 'Investor',
   },
   {
     id: 'chhay-vibol',
@@ -122,6 +135,8 @@ const DEFAULT_CONTACTS: ContactLead[] = [
     category: 'new',
     notes: 'Digital business cards rollout.',
     avatar: require('@/assets/images/avatars/avatar_founder_man.jpg'),
+    location: 'Exchange Square PP',
+    statusBadge: 'Partner',
   },
 ];
 
@@ -317,12 +332,33 @@ export default function LeadsScreen() {
 
                     {/* Details */}
                     <View style={styles.contactDetails}>
-                      <AppText style={styles.contactName} weight="bold">
-                        {contact.name}
-                      </AppText>
+                      <View style={styles.contactNameHeader}>
+                        <AppText style={styles.contactName} weight="bold">
+                          {contact.name}
+                        </AppText>
+                        {contact.statusBadge ? (
+                          <View
+                            style={[
+                              styles.statusBadgePill,
+                              contact.statusBadge === 'VIP' && styles.statusBadgeVip,
+                              contact.statusBadge === 'Investor' && styles.statusBadgeInvestor,
+                            ]}
+                          >
+                            <AppText style={styles.statusBadgeText}>{contact.statusBadge}</AppText>
+                          </View>
+                        ) : null}
+                      </View>
                       <AppText style={styles.contactSub}>
                         {contact.company} · {contact.title}
                       </AppText>
+                      {contact.location ? (
+                        <View style={styles.locationChipRow}>
+                          <AppIcon name="map-pin" size={11} color={C.emerald} />
+                          <AppText style={styles.locationChipText}>
+                            {contact.location}
+                          </AppText>
+                        </View>
+                      ) : null}
                       <View style={styles.contactSourceRow}>
                         <AppText style={styles.sourceTag}>
                           {contact.source}
@@ -420,22 +456,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#141418',
   },
   filterTabPillActive: {
-    backgroundColor: '#2596BE',
+    backgroundColor: '#FFFFFF',
   },
   filterTabText: {
     fontSize: 13,
     color: C.textSecondary,
   },
   filterTabTextActive: {
-    color: '#FFFFFF',
+    color: '#000000',
+    fontWeight: '700',
   },
   scroll: {
     flexGrow: 1,
   },
   contentWrap: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     width: '100%',
-    maxWidth: 640,
+    maxWidth: 720,
     alignSelf: 'center',
   },
   contactsBox: {
@@ -456,7 +493,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.15)',
     backgroundColor: '#000000',
     marginRight: 14,
@@ -477,14 +513,48 @@ const styles = StyleSheet.create({
   contactDetails: {
     flex: 1,
   },
+  contactNameHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   contactName: {
     fontSize: 15,
     color: C.text,
+  },
+  statusBadgePill: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: 'rgba(121, 154, 133, 0.16)',
+  },
+  statusBadgeVip: {
+    backgroundColor: 'rgba(255, 215, 0, 0.18)',
+  },
+  statusBadgeInvestor: {
+    backgroundColor: 'rgba(37, 150, 190, 0.18)',
+  },
+  statusBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
   },
   contactSub: {
     fontSize: 12,
     color: C.textSecondary,
     marginTop: 2,
+  },
+  locationChipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  locationChipText: {
+    fontSize: 11,
+    color: C.emerald,
+    fontWeight: '500',
   },
   contactSourceRow: {
     flexDirection: 'row',

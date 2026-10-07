@@ -64,7 +64,7 @@ export default function NfcWriteScreen() {
 
       <View style={styles.center}>
         <View style={styles.iconCircle}>
-          <AppIcon name="Nfc" size={48} color="#2596BE" />
+          <AppIcon name="Nfc" size={48} color="#799A85" />
         </View>
 
         <AppText style={styles.title}>Writing your profile…</AppText>
@@ -109,9 +109,7 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: 'rgba(37,150,190,0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(37,150,190,0.3)',
+    backgroundColor: 'rgba(121, 154, 133, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
@@ -143,7 +141,7 @@ const styles = StyleSheet.create({
   progressFill: {
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#2596BE',
+    backgroundColor: '#799A85',
   },
   progressText: {
     fontSize: 14,

@@ -163,7 +163,6 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === 'ios' ? 40 : 28,
     gap: 16,
     borderTopWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
   },
   handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.18)', alignSelf: 'center', marginTop: 10, marginBottom: 4 },
   header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },

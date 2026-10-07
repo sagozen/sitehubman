@@ -13,12 +13,12 @@ import { IosScrollView } from '@/src/components/IosScrollView';
 import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
-  canvas: '#000000',
-  surface: '#111114',
+  canvas: '#0D0D0E',
+  surface: '#242424',
   border: 'rgba(255,255,255,0.09)',
   text: '#F5F5F7',
   muted: '#9A9AA0',
-  accent: '#2596BE',
+  accent: '#799A85',
 } as const;
 
 interface ToggleRow {
@@ -155,8 +155,6 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: C.surface,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: C.border,
     overflow: 'hidden',
   },
   row: {
@@ -194,10 +192,11 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   saveBtn: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    height: 48,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 8,
   },
   saveBtnPressed: { opacity: 0.85 },

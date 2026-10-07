@@ -295,7 +295,6 @@ const styles = StyleSheet.create({
   },
   skeleton: {
     borderRadius: 24,
-    borderWidth: 1.5,
     borderStyle: 'dashed',
     borderColor: 'rgba(37,150,190,0.45)',
     backgroundColor: 'rgba(255,255,255,0.55)',
@@ -363,14 +362,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.96)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
     borderColor: 'rgba(37,150,190,0.25)',
     ...createShadow({ color: '#2596BE', offset: { width: 0, height: 4 }, opacity: 0.2, radius: 12, elevation: 4 }),
   },
   plusFabDark: {
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    borderWidth: 1,
     shadowColor: '#FFFFFF',
   },
 });

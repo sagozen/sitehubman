@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 const HomeScreen = lazy(() =>
-  import('@/src/features/home/HomeScreen').then((m) => ({ default: m.HomeScreen }))
+  import('@/src/features/guest/GuestHomeScreen').then((m) => ({ default: m.GuestHomeScreen }))
 );
 
 function TabFallback() {

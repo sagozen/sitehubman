@@ -79,7 +79,6 @@ function ContactExchangeModalRaw({
             styles.sheet,
             {
               backgroundColor: '#111114',
-              borderColor: 'rgba(255, 255, 255, 0.1)',
               paddingBottom: Math.max(insets.bottom, 20),
             },
           ]}
@@ -184,7 +183,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    borderWidth: 1,
     paddingHorizontal: 20,
     paddingTop: 12,
   },
@@ -220,8 +218,6 @@ const styles = StyleSheet.create({
   input: {
     height: 48,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 12,
     paddingHorizontal: 14,
     color: '#FFFFFF',

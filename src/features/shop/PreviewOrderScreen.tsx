@@ -13,8 +13,8 @@ import AppIcon, { type AppIconName } from '@/src/components/AppIcon';
 import IosScrollView from '@/src/components/IosScrollView';
 import { HapticTap } from '@/src/utils/haptics';
 
-const ACCENT = '#2596BE';
-const SURFACE = '#111114';
+const ACCENT = '#799A85';
+const SURFACE = '#242424';
 const BORDER = 'rgba(255,255,255,0.09)';
 const TEXT = '#F5F5F7';
 const MUTED = '#9A9AA0';
@@ -218,7 +218,6 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 19,
     backgroundColor: SURFACE,
-    borderWidth: 1,
     borderColor: BORDER,
     alignItems: 'center',
     justifyContent: 'center',
@@ -256,7 +255,6 @@ const styles = StyleSheet.create({
   },
   cardFront: {
     backgroundColor: '#0F1923',
-    borderWidth: 1,
     borderColor: 'rgba(37,150,190,0.4)',
     padding: 20,
     justifyContent: 'space-between',

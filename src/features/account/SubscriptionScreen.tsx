@@ -13,12 +13,12 @@ import { IosScrollView } from '@/src/components/IosScrollView';
 import { HapticTap } from '@/src/utils/haptics';
 
 const C = {
-  canvas: '#000000',
-  surface: '#111114',
+  canvas: '#0D0D0E',
+  surface: '#242424',
   border: 'rgba(255,255,255,0.09)',
   text: '#F5F5F7',
   muted: '#9A9AA0',
-  accent: '#2596BE',
+  accent: '#799A85',
 } as const;
 
 const FREE_FEATURES = ['1 NFC card', 'Basic profile page', 'QR code sharing', 'Basic analytics'];
@@ -113,12 +113,13 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 130, gap: 16 },
   planCard: {
     backgroundColor: C.surface,
-    borderRadius: 20,
+    borderRadius: 16,
     padding: 24,
     gap: 14,
   },
   proPlanCard: {
-    backgroundColor: '#161622',
+    backgroundColor: '#242424',
+    borderColor: '#799A85',
   },
   planHeader: {
     flexDirection: 'row',
@@ -154,9 +155,10 @@ const styles = StyleSheet.create({
   featureRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   upgradeBtn: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    paddingVertical: 15,
+    borderRadius: 24,
+    height: 48,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 10,
   },
   upgradeBtnText: { color: '#000000', fontWeight: '700', fontSize: 15 },

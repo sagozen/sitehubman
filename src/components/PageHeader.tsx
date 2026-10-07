@@ -1,5 +1,5 @@
-﻿/**
- * PageHeader — Apple HIG-compliant screen header.
+/**
+ * PageHeader � Apple HIG-compliant screen header.
  * - Navigation bar: 44pt height, Title 3 (20pt/600) or Large Title (34pt/700)
  * - Back button: 44x44pt hit target, chevron-left icon only
  * - Separator line: Apple system separator color
@@ -166,7 +166,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
