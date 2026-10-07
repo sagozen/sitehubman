@@ -586,8 +586,6 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 19,
     backgroundColor: GRANITE_RAISED,
-    borderWidth: 1,
-    borderColor: GRANITE_BEVEL,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -620,9 +618,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: GRANITE_SLAB,
-    borderWidth: 1,
-    borderColor: GRANITE_BEVEL,
-    borderTopColor: GRANITE_TOP_LIGHT,
   },
   notifDot: {
     position: 'absolute',
@@ -638,9 +633,6 @@ const styles = StyleSheet.create({
   heroPassCard: {
     backgroundColor: GRANITE_SLAB,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: GRANITE_BEVEL,
-    borderTopColor: GRANITE_TOP_LIGHT,
     padding: 18,
     gap: 14,
   },
@@ -667,8 +659,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: GRANITE_BEVEL,
   },
   liveDot: {
     width: 6,
@@ -695,8 +685,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   passDivider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: GRANITE_BEVEL,
+    height: 0,
   },
   passActionsRow: {
     flexDirection: 'row',
@@ -725,9 +714,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: GRANITE_RAISED,
-    borderWidth: 1,
-    borderColor: GRANITE_BEVEL,
-    borderTopColor: GRANITE_TOP_LIGHT,
   },
 
   // ── BENTO 2-COLUMN GRID (Granite Compartments) ──
@@ -739,9 +725,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: GRANITE_SLAB,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: GRANITE_BEVEL,
-    borderTopColor: GRANITE_TOP_LIGHT,
     padding: 16,
     justifyContent: 'space-between',
     minHeight: 126,
@@ -808,9 +791,6 @@ const styles = StyleSheet.create({
   bentoFullCard: {
     backgroundColor: GRANITE_SLAB,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: GRANITE_BEVEL,
-    borderTopColor: GRANITE_TOP_LIGHT,
     padding: 16,
     gap: 12,
   },
@@ -862,9 +842,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   timelineDivider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: GRANITE_BEVEL,
-    marginLeft: 46,
+    height: 0,
   },
 
   // ── Order Rows ──
@@ -887,7 +865,6 @@ const styles = StyleSheet.create({
   },
   orderRight: {},
   orderPill: {
-    borderWidth: 1,
     borderRadius: 6,
     paddingHorizontal: 7,
     paddingVertical: 2,
@@ -908,9 +885,6 @@ const styles = StyleSheet.create({
   modalCard: {
     backgroundColor: GRANITE_SLAB,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: GRANITE_BEVEL,
-    borderTopColor: GRANITE_TOP_LIGHT,
     padding: 24,
     alignItems: 'center',
     width: '100%',

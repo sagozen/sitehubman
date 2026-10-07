@@ -58,20 +58,18 @@ export function MonoDemoScreen() {
       </View>
 
       {/* ── Card list ───────────────────────────── */}
-      <MonoCard variant="flat" bordered pad="sm" radius="xl">
+      <MonoCard variant="flat" pad="sm" radius="xl">
         <MonoRow
           icon={<Ionicons name="person" size={20} color={muted} />}
           title="Profile"
           subtitle="Name, headline, links"
           showChevron
-          divider
         />
         <MonoRow
           icon={<Ionicons name="card" size={20} color={muted} />}
           title="Cards"
           subtitle="Active, archived"
           showChevron
-          divider
         />
         <MonoRow
           icon={<Ionicons name="notifications" size={20} color={muted} />}
@@ -83,7 +81,6 @@ export function MonoDemoScreen() {
             </View>
           }
           showChevron
-          divider
         />
         <MonoRow
           icon={<Ionicons name="settings" size={20} color={muted} />}
@@ -99,10 +96,10 @@ export function MonoDemoScreen() {
           Status
         </MonoText>
         <View style={styles.chipRow}>
-          <MonoText style={[styles.chipPill, { borderColor: hairline, color: ink }]}>Live</MonoText>
-          <MonoText style={[styles.chipPill, { borderColor: hairline, color: ink }]}>Synced</MonoText>
-          <MonoText style={[styles.chipPill, { borderColor: hairline, color: ink }]}>Verified</MonoText>
-          <MonoText style={[styles.chipPill, { borderColor: hairline, color: muted }]}>Draft</MonoText>
+          <MonoText style={[styles.chipPill, { backgroundColor: isDark ? '#1C1C22' : '#F0F0F3', color: ink }]}>Live</MonoText>
+          <MonoText style={[styles.chipPill, { backgroundColor: isDark ? '#1C1C22' : '#F0F0F3', color: ink }]}>Synced</MonoText>
+          <MonoText style={[styles.chipPill, { backgroundColor: isDark ? '#1C1C22' : '#F0F0F3', color: ink }]}>Verified</MonoText>
+          <MonoText style={[styles.chipPill, { backgroundColor: isDark ? '#18181E' : '#E8E8EC', color: muted }]}>Draft</MonoText>
         </View>
       </View>
 
@@ -145,7 +142,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   statDivider: {
-    width: 0.5,
+    width: 0,
     alignSelf: 'stretch',
   },
   twoCol: {
@@ -162,7 +159,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: monoSpace[3],
     paddingVertical: monoSpace[1] + 2,
     borderRadius: monoRadius.full,
-    borderWidth: 0.5,
     fontSize: 12,
     fontWeight: '600',
     letterSpacing: -0.1,

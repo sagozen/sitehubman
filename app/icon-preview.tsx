@@ -91,16 +91,12 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
     borderRadius: theme.radius.xl,
     backgroundColor: theme.colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: theme.colors.border,
   },
   registryRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: theme.colors.border,
   },
   registryCopy: {
     flex: 1,

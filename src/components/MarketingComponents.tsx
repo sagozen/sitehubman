@@ -70,7 +70,7 @@ export function EditorialHeroBanner({
   const { colors } = usePreferences();
 
   return (
-    <View style={[styles.heroCard, { backgroundColor: colors.surface, borderColor: colors.border }, style]}>
+    <View style={[styles.heroCard, { backgroundColor: colors.surface }, style]}>
       {/* Visual Header */}
       <View style={styles.heroImageContainer}>
         <Image source={image} style={styles.heroImage} resizeMode="cover" />
@@ -142,7 +142,7 @@ export function PremiumFeatureCard({
   const { colors } = usePreferences();
 
   return (
-    <View style={[styles.featureCard, { backgroundColor: colors.surface, borderColor: colors.border }, style]}>
+    <View style={[styles.featureCard, { backgroundColor: colors.surface }, style]}>
       <Image source={image} style={styles.featureImage} resizeMode="cover" />
       <View style={styles.featureContent}>
         <AppText variant="h2" weight="bold" style={styles.featureTitle}>
@@ -190,7 +190,7 @@ export function NewsletterEditorialCard({
   const { colors } = usePreferences();
 
   return (
-    <View style={[styles.newsletterCard, { backgroundColor: colors.surface, borderColor: colors.border }, style]}>
+    <View style={[styles.newsletterCard, { backgroundColor: colors.surface }, style]}>
       {/* Category & Time */}
       <View style={styles.metaRow}>
         <View style={[styles.tag, { backgroundColor: colors.surfaceSoft }]}>
@@ -214,7 +214,7 @@ export function NewsletterEditorialCard({
       </AppText>
 
       {onPress && (
-        <Pressable style={[styles.newsletterCta, { borderTopColor: colors.border }]} onPress={onPress}>
+        <Pressable style={styles.newsletterCta} onPress={onPress}>
           <AppText variant="body" weight="semibold" style={{ color: colors.textPrimary }}>
             {ctaLabel}
           </AppText>
@@ -245,7 +245,7 @@ export function FeatureAnnouncementCard({
   const { colors } = usePreferences();
 
   return (
-    <View style={[styles.announcementCard, { backgroundColor: colors.surface, borderColor: colors.border }, style]}>
+    <View style={[styles.announcementCard, { backgroundColor: colors.surface }, style]}>
       <View style={styles.announcementHeader}>
         <View style={[styles.announcementBadge, { backgroundColor: colors.primarySoft }]}>
           <AppText variant="caption" weight="bold" style={{ color: colors.primary }}>
@@ -297,7 +297,7 @@ export function BenefitPromotionCard({
   const { colors } = usePreferences();
 
   return (
-    <View style={[styles.promotionCard, { backgroundColor: colors.surface, borderColor: colors.border }, style]}>
+    <View style={[styles.promotionCard, { backgroundColor: colors.surface }, style]}>
       <View style={styles.promotionImageWrapper}>
         <Image source={image} style={styles.promotionImage} resizeMode="cover" />
       </View>
@@ -329,7 +329,6 @@ const styles = StyleSheet.create({
   // Hero Banner styles
   heroCard: {
     borderRadius: 28,
-    borderWidth: 1,
     overflow: 'hidden',
     ...createShadow({ color: '#000', offset: { width: 0, height: 6 }, opacity: 0.05, radius: 12, elevation: 4 }),
     marginBottom: 24,
@@ -387,7 +386,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 24,
-    borderWidth: 1,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -396,7 +395,6 @@ const styles = StyleSheet.create({
   // Feature Card styles
   featureCard: {
     borderRadius: 24,
-    borderWidth: 1,
     overflow: 'hidden',
     ...createShadow({ color: '#000', offset: { width: 0, height: 4 }, opacity: 0.03, radius: 8, elevation: 2 }),
     marginBottom: 20,
@@ -428,7 +426,6 @@ const styles = StyleSheet.create({
   // Newsletter styles
   newsletterCard: {
     borderRadius: 28,
-    borderWidth: 1,
     padding: 24,
     ...createShadow({ color: '#000', offset: { width: 0, height: 6 }, opacity: 0.04, radius: 10, elevation: 3 }),
     marginBottom: 24,
@@ -461,7 +458,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   newsletterCta: {
-    borderTopWidth: 1,
     paddingTop: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -471,7 +467,6 @@ const styles = StyleSheet.create({
   // Announcement styles
   announcementCard: {
     borderRadius: 24,
-    borderWidth: 1,
     padding: 20,
     ...createShadow({ color: '#000', offset: { width: 0, height: 4 }, opacity: 0.03, radius: 8, elevation: 2 }),
     marginBottom: 20,
@@ -507,7 +502,6 @@ const styles = StyleSheet.create({
   // Promotion styles
   promotionCard: {
     borderRadius: 28,
-    borderWidth: 1,
     overflow: 'hidden',
     flexDirection: 'row',
     minHeight: 140,

@@ -411,7 +411,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
   } as ViewStyle,
   backBtn: {
     minWidth: 60,
@@ -458,7 +457,6 @@ const styles = StyleSheet.create({
   pageCard: {
     borderRadius: 16,
     padding: 16,
-    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -471,9 +469,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   } as ViewStyle,
   iconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 32,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
   } as ViewStyle,
@@ -492,7 +489,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 12,
     borderRadius: 16,
-    borderWidth: 1,
     marginBottom: 24,
   } as ViewStyle,
   statItem: {

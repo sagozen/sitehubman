@@ -233,8 +233,6 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: iosDesign.radius.pill,
     backgroundColor: 'rgba(255,255,255,0.16)',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.32)',
   },
   yourDesignBadgeText: {
     fontSize: 9,
@@ -250,8 +248,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.14)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.35)',
   },
   tapAddPhotoText: {
     fontSize: 11,
@@ -329,8 +325,6 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: iosDesign.radius.pill,
     backgroundColor: 'rgba(0,0,0,0.2)',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.24)',
   },
   nfcChipText: {
     fontSize: 8,
@@ -346,8 +340,6 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 18,
     backgroundColor: 'rgba(0,0,0,0.24)',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.18)',
   },
   identityBlock: {
     flex: 1,

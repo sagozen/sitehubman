@@ -1,21 +1,20 @@
 /**
- * HomeScreen — 06 Main Dashboard & Share Center
- * Luxury Minimalist (Apple Wallet × Stripe × Linear)
- *
- * Design Principles:
- * - True Black (#000000) canvas
- * - No RGB / rainbow clutter (no green status dots, no neon gradients)
- * - Restrained Monochrome with surgical #2596BE accent
- * - Seamless background tone transitions instead of heavy 1px borders
- * - High-conviction typography, generous whitespace, confident calm luxury
+ * HomeScreen — Flow 1: Home / Living Digital Identity
+ * Direction:
+ * - Photography & Human Presence (large executive portrait anchor, avatar cluster)
+ * - Breaking the Card Box (editorial bleed, floating physical card, overlapping badge)
+ * - Living Data (real people connections "+6 today", reach curve, active beacon)
+ * - High-Impact Editorial Typography ("Be remembered. One tap away.")
+ * - Apple HIG × Modern Travel Lifestyle × Premium Black Granite UI
  */
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   StyleSheet,
   Pressable,
   Image,
   Clipboard,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -23,31 +22,32 @@ import { AppText } from '@/src/components/AppText';
 import { AppIcon } from '@/src/components/AppIcon';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useAuth } from '@/src/hooks/useAuth';
+import { useBioPage } from '@/src/hooks/useBioPage';
 import { HapticTap } from '@/src/utils/haptics';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const C = {
   canvas: '#000000',
   surface: '#0E0E12',
-  surfaceSoft: '#16161C',
-  hairline: 'rgba(255, 255, 255, 0.06)',
+  surfaceRaised: '#16161C',
+  surfaceGlass: 'rgba(20, 20, 26, 0.72)',
+  hairline: 'rgba(255, 255, 255, 0.08)',
   text: '#FFFFFF',
   textSecondary: '#A1A1AA',
-  textMuted: '#52525B',
+  textMuted: '#636366',
   accent: '#2596BE',
-  cardBg: '#0B0B0E',
+  accentCyan: '#00A3FF',
+  emerald: '#30D158',
 } as const;
-
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
-  return 'Good evening';
-}
 
 export function HomeScreen() {
   const { user } = useAuth();
-  const userName = user?.displayName || 'Thean Coc';
-  const greeting = getGreeting();
+  const { bioPage } = useBioPage(user?.id ?? '');
+
+  const userName = bioPage?.displayName || user?.displayName || 'Thean Coc';
+  const userTitle = bioPage?.tagline || bioPage?.headline || 'Founder & Director';
+  const company = bioPage?.company || 'NFC Global';
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -55,8 +55,14 @@ export function HomeScreen() {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
-    }, 2000);
+    }, 2200);
   }, []);
+
+  const profileUrl = useMemo(() => {
+    if (bioPage?.slug) return `https://nfcglobal.com/u/${bioPage.slug}`;
+    const slug = userName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return `https://nfcglobal.com/u/${slug || 'thean'}`;
+  }, [bioPage?.slug, userName]);
 
   const handleTapToShare = useCallback(() => {
     HapticTap.confidentClick();
@@ -70,19 +76,18 @@ export function HomeScreen() {
 
   const handleQrAction = useCallback(() => {
     HapticTap.light();
-    router.push('/qr/customize' as any);
+    router.push('/qr-generator' as any);
   }, []);
 
   const handleLinkAction = useCallback(() => {
     HapticTap.softConfirmation();
-    const profileUrl = `https://nfcglobal.com/u/theancoc`;
     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(profileUrl).catch(() => null);
     } else if (Clipboard && Clipboard.setString) {
       Clipboard.setString(profileUrl);
     }
     showToast('Profile link copied');
-  }, [showToast]);
+  }, [profileUrl, showToast]);
 
   const handleContactAction = useCallback(() => {
     HapticTap.light();
@@ -91,210 +96,324 @@ export function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <IosScrollView contentContainerStyle={styles.scroll}>
-        {/* Header */}
-        <View style={styles.header}>
+      <IosScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        {/* ── Top Editorial Identity Header (Breaks rigid borders) ── */}
+        <View style={styles.topBar}>
           <View>
-            <AppText style={styles.greetingText}>
-              {greeting},
+            <AppText style={styles.brandKicker} weight="bold">
+              SITEHUB · IDENTITY
             </AppText>
-            <AppText style={styles.nameText} weight="bold">
-              {userName}
-            </AppText>
-            <AppText style={styles.roleText}>
-              Founder & Director
+            <AppText style={styles.editorialHeadline} weight="bold">
+              Be remembered.
             </AppText>
           </View>
+
           <Pressable
-            style={styles.avatarButton}
+            style={styles.avatarPill}
             onPress={() => router.push('/(tabs)/settings' as any)}
-            hitSlop={12}
+            hitSlop={10}
           >
             <Image
               source={require('@/assets/images/avatars/avatar_founder_man.jpg')}
-              style={styles.avatarCircle}
+              style={styles.topBarAvatar}
             />
+            <View style={styles.onlineDot} />
           </Pressable>
         </View>
 
-        {/* Hero Physical NFC Card (Apple Wallet Aesthetic) */}
-        <View style={styles.cardWrapper}>
-          <Pressable
-            style={styles.physicalCard}
-            onPress={() => router.push('/(tabs)/share' as any)}
-          >
-            <View style={styles.cardTopRow}>
-              <View style={styles.contactlessSymbol}>
-                <View style={[styles.contactlessArc, styles.arc1]} />
-                <View style={[styles.contactlessArc, styles.arc2]} />
-                <View style={[styles.contactlessArc, styles.arc3]} />
-                <View style={[styles.contactlessArc, styles.arc4]} />
-              </View>
-              <AppText style={styles.cardTypeLabel}>BLACK METAL</AppText>
-            </View>
+        {/* ── Living Visual Hero Anchor (Large Portrait + Floating NFC Pass) ── */}
+        <View style={styles.heroAnchorContainer}>
+          {/* Real Human Photography Environment */}
+          <View style={styles.heroPhotoWrapper}>
+            <Image
+              source={require('@/assets/images/avatars/avatar_executive_real.jpg')}
+              style={styles.heroPhotoImage}
+              resizeMode="cover"
+            />
+            <View style={styles.heroPhotoOverlay} />
 
-            <View style={styles.cardBody}>
-              <View style={styles.cardOwnerCol}>
-                <AppText style={styles.cardOwnerName} weight="bold">
-                  {userName.toUpperCase()}
-                </AppText>
-                <AppText style={styles.cardOwnerTitle}>
-                  FOUNDER & DIRECTOR
+            {/* Overlapping Identity Title directly on photography */}
+            <View style={styles.heroTextOverlay}>
+              <View style={styles.heroLiveBadge}>
+                <View style={styles.heroBeaconDot} />
+                <AppText style={styles.heroLiveText} weight="bold">
+                  NFC ACTIVE
                 </AppText>
               </View>
-              <Image
-                source={require('@/assets/images/avatars/avatar_founder_man.jpg')}
-                style={styles.cardAvatarPhoto}
-              />
-            </View>
 
-            <View style={styles.cardBottomRow}>
-              <AppText style={styles.cardSerial}>NFC • CONNECTED</AppText>
-              <View style={styles.cardAccentPip} />
+              <AppText style={styles.heroPersonName} weight="bold">
+                {userName}
+              </AppText>
+              <AppText style={styles.heroPersonTitle}>
+                {userTitle} · {company}
+              </AppText>
             </View>
-          </Pressable>
-        </View>
+          </View>
 
-        {/* Primary Action Button — Apple Style Solid White */}
-        <View style={styles.actionContainer}>
+          {/* Floating Physical Metal Card Overlay — Breaks Card Boundary */}
           <Pressable
             style={({ pressed }) => [
-              styles.primaryButton,
-              pressed && styles.buttonPressed,
+              styles.floatingMetalCard,
+              pressed && styles.floatingCardPressed,
             ]}
             onPress={handleTapToShare}
           >
-            <AppText style={styles.primaryButtonText} weight="bold">
-              TAP TO SHARE
-            </AppText>
+            <View style={styles.metalCardHeader}>
+              <View style={styles.metalBrandRow}>
+                <AppIcon name="wifi" size={15} color="rgba(255,255,255,0.85)" style={{ transform: [{ rotate: '90deg' }] }} />
+                <AppText style={styles.metalBrandText} weight="bold">
+                  NFC GLOBAL
+                </AppText>
+              </View>
+              <AppText style={styles.metalMaterialBadge}>BLACK METAL</AppText>
+            </View>
+
+            <View style={styles.metalCardMiddle}>
+              <AppText style={styles.metalOwnerText} weight="bold">
+                {userName.toUpperCase()}
+              </AppText>
+              <AppText style={styles.metalRoleText}>
+                MANAGING DIRECTOR · VERIFIED PASS
+              </AppText>
+            </View>
+
+            <View style={styles.metalCardFooter}>
+              <View style={styles.metalChipIcon}>
+                <View style={styles.chipSegment} />
+                <View style={styles.chipSegment} />
+              </View>
+              <AppText style={styles.metalSerialText}>
+                ID // 084 · TAP READY
+              </AppText>
+            </View>
           </Pressable>
         </View>
 
-        {/* Minimalist Metrics (Apple Health / Linear clean typography) */}
-        <View style={styles.statsRow}>
-          <Pressable
-            style={styles.statItem}
-            onPress={() => router.push('/analytics/nfc' as any)}
-          >
-            <AppText style={styles.statNumber} weight="bold">
-              326
-            </AppText>
-            <AppText style={styles.statLabel}>NFC TAPS</AppText>
-          </Pressable>
+        {/* ── Primary Physical Interaction Trigger ── */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.primaryTapAction,
+            pressed && styles.primaryTapActionPressed,
+          ]}
+          onPress={handleTapToShare}
+        >
+          <View style={styles.tapActionLeft}>
+            <View style={styles.tapIconPulse}>
+              <AppIcon name="wifi" size={20} color="#000000" style={{ transform: [{ rotate: '90deg' }] }} />
+            </View>
+            <View>
+              <AppText style={styles.tapActionTitle} weight="bold">
+                TAP TO SHARE IDENTITY
+              </AppText>
+              <AppText style={styles.tapActionSubtitle}>
+                Hold phone near client or card to beam
+              </AppText>
+            </View>
+          </View>
+          <AppIcon name="chevron-right" size={20} color="#000000" />
+        </Pressable>
 
-          <View style={styles.statDivider} />
+        {/* ── Living Connections Bar (People + Movement instead of static numbers) ── */}
+        <Pressable
+          style={styles.livingConnectionsBar}
+          onPress={() => router.push('/leads' as any)}
+        >
+          <View style={styles.avatarStack}>
+            <Image
+              source={require('@/assets/images/avatars/avatar_founder_man.jpg')}
+              style={[styles.stackAvatar, { zIndex: 4, left: 0 }]}
+            />
+            <Image
+              source={require('@/assets/images/avatars/avatar_founder_woman.jpg')}
+              style={[styles.stackAvatar, { zIndex: 3, left: 24 }]}
+            />
+            <Image
+              source={require('@/assets/images/avatars/avatar_executive_real.jpg')}
+              style={[styles.stackAvatar, { zIndex: 2, left: 48 }]}
+            />
+            <View style={[styles.stackAvatarCount, { zIndex: 1, left: 72 }]}>
+              <AppText style={styles.stackCountText} weight="bold">
+                +18
+              </AppText>
+            </View>
+          </View>
 
-          <Pressable
-            style={styles.statItem}
-            onPress={() => router.push('/analytics' as any)}
-          >
-            <AppText style={styles.statNumber} weight="bold">
-              1,284
+          <View style={styles.connectionsTextCol}>
+            <View style={styles.connectionsRow}>
+              <AppText style={styles.connectionsHighlight} weight="bold">
+                24 new connections
+              </AppText>
+              <View style={styles.todayPill}>
+                <AppText style={styles.todayPillText} weight="bold">
+                  +6 today
+                </AppText>
+              </View>
+            </View>
+            <AppText style={styles.connectionsSub}>
+              Metfone Summit & Executive Dinners
             </AppText>
-            <AppText style={styles.statLabel}>PROFILE VIEWS</AppText>
-          </Pressable>
+          </View>
+
+          <AppIcon name="chevron-right" size={16} color={C.textMuted} />
+        </Pressable>
+
+        {/* ── Living Data: Visual Reach Graph (No rigid box, continuous rhythm) ── */}
+        <View style={styles.visualReachSection}>
+          <View style={styles.reachHeader}>
+            <View>
+              <AppText style={styles.reachSectionTitle} weight="bold">
+                Profile Reach
+              </AppText>
+              <AppText style={styles.reachNumber} weight="bold">
+                1,284 views
+              </AppText>
+            </View>
+            <View style={styles.trendBadge}>
+              <AppIcon name="trending-up" size={12} color={C.emerald} />
+              <AppText style={styles.trendText} weight="bold">
+                +24% this week
+              </AppText>
+            </View>
+          </View>
+
+          {/* Organic Day Waves */}
+          <View style={styles.waveChartRow}>
+            {[
+              { day: 'Mon', h: 32, active: false },
+              { day: 'Tue', h: 48, active: false },
+              { day: 'Wed', h: 64, active: false },
+              { day: 'Thu', h: 92, active: true },
+              { day: 'Fri', h: 80, active: false },
+              { day: 'Sat', h: 44, active: false },
+              { day: 'Sun', h: 96, active: true },
+            ].map((col) => (
+              <View key={col.day} style={styles.waveCol}>
+                <View style={styles.waveTrack}>
+                  <View
+                    style={[
+                      styles.waveBar,
+                      { height: `${col.h}%` },
+                      col.active && styles.waveBarActive,
+                    ]}
+                  />
+                </View>
+                <AppText style={styles.waveDayLabel}>{col.day}</AppText>
+              </View>
+            ))}
+          </View>
         </View>
 
-        {/* Share Center — Clean Understated Row */}
-        <View style={styles.sectionHeader}>
-          <AppText style={styles.sectionTitle} weight="bold">
-            Share
+        {/* ── Share Matrix (Sleek High-Contrast Floating Triggers) ── */}
+        <View style={styles.shareMatrixHeader}>
+          <AppText style={styles.shareMatrixTitle} weight="bold">
+            QUICK EXCHANGE
           </AppText>
         </View>
 
-        <View style={styles.shareRow}>
+        <View style={styles.shareActionsRow}>
           <Pressable
-            style={({ pressed }) => [styles.shareBtn, pressed && styles.shareBtnPressed]}
+            style={({ pressed }) => [styles.shareActionBtn, pressed && styles.shareActionBtnPressed]}
             onPress={handleNfcAction}
           >
-            <AppIcon name="wifi" size={18} color={C.text} style={{ transform: [{ rotate: '90deg' }] }} />
-            <AppText style={styles.shareBtnLabel}>NFC</AppText>
+            <View style={styles.shareActionIconWrap}>
+              <AppIcon name="wifi" size={18} color="#FFFFFF" style={{ transform: [{ rotate: '90deg' }] }} />
+            </View>
+            <AppText style={styles.shareActionBtnTitle} weight="medium">NFC</AppText>
+            <AppText style={styles.shareActionBtnSub}>Device tap</AppText>
           </Pressable>
 
           <Pressable
-            style={({ pressed }) => [styles.shareBtn, pressed && styles.shareBtnPressed]}
+            style={({ pressed }) => [styles.shareActionBtn, pressed && styles.shareActionBtnPressed]}
             onPress={handleQrAction}
           >
-            <AppIcon name="qr-code" size={18} color={C.text} />
-            <AppText style={styles.shareBtnLabel}>QR Code</AppText>
+            <View style={styles.shareActionIconWrap}>
+              <AppIcon name="qr-code" size={18} color="#FFFFFF" />
+            </View>
+            <AppText style={styles.shareActionBtnTitle} weight="medium">QR Pass</AppText>
+            <AppText style={styles.shareActionBtnSub}>Fullscreen</AppText>
           </Pressable>
 
           <Pressable
-            style={({ pressed }) => [styles.shareBtn, pressed && styles.shareBtnPressed]}
+            style={({ pressed }) => [styles.shareActionBtn, pressed && styles.shareActionBtnPressed]}
             onPress={handleLinkAction}
           >
-            <AppIcon name="copy" size={18} color={C.text} />
-            <AppText style={styles.shareBtnLabel}>Copy Link</AppText>
+            <View style={styles.shareActionIconWrap}>
+              <AppIcon name="copy" size={18} color="#FFFFFF" />
+            </View>
+            <AppText style={styles.shareActionBtnTitle} weight="medium">Copy Link</AppText>
+            <AppText style={styles.shareActionBtnSub}>Web URL</AppText>
           </Pressable>
 
           <Pressable
-            style={({ pressed }) => [styles.shareBtn, pressed && styles.shareBtnPressed]}
+            style={({ pressed }) => [styles.shareActionBtn, pressed && styles.shareActionBtnPressed]}
             onPress={handleContactAction}
           >
-            <AppIcon name="user" size={18} color={C.text} />
-            <AppText style={styles.shareBtnLabel}>Save Contact</AppText>
+            <View style={styles.shareActionIconWrap}>
+              <AppIcon name="user-plus" size={18} color="#FFFFFF" />
+            </View>
+            <AppText style={styles.shareActionBtnTitle} weight="medium">vCard</AppText>
+            <AppText style={styles.shareActionBtnSub}>Contacts</AppText>
           </Pressable>
         </View>
 
-        {/* Recent Activity (Apple Wallet Transaction List) */}
-        <View style={styles.sectionHeader}>
-          <AppText style={styles.sectionTitle} weight="bold">
-            Recent Activity
+        {/* ── Live Activity Feed (Human Interactions) ── */}
+        <View style={styles.activityHeader}>
+          <AppText style={styles.activitySectionTitle} weight="bold">
+            Recent Interactions
           </AppText>
           <Pressable
-            onPress={() => {
-              HapticTap.light();
-              router.push('/activity' as any);
-            }}
+            onPress={() => router.push('/activity' as any)}
             hitSlop={8}
           >
-            <AppText style={styles.viewAllText}>View All</AppText>
+            <AppText style={styles.viewAllText}>View All →</AppText>
           </Pressable>
         </View>
 
-        <View style={styles.activityList}>
-          <View style={styles.activityRow}>
-            <View style={styles.activityInfo}>
-              <AppText style={styles.activityTitle} weight="medium">
-                NFC Tap
+        <View style={styles.activityContainer}>
+          {/* Item 1 */}
+          <Pressable
+            style={styles.activityItem}
+            onPress={() => router.push('/leads/john-smith' as any)}
+          >
+            <Image
+              source={require('@/assets/images/avatars/avatar_executive_real.jpg')}
+              style={styles.activityAvatar}
+            />
+            <View style={styles.activityTextCol}>
+              <AppText style={styles.activityItemName} weight="bold">
+                John Smith (ABC Corp)
               </AppText>
-              <AppText style={styles.activityMeta}>
-                Direct exchange · Matte Black
+              <AppText style={styles.activityItemMeta}>
+                NFC Tap · Direct physical pass exchange
               </AppText>
             </View>
             <AppText style={styles.activityTime}>09:42</AppText>
-          </View>
+          </Pressable>
 
-          <View style={styles.activitySeparator} />
+          <View style={styles.activityItemDivider} />
 
-          <View style={styles.activityRow}>
-            <View style={styles.activityInfo}>
-              <AppText style={styles.activityTitle} weight="medium">
-                Profile View
+          {/* Item 2 */}
+          <Pressable
+            style={styles.activityItem}
+            onPress={() => router.push('/leads/sokha-chan' as any)}
+          >
+            <Image
+              source={require('@/assets/images/avatars/avatar_founder_woman.jpg')}
+              style={styles.activityAvatar}
+            />
+            <View style={styles.activityTextCol}>
+              <AppText style={styles.activityItemName} weight="bold">
+                Sokha Chan (ABC Group)
               </AppText>
-              <AppText style={styles.activityMeta}>
-                Safari on iOS
+              <AppText style={styles.activityItemMeta}>
+                QR Pass Scan · Marketing Executive
               </AppText>
             </View>
             <AppText style={styles.activityTime}>09:18</AppText>
-          </View>
-
-          <View style={styles.activitySeparator} />
-
-          <View style={styles.activityRow}>
-            <View style={styles.activityInfo}>
-              <AppText style={styles.activityTitle} weight="medium">
-                QR Scan
-              </AppText>
-              <AppText style={styles.activityMeta}>
-                Business card stand
-              </AppText>
-            </View>
-            <AppText style={styles.activityTime}>08:51</AppText>
-          </View>
+          </Pressable>
         </View>
 
-        <View style={{ height: 80 }} />
+        <View style={{ height: 110 }} />
       </IosScrollView>
 
       {/* Understated Toast Notification */}
@@ -316,258 +435,451 @@ const styles = StyleSheet.create({
   },
   scroll: {
     paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingTop: 4,
     paddingBottom: 40,
   },
-  header: {
+  topBar: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 14,
-    marginBottom: 8,
+    paddingVertical: 12,
   },
-  greetingText: {
-    fontSize: 14,
-    color: C.textSecondary,
+  brandKicker: {
+    fontSize: 10,
+    letterSpacing: 2,
+    color: C.accentCyan,
+    marginBottom: 4,
   },
-  nameText: {
-    fontSize: 26,
-    letterSpacing: -0.6,
+  editorialHeadline: {
+    fontSize: 28,
+    letterSpacing: -0.8,
     color: C.text,
-    marginTop: 2,
   },
-  roleText: {
-    fontSize: 13,
-    color: C.textMuted,
-    marginTop: 2,
+  avatarPill: {
+    position: 'relative',
   },
-  avatarButton: {
-    borderRadius: 22,
-    marginTop: 4,
-  },
-  avatarCircle: {
+  topBarAvatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
-    backgroundColor: '#000000',
   },
-  cardWrapper: {
-    alignItems: 'center',
-    marginVertical: 12,
-  },
-  physicalCard: {
-    width: '100%',
-    aspectRatio: 1.586,
-    borderRadius: 20,
-    backgroundColor: C.cardBg,
-    padding: 24,
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  cardTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  contactlessSymbol: {
-    width: 22,
-    height: 22,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    overflow: 'hidden',
-  },
-  contactlessArc: {
+  onlineDot: {
     position: 'absolute',
-    borderRightWidth: 1.8,
-    borderColor: '#FFFFFF',
+    bottom: 0,
+    right: 0,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: C.emerald,
+    borderWidth: 2,
+    borderColor: '#000000',
+  },
+  heroAnchorContainer: {
+    marginTop: 14,
+    marginBottom: 20,
+  },
+  heroPhotoWrapper: {
+    width: '100%',
+    height: 240,
+    borderRadius: 24,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: '#0F0F14',
+  },
+  heroPhotoImage: {
+    width: '100%',
+    height: '100%',
+  },
+  heroPhotoOverlay: {
+    ...StyleSheet.absoluteFill as any,
+    backgroundColor: 'rgba(0, 0, 0, 0.52)',
+  },
+  heroTextOverlay: {
+    position: 'absolute',
+    left: 20,
+    bottom: 20,
+    right: 20,
+  },
+  heroLiveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 20,
+    alignSelf: 'flex-start',
+    gap: 6,
+    marginBottom: 8,
   },
-  arc1: { width: 8, height: 8, left: 0 },
-  arc2: { width: 14, height: 14, left: 0 },
-  arc3: { width: 20, height: 20, left: 0 },
-  arc4: { width: 26, height: 26, left: 0 },
-  cardTypeLabel: {
-    fontSize: 10,
-    letterSpacing: 2,
-    color: C.textMuted,
-    fontWeight: '700',
-  },
-  cardBody: {
-    marginVertical: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  cardOwnerCol: {
-    flex: 1,
-    paddingRight: 12,
-  },
-  cardAvatarPhoto: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    backgroundColor: '#000000',
-  },
-  cardOwnerName: {
-    fontSize: 22,
-    letterSpacing: 1.2,
-    color: C.text,
-  },
-  cardOwnerTitle: {
-    fontSize: 11,
-    letterSpacing: 1.8,
-    color: C.textMuted,
-    marginTop: 6,
-    fontWeight: '600',
-  },
-  cardBottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  cardSerial: {
-    fontSize: 10,
-    letterSpacing: 1.8,
-    color: C.textMuted,
-    fontWeight: '600',
-  },
-  cardAccentPip: {
+  heroBeaconDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: C.accent,
+    backgroundColor: C.emerald,
   },
-  actionContainer: {
-    marginTop: 14,
-    marginBottom: 24,
+  heroLiveText: {
+    fontSize: 10,
+    letterSpacing: 1.2,
+    color: '#FFFFFF',
   },
-  primaryButton: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    paddingVertical: 16,
+  heroPersonName: {
+    fontSize: 26,
+    letterSpacing: -0.5,
+    color: '#FFFFFF',
+  },
+  heroPersonTitle: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 2,
+  },
+  floatingMetalCard: {
+    marginTop: -38,
+    marginHorizontal: 12,
+    borderRadius: 18,
+    backgroundColor: '#121217',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.16)',
+    padding: 18,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.55,
+    shadowRadius: 18,
+    elevation: 12,
+  },
+  floatingCardPressed: {
+    transform: [{ scale: 0.99 }],
+    opacity: 0.95,
+  },
+  metalCardHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   },
-  buttonPressed: {
+  metalBrandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  metalBrandText: {
+    fontSize: 11,
+    letterSpacing: 1.5,
+    color: 'rgba(255, 255, 255, 0.9)',
+  },
+  metalMaterialBadge: {
+    fontSize: 9,
+    letterSpacing: 1.5,
+    color: C.accentCyan,
+    fontWeight: '700',
+  },
+  metalCardMiddle: {
+    marginVertical: 14,
+  },
+  metalOwnerText: {
+    fontSize: 18,
+    letterSpacing: 1,
+    color: '#FFFFFF',
+  },
+  metalRoleText: {
+    fontSize: 10,
+    letterSpacing: 1.2,
+    color: C.textSecondary,
+    marginTop: 3,
+  },
+  metalCardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  metalChipIcon: {
+    flexDirection: 'row',
+    gap: 3,
+  },
+  chipSegment: {
+    width: 10,
+    height: 7,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+  },
+  metalSerialText: {
+    fontSize: 10,
+    letterSpacing: 1.2,
+    color: C.textMuted,
+  },
+  primaryTapAction: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    shadowColor: '#FFFFFF',
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  primaryTapActionPressed: {
     opacity: 0.88,
     transform: [{ scale: 0.99 }],
   },
-  primaryButtonText: {
-    color: '#000000',
-    fontSize: 15,
-    letterSpacing: 1.2,
+  tapActionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
   },
-  statsRow: {
+  tapIconPulse: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tapActionTitle: {
+    fontSize: 14,
+    letterSpacing: 0.6,
+    color: '#000000',
+  },
+  tapActionSubtitle: {
+    fontSize: 11,
+    color: 'rgba(0, 0, 0, 0.6)',
+    marginTop: 2,
+  },
+  livingConnectionsBar: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: C.surface,
-    borderRadius: 16,
-    paddingVertical: 20,
-    paddingHorizontal: 24,
-    marginBottom: 28,
+    borderRadius: 18,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 20,
   },
-  statItem: {
+  avatarStack: {
+    width: 108,
+    height: 36,
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  stackAvatar: {
+    position: 'absolute',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: '#000000',
+  },
+  stackAvatarCount: {
+    position: 'absolute',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: C.surfaceRaised,
+    borderWidth: 2,
+    borderColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stackCountText: {
+    fontSize: 10,
+    color: C.accentCyan,
+  },
+  connectionsTextCol: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  connectionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  connectionsHighlight: {
+    fontSize: 14,
+    color: '#FFFFFF',
+  },
+  todayPill: {
+    backgroundColor: 'rgba(48, 209, 88, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  todayPillText: {
+    fontSize: 10,
+    color: C.emerald,
+  },
+  connectionsSub: {
+    fontSize: 11,
+    color: C.textMuted,
+    marginTop: 2,
+  },
+  visualReachSection: {
+    backgroundColor: C.surface,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 22,
+  },
+  reachHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  reachSectionTitle: {
+    fontSize: 13,
+    color: C.textSecondary,
+    letterSpacing: 0.2,
+  },
+  reachNumber: {
+    fontSize: 26,
+    color: '#FFFFFF',
+    letterSpacing: -0.6,
+    marginTop: 2,
+  },
+  trendBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(48, 209, 88, 0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    gap: 4,
+  },
+  trendText: {
+    fontSize: 11,
+    color: C.emerald,
+  },
+  waveChartRow: {
+    flexDirection: 'row',
+    height: 100,
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    paddingTop: 10,
+  },
+  waveCol: {
     flex: 1,
     alignItems: 'center',
+    height: '100%',
+    justifyContent: 'flex-end',
   },
-  statNumber: {
-    fontSize: 32,
-    color: C.text,
-    letterSpacing: -1,
+  waveTrack: {
+    flex: 1,
+    width: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: 7,
+    justifyContent: 'flex-end',
+    overflow: 'hidden',
+    marginBottom: 8,
   },
-  statLabel: {
+  waveBar: {
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 7,
+  },
+  waveBarActive: {
+    backgroundColor: C.accentCyan,
+  },
+  waveDayLabel: {
+    fontSize: 11,
+    color: C.textMuted,
+  },
+  shareMatrixHeader: {
+    marginBottom: 12,
+  },
+  shareMatrixTitle: {
     fontSize: 11,
     letterSpacing: 1.2,
-    color: C.textSecondary,
-    fontWeight: '600',
-    marginTop: 4,
+    color: C.textMuted,
   },
-  statDivider: {
-    width: 1,
-    height: 38,
-    backgroundColor: C.hairline,
+  shareActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 24,
   },
-  sectionHeader: {
+  shareActionBtn: {
+    flex: 1,
+    backgroundColor: C.surface,
+    borderRadius: 16,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  shareActionBtnPressed: {
+    backgroundColor: C.surfaceRaised,
+    transform: [{ scale: 0.98 }],
+  },
+  shareActionIconWrap: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  shareActionBtnTitle: {
+    fontSize: 12,
+    color: '#FFFFFF',
+  },
+  shareActionBtnSub: {
+    fontSize: 10,
+    color: C.textMuted,
+    marginTop: 2,
+  },
+  activityHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 12,
   },
-  sectionTitle: {
-    fontSize: 17,
-    letterSpacing: -0.3,
-    color: C.text,
+  activitySectionTitle: {
+    fontSize: 15,
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
   },
   viewAllText: {
     fontSize: 13,
     color: C.textSecondary,
   },
-  shareRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 28,
-  },
-  shareBtn: {
-    flex: 1,
+  activityContainer: {
     backgroundColor: C.surface,
-    borderRadius: 14,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
+    borderRadius: 18,
+    paddingHorizontal: 16,
   },
-  shareBtnPressed: {
-    backgroundColor: C.surfaceSoft,
-    transform: [{ scale: 0.98 }],
-  },
-  shareBtnLabel: {
-    fontSize: 12,
-    color: C.textSecondary,
-    fontWeight: '500',
-  },
-  activityList: {
-    backgroundColor: C.surface,
-    borderRadius: 16,
-    paddingHorizontal: 18,
-  },
-  activityRow: {
+  activityItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 16,
+    paddingVertical: 14,
   },
-  activityInfo: {
+  activityAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  activityTextCol: {
     flex: 1,
-    gap: 3,
   },
-  activityTitle: {
-    fontSize: 15,
-    color: C.text,
-    letterSpacing: -0.2,
+  activityItemName: {
+    fontSize: 14,
+    color: '#FFFFFF',
   },
-  activityMeta: {
+  activityItemMeta: {
     fontSize: 12,
     color: C.textMuted,
+    marginTop: 2,
   },
   activityTime: {
-    fontSize: 13,
+    fontSize: 12,
     color: C.textSecondary,
-    fontVariant: ['tabular-nums'],
   },
-  activitySeparator: {
-    height: 1,
-    backgroundColor: C.hairline,
+  activityItemDivider: {
+    height: 0,
   },
   toast: {
     position: 'absolute',
     bottom: 24,
     alignSelf: 'center',
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#1E1E24',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 20,
@@ -577,4 +889,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
 });
+
 export default HomeScreen;

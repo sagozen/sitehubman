@@ -18,12 +18,12 @@
   --text-tertiary: #6b6b70;
   --text-inverse: #000000;
   
-  --accent-blue: #0a84ff;
-  --accent-cyan: #00f0ff;
-  --accent-green: #30d158;
-  --accent-purple: #af52de;
-  --accent-orange: #ff9f0a;
-  --accent-red: #ff453a;
+  --accent-blue: #2596BE;
+  --accent-cyan: #FFFFFF;
+  --accent-green: #2596BE;
+  --accent-purple: #9A9AA0;
+  --accent-orange: #9A9AA0;
+  --accent-red: #9A9AA0;
   
   --phone-bg: #000000;
   --phone-bezel: #1c1c1e;
@@ -77,7 +77,7 @@ body {
   width: 100%;
   max-width: 1080px;
   background: var(--surface-color);
-  border: 1px solid var(--border-color);
+  border: none;
   border-radius: 16px;
   padding: 16px 24px;
   display: flex;
@@ -98,7 +98,7 @@ body {
 .brand-icon {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+  background: #111115;
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -127,7 +127,7 @@ body {
 
 .btn-control {
   background: var(--surface-elevated);
-  border: 1px solid var(--border-color);
+  border: none;
   color: var(--text-primary);
   padding: 8px 16px;
   border-radius: 12px;
@@ -141,14 +141,13 @@ body {
 }
 
 .btn-control:hover {
-  border-color: var(--border-strong);
   transform: translateY(-1px);
 }
 
 .btn-control.active {
   background: var(--accent-blue);
   color: #ffffff;
-  border-color: var(--accent-blue);
+  border: none;
 }
 
 /* Device Preview Stage */
@@ -289,7 +288,7 @@ body {
   width: 100%;
   height: 200px;
   background: linear-gradient(135deg, #111115 0%, #202028 100%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: none;
   border-radius: 20px;
   padding: 20px;
   display: flex;
@@ -315,9 +314,9 @@ body {
 .card-chip {
   width: 38px;
   height: 28px;
-  background: linear-gradient(135deg, #d4af37, #f3e5ab);
+  background: #2596BE;
   border-radius: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  border: none;
 }
 
 .card-brand-tag {
@@ -336,7 +335,7 @@ body {
 
 .card-holder-title {
   font-size: 12px;
-  color: var(--accent-cyan);
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
@@ -359,7 +358,7 @@ body {
 /* Card Surface Cards */
 .ui-card {
   background: var(--surface-color);
-  border: 1px solid var(--border-color);
+  border: none;
   border-radius: var(--radius-card);
   padding: 16px;
   margin-bottom: 16px;
@@ -375,14 +374,15 @@ body {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+  object-fit: cover;
+  background: #18181c;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
   font-weight: 800;
   color: #fff;
-  border: 2px solid var(--border-strong);
+  border: none;
 }
 
 .profile-info {
@@ -397,7 +397,7 @@ body {
 
 .profile-title {
   font-size: 13px;
-  color: var(--accent-blue);
+  color: #2596BE;
   font-weight: 600;
   margin-top: 2px;
 }
@@ -418,7 +418,7 @@ body {
 
 .vibe-tag {
   background: var(--surface-subdued);
-  border: 1px solid var(--border-color);
+  border: none;
   padding: 4px 10px;
   border-radius: 12px;
   font-size: 11px;
@@ -435,7 +435,7 @@ body {
 
 .social-item {
   background: var(--surface-subdued);
-  border: 1px solid var(--border-color);
+  border: none;
   border-radius: 14px;
   padding: 12px;
   display: flex;
@@ -448,7 +448,6 @@ body {
 
 .social-item:hover {
   background: var(--surface-elevated);
-  border-color: var(--border-strong);
 }
 
 .social-icon {
@@ -460,6 +459,8 @@ body {
   justify-content: center;
   font-size: 16px;
   color: #fff;
+  background: transparent !important;
+  border: none !important;
 }
 
 .social-name {
@@ -499,7 +500,7 @@ body {
 .btn-cta-secondary {
   background: var(--surface-color);
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  border: none;
 }
 
 /* Stats Metric Cards */
@@ -512,7 +513,7 @@ body {
 
 .stat-box {
   background: var(--surface-color);
-  border: 1px solid var(--border-color);
+  border: none;
   border-radius: 16px;
   padding: 16px;
 }
@@ -536,7 +537,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 12px 0;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: none;
 }
 
 .order-item:last-child {
@@ -551,15 +552,15 @@ body {
   text-transform: uppercase;
 }
 
-.badge-pending { background: rgba(255, 159, 10, 0.15); color: #ff9f0a; }
-.badge-printing { background: rgba(175, 82, 222, 0.15); color: #af52de; }
-.badge-done { background: rgba(48, 209, 88, 0.15); color: #30d158; }
+.badge-pending { background: rgba(255, 255, 255, 0.08); color: #F5F5F7; }
+.badge-printing { background: rgba(37, 150, 190, 0.15); color: #2596BE; }
+.badge-done { background: rgba(255, 255, 255, 0.12); color: #FFFFFF; }
 
 /* Bottom Tab Navigation Bar */
 .bottom-nav {
   height: 68px;
   background: var(--surface-color);
-  border-top: 1px solid var(--border-color);
+  border-top: none;
   position: absolute;
   bottom: 0;
   left: 0;

@@ -71,7 +71,7 @@ export function GuestCardPreview({
         colors={palette.colors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[styles.card, { borderColor: palette.border }]}
+        style={styles.card}
       >
         {/* Top Header Row */}
         <View style={styles.cardTop}>
@@ -131,7 +131,6 @@ const styles = StyleSheet.create({
   previewMetaText: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.5)' },
   card: {
     borderRadius: 20,
-    borderWidth: 1,
     padding: 22,
     aspectRatio: 1.586,
     justifyContent: 'space-between',
@@ -147,8 +146,6 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 7,
     backgroundColor: '#D4AF37',
-    borderWidth: 1,
-    borderColor: '#F5E6D3',
     padding: 4,
     justifyContent: 'center',
     alignItems: 'center',
@@ -159,8 +156,6 @@ const styles = StyleSheet.create({
     width: 24,
     height: 18,
     borderRadius: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.3)',
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
   chipGrid: {
@@ -170,14 +165,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.25)',
   },
   nfcWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    width: 28,
+    height: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
   },
   cardMid: { gap: 4, marginTop: 12 },
   cardBrand: { fontSize: 10, fontWeight: '900', letterSpacing: 2 },

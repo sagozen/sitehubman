@@ -40,7 +40,7 @@ export function CustomerFlowIconBadge({
   size?: number;
 }) {
   return (
-    <View style={[styles.badge, { backgroundColor: `${flow.tint}18`, borderColor: `${flow.tint}33` }]}>
+    <View style={[styles.badge, { backgroundColor: `${flow.tint}18` }]}>
       <RealIcon
         id={flow.realIcon}
         size={size}
@@ -52,16 +52,12 @@ export function CustomerFlowIconBadge({
 }
 
 const styles = StyleSheet.create({
-  tile: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(60,60,67,0.08)',
-  },
+  tile: {},
   badge: {
     width: 52,
     height: 52,
     borderRadius: iosDesign.radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
   },
 });

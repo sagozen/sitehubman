@@ -35,7 +35,7 @@ export default function PromotionalPreviewScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
       <SeoHead title="Promotional Preview" noIndex />
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={12} style={styles.backButton}>
           <AppIcon name="ChevronLeft" size={24} color={colors.textPrimary} />
         </Pressable>
@@ -49,13 +49,13 @@ export default function PromotionalPreviewScreen() {
         </View>
 
         {/* Theme Switcher */}
-        <Pressable onPress={toggleColorMode} style={[styles.themeToggle, { borderColor: colors.border }]} hitSlop={12}>
+        <Pressable onPress={toggleColorMode} style={styles.themeToggle} hitSlop={12}>
           <AppIcon name={resolvedColorMode === 'dark' ? 'Sun' : 'Moon'} size={20} color={colors.textPrimary} />
         </Pressable>
       </View>
 
       {/* Category Tabs */}
-      <View style={[styles.tabsContainer, { borderBottomColor: colors.border }]}>
+      <View style={styles.tabsContainer}>
         {(['all', 'banners', 'features', 'newsletters'] as Category[]).map((cat) => {
           const isActive = activeCategory === cat;
           return (
@@ -224,7 +224,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 16,
     paddingTop: 8,
-    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   backButton: {
     marginRight: 12,
@@ -236,14 +235,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.06)',
   },
   tabsContainer: {
     flexDirection: 'row',
     paddingHorizontal: 20,
-    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   tab: {
     paddingVertical: 12,
