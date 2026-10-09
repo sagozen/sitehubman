@@ -467,9 +467,9 @@ const styles = StyleSheet.create({
 
   header: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 },
   backBtn: { width: 44, height: 44, borderRadius: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: '#242424' },
-  headerTitle: { flex: 1, fontSize: 20, color: INK, letterSpacing: 0, fontFamily: 'SF-Pro-Display-Regular', textAlign: 'center' },
+  headerTitle: { flex: 1, fontSize: 20, color: INK, letterSpacing: 0, textAlign: 'center' },
   pricePill: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: '#FFFFFF', overflow: 'hidden' },
-  priceT: { fontSize: 13, color: '#000000', fontFamily: 'SF-Pro-Display-Regular' },
+  priceT: { fontSize: 13, color: '#000000', },
 
   scroll: { paddingBottom: 60, paddingTop: 10 },
 
@@ -542,7 +542,7 @@ const styles = StyleSheet.create({
   },
   liveRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16, backgroundColor: 'rgba(0,0,0,0.4)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 99 },
   liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FFFFFF' },
-  previewHint: { fontSize: 11, color: 'rgba(255, 255, 255, 0.7)', letterSpacing: 0, fontFamily: 'SF-Pro-Display-Regular' },
+  previewHint: { fontSize: 11, color: 'rgba(255, 255, 255, 0.7)', letterSpacing: 0, },
 
   materialSection: { width: '100%', marginTop: 20, gap: 10 },
   materialHeading: { color: 'rgba(255, 255, 255, 0.45)', fontSize: 10, letterSpacing: 1.2 },
@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
   sectionsContainer: { paddingHorizontal: 16, paddingTop: 10, gap: 40 },
   section: { gap: 16 },
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sectionTitle: { fontSize: 14, color: INK2, letterSpacing: 0, fontFamily: 'SF-Pro-Display-Regular' },
+  sectionTitle: { fontSize: 14, color: INK2, letterSpacing: 0, },
   linkedInBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -582,16 +582,16 @@ const styles = StyleSheet.create({
   bentoGridHorizontal: { flexDirection: 'row', gap: 12 },
 
   segBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 18, borderRadius: 20, overflow: 'hidden', backgroundColor: '#242424' },
-  segBtnT: { fontSize: 14, color: MUTED, fontFamily: 'SF-Pro-Display-Regular', letterSpacing: 0 },
+  segBtnT: { fontSize: 14, color: MUTED, letterSpacing: 0 },
   segBtnTActive: { color: '#000000' },
 
   payScroll: { gap: 12, paddingRight: 20 },
   payPill: { minWidth: 132, paddingHorizontal: 16, paddingVertical: 13, borderRadius: 20, overflow: 'hidden', backgroundColor: '#242424', alignItems: 'center', gap: 8 },
-  payPillT: { fontSize: 13, color: MUTED, fontFamily: 'SF-Pro-Display-Regular', letterSpacing: 0 },
+  payPillT: { fontSize: 13, color: MUTED, letterSpacing: 0 },
   payPillTActive: { color: '#000000' },
 
   footer: { paddingHorizontal: 20, paddingTop: 16, borderTopWidth: 1, borderTopColor: 'rgba(255, 255, 255, 0.08)', overflow: 'hidden', backgroundColor: 'rgba(0, 0, 0, 0.85)' },
   errorBanner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.3)', marginBottom: 16 },
-  errorText: { color: '#FCA5A5', fontSize: 13, fontFamily: 'SF-Pro-Display-Regular' },
-  errorDismiss: { color: '#EF4444', fontSize: 13, fontFamily: 'SF-Pro-Display-Regular', letterSpacing: 0 },
+  errorText: { color: '#FCA5A5', fontSize: 13, },
+  errorDismiss: { color: '#EF4444', fontSize: 13, letterSpacing: 0 },
 });

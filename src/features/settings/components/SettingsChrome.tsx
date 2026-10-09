@@ -49,7 +49,7 @@ export function SettingsMessageBanner({
 
 const banner = StyleSheet.create({
   wrap: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, borderRadius: 0, borderWidth: 1, padding: 14 },
-  text: { flex: 1, fontSize: 13, fontWeight: '500', lineHeight: 18, fontFamily: 'SF-Pro-Display-Regular' },
+  text: { flex: 1, fontSize: 13, fontWeight: '500', lineHeight: 18, },
 });
 
 // ─── Section label ────────────────────────────────────────────────────────────
@@ -60,7 +60,7 @@ export function SettingsSectionLabel({ colors, children }: { colors: SettingsThe
 }
 
 const sl = StyleSheet.create({
-  label: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', paddingHorizontal: 2, fontFamily: 'SF-Pro-Display-Regular' },
+  label: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', paddingHorizontal: 2, },
 });
 
 // ─── Surface card (plain white, deep shadow) ──────────────────────────────────
@@ -139,12 +139,12 @@ const ac = StyleSheet.create({
     borderWidth: 0,
   },
   avatar: { width: 52, height: 52, borderRadius: 0, alignItems: 'center', justifyContent: 'center' },
-  avatarT: { fontSize: 20, fontWeight: '900', color: '#FFFFFF', fontFamily: 'SF-Pro-Display-Regular' },
+  avatarT: { fontSize: 20, fontWeight: '900', color: '#FFFFFF', },
   copy: { flex: 1, minWidth: 0, gap: 4 },
-  name: { fontSize: 17, fontWeight: '800', color: INK, letterSpacing: -0.3, fontFamily: 'SF-Pro-Display-Regular' },
-  email: { fontSize: 12, fontWeight: '500', color: MUTED, fontFamily: 'SF-Pro-Display-Regular' },
+  name: { fontSize: 17, fontWeight: '800', color: INK, letterSpacing: -0.3, },
+  email: { fontSize: 12, fontWeight: '500', color: MUTED, },
   pill: { alignSelf: 'flex-start', borderRadius: 0, paddingHorizontal: 8, paddingVertical: 3, marginTop: 2 },
-  pillT: { fontSize: 10, fontWeight: '800', letterSpacing: 0.3, fontFamily: 'SF-Pro-Display-Regular' },
+  pillT: { fontSize: 10, fontWeight: '800', letterSpacing: 0.3, },
 });
 
 // ─── Settings tile ────────────────────────────────────────────────────────────
@@ -209,9 +209,9 @@ const stile = StyleSheet.create({
   pressed: { opacity: 0.7, backgroundColor: 'rgba(255, 255, 255, 0.03)' },
   disabled: { opacity: 0.4 },
   copy: { flex: 1, minWidth: 0, gap: 2 },
-  title: { fontSize: 15, fontWeight: '600', color: INK2, fontFamily: 'SF-Pro-Display-Regular' },
-  desc: { fontSize: 12, fontWeight: '500', lineHeight: 16, fontFamily: 'SF-Pro-Display-Regular' },
-  value: { fontSize: 13, fontWeight: '600', color: MUTED, maxWidth: 110, fontFamily: 'SF-Pro-Display-Regular' },
+  title: { fontSize: 15, fontWeight: '600', color: INK2, },
+  desc: { fontSize: 12, fontWeight: '500', lineHeight: 16, },
+  value: { fontSize: 13, fontWeight: '600', color: MUTED, maxWidth: 110, },
 });
 
 // ─── Capability row ───────────────────────────────────────────────────────────
@@ -244,15 +244,15 @@ const cap = StyleSheet.create({
   border: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255, 255, 255, 0.05)' },
   dot: { width: 8, height: 8, borderRadius: 0, marginTop: 5 },
   copy: { flex: 1, gap: 2 },
-  title: { fontSize: 14, fontWeight: '700', fontFamily: 'SF-Pro-Display-Regular' },
-  desc: { fontSize: 12, fontWeight: '500', lineHeight: 16, fontFamily: 'SF-Pro-Display-Regular' },
+  title: { fontSize: 14, fontWeight: '700', },
+  desc: { fontSize: 12, fontWeight: '500', lineHeight: 16, },
 });
 
 // ─── Shared scroll styles ─────────────────────────────────────────────────────
 export const settingsChromeStyles = StyleSheet.create({
   scroll: { paddingHorizontal: 18, paddingTop: 6, paddingBottom: 120, gap: 14 },
-  pageTitle: { fontSize: 28, fontWeight: '900', color: INK, letterSpacing: -0.8, fontFamily: 'SF-Pro-Display-Regular' },
-  pageSub: { fontSize: 13, fontWeight: '500', color: MUTED, marginTop: 2, fontFamily: 'SF-Pro-Display-Regular' },
+  pageTitle: { fontSize: 28, fontWeight: '900', color: INK, letterSpacing: -0.8, },
+  pageSub: { fontSize: 13, fontWeight: '500', color: MUTED, marginTop: 2, },
   // kept for compat — not used in new design
   banner: {},
   bannerText: {},
@@ -282,8 +282,8 @@ export const settingsChromeStyles = StyleSheet.create({
   capabilityDesc: {},
   prefsBlock: { padding: 18, gap: 20 },
   appearanceBlock: { gap: 8 },
-  appearanceTitle: { fontSize: 15, fontWeight: '800', fontFamily: 'SF-Pro-Display-Regular' },
-  appearanceHint: { fontSize: 12, fontWeight: '500', lineHeight: 17, fontFamily: 'SF-Pro-Display-Regular' },
+  appearanceTitle: { fontSize: 15, fontWeight: '800', },
+  appearanceHint: { fontSize: 12, fontWeight: '500', lineHeight: 17, },
   themeSwatch: { width: 14, height: 14, borderRadius: 0 },
   swatchDot: { width: 18, height: 18, borderRadius: 0 },
 });

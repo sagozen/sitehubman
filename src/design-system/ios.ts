@@ -2,12 +2,12 @@ import { Platform, TextStyle, ViewStyle } from 'react-native';
 import { createShadow } from '@/src/utils/shadows';
 
 export const iosFonts = {
-  regular: 'SF-Pro-Display-Regular',
-  medium: 'SF-Pro-Display-Medium',
-  semibold: 'SF-Pro-Display-Semibold',
-  bold: 'SF-Pro-Display-Bold',
-  extrabold: 'SF-Pro-Display-Bold',
-  black: 'SF-Pro-Display-Bold',
+  regular: Platform.select({ ios: 'System', default: 'sans-serif' }),
+  medium: Platform.select({ ios: 'System', default: 'sans-serif-medium' }),
+  semibold: Platform.select({ ios: 'System', default: 'sans-serif-medium' }),
+  bold: Platform.select({ ios: 'System', default: 'sans-serif' }),
+  extrabold: Platform.select({ ios: 'System', default: 'sans-serif-black' }),
+  black: Platform.select({ ios: 'System', default: 'sans-serif-black' }),
 } as const;
 
 /** Apple HIG palette — refined for premium iPhone aesthetic */

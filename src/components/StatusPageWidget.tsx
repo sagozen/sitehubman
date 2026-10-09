@@ -146,22 +146,22 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F7FA', paddingHorizontal: 24, paddingTop: 20 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F7FA' },
   
-  pageTitle: { fontFamily: 'SF-Pro-Display-Bold', fontSize: 24, color: '#111111', letterSpacing: -0.5, marginBottom: 6 },
-  subtitle: { fontFamily: 'SF-Pro-Display-Regular', fontSize: 13, color: '#6E6E73', lineHeight: 18, marginBottom: 20 },
+  pageTitle: { fontSize: 24, color: '#111111', letterSpacing: -0.5, marginBottom: 6 },
+  subtitle: { fontSize: 13, color: '#6E6E73', lineHeight: 18, marginBottom: 20 },
   
   globalBanner: { height: 48, borderRadius: 12, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, marginBottom: 24 },
   pulseDot: { width: 8, height: 8, borderRadius: 4, marginRight: 10 },
-  globalBannerText: { fontFamily: 'SF-Pro-Display-Semibold', fontSize: 14 },
+  globalBannerText: { fontSize: 14 },
 
   systemsContainer: { backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)', overflow: 'hidden', paddingHorizontal: 16 },
   sysRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.04)' },
   sysMetaBlock: { flex: 1 },
-  sysName: { fontFamily: 'SF-Pro-Display-Medium', fontSize: 15, color: '#111111', marginBottom: 2 },
-  sysUptime: { fontFamily: 'SF-Pro-Display-Regular', fontSize: 12, color: '#6E6E73' },
+  sysName: { fontSize: 15, color: '#111111', marginBottom: 2 },
+  sysUptime: { fontSize: 12, color: '#6E6E73' },
 
   statusIndicatorWrapper: { flexDirection: 'row', alignItems: 'center' },
   statusMiniDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
-  statusText: { fontFamily: 'SF-Pro-Display-Semibold', fontSize: 13 },
+  statusText: { fontSize: 13 },
   
-  footerNote: { fontFamily: 'SF-Pro-Display-Regular', fontSize: 11, color: '#6E6E73', textAlign: 'center', marginTop: 24, marginBottom: 40 }
+  footerNote: { fontSize: 11, color: '#6E6E73', textAlign: 'center', marginTop: 24, marginBottom: 40 }
 });

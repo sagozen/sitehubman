@@ -302,21 +302,18 @@ const styles = StyleSheet.create({
   brandMarkText: {
     fontSize: 14,
     fontWeight: '900',
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   brandName: {
     fontSize: 9,
     fontWeight: '900',
     letterSpacing: 1.1,
     color: 'rgba(255,255,255,0.92)',
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   brandSub: {
     fontSize: 8,
     fontWeight: '700',
     color: 'rgba(255,255,255,0.58)',
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   nfcChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -331,8 +328,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: 'rgba(255,255,255,0.9)',
     letterSpacing: 0.4,
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   bottomPanel: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -350,14 +346,12 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '900',
     letterSpacing: 0.4,
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   subtitle: {
     fontSize: 11,
     fontWeight: '700',
     color: 'rgba(255,255,255,0.74)',
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   contactStack: {
     gap: 3,
     marginTop: 3,
@@ -373,8 +367,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '600',
     color: 'rgba(255,255,255,0.62)',
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   qrModule: {
     width: 42,
     height: 42,

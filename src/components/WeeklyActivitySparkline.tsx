@@ -254,8 +254,7 @@ const styles = StyleSheet.create({
     fontSize: 8.5,
     letterSpacing: 0.8,
     color: 'rgba(255, 255, 255, 0.4)',
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   dayCardLabelActive: {
     color: 'rgba(255, 255, 255, 0.8)',
   },

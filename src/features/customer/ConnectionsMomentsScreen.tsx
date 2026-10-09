@@ -540,8 +540,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 4,
     color: PAGE_THEME.text,
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
 
   // Tag filter bar
   tagFilterBar: { flexGrow: 0, marginBottom: 4 },
@@ -641,8 +640,7 @@ const styles = StyleSheet.create({
   inlineTagText: {
     fontSize: 10,
     color: '#FFFFFF',
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
 
   // Empty state
   emptyState: {

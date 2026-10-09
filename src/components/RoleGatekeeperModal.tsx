@@ -135,7 +135,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '800',
     color: '#111111',
-    fontFamily: 'SF-Pro-Display-Regular',
     textAlign: 'center',
     marginBottom: 10,
     letterSpacing: -0.4,
@@ -143,7 +142,6 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 13,
     color: '#6E6E73',
-    fontFamily: 'SF-Pro-Display-Regular',
     textAlign: 'center',
     lineHeight: 19,
     marginBottom: 20,

@@ -67,12 +67,20 @@ export default function RootLayout() {
   useNotificationRouting();
   const isReady = useCachedResources();
 
-  // Hide splash ONLY once fonts + resources are ready
+  // Hide splash once resources are ready, with a safety timeout for native iOS launch
   useEffect(() => {
     if (isReady) {
       void SplashScreen.hideAsync().catch(() => undefined);
     }
   }, [isReady]);
+
+  useEffect(() => {
+    // Safety fallback: ensure splash screen is dismissed even if a network or resource load is slow
+    const splashTimeout = setTimeout(() => {
+      void SplashScreen.hideAsync().catch(() => undefined);
+    }, 3500);
+    return () => clearTimeout(splashTimeout);
+  }, []);
 
   useEffect(() => {
     setupGlobalUnhandledErrorListeners();

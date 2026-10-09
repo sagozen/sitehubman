@@ -10,6 +10,7 @@ export const SoundAssets = {
   nfcRead: require('../../assets/sounds/nfc_read.wav'),
   successPop: require('../../assets/sounds/success_pop.wav'),
   payment: require('../../assets/sounds/custom_payment_sound.wav'),
+  nfcError: require('../../assets/sounds/nfc_error.wav'),
 };
 
 export type SoundEffectType = keyof typeof SoundAssets;
@@ -38,6 +39,13 @@ export const SoundFeedback = {
    */
   async playPaymentSuccess() {
     Haptics.celebration();
+  },
+
+  /**
+   * Error / Scan failure notification
+   */
+  async playError() {
+    Haptics.error();
   },
 };
 

@@ -868,8 +868,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     lineHeight: 20,
     marginTop: 4,
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1021,8 +1020,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#FFFFFF',
     paddingVertical: 0,
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   primarySaveBtn: {
     height: 50,
     borderRadius: 25,

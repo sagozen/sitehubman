@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 export const premiumDarkTheme = {
   palette: {
     background: '#000000',       // Absolute True Black Canvas
@@ -15,9 +17,9 @@ export const premiumDarkTheme = {
     }
   },
   typography: {
-    fontFamily: 'SF-Pro-Display-Regular',
-    fontMedium: 'SF-Pro-Display-Medium',
-    fontSemibold: 'SF-Pro-Display-Semibold',
-    fontBold: 'SF-Pro-Display-Bold'
+    fontFamily: Platform.select({ ios: 'System', default: 'sans-serif' }),
+    fontMedium: Platform.select({ ios: 'System', default: 'sans-serif-medium' }),
+    fontSemibold: Platform.select({ ios: 'System', default: 'sans-serif-medium' }),
+    fontBold: Platform.select({ ios: 'System', default: 'sans-serif' }),
   }
 };

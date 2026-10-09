@@ -243,8 +243,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 16,
     color: THEME.accent,
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   cardWrap: {
     borderRadius: 16,
     overflow: 'hidden',
@@ -262,15 +261,13 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 13,
     color: THEME.muted,
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   flipHint: {
     fontSize: 12,
     color: THEME.muted,
     textAlign: 'center',
     marginTop: -12,
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
 
   // Action Cards (Image-Driven)
   actionGrid: {
@@ -294,14 +291,12 @@ const styles = StyleSheet.create({
   actionCardLabel: {
     fontSize: 18,
     color: '#FFFFFF',
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   actionCardDesc: {
     fontSize: 12,
     color: '#9A9AA0',
     lineHeight: 16,
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   bwActionBtn: {
     alignSelf: 'flex-start',
     marginTop: 8,
@@ -314,8 +309,7 @@ const styles = StyleSheet.create({
   bwActionBtnText: {
     fontSize: 12,
     color: '#000000',
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   actionCardIconWrap: {
     width: 60,
     height: 60,
@@ -337,15 +331,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#FFFFFF',
     marginBottom: 8,
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   guideSubheading: {
     fontSize: 14,
     color: '#FFFFFF',
     marginTop: 12,
     marginBottom: 4,
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   stepRow: {
     flexDirection: 'row',
     gap: 14,
@@ -362,8 +354,7 @@ const styles = StyleSheet.create({
   stepBadgeText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   stepInfo: {
     flex: 1,
     gap: 4,
@@ -371,14 +362,12 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 14,
     color: '#FFFFFF',
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   stepText: {
     fontSize: 12,
     color: '#9A9AA0',
     lineHeight: 16,
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
 
   // Sample Mock Moment
   mockMomentCard: {
@@ -403,8 +392,7 @@ const styles = StyleSheet.create({
   mockAvatarText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   mockInfo: {
     flex: 1,
     gap: 2,
@@ -412,13 +400,11 @@ const styles = StyleSheet.create({
   mockName: {
     fontSize: 14,
     color: '#FFFFFF',
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   mockSub: {
     fontSize: 11,
     color: '#9A9AA0',
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   mockBadge: {
     backgroundColor: 'rgba(48,209,88,0.15)',
     borderRadius: 6,
@@ -428,8 +414,7 @@ const styles = StyleSheet.create({
   mockBadgeText: {
     color: '#30D158',
     fontSize: 9,
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   mockFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -446,8 +431,7 @@ const styles = StyleSheet.create({
   mockMetaText: {
     fontSize: 10,
     color: '#9A9AA0',
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   mockTag: {
     backgroundColor: 'rgba(255,255,255,0.05)',
     borderRadius: 4,
@@ -457,8 +441,7 @@ const styles = StyleSheet.create({
   mockTagText: {
     fontSize: 9,
     color: '#FFFFFF',
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
 
   // Black and White Button
   footerWrap: {
@@ -471,8 +454,7 @@ const styles = StyleSheet.create({
   },
   bwOrderBtnText: {
     color: '#000000',
-    fontFamily: 'SF-Pro-Display-Regular',
-  },
+    },
   pressed: {
     opacity: 0.85,
     transform: [{ scale: 0.98 }],
