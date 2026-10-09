@@ -434,3 +434,8 @@ exports.orderNotificationsMock = onDocumentUpdated(
     }
   }
 );
+
+const wallet = require('./wallet');
+exports.generateAppleWalletPass = wallet.generateAppleWalletPass;
+exports.generateGoogleWalletPass = wallet.generateGoogleWalletPass;
+

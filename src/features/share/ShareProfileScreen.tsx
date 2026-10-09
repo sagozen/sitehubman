@@ -18,6 +18,7 @@ import { AppIcon } from '@/src/components/AppIcon';
 import { IosScrollView } from '@/src/components/IosScrollView';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useBioPage } from '@/src/hooks/useBioPage';
+import { WalletPassButtons } from '@/src/components/WalletPassButtons';
 import { HapticTap } from '@/src/utils/haptics';
 import { NfcBeamModal } from '@/src/components/NfcBeamModal';
 
@@ -238,32 +239,15 @@ export default function ShareProfileScreen() {
             </Pressable>
           </View>
 
-          {/* Apple Wallet Pass Banner */}
-          <Pressable
-            style={({ pressed }) => [
-              styles.walletBannerCard,
-              pressed && styles.walletBannerPressed,
-            ]}
-            onPress={() => {
-              HapticTap.selection();
-              router.push('/wallet-pass' as any);
-            }}
-          >
-            <View style={styles.walletLeftContent}>
-              <View style={styles.walletIconCircle}>
-                <AppIcon name="credit-card" size={20} color="#FFFFFF" />
-              </View>
-              <View>
-                <AppText style={styles.walletTitle} weight="bold">
-                  Add to Apple Wallet
-                </AppText>
-                <AppText style={styles.walletSubtitle}>
-                  Offline lockscreen pass & instant tap badge
-                </AppText>
-              </View>
-            </View>
-            <AppIcon name="chevron-right" size={16} color={C.textMuted} />
-          </Pressable>
+          {/* Section: SAVE TO WALLET */}
+          <View style={[styles.sectionTitleRow, { marginTop: 32 }]}>
+            <AppText style={styles.sectionHeaderTitle} weight="bold">
+              SAVE TO WALLET
+            </AppText>
+          </View>
+          <View style={styles.walletContainer}>
+            <WalletPassButtons />
+          </View>
 
           {/* Section: CARD OVERVIEW */}
           <View style={styles.sectionTitleRow}>
@@ -632,39 +616,11 @@ const styles = StyleSheet.create({
     color: C.text,
     fontSize: 13,
   },
-  walletBannerCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  walletContainer: {
     backgroundColor: C.surface,
     borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: 16,
     marginTop: 14,
-  },
-  walletBannerPressed: {
-    backgroundColor: C.surfaceRaised,
-  },
-  walletLeftContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  walletIconCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#242424',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  walletTitle: {
-    fontSize: 14,
-    color: C.text,
-  },
-  walletSubtitle: {
-    fontSize: 11,
-    color: C.textMuted,
-    marginTop: 2,
   },
 });

@@ -2,6 +2,7 @@ import type { FirebaseApp } from 'firebase/app';
 import type { Auth } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
 import type { FirebaseStorage } from 'firebase/storage';
+import { getFunctions, Functions } from 'firebase/functions';
 import {
   app as firebaseAppMaybe,
   auth as authMaybe,
@@ -15,4 +16,5 @@ export const firebaseApp = firebaseAppMaybe as FirebaseApp;
 export const auth = authMaybe as Auth;
 export const db = dbMaybe as Firestore;
 export const storage = storageMaybe as FirebaseStorage;
+export const functions = firebaseAppMaybe ? getFunctions(firebaseAppMaybe as FirebaseApp, 'us-central1') : null as unknown as Functions;
 export { firebaseInitError };

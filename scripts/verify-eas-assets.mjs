@@ -10,6 +10,7 @@ const TARGET_ASSETS = [
   'assets/sounds/custom_payment_sound.wav',
   'assets/sounds/nfc_read.wav',
   'assets/sounds/success_pop.wav',
+  'assets/sounds/nfc_error.wav',
 ];
 
 function findAssetInDir(baseDir, targetRelPath) {
