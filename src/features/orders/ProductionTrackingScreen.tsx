@@ -137,7 +137,7 @@ export default function ProductionTrackingScreen() {
         <View style={styles.infoCard}>
           <AppIcon name="info" size={16} color={MUTED} />
           <AppText style={styles.infoText}>
-            You'll receive a push notification when your card ships. Tracking info will appear in Delivery Tracking.
+            You&apos;ll receive a push notification when your card ships. Tracking info will appear in Delivery Tracking.
           </AppText>
         </View>
       </IosScrollView>

@@ -90,6 +90,7 @@ const ProductCard = React.memo(({ product }: { product: Product }) => {
     </Pressable>
   );
 });
+ProductCard.displayName = 'ProductCard';
 
 export default function OrdersTabScreen() {
   const { user } = useAuth();

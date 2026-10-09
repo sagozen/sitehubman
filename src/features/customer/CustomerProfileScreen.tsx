@@ -23,6 +23,7 @@ import {
   Switch,
   View,
 } from 'react-native';
+import { showAppAlert } from '@/src/utils/universalAlert';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown, FadeInUp, useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
@@ -257,11 +258,19 @@ export function CustomerProfileScreen() {
   }, [user, editName, editTitle, editPhone, editEmail, editSlug, editInstagram, editTelegram, editDirectModeEnabled, editDirectModeUrl, bioPage, saveBioPage, photoUrl]);
 
   const handleSignOut = useCallback(() => {
-    Alert.alert('Sign out', 'Sign out of your account?', [
+    showAppAlert('Sign out', 'Sign out of your account?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign out', style: 'destructive', onPress: () => void signOutUser() },
+      {
+        text: 'Sign out',
+        style: 'destructive',
+        onPress: () => {
+          void signOutUser().finally(() => {
+            router.replace('/(auth)/login');
+          });
+        },
+      },
     ]);
-  }, [signOutUser]);
+  }, [signOutUser, router]);
 
   if (isLoading) {
     return (

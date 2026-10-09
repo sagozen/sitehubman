@@ -41,6 +41,8 @@ interface MoreItem {
   onPress?: () => void;
 }
 
+import { showAppAlert } from '@/src/utils/universalAlert';
+
 export default function MeTabScreen() {
   const router = useRouter();
   const { user, signOutUser } = useAuth();
@@ -52,17 +54,23 @@ export default function MeTabScreen() {
 
   const handleSignOut = useCallback(() => {
     HapticTap.heavy();
-    Alert.alert('Log Out', 'Are you sure you want to log out of SiteHub?', [
+    showAppAlert('Log Out', 'Are you sure you want to log out of SiteHub?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Log Out',
         style: 'destructive',
         onPress: () => {
-          signOutUser().catch(() => null);
+          signOutUser()
+            .then(() => {
+              router.replace('/(auth)/login');
+            })
+            .catch(() => {
+              router.replace('/(auth)/login');
+            });
         },
       },
     ]);
-  }, [signOutUser]);
+  }, [signOutUser, router]);
 
   const MENU_ITEMS: MoreItem[] = [
     { icon: 'credit-card', label: 'Card Settings', route: '/cards/settings' },

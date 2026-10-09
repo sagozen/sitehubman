@@ -238,7 +238,7 @@ export function SettingsScreen() {
     setShowSignOutSheet(false);
     HapticTap.success();
     await signOutUser();
-    router.replace('/');
+    router.replace('/(auth)/login');
   };
 
   return (

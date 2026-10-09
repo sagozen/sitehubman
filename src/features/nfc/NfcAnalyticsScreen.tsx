@@ -242,7 +242,7 @@ export default function NfcAnalyticsScreen() {
           <View style={styles.todayHeader}>
             <AppIcon name="Calendar" size={20} color={T.accent} />
             <AppText style={styles.todayTitle} weight="bold">
-              Today's Activity
+              Today&apos;s Activity
             </AppText>
           </View>
           <AppText style={styles.todayValue} weight="bold">

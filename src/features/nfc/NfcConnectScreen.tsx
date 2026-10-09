@@ -135,7 +135,7 @@ export default function NfcConnectScreen() {
             Ready to connect.
           </AppText>
           <AppText style={styles.heroSubtitle}>
-            Bring your card or client's phone within 4cm of the top antenna.
+            Bring your card or client&apos;s phone within 4cm of the top antenna.
           </AppText>
         </View>
 

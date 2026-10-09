@@ -29,7 +29,7 @@ export default function NfcSuccessScreen() {
           <AppIcon name="Check" size={48} color="#FFFFFF" />
         </View>
 
-        <AppText style={styles.title}>You're ready</AppText>
+        <AppText style={styles.title}>You&apos;re ready</AppText>
         <AppText style={styles.subtitle}>
           Your NFC card is connected to your digital profile.
         </AppText>

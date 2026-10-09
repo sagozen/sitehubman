@@ -508,7 +508,7 @@ export function GuestHomeScreen() {
           />
         </View>
         <AppText style={styles.modalHint}>
-          Point any smartphone camera to open {heroName}'s digital card.
+          Point any smartphone camera to open {heroName}&apos;s digital card.
         </AppText>
       </AppModalV2>
 

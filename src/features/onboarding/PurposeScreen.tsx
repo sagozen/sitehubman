@@ -62,7 +62,7 @@ export function PurposeScreen() {
               What describes{'\n'}you best?
             </AppText>
             <AppText variant="body" muted style={styles.subtitle}>
-              We'll personalise your card and profile for your use case.
+              We&apos;ll personalise your card and profile for your use case.
             </AppText>
           </View>
 

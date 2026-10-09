@@ -141,7 +141,7 @@ export default function CartScreen() {
                     </AppText>
                     <AppText style={styles.itemMaterial}>{item.material}</AppText>
                     <AppText style={styles.itemEngraving}>
-                      Laser: "{item.engravedName}"
+                      Laser: &quot;{item.engravedName}&quot;
                     </AppText>
                     <AppText style={styles.itemPrice} weight="bold">
                       ${item.price.toFixed(2)}
