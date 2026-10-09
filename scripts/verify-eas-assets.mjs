@@ -8,6 +8,8 @@ const TARGET_ASSETS = [
   'assets/fonts/SF-Pro-Display-Regular.ttf',
   'assets/fonts/SF-Pro-Display-Bold.ttf',
   'assets/sounds/custom_payment_sound.wav',
+  'assets/sounds/nfc_read.wav',
+  'assets/sounds/success_pop.wav',
 ];
 
 function findAssetInDir(baseDir, targetRelPath) {
