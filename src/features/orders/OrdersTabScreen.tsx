@@ -3,24 +3,28 @@
  * Luxury Minimalist (Apple Wallet × Stripe × Linear)
  * OPTIMIZED: useMemo, useCallback, pagination for 1M users
  */
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   StyleSheet,
   ScrollView,
   Pressable,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { collection, query, where, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/src/services/firebaseClient';
 import { useAuth } from '@/src/hooks/useAuth';
+import { useBioPage } from '@/src/hooks/useBioPage';
 import { useFirestorePagination } from '@/src/hooks/useFirestorePagination';
 import { AppText } from '@/src/components/AppText';
 import { AppIcon } from '@/src/components/AppIcon';
 import { IosScrollView } from '@/src/components/IosScrollView';
-import { HapticTap } from '@/src/utils/haptics';
+import { HapticTap, Haptics } from '@/src/utils/haptics';
+import { PhysicalHardwareCardGraphic } from '@/src/components/PhysicalHardwareCardGraphic';
+import { NfcBeamModal } from '@/src/components/NfcBeamModal';
 
 const C = {
   canvas: '#000000',
@@ -30,7 +34,7 @@ const C = {
   text: '#FFFFFF',
   textSecondary: '#A1A1AA',
   textMuted: '#52525B',
-  accent: '#2596BE',
+  accent: '#799A85',
   cardBg: '#0B0B0E',
 } as const;
 
@@ -68,11 +72,19 @@ const STATUS_LABELS: Record<Order['status'], string> = {
 };
 
 // Memoized ProductCard to prevent unnecessary re-renders
-const ProductCard = React.memo(({ product }: { product: Product }) => {
+const ProductCard = React.memo(({
+  product,
+  cardholderName,
+  onPress,
+}: {
+  product: Product;
+  cardholderName: string;
+  onPress: (product: Product) => void;
+}) => {
   const handlePress = useCallback(() => {
     HapticTap.light();
-    router.push('/pricing' as any);
-  }, []);
+    onPress(product);
+  }, [product, onPress]);
 
   return (
     <Pressable
@@ -80,7 +92,12 @@ const ProductCard = React.memo(({ product }: { product: Product }) => {
       onPress={handlePress}
     >
       <View style={styles.productVisual}>
-        <View style={styles.cardSilhouette} />
+        <PhysicalHardwareCardGraphic
+          type={product.id}
+          size="sm"
+          cardholderName={cardholderName}
+          companyName="NFC GLOBAL"
+        />
       </View>
       <View style={styles.productMeta}>
         <AppText style={styles.productTag}>{product.tag}</AppText>
@@ -95,6 +112,13 @@ ProductCard.displayName = 'ProductCard';
 export default function OrdersTabScreen() {
   const { user } = useAuth();
   const isRealUser = Boolean(user && !user.isGuest && user.id !== 'guest');
+  const { bioPage } = useBioPage(user?.id ?? '');
+  const cardholderName = bioPage?.displayName || user?.displayName || 'Alexander Wright';
+  const profileUrl = bioPage?.slug ? `https://nfcglobal.com/u/${bioPage.slug}` : `https://nfcglobal.com/u/${user?.id || 'demo'}`;
+
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [showBeamModal, setShowBeamModal] = useState(false);
+  const [simulatedTapActive, setSimulatedTapActive] = useState(false);
   
   // Paginated orders query (replaces MOCK_ORDERS for signed-in customer)
   const ordersQuery = useMemo(() => {
@@ -174,16 +198,63 @@ export default function OrdersTabScreen() {
           <AppIcon name="chevron-right" size={16} color={C.textSecondary} />
         </Pressable>
 
+        {/* Instant Virtual NFC Banner — Addresses users without a physical card */}
+        <View style={styles.virtualBanner}>
+          <View style={styles.virtualTopRow}>
+            <View style={styles.virtualPill}>
+              <AppIcon name="wifi" size={11} color="#799A85" style={{ transform: [{ rotate: '90deg' }] }} />
+              <AppText style={styles.virtualPillText} weight="bold">VIRTUAL NFC ACTIVE</AppText>
+            </View>
+            <AppText style={styles.virtualInstantBadge}>READY TO SHARE</AppText>
+          </View>
+          <AppText style={styles.virtualTitle} weight="bold">
+            No physical card yet? Your phone is your NFC card.
+          </AppText>
+          <AppText style={styles.virtualDescription}>
+            Share contactlessly right now. Beam via NFC, save your card to Apple or Google Wallet on your lock screen, or show your instant QR pass.
+          </AppText>
+          <View style={styles.virtualActionRow}>
+            <Pressable
+              style={({ pressed }) => [styles.virtualBtnPrimary, pressed && styles.btnPressed]}
+              onPress={() => {
+                HapticTap.medium();
+                setShowBeamModal(true);
+              }}
+            >
+              <AppIcon name="radio" size={14} color="#000000" />
+              <AppText style={styles.virtualBtnPrimaryText} weight="bold">Beam Virtual NFC</AppText>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [styles.virtualBtnSecondary, pressed && styles.btnPressed]}
+              onPress={() => {
+                HapticTap.light();
+                router.push('/share-profile' as any);
+              }}
+            >
+              <AppIcon name="wallet" size={14} color="#FFFFFF" />
+              <AppText style={styles.virtualBtnSecondaryText} weight="medium">Wallet Pass</AppText>
+            </Pressable>
+          </View>
+        </View>
+
         {/* Physical Products */}
         <View style={styles.section}>
-          <AppText style={styles.sectionLabel}>NFC HARDWARE</AppText>
+          <View style={styles.sectionHeaderRow}>
+            <AppText style={styles.sectionLabel}>NFC HARDWARE</AppText>
+            <AppText style={styles.sectionHint}>Tap card to inspect 3D finish</AppText>
+          </View>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.shopScroll}
           >
             {PRODUCTS.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard
+                key={p.id}
+                product={p}
+                cardholderName={cardholderName}
+                onPress={setSelectedProduct}
+              />
             ))}
           </ScrollView>
         </View>
@@ -249,6 +320,116 @@ export default function OrdersTabScreen() {
 
         <View style={{ height: 60 }} />
       </IosScrollView>
+
+      {/* Interactive Physical Card Inspection & Simulation Modal */}
+      <Modal
+        visible={Boolean(selectedProduct)}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSelectedProduct(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable style={styles.modalBackdrop} onPress={() => setSelectedProduct(null)} />
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHeader}>
+              <View>
+                <AppText style={styles.modalTag}>{selectedProduct?.tag}</AppText>
+                <AppText style={styles.modalTitle} weight="bold">{selectedProduct?.name} Card</AppText>
+              </View>
+              <Pressable
+                style={styles.modalCloseBtn}
+                onPress={() => setSelectedProduct(null)}
+                hitSlop={12}
+              >
+                <AppIcon name="close" size={18} color={C.textSecondary} />
+              </Pressable>
+            </View>
+
+            {/* High-Resolution Physical Card Preview */}
+            <View style={styles.modalCardWrap}>
+              {selectedProduct && (
+                <PhysicalHardwareCardGraphic
+                  type={selectedProduct.id}
+                  size="lg"
+                  cardholderName={cardholderName}
+                  companyName="NFC GLOBAL"
+                />
+              )}
+            </View>
+
+            {/* Hardware Specification Highlights */}
+            <View style={styles.specsList}>
+              <View style={styles.specRow}>
+                <AppText style={styles.specLabel}>MATERIAL</AppText>
+                <AppText style={styles.specValue} weight="medium">
+                  {selectedProduct?.id === 'metal_card' ? '0.8mm 304 Stainless Steel' :
+                   selectedProduct?.id === 'pvc_card' ? '0.76mm Recycled Polymer' :
+                   selectedProduct?.id === 'premium_card' ? 'Solid Alloy Brushed Brass' :
+                   '3K Carbon Fiber Twill Composite'}
+                </AppText>
+              </View>
+              <View style={styles.specRow}>
+                <AppText style={styles.specLabel}>NFC CHIP</AppText>
+                <AppText style={styles.specValue} weight="medium">
+                  {selectedProduct?.id === 'custom_card' ? 'Dual NTAG424 DNA Encrypted' : 'NTAG216 High Speed ISO 14443-A'}
+                </AppText>
+              </View>
+              <View style={styles.specRow}>
+                <AppText style={styles.specLabel}>FINISH</AppText>
+                <AppText style={styles.specValue} weight="medium">Laser-Etched Double-Sided CNC</AppText>
+              </View>
+              <View style={styles.specRow}>
+                <AppText style={styles.specLabel}>COMPATIBILITY</AppText>
+                <AppText style={styles.specValue} weight="medium">Universal iOS (XS+) & NFC Androids</AppText>
+              </View>
+            </View>
+
+            {/* Actions: Simulate NFC Tap OR Order */}
+            <View style={styles.modalActions}>
+              <Pressable
+                style={({ pressed }) => [styles.modalSimulateBtn, pressed && styles.btnPressed]}
+                onPress={() => {
+                  Haptics.heavy();
+                  setSimulatedTapActive(true);
+                  setTimeout(() => {
+                    Haptics.success();
+                    setSimulatedTapActive(false);
+                    setSelectedProduct(null);
+                    setShowBeamModal(true);
+                  }, 600);
+                }}
+              >
+                <AppIcon name="wifi" size={15} color={C.text} style={{ transform: [{ rotate: '90deg' }] }} />
+                <AppText style={styles.modalSimulateText} weight="bold">
+                  {simulatedTapActive ? 'Simulating Tap...' : 'Simulate Physical Tap'}
+                </AppText>
+              </Pressable>
+
+              <Pressable
+                style={({ pressed }) => [styles.modalOrderBtn, pressed && styles.btnPressed]}
+                onPress={() => {
+                  HapticTap.medium();
+                  setSelectedProduct(null);
+                  router.push('/pricing' as any);
+                }}
+              >
+                <AppText style={styles.modalOrderText} weight="bold">
+                  Order Card · {selectedProduct?.price}
+                </AppText>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* NameDrop-Style NFC Beam Modal */}
+      <NfcBeamModal
+        visible={showBeamModal}
+        onClose={() => setShowBeamModal(false)}
+        fullName={cardholderName}
+        title="NFC Digital Profile"
+        url={profileUrl}
+      />
     </SafeAreaView>
   );
 }
@@ -317,8 +498,97 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: C.textMuted,
   },
+  virtualBanner: {
+    backgroundColor: C.surface,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(121, 154, 133, 0.25)', // Subtle eucalyptus sage border
+    gap: 10,
+  },
+  virtualTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  virtualPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(121, 154, 133, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  virtualPillText: {
+    fontSize: 10,
+    letterSpacing: 1.2,
+    color: '#799A85',
+  },
+  virtualInstantBadge: {
+    fontSize: 10,
+    letterSpacing: 1.2,
+    color: C.textSecondary,
+    fontWeight: '600',
+  },
+  virtualTitle: {
+    fontSize: 16,
+    color: C.text,
+    letterSpacing: -0.3,
+  },
+  virtualDescription: {
+    fontSize: 12.5,
+    lineHeight: 18,
+    color: C.textSecondary,
+  },
+  virtualActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 4,
+  },
+  virtualBtnPrimary: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    paddingVertical: 10,
+  },
+  virtualBtnPrimaryText: {
+    fontSize: 12,
+    color: '#000000',
+    letterSpacing: -0.1,
+  },
+  virtualBtnSecondary: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: C.surfaceSoft,
+    borderWidth: 1,
+    borderColor: C.hairline,
+    borderRadius: 10,
+    paddingVertical: 10,
+  },
+  virtualBtnSecondaryText: {
+    fontSize: 12,
+    color: C.text,
+  },
+  btnPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.98 }],
+  },
   section: {
     gap: 12,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
   },
   sectionLabel: {
     fontSize: 12,
@@ -326,31 +596,32 @@ const styles = StyleSheet.create({
     color: C.textMuted,
     fontWeight: '600',
   },
+  sectionHint: {
+    fontSize: 11,
+    color: C.accent,
+    letterSpacing: 0.3,
+  },
   shopScroll: {
     gap: 12,
   },
   productCard: {
-    width: 150,
+    width: 154,
     backgroundColor: C.surface,
     borderRadius: 16,
-    padding: 14,
-    gap: 12,
+    padding: 12,
+    gap: 10,
   },
   productPressed: {
     backgroundColor: C.surfaceSoft,
   },
   productVisual: {
-    height: 90,
+    height: 94,
     backgroundColor: C.cardBg,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  cardSilhouette: {
-    width: 60,
-    height: 38,
-    borderRadius: 4,
-    backgroundColor: '#1E1E24',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.04)',
   },
   productMeta: {
     gap: 2,
@@ -446,5 +717,107 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: C.textSecondary,
     fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+  },
+  modalSheet: {
+    backgroundColor: '#121215',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 36,
+    gap: 18,
+    borderTopWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  modalTag: {
+    fontSize: 10,
+    letterSpacing: 1.5,
+    color: '#799A85',
+    fontWeight: '700',
+  },
+  modalTitle: {
+    fontSize: 20,
+    color: C.text,
+    letterSpacing: -0.4,
+    marginTop: 2,
+  },
+  modalCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: C.surfaceSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCardWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+  },
+  specsList: {
+    backgroundColor: C.surface,
+    borderRadius: 14,
+    padding: 14,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: C.hairline,
+  },
+  specRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  specLabel: {
+    fontSize: 10,
+    letterSpacing: 1,
+    color: C.textMuted,
+    fontWeight: '600',
+  },
+  specValue: {
+    fontSize: 12.5,
+    color: C.text,
+  },
+  modalActions: {
+    gap: 10,
+  },
+  modalSimulateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: C.surfaceSoft,
+    borderRadius: 14,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  modalSimulateText: {
+    fontSize: 14,
+    color: C.text,
+  },
+  modalOrderBtn: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalOrderText: {
+    fontSize: 14,
+    color: '#000000',
+    letterSpacing: -0.2,
   },
 });
