@@ -15,6 +15,7 @@ import { AppleToggle } from '@/src/components/AppleToggle';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useIsGuest } from '@/src/hooks/useIsGuest';
 import { usePreferences } from '@/src/hooks/usePreferences';
+import { useAudioPreference } from '@/src/hooks/useAudioPreference';
 import { useRequireAccount } from '@/src/providers/GuestGateProvider';
 import { HapticTap } from '@/src/utils/haptics';
 import { buildSlugProfileUrl } from '@/src/constants/publicProfile';
@@ -182,6 +183,7 @@ export function SettingsScreen() {
   const isGuest = useIsGuest();
   const { preferences, updatePreferences, resetPreferences } = usePreferences();
   const { requireAccount } = useRequireAccount();
+  const { audioEnabled, toggleAudio } = useAudioPreference();
   
   const isDark = preferences.colorMode === 'dark';
 
@@ -207,6 +209,11 @@ export function SettingsScreen() {
   const handleToggleHaptics = (val: boolean) => {
     HapticTap.selection();
     setHapticsEnabled(val);
+  };
+
+  const handleToggleAudio = (_val: boolean) => {
+    HapticTap.selection();
+    void toggleAudio();
   };
 
   const handleTogglePin = (val: boolean) => {
@@ -332,6 +339,19 @@ export function SettingsScreen() {
                   value={hapticsEnabled}
                   onValueChange={handleToggleHaptics}
                   accessibilityLabel="Haptic feedback toggle"
+                />
+              }
+            />
+            <SettingRow
+              delay={175}
+              icon="Volume2"
+              title="Sound Effects"
+              subtitle="NFC scan and confirmation sounds"
+              rightElement={
+                <AppleToggle
+                  value={audioEnabled}
+                  onValueChange={handleToggleAudio}
+                  accessibilityLabel="Sound effects toggle"
                 />
               }
             />

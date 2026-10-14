@@ -14,6 +14,9 @@ import { AppHeaderV2 } from '@/src/components/AppHeaderV2';
 import { AppIcon } from '@/src/components/AppIcon';
 import { AppText } from '@/src/components/AppText';
 import { HapticTap } from '@/src/utils/haptics';
+import { NfcAntennaGuide } from '@/src/components/help/NfcAntennaGuide';
+import { TroubleshootingSteps } from '@/src/components/help/TroubleshootingSteps';
+import { OnboardingStepCards } from '@/src/components/help/OnboardingStepCards';
 
 interface FAQItem {
   question: string;
@@ -70,7 +73,14 @@ export function HelpCenterScreen() {
 
   return (
     <SafeAreaView style={styles.root}>
-      <AppHeaderV2 title="Help & Support" showBack onBackPress={() => router.back()} />
+      <AppHeaderV2
+        title="Help & Support"
+        showBack
+        onBackPress={() => {
+          if (router.canGoBack()) router.back();
+          else router.replace('/(tabs)' as any);
+        }}
+      />
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* Search Bar */}
@@ -154,6 +164,24 @@ export function HelpCenterScreen() {
               </Pressable>
             );
           })}
+        </View>
+
+        {/* ── GET STARTED ── */}
+        <View style={styles.helpSection}>
+          <AppText style={styles.helpSectionLabel}>GET STARTED</AppText>
+          <OnboardingStepCards />
+        </View>
+
+        {/* ── HOW TO TAP ── */}
+        <View style={styles.helpSection}>
+          <AppText style={styles.helpSectionLabel}>HOW TO TAP</AppText>
+          <NfcAntennaGuide />
+        </View>
+
+        {/* ── TROUBLESHOOTING ── */}
+        <View style={styles.helpSection}>
+          <AppText style={styles.helpSectionLabel}>TROUBLESHOOTING</AppText>
+          <TroubleshootingSteps />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -268,5 +296,15 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.7)',
     marginTop: 12,
     lineHeight: 19,
+  },
+  helpSection: {
+    gap: 14,
+    marginTop: 4,
+  },
+  helpSectionLabel: {
+    fontSize: 11,
+    letterSpacing: 1,
+    fontWeight: '700',
+    color: 'rgba(255, 255, 255, 0.35)',
   },
 });
