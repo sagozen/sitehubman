@@ -1,9 +1,9 @@
 /**
  * audioFeedback.ts
  *
- * Singleton audio feedback manager for SiteHub NFC interactions.
- * Uses expo-av with lazy loading, caching, and graceful fallback.
- * Respects the user's device silent mode on iOS (playsInSilentModeIOS: false).
+ * Modern audio feedback manager for SiteHub NFC interactions.
+ * Uses `expo-audio` (SDK 52+ / 57 compliant) with lazy loading, caching,
+ * and graceful fallback.
  *
  * Usage:
  *   import { AudioFeedback } from '@/src/utils/audioFeedback';
@@ -25,52 +25,31 @@ const SOUND_ASSETS: Record<SoundKey, number> = {
   payment: require('../../assets/sounds/custom_payment_sound.wav'),
 };
 
-// Lazy-import expo-av to avoid crashing when not installed
-let _Audio: typeof import('expo-av').Audio | null = null;
+type AudioModuleType = typeof import('expo-audio');
+let _expoAudio: AudioModuleType | null = null;
 
-async function getAudio() {
-  if (_Audio) return _Audio;
+async function getExpoAudio(): Promise<AudioModuleType | null> {
+  if (_expoAudio) return _expoAudio;
   try {
-    const av = await import('expo-av');
-    _Audio = av.Audio;
-    return _Audio;
+    const mod = await import('expo-audio');
+    _expoAudio = mod;
+    return _expoAudio;
   } catch {
     return null;
   }
 }
 
-type SoundObject = import('expo-av').Audio.Sound;
-const _cache: Partial<Record<SoundKey, SoundObject>> = {};
-let _audioModeSet = false;
-let _enabled = true; // Runtime override from useAudioPreference
+type AudioPlayerType = import('expo-audio').AudioPlayer;
+const _players: Partial<Record<SoundKey, AudioPlayerType>> = {};
+let _enabled = true; // Controlled by useAudioPreference
 
-async function ensureAudioMode() {
-  if (_audioModeSet) return;
+function getPlayer(key: SoundKey, mod: AudioModuleType): AudioPlayerType | null {
+  if (_players[key]) return _players[key]!;
   try {
-    const Audio = await getAudio();
-    if (!Audio) return;
-    await Audio.setAudioModeAsync({
-      playsInSilentModeIOS: false,
-      shouldDuckAndroid: true,
-      staysActiveInBackground: false,
-    });
-    _audioModeSet = true;
-  } catch {
-    // Silent fallback — never crash the app
-  }
-}
-
-async function loadSound(key: SoundKey): Promise<SoundObject | null> {
-  if (_cache[key]) return _cache[key]!;
-  try {
-    const Audio = await getAudio();
-    if (!Audio) return null;
-    const { sound } = await Audio.Sound.createAsync(SOUND_ASSETS[key], {
-      shouldPlay: false,
-      volume: 0.7,
-    });
-    _cache[key] = sound;
-    return sound;
+    const player = mod.createAudioPlayer(SOUND_ASSETS[key]);
+    player.volume = 0.7;
+    _players[key] = player;
+    return player;
   } catch {
     return null;
   }
@@ -79,52 +58,50 @@ async function loadSound(key: SoundKey): Promise<SoundObject | null> {
 async function play(key: SoundKey) {
   if (!_enabled) return;
   try {
-    await ensureAudioMode();
-    const sound = await loadSound(key);
-    if (!sound) return;
-    await sound.setPositionAsync(0);
-    await sound.playAsync();
+    const mod = await getExpoAudio();
+    if (!mod) return;
+    const player = getPlayer(key, mod);
+    if (!player) return;
+    await player.seekTo(0);
+    player.play();
   } catch {
-    // Gracefully silent — never crash the app
+    // Graceful silent fallback
   }
 }
 
-// Unload all cached sounds on app background to free memory
+// Release players when app goes to background
 AppState.addEventListener('change', (state: AppStateStatus) => {
   if (state === 'background' || state === 'inactive') {
-    for (const key of Object.keys(_cache) as SoundKey[]) {
-      const sound = _cache[key];
-      if (sound) {
-        sound.unloadAsync().catch(() => {});
-        delete _cache[key];
+    for (const key of Object.keys(_players) as SoundKey[]) {
+      const p = _players[key];
+      if (p) {
+        try {
+          p.release();
+        } catch {
+          // Silent fallback
+        }
+        delete _players[key];
       }
     }
-    _audioModeSet = false;
   }
 });
 
-/** Public API */
 export const AudioFeedback = {
-  /** Set by useAudioPreference to enable/disable all sounds */
   setEnabled(value: boolean) {
     _enabled = value;
   },
   getEnabled() {
     return _enabled;
   },
-  /** Fired on successful NFC card scan */
   nfcScan() {
     void play('nfcScan');
   },
-  /** Fired on any successful action (save, publish, share) */
   success() {
     void play('success');
   },
-  /** Fired on error or failed scan */
   error() {
     void play('error');
   },
-  /** Fired on payment completion */
   payment() {
     void play('payment');
   },
