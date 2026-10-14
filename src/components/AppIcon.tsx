@@ -7,7 +7,7 @@ import { memo } from 'react';
 
 export type AppIconName = string;
 
-const DEFAULT_ICON_SIZE = 22;
+const DEFAULT_ICON_SIZE = 24;
 
 export type IconVariant = 
   | 'phosphor-duotone'
@@ -23,12 +23,12 @@ export type IconUsage =
   | 'card'
   | 'input';
 
-// Map usage presets to exact pixel sizes requested
+// Map usage presets to exact pixel sizes — sized up for strong visual clarity over typography
 const USAGE_SIZES: Record<IconUsage, number> = {
-  navigation: 24,
-  toolbar: 22,
-  card: 20,
-  input: 18,
+  navigation: 26,
+  toolbar: 24,
+  card: 22,
+  input: 20,
 };
 
 // ─── Direct mappings from friendly names to Ionicons / Feather ─────────────────
@@ -246,8 +246,9 @@ const AppIconRaw = ({
   const { colors } = usePreferences();
   const resolvedColor = color ?? colors.textPrimary;
   
-  // Resolve size based on usage preset or direct size prop
-  const resolvedSize = size ?? (usage ? USAGE_SIZES[usage] : DEFAULT_ICON_SIZE);
+  // Resolve size based on usage preset or direct size prop (enforce minimum 18px so icons never look like tiny text)
+  const baseSize = size ?? (usage ? USAGE_SIZES[usage] : DEFAULT_ICON_SIZE);
+  const resolvedSize = Math.max(18, baseSize);
 
   // Default to clean 'lucide-minimal' (uniform regular-weight outline vectors, SF Symbols style)
   const resolvedVariant = variant ?? 'lucide-minimal';

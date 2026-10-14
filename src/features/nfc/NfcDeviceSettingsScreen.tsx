@@ -21,7 +21,7 @@ const C = {
   border: 'rgba(255,255,255,0.09)',
   text: '#F5F5F7',
   muted: '#9A9AA0',
-  accent: '#2596BE',
+  accent: '#799A85',
   danger: '#FF453A',
 };
 
@@ -56,7 +56,7 @@ const ActionRow: React.FC<RowProps> = ({
       <View style={styles.iconWrap}>
         <AppIcon
           name={icon}
-          size={18}
+          size={22}
           color={danger ? C.danger : C.accent}
         />
       </View>
@@ -344,10 +344,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   iconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: C.surfaceRaised,
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     alignItems: 'center',
     justifyContent: 'center',
   },

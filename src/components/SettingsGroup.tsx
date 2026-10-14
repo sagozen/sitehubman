@@ -296,16 +296,16 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
   },
   iconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconWrapCompact: {
-    width: 28,
-    height: 28,
-    borderRadius: 7,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
   },
   copy: {
     flex: 1,

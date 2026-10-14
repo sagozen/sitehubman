@@ -48,6 +48,8 @@ import { AppText } from '@/src/components/AppText';
 import { useAuth } from '@/src/hooks/useAuth';
 import { usePreferences } from '@/src/hooks/usePreferences';
 import { HapticTap } from '@/src/utils/haptics';
+import { useLiveTapStream } from '@/src/hooks/useLiveTapStream';
+import { useToast } from '@/src/providers/ToastProvider';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const CARD_W = (SCREEN_W - 48 - 12) / 2;
@@ -386,6 +388,7 @@ const sh = StyleSheet.create({
 // ─── PremiumHomeScreen ─────────────────────────────────────────────────────────
 export function PremiumHomeScreen() {
   const { user }    = useAuth();
+  const { showToast } = useToast();
   const { isDark }  = usePreferences();
   const insets      = useSafeAreaInsets();
   const [loaded, setLoaded]         = useState(false);
@@ -393,6 +396,22 @@ export function PremiumHomeScreen() {
 
   const greeting  = useMemo(() => getGreeting(), []);
   const firstName = user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'there';
+
+  // ── Phase 1: Real-Time NFC Tap Stream ──────────────────────────────────────
+  const { tapCount: liveTapCount } = useLiveTapStream(
+    user?.activeProfileId ?? user?.id ?? null,
+    useCallback(
+      () => {
+        showToast({
+          type: 'success',
+          message: '✦ Someone just tapped your card!',
+          duration: 3500,
+          icon: 'Radio',
+        });
+      },
+      [showToast],
+    ),
+  );
 
   useEffect(() => {
     const task = InteractionManager.runAfterInteractions(() => {
@@ -408,9 +427,9 @@ export function PremiumHomeScreen() {
   }, []);
 
   const stats: StatItem[] = [
-    { label: 'Taps Today',    value: 47,   icon: 'radio',  color: '#0A84FF' },
-    { label: 'Connections',   value: 312,  icon: 'people', color: '#30D158' },
-    { label: 'Profile Views', value: 1284, icon: 'eye',    color: '#FF9F0A' },
+    { label: 'Card Taps',     value: liveTapCount, icon: 'radio',  color: '#799A85' },
+    { label: 'Connections',   value: 312,          icon: 'people', color: '#30D158' },
+    { label: 'Profile Views', value: 1284,         icon: 'eye',    color: '#FF9F0A' },
   ];
 
   const bg = isDark

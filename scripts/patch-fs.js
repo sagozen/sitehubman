@@ -54,7 +54,25 @@ if (origStatSync) {
   };
 }
 
-// 3. Callback open retry
+const origReadFileSync = fs.readFileSync;
+if (origReadFileSync) {
+  fs.readFileSync = function patchedReadFileSync(...args) {
+    for (let i = 0; i < 25; i++) {
+      try {
+        return origReadFileSync.apply(this, args);
+      } catch (err) {
+        if (err && (err.code === 'EMFILE' || err.code === 'EBUSY' || err.code === 'EAGAIN')) {
+          syncSleep(30 * (i + 1));
+          continue;
+        }
+        throw err;
+      }
+    }
+    return origReadFileSync.apply(this, args);
+  };
+}
+
+// 3. Callback open & readFile retry
 const origOpen = fs.open;
 if (origOpen) {
   fs.open = function patchedOpen(...args) {
@@ -66,6 +84,24 @@ if (origOpen) {
           setTimeout(() => retryCall(attempt + 1), 30 * (attempt + 1));
         } else {
           callback(err, fd);
+        }
+      });
+    };
+    retryCall(0);
+  };
+}
+
+const origReadFile = fs.readFile;
+if (origReadFile) {
+  fs.readFile = function patchedReadFile(...args) {
+    const callback = args[args.length - 1];
+    if (typeof callback !== 'function') return origReadFile.apply(this, args);
+    const retryCall = (attempt) => {
+      origReadFile.call(this, ...args.slice(0, -1), (err, data) => {
+        if (err && (err.code === 'EMFILE' || err.code === 'EBUSY' || err.code === 'EAGAIN') && attempt < 25) {
+          setTimeout(() => retryCall(attempt + 1), 30 * (attempt + 1));
+        } else {
+          callback(err, data);
         }
       });
     };

@@ -28,7 +28,11 @@ export default function CardSettingsScreen() {
 
   const handleBack = useCallback(() => {
     HapticTap.light();
-    router.back();
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)' as any);
+    }
   }, []);
 
   const handleCopy = useCallback(() => {

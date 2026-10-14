@@ -300,7 +300,7 @@ export const BUNDLE_DEALS = {
 
 // Pricing calculation functions
 export function calculateProductPrice(productId: string, quantity: number = 1): number {
-  const product = CARD_PRODUCTS[productId] || CARD_ADDONS[productId];
+  const product = getProduct(productId);
   if (!product) return 0;
   
   // Apply quantity discounts for cards (not addons)
@@ -388,9 +388,12 @@ export function searchProducts(tags: string[]): CardProduct[] {
   );
 }
 
-// Get product by ID
+// Get product by ID or key
 export function getProduct(productId: string): CardProduct | null {
-  return CARD_PRODUCTS[productId] || CARD_ADDONS[productId] || null;
+  const card = Object.values(CARD_PRODUCTS).find(p => p.id === productId) || CARD_PRODUCTS[productId];
+  if (card) return card;
+  const addon = Object.values(CARD_ADDONS).find(p => p.id === productId) || CARD_ADDONS[productId];
+  return addon || null;
 }
 
 // Format price for display

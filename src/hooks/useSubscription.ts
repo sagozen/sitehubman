@@ -55,9 +55,25 @@ export function useSubscription() {
 
       setSubscription(subData);
       setUsage(usageData);
-    } catch (err) {
-      console.error('Failed to load subscription:', err);
-      setError('Failed to load subscription data');
+    } catch {
+      // Graceful fallback to default free plan without crashing UI
+      setSubscription({
+        id: 'free',
+        planId: 'free',
+        status: 'active',
+        currentPeriodEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+        cancelAtPeriodEnd: false,
+        stripeCustomerId: '',
+        stripeSubscriptionId: '',
+        plan: SUBSCRIPTION_PLANS.free,
+      });
+      setUsage({
+        digitalCards: 0,
+        taps: 0,
+        connections: 0,
+        exports: 0,
+        teamMembers: 0,
+      });
     } finally {
       setLoading(false);
     }

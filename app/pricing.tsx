@@ -1,5 +1,5 @@
-// Pricing Page - Premium dark design matching AVIO design system
-// Pure black canvas, high-contrast border cards, B&W buttons
+// Pricing Page - Premium dark design matching AVIO / SiteHub design system
+// Pure black canvas (#000000), high-contrast border cards (#111114), B&W buttons, eucalyptus sage accent (#799A85)
 
 import React, { useCallback, useRef, useState } from 'react';
 import {
@@ -24,17 +24,20 @@ import { AppText } from '@/src/components/AppText';
 
 const isWeb = Platform.OS === 'web';
 
-// ─── Design tokens ───────────────────────────────────────────────────────────
+// ─── Design tokens (Codex Design System) ──────────────────────────────────────
 const D = {
-  bg: '#F5F7FA',
-  surface: '#FFFFFF',
-  border: 'rgba(0,0,0,0.08)',
-  borderStrong: 'rgba(0,0,0,0.18)',
-  text: '#111111',
-  muted: '#6E6E73',
-  mutedMid: 'rgba(0,0,0,0.6)',
-  green: '#10B981',
-  accent: '#D97706',
+  bg: '#000000',
+  surface: '#111114',
+  surfacePopular: '#15151A',
+  border: 'rgba(255, 255, 255, 0.08)',
+  borderStrong: 'rgba(255, 255, 255, 0.16)',
+  borderPopular: 'rgba(121, 154, 133, 0.35)',
+  text: '#FFFFFF',
+  textSecondary: 'rgba(255, 255, 255, 0.85)',
+  muted: 'rgba(255, 255, 255, 0.55)',
+  mutedMid: 'rgba(255, 255, 255, 0.65)',
+  green: '#799A85',
+  accent: '#E5A93C',
   destructive: '#FF453A',
   radius: 16,
   radiusSm: 10,
@@ -171,7 +174,7 @@ function PlanCard({
       {/* CTA */}
       {isCurrentPlan ? (
         <View style={styles.currentPlanTag}>
-          <Ionicons name="checkmark-circle" size={14} color={D.green} style={{ marginRight: 6 }} />
+          <Ionicons name="checkmark-circle" size={15} color={D.green} style={{ marginRight: 6 }} />
           <AppText style={styles.currentPlanText} weight="semibold">
             Current Plan
           </AppText>
@@ -262,8 +265,19 @@ export default function PricingScreen() {
   const { currentPlan } = useSubscription();
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
 
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)' as any);
+    }
+  };
+
   const handleSelectPlan = (planId: string) => {
-    if (planId === 'free') { router.push('/register'); return; }
+    if (planId === 'free') {
+      router.push('/register');
+      return;
+    }
     router.push('/contact-sales' as any);
   };
 
@@ -285,17 +299,19 @@ export default function PricingScreen() {
       >
         {/* Back button */}
         <Pressable
-          onPress={() => router.back()}
+          onPress={handleBack}
           style={styles.backBtn}
           hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Back"
         >
-          <Ionicons name="arrow-back" size={20} color={D.text} />
+          <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
         </Pressable>
 
         {/* Hero */}
         <View style={styles.hero}>
           <View style={styles.heroBadge}>
-            <Ionicons name="flash" size={12} color={D.accent} />
+            <Ionicons name="flash" size={12} color={D.green} />
             <AppText style={styles.heroBadgeText} weight="semibold">
               AVIO Plans
             </AppText>
@@ -359,7 +375,7 @@ export default function PricingScreen() {
         <View style={styles.enterpriseCard}>
           <View style={styles.enterpriseLeft}>
             <View style={styles.enterpriseBadge}>
-              <Ionicons name="business" size={14} color={D.accent} />
+              <Ionicons name="business" size={14} color={D.green} />
               <AppText style={styles.enterpriseBadgeText} weight="bold">Enterprise</AppText>
             </View>
             <AppText style={styles.enterpriseTitle} weight="bold">
@@ -461,7 +477,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: '#111114',
     borderWidth: 1,
     borderColor: D.border,
     alignItems: 'center',
@@ -477,14 +493,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     borderWidth: 1,
-    borderColor: 'rgba(217,119,6,0.4)',
-    backgroundColor: 'rgba(217,119,6,0.08)',
+    borderColor: 'rgba(121, 154, 133, 0.4)',
+    backgroundColor: 'rgba(121, 154, 133, 0.12)',
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: D.radiusPill,
     marginBottom: 16,
   },
-  heroBadgeText: { color: D.accent, fontSize: 11, letterSpacing: 0.5 },
+  heroBadgeText: { color: D.green, fontSize: 11, letterSpacing: 0.5 },
   heroTitle: {
     fontSize: isWeb ? 44 : 34,
     color: D.text,
@@ -520,9 +536,9 @@ const styles = StyleSheet.create({
   toggleText: { fontSize: 14, color: D.muted },
   toggleTextActive: { color: '#000000' },
   saveBadge: {
-    backgroundColor: 'rgba(16,185,129,0.15)',
+    backgroundColor: 'rgba(121, 154, 133, 0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(16,185,129,0.35)',
+    borderColor: 'rgba(121, 154, 133, 0.35)',
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: D.radiusPill,
@@ -539,8 +555,8 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   planCardPopular: {
-    borderColor: 'rgba(255,255,255,0.25)',
-    backgroundColor: '#18181c',
+    borderColor: D.borderPopular,
+    backgroundColor: D.surfacePopular,
   },
   popularBadge: {
     flexDirection: 'row',
@@ -565,9 +581,9 @@ const styles = StyleSheet.create({
 
   savingsPill: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(16,185,129,0.12)',
+    backgroundColor: 'rgba(121, 154, 133, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(16,185,129,0.3)',
+    borderColor: 'rgba(121, 154, 133, 0.3)',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: D.radiusPill,
@@ -586,7 +602,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
-  featureText: { color: 'rgba(255,255,255,0.75)', fontSize: 14, flex: 1, lineHeight: 20 },
+  featureText: { color: D.textSecondary, fontSize: 14, flex: 1, lineHeight: 20 },
 
   ctaBtn: {
     height: 52,
@@ -597,11 +613,11 @@ const styles = StyleSheet.create({
   },
   ctaBtnPrimary: { backgroundColor: '#FFFFFF' },
   ctaBtnSecondary: {
-    backgroundColor: 'transparent',
+    backgroundColor: '#000000',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.22)',
   },
-  ctaBtnText: { color: D.text, fontSize: 15 },
+  ctaBtnText: { color: '#FFFFFF', fontSize: 15 },
   ctaBtnTextPrimary: { color: '#000000' },
 
   currentPlanTag: {
@@ -611,16 +627,16 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: D.radiusPill,
     borderWidth: 1,
-    borderColor: 'rgba(16,185,129,0.3)',
-    backgroundColor: 'rgba(16,185,129,0.08)',
+    borderColor: 'rgba(121, 154, 133, 0.35)',
+    backgroundColor: 'rgba(121, 154, 133, 0.12)',
   },
   currentPlanText: { color: D.green, fontSize: 14 },
 
   // Enterprise
   enterpriseCard: {
-    backgroundColor: '#0c0c10',
+    backgroundColor: D.surface,
     borderWidth: 1,
-    borderColor: 'rgba(217,119,6,0.2)',
+    borderColor: D.border,
     borderRadius: D.radius,
     padding: 20,
     marginBottom: 40,
@@ -633,7 +649,7 @@ const styles = StyleSheet.create({
     gap: 6,
     alignSelf: 'flex-start',
   },
-  enterpriseBadgeText: { color: D.accent, fontSize: 11, letterSpacing: 0.5 },
+  enterpriseBadgeText: { color: D.green, fontSize: 11, letterSpacing: 0.5 },
   enterpriseTitle: { color: D.text, fontSize: 18, lineHeight: 24 },
   enterpriseDesc: { color: D.muted, fontSize: 13, lineHeight: 18 },
   enterpriseBtn: {
@@ -649,7 +665,7 @@ const styles = StyleSheet.create({
   // Section labels
   section: { marginBottom: 40 },
   sectionLabel: {
-    color: 'rgba(255,255,255,0.35)',
+    color: 'rgba(255, 255, 255, 0.35)',
     fontSize: 11,
     letterSpacing: 1.5,
     marginBottom: 6,
@@ -724,7 +740,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 40,
     paddingHorizontal: 20,
-    backgroundColor: '#0a0a0d',
+    backgroundColor: D.surface,
     borderWidth: 1,
     borderColor: D.border,
     borderRadius: 24,

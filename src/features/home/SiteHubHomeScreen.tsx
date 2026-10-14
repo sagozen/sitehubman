@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Alert,
   Dimensions,
   Pressable,
   RefreshControl,
@@ -10,6 +9,9 @@ import {
   View,
   Image,
 } from 'react-native';
+import { useLiveTapStream } from '@/src/hooks/useLiveTapStream';
+import { useToast } from '@/src/providers/ToastProvider';
+import { showAppAlert } from '@/src/utils/universalAlert';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { AppText } from '@/src/components/AppText';
@@ -30,6 +32,7 @@ const CONTENT_MAX_WIDTH = 600;
 
 export function SiteHubHomeScreen() {
   const { user, signOutUser } = useAuth();
+  const { showToast } = useToast();
   const [leads, setLeads] = useState<QualifiedLead[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [showConnectModal, setShowConnectModal] = useState(false);
@@ -39,6 +42,22 @@ export function SiteHubHomeScreen() {
   const ownerId = user?.id ?? 'demo_owner';
   const ownerName = user?.displayName || 'Alexander Wright';
   const companyTitle = (user as any)?.jobTitle || 'Managing Partner · Apex Ventures';
+
+  // ── Phase 1: Real-Time NFC Tap Stream ──────────────────────────────────────
+  const { tapCount: liveTapCount } = useLiveTapStream(
+    user?.activeProfileId ?? user?.id ?? null,
+    useCallback(
+      () => {
+        showToast({
+          type: 'success',
+          message: '✦ Someone just tapped your card!',
+          duration: 3500,
+          icon: 'Radio',
+        });
+      },
+      [showToast],
+    ),
+  );
 
   const triggerToast = useCallback((msg: string) => {
     HapticTap.light();
@@ -184,17 +203,21 @@ export function SiteHubHomeScreen() {
                   style={styles.iconButton}
                   onPress={() => {
                     HapticTap.medium();
-                    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-                      { text: 'Cancel', style: 'cancel' },
-                      {
-                        text: 'Sign Out',
-                        style: 'destructive',
-                        onPress: async () => {
-                          await signOutUser();
-                          router.replace('/(auth)/login' as any);
+                    showAppAlert(
+                      'Sign Out',
+                      'Are you sure you want to sign out?',
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        {
+                          text: 'Sign Out',
+                          style: 'destructive',
+                          onPress: async () => {
+                            await signOutUser();
+                            router.replace('/(auth)/login' as any);
+                          },
                         },
-                      },
-                    ]);
+                      ],
+                    );
                   }}
                   hitSlop={8}
                 >
@@ -272,7 +295,7 @@ export function SiteHubHomeScreen() {
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
                 <AppText style={styles.statValue} weight="bold">
-                  248
+                  {liveTapCount}
                 </AppText>
                 <AppText style={styles.statLabel}>Card Taps</AppText>
               </View>

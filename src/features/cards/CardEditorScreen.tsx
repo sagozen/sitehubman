@@ -159,7 +159,10 @@ export function CardEditorScreen() {
       {/* Top Header */}
       <View style={styles.topBar}>
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) router.back();
+            else router.replace('/(tabs)' as any);
+          }}
           style={styles.backBtn}
           hitSlop={12}
         >

@@ -60,7 +60,10 @@ export default function AnalyticsOverviewScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) router.back();
+            else router.replace('/(tabs)' as any);
+          }}
           style={styles.backBtn}
           hitSlop={12}
         >

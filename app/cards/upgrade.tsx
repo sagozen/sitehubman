@@ -10,8 +10,8 @@ import {
   StyleSheet,
   Image,
   Platform,
-  Alert,
 } from 'react-native';
+import { showAppAlert } from '@/src/utils/universalAlert';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -22,6 +22,7 @@ import {
   getRecommendedAddons,
   formatPrice,
   calculateSavingsPercentage,
+  getProduct,
 } from '@/src/constants/cardProducts';
 import { useSubscription } from '@/src/hooks/useSubscription';
 import { subscriptionService } from '@/src/services/subscriptionService';
@@ -47,7 +48,7 @@ export default function CardUpgradeScreen() {
 
   // Get recommended addons based on selected card
   const recommendedAddons = getRecommendedAddons(selectedCard);
-  const selectedCardProduct = CARD_PRODUCTS[selectedCard];
+  const selectedCardProduct = getProduct(selectedCard) || Object.values(CARD_PRODUCTS)[0];
 
   // Calculate pricing
   const orderItems: OrderItem[] = [
@@ -89,7 +90,7 @@ export default function CardUpgradeScreen() {
   const handleProceedToCheckout = async () => {
     if (!hasAccess('digitalCards')) {
       // Redirect to pricing if user doesn't have card ordering access
-      Alert.alert(
+      showAppAlert(
         'Upgrade Required',
         'Card ordering is available in Pro and Business plans.',
         [
@@ -115,9 +116,8 @@ export default function CardUpgradeScreen() {
           router.push(checkoutUrl as any);
         }
       }
-    } catch (error) {
-      console.error('Checkout unavailable:', error);
-      Alert.alert(
+    } catch {
+      showAppAlert(
         'Online checkout is not available yet',
         'Contact the AVIO team to discuss physical card availability, pricing, and fulfilment.',
         [

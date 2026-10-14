@@ -11,6 +11,7 @@ import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { firebaseCollections } from '@/src/constants/collections';
 import { auth, db } from '@/src/services/firebaseClient';
 import { getUserProfile } from '@/src/services/authService';
+import { Platform } from 'react-native';
 import { AppUser } from '@/src/types/models';
 
 const DEFAULT_OAUTH_ROLE = 'customer' as const;
@@ -177,6 +178,9 @@ export async function signInWithAppleTokens(identityToken: string, rawNonce: str
 }
 
 export async function isAppleSignInAvailable(): Promise<boolean> {
+  if (Platform.OS !== 'ios') {
+    return false;
+  }
   try {
     const AppleAuthentication = await import('expo-apple-authentication');
     return await AppleAuthentication.isAvailableAsync();

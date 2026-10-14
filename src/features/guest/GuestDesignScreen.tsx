@@ -261,7 +261,11 @@ export function GuestDesignScreen() {
         {/* ── Header ── */}
         <View style={styles.header}>
           <Pressable
-            onPress={() => { HapticTap.light(); router.back(); }}
+            onPress={() => {
+              HapticTap.light();
+              if (router.canGoBack()) router.back();
+              else router.replace('/' as any);
+            }}
             style={({ pressed }) => [styles.backBtn, pressed && styles.pressed]}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >

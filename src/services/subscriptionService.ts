@@ -122,54 +122,70 @@ export class SubscriptionService {
 
   // Get user's current subscription
   async getUserSubscription(userId: string): Promise<any> {
+    const defaultFreePlan = {
+      id: 'free',
+      planId: 'free',
+      status: 'active',
+      currentPeriodEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
+      cancelAtPeriodEnd: false,
+      plan: SUBSCRIPTION_PLANS.free,
+    };
+
+    if (!userId || userId === 'guest') {
+      return defaultFreePlan;
+    }
+
     try {
       const subscriptionDoc = await getDoc(doc(firestore, 'subscriptions', userId));
       
       if (!subscriptionDoc.exists()) {
-        // Return free plan as default
-        return {
-          id: 'free',
-          planId: 'free',
-          status: 'active',
-          currentPeriodEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
-          cancelAtPeriodEnd: false,
-          plan: SUBSCRIPTION_PLANS.free,
-        };
+        return defaultFreePlan;
       }
 
       const data = subscriptionDoc.data();
       return {
         ...data,
-        currentPeriodStart: data.currentPeriodStart?.toDate(),
-        currentPeriodEnd: data.currentPeriodEnd?.toDate(),
-        trialEnd: data.trialEnd?.toDate(),
+        currentPeriodStart: data.currentPeriodStart?.toDate ? data.currentPeriodStart.toDate() : data.currentPeriodStart,
+        currentPeriodEnd: data.currentPeriodEnd?.toDate ? data.currentPeriodEnd.toDate() : data.currentPeriodEnd,
+        trialEnd: data.trialEnd?.toDate ? data.trialEnd.toDate() : data.trialEnd,
         plan: SUBSCRIPTION_PLANS[data.planId] || SUBSCRIPTION_PLANS.free,
       };
-    } catch (error) {
-      console.error('Error fetching subscription:', error);
-      throw error;
+    } catch (error: any) {
+      // Permission denied or unauthenticated user: fall back gracefully to free plan
+      if (error?.code === 'permission-denied' || error?.message?.includes('permissions')) {
+        return defaultFreePlan;
+      }
+      return defaultFreePlan;
     }
   }
 
   // Get usage data for limits
   async getUsage(userId: string): Promise<UsageData> {
+    const defaultUsage: UsageData = {
+      digitalCards: 0,
+      taps: 0,
+      connections: 0,
+      exports: 0,
+      teamMembers: 0,
+    };
+
+    if (!userId || userId === 'guest') {
+      return defaultUsage;
+    }
+
     try {
       const usageDoc = await getDoc(doc(firestore, 'usage', userId));
       
       if (!usageDoc.exists()) {
-        return {
-          digitalCards: 0,
-          taps: 0,
-          connections: 0,
-          exports: 0,
-          teamMembers: 0,
-        };
+        return defaultUsage;
       }
 
       return usageDoc.data() as UsageData;
-    } catch (error) {
-      console.error('Error fetching usage:', error);
-      throw error;
+    } catch (error: any) {
+      if (error?.code === 'permission-denied' || error?.message?.includes('permissions')) {
+        return defaultUsage;
+      }
+      return defaultUsage;
     }
   }
 

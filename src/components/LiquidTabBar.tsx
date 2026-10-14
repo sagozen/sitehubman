@@ -41,8 +41,8 @@ import { usePreferences } from '@/src/hooks/usePreferences';
 import { HapticTap } from '@/src/utils/haptics';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-const TAB_BAR_HEIGHT = 49;
-const TAB_ICON_SIZE  = 24;
+const TAB_BAR_HEIGHT = 52;
+const TAB_ICON_SIZE  = 25;
 const TAB_LABEL_SIZE = 10;
 
 const SPRING_STANDARD = { damping: 18, stiffness: 260, mass: 0.9 };
