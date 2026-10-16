@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, type ViewStyle } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, StyleSheet, Animated, Platform, type ViewStyle } from 'react-native';
 
 export function HomeSkeleton() {
   const pulseAnim = useRef(new Animated.Value(0.4)).current;
@@ -23,7 +22,7 @@ export function HomeSkeleton() {
   }, [pulseAnim]);
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+    <View style={styles.safe}>
       <View style={styles.content}>
         
         {/* Profile Header Skeleton */}
@@ -56,7 +55,7 @@ export function HomeSkeleton() {
         </View>
 
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -64,6 +63,7 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: '#0D0D0E',
+    paddingTop: Platform.OS === 'ios' ? 56 : 24,
   } as ViewStyle,
   content: {
     paddingHorizontal: 20,

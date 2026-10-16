@@ -5,7 +5,6 @@
  */
 import { addDoc, collection, getDocs, limit, orderBy, query, serverTimestamp } from 'firebase/firestore';
 import { Platform } from 'react-native';
-import * as Sentry from '@sentry/react-native';
 import { db, auth } from '@/src/services/firebaseClient';
 import { firebaseCollections } from '@/src/constants/collections';
 
@@ -58,13 +57,18 @@ export async function recordAppError(
       createdAt: serverTimestamp(),
     };
 
-    // Sentry is a no-op until EXPO_PUBLIC_SENTRY_DSN is configured. Keep the
-    // Firestore record as the operational fallback, but send a release-aware
-    // crash signal when production monitoring is enabled.
-    Sentry.captureException(errObj, {
-      tags: { platform: Platform.OS, route: payload.route || 'unknown' },
-      extra: { source: context?.extra?.source || 'app' },
-    });
+    if (process.env.EXPO_PUBLIC_SENTRY_DSN) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const Sentry = require('@sentry/react-native');
+        Sentry.captureException?.(errObj, {
+          tags: { platform: Platform.OS, route: payload.route || 'unknown' },
+          extra: { source: context?.extra?.source || 'app' },
+        });
+      } catch {
+        // Safe no-op if native Sentry isn't installed
+      }
+    }
 
     if (__DEV__) {
       console.log('[Telemetry Logger] Error recorded:', payload.errorMessage);

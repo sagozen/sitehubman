@@ -63,6 +63,12 @@ class ReactNativeDelegate: ExpoReactNativeFactoryDelegate {
 #if DEBUG
     return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: ".expo/.virtual-metro-entry")
 #else
+    if let controllerClass = NSClassFromString("EXUpdatesAppController") as? AnyObject.Type,
+       let controller = controllerClass.value(forKey: "sharedInstance") as? AnyObject,
+       let isStarted = controller.value(forKey: "isStarted") as? Bool, isStarted,
+       let launchAssetUrl = controller.value(forKey: "launchAssetUrl") as? URL {
+      return launchAssetUrl
+    }
     return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
 #endif
   }
