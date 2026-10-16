@@ -63,12 +63,20 @@ if (reversedIosClientId) {
   }
 }
 
-module.exports = {
-  expo: {
-    ...appJson.expo,
-    ios: iosConfig,
+module.exports = ({ config }) => {
+  const baseConfig = config || appJson.expo;
+  return {
+    ...baseConfig,
+    ios: {
+      ...baseConfig.ios,
+      ...iosConfig,
+      infoPlist: {
+        ...(baseConfig.ios && baseConfig.ios.infoPlist),
+        ...iosConfig.infoPlist,
+      },
+    },
     extra: {
-      ...appJson.expo.extra,
+      ...baseConfig.extra,
       ...expoPublicExtra,
       firebaseConfigured: Boolean(
         readEnv('EXPO_PUBLIC_FIREBASE_API_KEY') &&
@@ -76,5 +84,5 @@ module.exports = {
           readEnv('EXPO_PUBLIC_FIREBASE_APP_ID')
       ),
     },
-  },
+  };
 };

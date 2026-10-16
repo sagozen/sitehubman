@@ -2,6 +2,8 @@
 // Handles user subscription state and plan management
 
 import { useState, useEffect } from 'react';
+import { Linking, Platform } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { useAuth } from './useAuth';
 import { SUBSCRIPTION_PLANS, SubscriptionPlan, hasFeature, isWithinLimit } from '@/src/constants/subscriptionPlans';
 import { subscriptionService } from '@/src/services/subscriptionService';
@@ -177,7 +179,11 @@ export function useSubscription() {
       
       // Redirect to Stripe checkout or handle payment
       if (result.checkoutUrl) {
-        window.location.href = result.checkoutUrl;
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          window.location.href = result.checkoutUrl;
+        } else {
+          await WebBrowser.openBrowserAsync(result.checkoutUrl);
+        }
       }
       
       return result;
@@ -222,7 +228,11 @@ export function useSubscription() {
       );
       
       if (result.url) {
-        window.location.href = result.url;
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          window.location.href = result.url;
+        } else {
+          await WebBrowser.openBrowserAsync(result.url);
+        }
       }
     } catch (err) {
       console.error('Payment method update failed:', err);
