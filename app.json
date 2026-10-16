@@ -59,6 +59,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-asset",
       "expo-font",
       "expo-image-picker",
       "expo-web-browser",
