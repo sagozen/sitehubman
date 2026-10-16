@@ -137,6 +137,10 @@ export default function RootLayout() {
                           name="u/[slug]"
                           options={{ headerShown: false }}
                         />
+                        <Stack.Screen
+                          name="c/[cardId]"
+                          options={{ headerShown: false }}
+                        />
                         <Stack.Screen name="new-order" />
                         <Stack.Screen name="order-detail/[orderId]" />
                         <Stack.Screen
