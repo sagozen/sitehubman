@@ -3,6 +3,7 @@ import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppText } from '@/src/components/AppText';
 import { AppIcon } from '@/src/components/AppIcon';
+import { AvioLogo } from '@/src/components/AvioLogo';
 
 export type HardwareCardType = 'metal_card' | 'pvc_card' | 'premium_card' | 'custom_card' | string;
 
@@ -151,18 +152,33 @@ export function PhysicalHardwareCardGraphic({
 
         {/* Brand / Logo Row */}
         <View style={styles.brandRow}>
-          <AppText
-            style={[
-              styles.brandText,
-              { color: config.textColor },
-              isSm && styles.brandTextSm,
-              isMd && styles.brandTextMd,
-              isLg && styles.brandTextLg,
-            ]}
-            weight="bold"
-          >
-            {companyName}
-          </AppText>
+          <View style={styles.logoAndBrand}>
+            <AvioLogo
+              size={isSm ? 32 : isMd ? 52 : 72}
+              theme={type === 'premium_card' ? 'light' : 'dark'}
+              showTagline={false}
+              style={[
+                styles.cardAvioLogo,
+                isSm && styles.cardAvioLogoSm,
+                isMd && styles.cardAvioLogoMd,
+                isLg && styles.cardAvioLogoLg,
+              ]}
+            />
+            {companyName ? (
+              <AppText
+                style={[
+                  styles.brandText,
+                  { color: config.textColor },
+                  isSm && styles.brandTextSm,
+                  isMd && styles.brandTextMd,
+                  isLg && styles.brandTextLg,
+                ]}
+                weight="bold"
+              >
+                {companyName}
+              </AppText>
+            ) : null}
+          </View>
           <AppText
             style={[
               styles.tagText,
@@ -261,6 +277,23 @@ const styles = StyleSheet.create({
   },
   brandRow: {
     marginTop: 2,
+  },
+  logoAndBrand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  cardAvioLogo: {
+    alignSelf: 'flex-start',
+  },
+  cardAvioLogoSm: {
+    marginBottom: 1,
+  },
+  cardAvioLogoMd: {
+    marginBottom: 2,
+  },
+  cardAvioLogoLg: {
+    marginBottom: 4,
   },
   brandText: {
     letterSpacing: 1.2,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, type ViewStyle } from 'react-native';
+import { StyleSheet, View, Text, type ViewStyle, type StyleProp } from 'react-native';
 import Svg, { Path, Rect, Defs, LinearGradient, Stop, G } from 'react-native-svg';
 
 interface AvioLogoProps {
@@ -7,7 +7,7 @@ interface AvioLogoProps {
   theme?: 'dark' | 'light';
   showTagline?: boolean;
   nfcColor?: string;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 export function AvioLogo({
