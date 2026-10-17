@@ -1,5 +1,5 @@
 /** Public host written to NFC chips and printed QR codes. */
-const DEFAULT_PUBLIC_PROFILE_HOST = 'https://kh.zeneova.com';
+const DEFAULT_PUBLIC_PROFILE_HOST = 'https://sitehub-8dd56.web.app';
 
 function normalizePublicProfileHost(host?: string): string {
   const value = host?.trim() || DEFAULT_PUBLIC_PROFILE_HOST;
