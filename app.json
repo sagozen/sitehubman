@@ -76,13 +76,6 @@
       ],
       "react-native-nfc-manager",
       "expo-updates",
-      [
-        "@sentry/react-native",
-        {
-          "organization": "sitehub",
-          "project": "sitehubman"
-        }
-      ],
       "react-native-compressor",
       [
         "expo-notifications",
